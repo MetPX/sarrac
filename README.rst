@@ -123,25 +123,12 @@ Developer Notes
 ---------------
 
 whereami:
-  - was looking at how to do partitioned (partflg='p') files, wrote footnote #1. 
-
-  - result is that the cache is probably required before doing partition support.
-    so thinking about doing the cache. DONE!
-
-  - when sleep > 0, cpost now walks trees by keeping track of the start mtime of the last pass.
-    algorithm based on *mtime* > start of previous pass... that's not necessarily good.
-
-    for example search of new directory.
-        whereas when you post a directory initially, is posts with mtime=0 first pass, so whole thing.
-        but if a directory is added, mtime is already current, so only files that change in future
-        will be posted... HMM...
+  - partitioned (partflg='p') files, not implemented, see pseudo-code in sr_post.c
 
   - FIXME: when 'start' if sleep <= 0 , should exit (not an error, compatibility with sr start all configs)
 
-  - FIXME: require a configuration file (log & state files) ?  sr_subscribe does work without it, but...
-
-  - do we go to the whole (copy directories into a file for comparison schtick?
-    that's more sr_poll.... try the cache first.
+  - FIXME: require a configuration file (log & state files) ?  sr_subscribe does work without it, but result is
+    often surprising for the user.
 
 worries/notes to self:
 
@@ -150,34 +137,3 @@ worries/notes to self:
     does that mean subscribers should try to download 0 bytes ? ... wondering if there 
     is something to do.  Should look at subscribers and confirm they do something sane.
  
-   Footnote 1: FIXME: posting partitioned parts Not yet implemented.
-
-   pseudo-code::
-
-      if (psc == 'p') 
-      {
-              If you find a file that ends in .p.4096.20.13.0.Part, which
-              decodes as: psc.blocksize.block_count.block_rem.block_num".Part"
-              then adjust: 
-                   - message to contain path with suffix included.
-                   - path to feed into checksum calc.
-              if the part file is not found, then skip to next part.
-
-              this algo posts all the parts present on local disk.
-
-            confusing things:
-               - I don't think it is useful to post all parts, most likely
-                 end up repeatedly posting many of the parts that way.
-               - likely only want to post each part once, so then would need
-                 a way to specify a particular part to post?
-
-          sprintf( suffixstr, ".%c.%lu.%lu.%lu.%lu.Part", psc, sr_c->cfg->blocksize, 
-              block_count, block_rem, block_num );
-           part_fn = fn + suffixstr
-             stat( partfn, partsb );  
-          if (Parf_file_found) {
-          } else {
-             suffixtr[0]='\0';
-          }
-      };
-

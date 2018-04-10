@@ -51,8 +51,8 @@ all: sr_version.h $(SARRA_OBJECT)
 	$(CC) $(CFLAGS) -o sr_cpost sr_cpost.c -lsarra $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
 	$(CC) $(CFLAGS) -o sr_cpump sr_cpump.c -lsarra $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
 
-debian/changelog: ../debian/changelog
-	sed 's/^metpx-sarracenia/libsarra-c/' <../debian/changelog >debian/changelog 
+#debian/changelog: ../sarracenia/debian/changelog
+#	sed 's/^metpx-sarracenia/libsarra-c/' <../sarracenia/debian/changelog >debian/changelog 
 
 sr_version.h: debian/changelog
 	echo "#define __sarra_version__ \"`head -1 debian/changelog| sed 's/.*(//' | sed 's/).*//'`\"" >sr_version.h
@@ -69,8 +69,9 @@ clean:
 	@rm -f *.o *.so *.so.* sr_cpost sr_configtest sr_utiltest sr_cpump sr_cachetest sr_cache_save.test
 	@rm -rf build sr_version.h
 
-test: all
+trust_but_verify: all
 	./sr_configtest test_post.conf 
 	./sr_utiltest 
 	./sr_cachetest
 	@valgrind --show-reachable=yes --track-origins=yes ./sr_cpost -c local_post.conf uthash.h
+

@@ -1,2 +1,1 @@
 build/include/*  usr/include/
-build/lib/*.so      usr/lib/
