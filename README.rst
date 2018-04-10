@@ -3,7 +3,7 @@
 C-Implementation of a Sarracenia Client
 ---------------------------------------
 
-This C functionality is embryonic, there is no intent to build a complete
+This C functionality is not intended to be a complete
 implementation, it is just a few pieces meant to provide interoperability for
 cases where either a python3 environment is either impractical, or where there
 are performance concerns that this implementation would help with..
