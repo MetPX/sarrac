@@ -1,8 +1,8 @@
 Source: sarrac
 Priority: optional
 Maintainer: Shared Services Canada Supercomputing <ssc.hpc-chp.spc@canada.ca>
-Build-Depends: debhelper (>=9), librabbitmq4 ( >= 0.8 ), librabbitmq-dev ( >= 0.8 )
-Depends: librabbitmq4 ( >= 0.8 )
+Build-Depends: debhelper (>=9), librabbitmq4 ( >= 0.8 ), librabbitmq-dev ( >= 0.8 ), libssl-dev
+Depends: librabbitmq4 ( >= 0.8 ), libssl
 Standards-Version: 3.9.6
 Section: libs
 Homepage: https://github.com/MetPX
@@ -12,24 +12,30 @@ Package: libsarrac-dev
 Section: libdevel
 Architecture: any
 Depends: sarrac (= ${binary:Version}), ${misc:Depends} 
+Recommends: python3-metpx-sarracenia (>= 2.18.04 )
 Description: C-Implementation of a Sarracenia Client
  API library could be used to integrate sarra posting into C applications.
  See http://github.com/MetPX/ for more information.
+ Documentation is in the python3-metpx-sarracenia package.
 
 Package: libsarrac
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: python3-metpx-sarracenia (>= 2.18.04 )
 Description: C-Implementation of a Sarracenia Client
  API library that builds against librabbitmq4
  includes sarracenia posting and consuming implementations.
  See http://github.com/MetPX/ for more information.
+ Documentation is in the python3-metpx-sarracenia package.
 
 Package: sarrac
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: python3-metpx-sarracenia (>= 2.18.04 )
 Description: C-Implementation of a Sarracenia Client
  sr_cpost, implementation of sr_post (see python3-metpx-sarracenia)
  sr_cpump, implementation of sr_shovel (see python3-metpx-sarracenia)
  libsrshim.so, shim library to be able to post without modifying user code.
  See http://github.com/MetPX/ for more information.
+ Documentation is in the python3-metpx-sarracenia package.

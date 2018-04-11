@@ -1,3 +1,10 @@
+sarrac (2.18.04b2ubuntu1) UNRELEASED; urgency=medium
+
+  * Split sarrac off as a separate package from python sarracenia implementation. 
+  * 
+
+ -- Peter Silva <peter@idefix>  Tue, 10 Apr 2018 19:22:04 -0400
+
 sarrac (2.18.04b2) unstable; urgency=medium
 
   * bugfix  C Truncate all headers and topic so they don't exceed 255 (AMQP limit.)

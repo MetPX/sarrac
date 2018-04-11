@@ -122,6 +122,8 @@ Plan:
 Developer Notes
 ---------------
 
+
+
 whereami:
   - partitioned (partflg='p') files, not implemented, see pseudo-code in sr_post.c
 
@@ -137,3 +139,17 @@ worries/notes to self:
     does that mean subscribers should try to download 0 bytes ? ... wondering if there 
     is something to do.  Should look at subscribers and confirm they do something sane.
  
+Release Process
+---------------
+
+Packages are only available for Ubuntu 17.10 and 18.04 as they have the version (>=0.8.0) of librabbitmq-c 
+that sarrac needs 
+
+To note changes:
+  - dch, and add your points.
+  - when ready to release, edit UNRELEASED to an appropriate status, usually unstable.
+  - go to Launchpad, and import source.
+  - go to launchpad, find the recipe and Request Build
+
+
+
