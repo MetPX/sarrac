@@ -10,7 +10,7 @@ Vcs-Git: https//github.com/MetPX/sarrac
 
 Package: libsarrac-dev
 Section: libdevel
-Architecture: any
+Architecture: all
 Depends: sarrac (= ${binary:Version}), ${misc:Depends} 
 Recommends: python3-metpx-sarracenia (>= 2.18.04 )
 Description: C-Implementation of a Sarracenia Client
@@ -20,17 +20,17 @@ Description: C-Implementation of a Sarracenia Client
 
 Package: libsarrac
 Section: libs
-Architecture: any
+Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: python3-metpx-sarracenia (>= 2.18.04 )
 Description: C-Implementation of a Sarracenia Client
- API library that builds against librabbitmq4
+ API library that builds against librabbitmq
  includes sarracenia posting and consuming implementations.
  See http://github.com/MetPX/ for more information.
  Documentation is in the python3-metpx-sarracenia package.
 
 Package: sarrac
-Architecture: any
+Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: python3-metpx-sarracenia (>= 2.18.04 )
 Description: C-Implementation of a Sarracenia Client
