@@ -123,6 +123,7 @@ struct sr_config_t {
   char               *list;          //method to generate initial input list:  file or queue
   int                 log;           // use a log file, rather than standard files.
   char               *logfn;           // use a log file, rather than standard files.
+  int                 logrotate;       // number of days to keep log files around.
   int                 logseverity;      // severity of messages to log (regardless of where.)
   struct sr_mask_t   *masks;
   struct sr_mask_t   *match;

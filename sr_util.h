@@ -22,7 +22,7 @@ extern int log_level ;
 
 void log_msg(const int prio, const char *format, ...);
 
-void log_setup(const char *logfname, mode_t mode, int severity);
+void log_setup(const char *logfname, mode_t mode, int severity, int logrotation);
 // set up logging to the named file, suppressing messages of lower severity 
 
 void log_cleanup();

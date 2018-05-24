@@ -747,6 +747,11 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       val = sr_add_header(sr_cfg, argument);
       retval=(1+(val&1));
 
+  } else if ( !strcmp( option, "logrotate" ) || !strcmp( option, "lr") || !strcmp( option, "logdays") || !strcmp( option, "ld") ) {
+
+      sr_cfg->logrotate = atoi(argument);
+      retval=(2);
+
   } else if ( !strcmp( option, "loglevel" ) ) {
       if ( !strcasecmp( argument, "info" ) ) {
          sr_cfg->logseverity = LOG_INFO ;
@@ -1010,6 +1015,7 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->last_matched=NULL;
   sr_cfg->log=0;
   sr_cfg->logfn=NULL;
+  sr_cfg->logrotate=5;
   sr_cfg->logseverity=LOG_INFO;
   sr_cfg->masks=NULL;
   sr_cfg->match=NULL;
@@ -1296,7 +1302,7 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
 
   if ( sr_cfg->log )
   {
-      log_setup( sr_cfg->logfn , sr_cfg->chmod_log, sr_cfg->debug?LOG_DEBUG:(sr_cfg->logseverity) );
+      log_setup( sr_cfg->logfn , sr_cfg->chmod_log, sr_cfg->debug?LOG_DEBUG:(sr_cfg->logseverity), sr_cfg->logrotate );
   }
 
   // pidfn statehost

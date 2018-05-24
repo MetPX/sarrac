@@ -20,6 +20,7 @@ int log_level=LOG_INFO;
 char *logfn=NULL;
 int logtoday=-1;
 int logmode=0700;
+int logrotate=5;
 
 void log_msg(int prio, const char *format, ...)
 {
@@ -48,12 +49,13 @@ void log_msg(int prio, const char *format, ...)
     if ( logtoday == -1 )  
     {
        logtoday = s.tm_mday;
-       //logtoday = s.tm_sec;
+       //LRT logtoday = s.tm_min;
     } else 
     {
-       // use tm_sec to test log rotation logic.
-       if ( logtoday != s.tm_mday )
-       //if ( logtoday != s.tm_sec ) 
+       // should run once a day to move logs to daily files.
+       // use tm_min to test log rotation logic (LRT).  Naming convention: just copied python one.
+       //LRT if ( logfn && ( logtoday != s.tm_min ))
+       if ( logfn && ( logtoday != s.tm_mday ))
        {
          char buf[PATH_MAX];
          int buflen;
@@ -64,13 +66,25 @@ void log_msg(int prio, const char *format, ...)
          gmtime_r(&(yt),&ystm);
          strcpy( buf, logfn );
          buflen = strlen(buf) ;
-         //snprintf( buf+buflen, PATH_MAX-buflen, ".%04d-%02d-%02d",  ystm.tm_year+1900, ystm.tm_mon+1, ystm.tm_sec );
+         //LRT snprintf( buf+buflen, PATH_MAX-buflen, ".%04d-%02d-%02d",  ystm.tm_year+1900, ystm.tm_mon+1, ystm.tm_min );
          snprintf( buf+buflen, PATH_MAX-buflen, ".%04d-%02d-%02d",  ystm.tm_year+1900, ystm.tm_mon+1, ystm.tm_mday );
-         close( logfd );
-         rename( logfn, buf );
-         logfd = open( logfn, O_WRONLY|O_CREAT|O_APPEND, logmode );
+         if ( !rename( logfn, buf ) ) {
+            close( logfd );
+            logfd = open( logfn, O_WRONLY|O_CREAT|O_APPEND, logmode );
+         }
+
          logtoday = s.tm_mday;
-         //logtoday = s.tm_sec;
+         //LRT logtoday = s.tm_min;
+
+         // remove old one.         
+         yt = ts.tv_sec - logrotate*(24*3600);
+         //LRT yt = ts.tv_sec - logrotate*(60);
+         gmtime_r(&(yt),&ystm);
+         strcpy( buf, logfn );
+         buflen = strlen(buf) ;
+         //LRT snprintf( buf+buflen, PATH_MAX-buflen, ".%04d-%02d-%02d",  ystm.tm_year+1900, ystm.tm_mon+1, ystm.tm_min );
+         snprintf( buf+buflen, PATH_MAX-buflen, ".%04d-%02d-%02d",  ystm.tm_year+1900, ystm.tm_mon+1, ystm.tm_mday );
+         unlink( buf ); // ignore error, if it isn't there not a problem.
        }
     }
 
@@ -81,10 +95,11 @@ void log_msg(int prio, const char *format, ...)
 }
 
 
-void log_setup(const char *f, mode_t mode, int severity ) 
+void log_setup(const char *f, mode_t mode, int severity, int logrotation ) 
 {
    logfn = strdup( f );
    logmode = mode;
+   logrotate = logrotation;
 
    logfd = open( logfn, O_WRONLY|O_CREAT|O_APPEND, logmode );
    log_level = severity;
