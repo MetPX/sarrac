@@ -17,6 +17,9 @@
 
 int logfd=2;
 int log_level=LOG_INFO;
+char *logfn=NULL;
+int logtoday=-1;
+int logmode=0700;
 
 void log_msg(int prio, const char *format, ...)
 {
@@ -40,16 +43,50 @@ void log_msg(int prio, const char *format, ...)
         case LOG_CRITICAL  : p="CRITICAL"; break;
         default: p="UNKNOWN";
     }
+
+    /* log rotation */
+    if ( logtoday == -1 )  
+    {
+       logtoday = s.tm_mday;
+       //logtoday = s.tm_sec;
+    } else 
+    {
+       // use tm_sec to test log rotation logic.
+       if ( logtoday != s.tm_mday )
+       //if ( logtoday != s.tm_sec ) 
+       {
+         char buf[PATH_MAX];
+         int buflen;
+         struct tm ystm;
+         time_t yt;
+
+         yt = ts.tv_sec-(23*3600);     /* FIXME: how to reliably pick yesterday? Is this OK? */
+         gmtime_r(&(yt),&ystm);
+         strcpy( buf, logfn );
+         buflen = strlen(buf) ;
+         //snprintf( buf+buflen, PATH_MAX-buflen, ".%04d-%02d-%02d",  ystm.tm_year+1900, ystm.tm_mon+1, ystm.tm_sec );
+         snprintf( buf+buflen, PATH_MAX-buflen, ".%04d-%02d-%02d",  ystm.tm_year+1900, ystm.tm_mon+1, ystm.tm_mday );
+         close( logfd );
+         rename( logfn, buf );
+         logfd = open( logfn, O_WRONLY|O_CREAT|O_APPEND, logmode );
+         logtoday = s.tm_mday;
+         //logtoday = s.tm_sec;
+       }
+    }
+
     dprintf( logfd, "%04d-%02d-%02d %02d:%02d:%02d,%03d [%s] ", s.tm_year+1900, s.tm_mon+1,
         s.tm_mday, s.tm_hour, s.tm_min, s.tm_sec, (int)(ts.tv_nsec/1e6), p );
-
     vdprintf( logfd, format, ap);
+
 }
 
 
 void log_setup(const char *f, mode_t mode, int severity ) 
 {
-   logfd = open(f, O_WRONLY|O_CREAT|O_APPEND, mode );
+   logfn = strdup( f );
+   logmode = mode;
+
+   logfd = open( logfn, O_WRONLY|O_CREAT|O_APPEND, logmode );
    log_level = severity;
 
    return;
@@ -58,6 +95,8 @@ void log_setup(const char *f, mode_t mode, int severity )
 
 void log_cleanup() 
 {
+   free( logfn );
+   logfn=NULL;
    close( logfd );
 }
 
