@@ -152,6 +152,11 @@ void srshim_realpost(const char *path)
       return;
   }
 
+  if (!sr_connected) {
+     sr_c = sr_context_connect( sr_c );
+     sr_connected=1;
+  }
+
   if ( statres )  {
       //log_msg( LOG_INFO, "ICI5 sr_post %s\n",fn);
       sr_post( sr_c, fn, NULL );
@@ -164,10 +169,6 @@ void srshim_realpost(const char *path)
       strcpy( fn, path );
   }
  
-  if (!sr_connected) {
-     sr_c = sr_context_connect( sr_c );
-     sr_connected=1;
-  }
   sr_post( sr_c, fn, &sb );
 
 }
