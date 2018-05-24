@@ -39,7 +39,7 @@
  */
 static struct sr_context *sr_c = NULL;
 static struct sr_config_t sr_cfg; 
-
+static int sr_connected = 0;
 
 
 static int close_init_done = 0;
@@ -79,7 +79,6 @@ void srshim_initialize(const char* progname)
      }
 
      sr_c = sr_context_init_config(&sr_cfg);
-     sr_c = sr_context_connect( sr_c );
 
   } 
 }
@@ -164,7 +163,11 @@ void srshim_realpost(const char *path)
   if (S_ISLNK(sb.st_mode))  {
       strcpy( fn, path );
   }
-
+ 
+  if (!sr_connected) {
+     sr_c = sr_context_connect( sr_c );
+     sr_connected=1;
+  }
   sr_post( sr_c, fn, &sb );
 
 }
