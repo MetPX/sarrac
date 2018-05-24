@@ -431,6 +431,10 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd, const char *ne
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG renameorlink sr_c=%p, oreal_path=%s, real_path=%s\n", 
             sr_c, oreal_path, real_path );
 
+    if (!sr_connected) {
+       sr_c = sr_context_connect( sr_c );
+       sr_connected=1;
+    }
     sr_post_rename( sr_c, oreal_path, real_path );
 
     return(status);
