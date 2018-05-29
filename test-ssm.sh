@@ -14,7 +14,7 @@ bash -c 'echo "hoho" >> ./hoho'
 
 truncate --size=2 ./hoho
 
-/usr/bin/python2.7 pyiotest
+/usr/bin/env python pyiotest
 grep lovely pyiotest
 cp ${SR_POST_CONFIG} ~/test/hoho_my_darling.txt
 touch hihi
