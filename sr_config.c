@@ -73,6 +73,7 @@ void sr_add_path( struct sr_config_t *sr_cfg, const char* option )
         || !strcmp( option, "reload" ) 
         || !strcmp( option, "remove" )
         || !strcmp( option, "restart" ) 
+        || !strcmp( option, "sanity" ) 
         || !strcmp( option, "setup" ) 
         || !strcmp( option, "start" ) 
       )
@@ -852,6 +853,10 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       sr_cfg->recursive = val&2;
       return(1+(val&1));
    */
+  } else if ( !strcmp( option, "sanity_log_dead" ) ) {
+      sr_cfg->sanity_log_dead = atoi(argument);
+      retval=(2);
+
   } else if ( !strcmp( option, "sleep" ) ) {
       sr_cfg->sleep = atof(argument);
       retval=(2);
@@ -1041,6 +1046,7 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->realpath=0;
   sr_cfg->realpath_filter=0;
   sr_cfg->recursive=1;
+  sr_cfg->sanity_log_dead=0;
   sr_cfg->sleep=0.0;
   sr_cfg->heartbeat=300.0;
   sr_cfg->help=0;
@@ -1287,11 +1293,11 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
 
   // logfn
   if ( val ) {
-     sprintf( p, "%s/.cache/sarra/%s/log/sr_%s_%s_%04d.log", getenv("HOME"), 
+     sprintf( p, "%s/.cache/sarra/%s/log/sr_%s_%s_%02d.log", getenv("HOME"), 
          val, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance );
   }
   else {
-     sprintf( p, "%s/.cache/sarra/log/sr_%s_%s_%04d.log", getenv("HOME"), 
+     sprintf( p, "%s/.cache/sarra/log/sr_%s_%s_%02d.log", getenv("HOME"), 
          sr_cfg->progname, sr_cfg->configname, sr_cfg->instance );
   }
 
@@ -1338,6 +1344,9 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
                sr_cfg->progname, sr_cfg->configname, sr_cfg->instance );
   }
 
+  if (sr_cfg->sanity_log_dead == 0)  sr_cfg->sanity_log_dead = 1.5 * sr_cfg->heartbeat ;
+  if (sr_cfg->sanity_log_dead < 450) sr_cfg->sanity_log_dead = 450;
+  
   if (sr_cfg->cache > 0) 
   {
          sr_cfg->cachep = sr_cache_open( p );
@@ -1345,23 +1354,27 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
          if (!access(p, F_OK )) unlink(p);
   }
 
-  // FIXME: if prog is post, then only post_broker is OK.
-  log_msg( LOG_INFO, "sr_%s %s settings: action=%s config_name=%s log_level=%d follow_symlinks=%s realpath=%s\n",
+  // Since we check how old the log is, we ust not write to the log during startup in sanity mode.
+  if ( strcmp( sr_cfg->action, "sanity" ) ) 
+  {
+      log_msg( LOG_INFO, "sr_%s %s settings: action=%s config_name=%s log_level=%d follow_symlinks=%s realpath=%s\n",
           sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_cfg->configname, log_level, sr_cfg->follow_symlinks?"yes":"no",  
           sr_cfg->realpath?"yes":"no" );
-  log_msg( LOG_INFO, "\tsleep=%g heartbeat=%g cache=%g cache_file=%s accept_unmatch=%s\n",
-          sr_cfg->sleep, sr_cfg->heartbeat, sr_cfg->cache, sr_cfg->cachep?p:"off", sr_cfg->accept_unmatched?"on":"off" );
-  log_msg( LOG_INFO, "\tevents=%04x directory=%s queuename=%s force_polling=%s sum=%c statehost=%c\n",
+      log_msg( LOG_INFO, "\tsleep=%g heartbeat=%g sanity_log_dead=%d cache=%g cache_file=%s accept_unmatch=%s\n",
+          sr_cfg->sleep, sr_cfg->heartbeat, sr_cfg->sanity_log_dead, 
+          sr_cfg->cache, sr_cfg->cachep?p:"off", sr_cfg->accept_unmatched?"on":"off" );
+      log_msg( LOG_INFO, "\tevents=%04x directory=%s queuename=%s force_polling=%s sum=%c statehost=%c\n",
           sr_cfg->events, sr_cfg->directory, sr_cfg->queuename, sr_cfg->force_polling?"on":"off", sr_cfg->sumalgo, sr_cfg->statehost  );
-  log_msg( LOG_INFO, "\tmessage_ttl=%d post_exchange=%s post_exchange_split=%d post_exchange_suffix=%s\n",
+      log_msg( LOG_INFO, "\tmessage_ttl=%d post_exchange=%s post_exchange_split=%d post_exchange_suffix=%s\n",
           sr_cfg->message_ttl, sr_cfg->post_exchange, sr_cfg->post_exchange_split, sr_cfg->post_exchange_suffix );
-  log_msg( LOG_INFO, "\tsource=%s to=%s post_base_url=%s topic_prefix=%s pid=%d\n",
+      log_msg( LOG_INFO, "\tsource=%s to=%s post_base_url=%s topic_prefix=%s pid=%d\n",
           sr_cfg->source, sr_cfg->to, sr_cfg->post_base_url, sr_cfg->topic_prefix, sr_cfg->pid  );
+  }
 
   // FIXME: Missing: topics, user_headers, 
   if  ( !strcmp(sr_cfg->progname,"post") || !strcmp(sr_cfg->progname,"cpost") ) 
   {
-      if ( !(sr_cfg->post_broker) ) 
+      if ( !(sr_cfg->post_broker) && (sr_cfg->broker)) 
       {
           log_msg( LOG_WARNING, "please replace broker with post_broker\n" );
           sr_cfg->post_broker  = sr_cfg->broker ;
@@ -1399,13 +1412,11 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
     
       if ( sr_cfg->source == NULL ) 
       {
-          log_msg( LOG_DEBUG, "setting source: %s\n", sr_cfg->post_broker->user );
           sr_cfg->source = strdup(sr_cfg->post_broker->user ) ;
       }
 
       if ( sr_cfg->to == NULL ) 
       {
-          log_msg( LOG_DEBUG, "setting to_cluster: %s\n", sr_cfg->post_broker->hostname );
           sr_cfg->to = strdup(sr_cfg->post_broker->hostname) ;
       }
   } 
@@ -1542,6 +1553,7 @@ int sr_config_startstop( struct sr_config_t *sr_cfg)
 {
     struct timespec tsleep;
     int ret;
+    struct stat sb;
 
     // "default" cannot run.
     if (!strcmp(sr_cfg->configname,"default")) return(0);
@@ -1555,13 +1567,29 @@ int sr_config_startstop( struct sr_config_t *sr_cfg)
         {   // is running.
             if ( !strcmp(sr_cfg->action, "status") )
             {
-               fprintf( stderr, "sr_cpost configuration %s is running with pid %d. log: %s\n", sr_cfg->configname, sr_cfg->pid, sr_cfg->logfn );
+               fprintf( stderr, "configuration %s is running with pid %d. log: %s\n", sr_cfg->configname, sr_cfg->pid, sr_cfg->logfn );
                return(0);
             }
-
+            if ( !strcmp(sr_cfg->action, "sanity") )
+            {
+               if (stat(sr_cfg->logfn,&sb))
+               {
+                  fprintf( stderr, "sanity check: cannot stat log file %s. Something is wrong.\n", sr_cfg->logfn );
+               } else 
+               {
+                  clock_gettime( CLOCK_REALTIME, &tsleep );
+                  if ((tsleep.tv_sec - sb.st_mtime) <= sr_cfg->sanity_log_dead )
+                  {
+                     fprintf( stderr, "sanity check: configuration %s is running with pid %d. log: %s is %ld seconds old\n", 
+                                sr_cfg->configname, sr_cfg->pid, sr_cfg->logfn, (tsleep.tv_sec - sb.st_mtime) );
+                     return(-1);
+                  }
+                  fprintf( stderr, "sanity check: log file %s untouched in too long.\n", sr_cfg->logfn );
+               }
+            }
             if ( !strcmp(sr_cfg->action, "cleanup") || !strcmp(sr_cfg->action, "remove") )
             {
-               fprintf( stderr, "sr_cpost configuration %s is running with pid %d. log: %s\n", sr_cfg->configname, sr_cfg->pid, sr_cfg->logfn );
+               fprintf( stderr, "configuration %s is running with pid %d. log: %s\n", sr_cfg->configname, sr_cfg->pid, sr_cfg->logfn );
                fprintf( stderr, "cannot perform %s\n", sr_cfg->action);
                return(-1);
             }
@@ -1569,13 +1597,13 @@ int sr_config_startstop( struct sr_config_t *sr_cfg)
             // pid is running and have permission to signal, this is a problem for start & foreground.
             if ( !strcmp(sr_cfg->action, "start" ) || ( !strcmp(sr_cfg->action, "foreground" ) ) ) 
             {
-               log_msg( LOG_ERROR, "sr_cpost configuration %s already running using pid %d.\n", sr_cfg->configname, sr_cfg->pid );
+               log_msg( LOG_ERROR, "configuration %s already running using pid %d.\n", sr_cfg->configname, sr_cfg->pid );
                return(-1);
             }
  
             // but otherwise it's normal, so kill the running one. 
 
-            log_msg( LOG_INFO, "sr_cpost killing running instance pid=%d\n", sr_cfg->pid );
+            log_msg( LOG_INFO, "killing running instance pid=%d\n", sr_cfg->pid );
 
             //  just kill it a little at first...
             kill(sr_cfg->pid,SIGTERM);

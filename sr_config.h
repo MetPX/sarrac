@@ -143,6 +143,7 @@ struct sr_config_t {
   int                 realpath;
   int                 realpath_filter;
   int                 recursive;
+  time_t              sanity_log_dead;
   float               sleep;
   char                sumalgo; // checksum algorithm to use.
   char               *source;
