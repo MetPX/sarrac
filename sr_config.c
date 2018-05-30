@@ -1582,7 +1582,7 @@ int sr_config_startstop( struct sr_config_t *sr_cfg)
                   {
                      fprintf( stderr, "sanity check: configuration %s is running with pid %d. log: %s is %ld seconds old\n", 
                                 sr_cfg->configname, sr_cfg->pid, sr_cfg->logfn, (tsleep.tv_sec - sb.st_mtime) );
-                     return(-1);
+                     return(0);
                   }
                   fprintf(stderr, "sanity check: log file %s untouched in %ld seconds (too long.)\n", 
                      sr_cfg->logfn, (tsleep.tv_sec - sb.st_mtime) );
