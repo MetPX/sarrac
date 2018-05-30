@@ -1584,7 +1584,8 @@ int sr_config_startstop( struct sr_config_t *sr_cfg)
                                 sr_cfg->configname, sr_cfg->pid, sr_cfg->logfn, (tsleep.tv_sec - sb.st_mtime) );
                      return(-1);
                   }
-                  fprintf( stderr, "sanity check: log file %s untouched in too long.\n", sr_cfg->logfn );
+                  fprintf(stderr, "sanity check: log file %s untouched in %ld seconds (too long.)\n", 
+                     sr_cfg->logfn, (tsleep.tv_sec - sb.st_mtime) );
                }
             }
             if ( !strcmp(sr_cfg->action, "cleanup") || !strcmp(sr_cfg->action, "remove") )

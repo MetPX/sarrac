@@ -309,8 +309,8 @@ void sr_context_heartbeat(struct sr_context *sr_c)
  */
 {
    int cached_count;
-   log_msg( LOG_INFO, "heartbeat processing start\n" );
 
+   log_msg( LOG_INFO, "heartbeat processing start\n" );
    if (sr_c->cfg->cachep)
    {
        log_msg( LOG_INFO, "heartbeat starting to clean cache\n" );
@@ -323,6 +323,7 @@ void sr_context_heartbeat(struct sr_context *sr_c)
        cached_count = sr_cache_save(sr_c->cfg->cachep, 0 );
        log_msg( LOG_INFO, "heartbeat after cleaning, cache stores %d entries.\n", cached_count );
    }
+   log_msg( LOG_INFO, "heartbeat processing completed\n" );
 }
 
 
