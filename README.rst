@@ -13,6 +13,25 @@ are performance concerns that this implementation would help with..
 
  - in-process invocation of sr_post on file closes (libsrshim.)
 
+Installation
+------------
+
+easiest way to obtain it, if you are on Ubuntu 14.04/16.04/17.10/18.04) is to
+use the PPA on Launchpad.net::
+
+  sudo add-apt-repository ppa:ssc-hpc-chp-spc/metpx
+  sudo apt-get update
+  sudo apt-get install sarrac
+
+if on another debian derived OS, then assuming build dependencies are taken care of,
+  debuild -uc -us
+
+will build a package you can install.  Otherwise just *make*, and you need
+to install the bits yourself.
+
+
+Use
+---
 A library, libsarra is built, with external interfaces one can access from C 
 using the entry points and data structures documented in sr_context.h, sr_post.h, 
 and sr_consume.h files.  The library uses sr_config(7) style config files (see Limitations). 
@@ -41,10 +60,9 @@ post:
 url: 
   just print out the retrieval urls, rather than the entire message
 
-
-
-There is also an LD_PRELOAD shim library example. (libsrshim.c) that
-uses the posting api. sample usage::
+There is also an LD_PRELOAD shim library. (libsrshim.c) that uses the posting API,
+this is to be used in `very high volume use cases <https://github.com/MetPX/sarracenia/blob/master/doc/mirroring_use_case.rst>`_
+ ) sample usage::
 
    export SR_POST_CONFIG="mypost"
    export LD_PRELOAD=`pwd`/libsrshim.so.1.0.0
@@ -70,7 +88,6 @@ know we needed.)
 If the SR_SHIMDEBUG variable is set, rather verbose messaging will occur.
 
 
-
 Limitations of the C implementation
 -----------------------------------
 
@@ -78,6 +95,7 @@ Limitations of the C implementation
  - This library is a single process, the *instances* setting is completely ignored.
  - The queue settings established by a consumer are not the same as those of the python
    implementation, so queues cannot be shared between the two.
+ - The shim library is very Linux specific.  Porting to other operating systems will be a significant re-write.
  - The C is infected by python taste... 4 character indent, with spaces, all the time.
 
 
@@ -86,6 +104,7 @@ Build Dependencies
 
 The librabbitmq version needs to be > 0.8,  this is newer than what is in ubuntu 16.04.
 So you need to git clone from https://github.com/alanxz/rabbitmq-c  ... then built it there.
+The launchpad PPA has a backport included to take care of this.
 
 
 export RABBIT_BUILD=*directory where rabbit has been built*
@@ -114,23 +133,8 @@ To load sr_cpost
  
 
 
-Plan:
-  - figure out packaging?
-  - if the local shim does not go well, step 2 is: sr_cwatch.
-
-
 Developer Notes
 ---------------
-
-
-
-whereami:
-  - partitioned (partflg='p') files, not implemented, see pseudo-code in sr_post.c
-
-  - FIXME: when 'start' if sleep <= 0 , should exit (not an error, compatibility with sr start all configs)
-
-  - FIXME: require a configuration file (log & state files) ?  sr_subscribe does work without it, but result is
-    often surprising for the user.
 
 worries/notes to self:
 
@@ -142,14 +146,9 @@ worries/notes to self:
 Release Process
 ---------------
 
-Packages are only available for Ubuntu 17.10 and 18.04 as they have the version (>=0.8.0) of librabbitmq-c 
-that sarrac needs 
-
 To note changes:
   - dch, and add your points.
   - when ready to release, edit UNRELEASED to an appropriate status, usually unstable.
-  - go to Launchpad, and import source.
-  - go to launchpad, find the recipe and Request Build
-
-
+  - go to Launchpad, and import source `here <https://code.launchpad.net/~ssc-hpc-chp-spc/metpx-sarrac/+git/master>`_.
+  - go to launchpad, find the recipe and Request Build `here <https://code.launchpad.net/~ssc-hpc-chp-spc/+recipe/metpx-sarrac>`_.
 
