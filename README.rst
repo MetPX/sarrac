@@ -132,17 +132,6 @@ To load sr_cpost
 . ssmuse-sh -d /fs/ssm/hpco/exp/sarrac-2.18.05b4
  
 
-
-Developer Notes
----------------
-
-worries/notes to self:
-
-  - behaviour on posting and empty file results in a partstr 1,0,1,0,0
-    partstrategy=1 (whole file), blocksize=0, blockcount=1, remainder=0, block=0.
-    does that mean subscribers should try to download 0 bytes ? ... wondering if there 
-    is something to do.  Should look at subscribers and confirm they do something sane.
- 
 Release Process
 ---------------
 
