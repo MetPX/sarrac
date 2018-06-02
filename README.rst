@@ -129,7 +129,7 @@ a compatible version of rabbitmq-c can be obtained
 . ssmuse-sh -d /fs/ssm/main/opt/rabbitmqc/rabbitmqc-0.8.0
  
 To load sr_cpost
-. ssmuse-sh -d /fs/ssm/hpco/exp/sarrac-0.5
+. ssmuse-sh -d /fs/ssm/hpco/exp/sarrac-2.18.05b4
  
 
 
