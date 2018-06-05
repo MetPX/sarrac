@@ -123,7 +123,7 @@ libssl - OpenSSL client library.
 Dorval Computing Centre
 -----------------------
 
-If you are in the Dorval computing centre environment, then `SSM <https://expl.info/>`_ is available and 
+If you are in the Dorval computing centre environment, then `SSM <https://expl.info/display/SSM>`_ is available and 
 a compatible version of rabbitmq-c can be obtained 
 
 . ssmuse-sh -d /fs/ssm/main/opt/rabbitmqc/rabbitmqc-0.8.0
