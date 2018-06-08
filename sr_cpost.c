@@ -701,6 +701,13 @@ int main(int argc, char **argv)
         exit(abs(ret));
     }
 
+    if  ( (sr_cfg.sleep <= 0.0) &&
+          ( ( !strcmp( sr_cfg.action, "start" ) ) ||
+            ( !strcmp( sr_cfg.action, "restart" ) ) ))
+    {
+        log_msg( LOG_INFO, "start|restart with sleep <= 0 does nothing. exiting normally\n");
+        return(0);
+    }
     sr_c = sr_context_init_config( &sr_cfg );
     if (!sr_c) 
     {
