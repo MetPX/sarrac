@@ -23,7 +23,9 @@ use the PPA on Launchpad.net::
   sudo apt-get update
   sudo apt-get install sarrac
 
-if on another debian derived OS, then assuming build dependencies are taken care of,
+if on another debian derived OS, then assuming build dependencies are taken 
+care of::
+
   debuild -uc -us
 
 will build a package you can install.  Otherwise just *make*, and you need
@@ -33,9 +35,10 @@ to install the bits yourself.
 Use
 ---
 A library, libsarra is built, with external interfaces one can access from C 
-using the entry points and data structures documented in sr_context.h, sr_post.h, 
-and sr_consume.h files.  The library uses sr_config(7) style config files (see Limitations). 
-A sample usage of the libraries is a command line binary, that can call the library::
+using the entry points and data structures documented in sr_context.h, 
+sr_post.h, and sr_consume.h files.  The library uses sr_config(7) style config
+files (see Limitations). A sample usage of the libraries is a command line
+binary, that can call the library::
 
    sr_cpost
 
@@ -45,11 +48,11 @@ when supplied causes it to loop, checking for new items every *sleep* seconds
 
   sr_cpump
 
-which obtains messages and, by default, prints them to standard output in json format identical
-the the format used by the python implementation for save/restore.
-In order to have a complete downloader, one needs a script to parse the json output
-and invoke an appropriate binary downloader.  One can use the 'outlet' switch
-to choose other formats:
+which obtains messages and, by default, prints them to standard output in json
+format identical the the format used by the python implementation for 
+save/restore. In order to have a complete downloader, one needs a script to
+parse the json output and invoke an appropriate binary downloader.  One can
+use the 'outlet' switch to choose other formats:
  
 json:
   the default format, json compatible with python save/restore.
@@ -60,8 +63,8 @@ post:
 url: 
   just print out the retrieval urls, rather than the entire message
 
-There is also an LD_PRELOAD shim library. (libsrshim.c) that uses the posting API,
-this is to be used in `very high volume use cases <https://github.com/MetPX/sarracenia/blob/master/doc/mirroring_use_case.rst>`_
+There is also an LD_PRELOAD shim library. (libsrshim.c) that uses the posting
+API, this is to be used in `very high volume use cases <https://github.com/MetPX/sarracenia/blob/master/doc/mirroring_use_case.rst>`_
  ) sample usage::
 
    export SR_POST_CONFIG="mypost"
@@ -73,17 +76,21 @@ this is to be used in `very high volume use cases <https://github.com/MetPX/sarr
    ln -s hoho haha
    rm haha
 
-With the SR_POST_CONFIG set to "mypost", The libsrshim library will look in ~/.config/sarra/post/  for "mypost.conf."
-With the LD_PRELOAD set to use the library, processes that run will call functions like 'close' that are in 
-the shim library, and the shim library will apply the "mypost.conf" configuration to figure out whether it
-should post the file being closed, and if so, to what broker.  
+With the SR_POST_CONFIG set to "mypost", The libsrshim library will look in 
+~/.config/sarra/post/  for "mypost.conf." With the LD_PRELOAD set to use the
+library, processes that run will call functions like 'close' that are in the
+shim library, and the shim library will apply the "mypost.conf" configuration
+to figure out whether it should post the file being closed, and if so, to what
+broker.  
 
-Normally, posting  will only occur for files that have been written. If one wants to post files opened even in
-readonly mode, this triggers more overhead as even trivial programs such as *cat* need to configure a connection
-to the broker in case they end up posting to it. Normally, the connection is only established when there
-is a modified file is checked for posting. To enable full access monitoring, set the SR_POST_READS variable.
-This provides an auditing function and/or the ability to mirror a complete environment (even files that we didn't
-know we needed.)
+Normally, posting  will only occur for files that have been written. If one
+wants to post files opened even in readonly mode, this triggers more overhead
+as even trivial programs such as *cat* need to configure a connection to the
+broker in case they end up posting to it. Normally, the connection is only
+established when there is a modified file is checked for posting. To enable
+full access monitoring, set the SR_POST_READS variable. This provides an
+auditing function and/or the ability to mirror a complete environment (even
+files that we didn't know we needed.)
 
 If the SR_SHIMDEBUG variable is set, rather verbose messaging will occur.
 
@@ -91,31 +98,36 @@ If the SR_SHIMDEBUG variable is set, rather verbose messaging will occur.
 Limitations of the C implementation
 -----------------------------------
 
- - This library and tools do not work with any plugins from the python implementation.
- - This library is a single process, the *instances* setting is completely ignored.
- - The queue settings established by a consumer are not the same as those of the python
-   implementation, so queues cannot be shared between the two.
- - The shim library is very Linux specific.  Porting to other operating systems will be a significant re-write.
- - The C is infected by python taste... 4 character indent, with spaces, all the time.
+ - This library and tools do not work with any plugins from the python 
+   implementation.
+ - This library is a single process, the *instances* setting is completely 
+   ignored.
+ - The queue settings established by a consumer are not the same as those
+   of the python implementation, so queues cannot be shared between the two.
+ - The shim library is very Linux specific.  Porting to other operating systems
+   will be a significant re-write.
+ - The C is infected by python taste... 4 character indent, with spaces, all
+   the time.
 
 
 Build Dependencies
 ------------------
 
-The librabbitmq version needs to be > 0.8,  this is newer than what is in ubuntu 16.04.
-So you need to git clone from https://github.com/alanxz/rabbitmq-c  ... then built it there.
-The launchpad PPA has a backport included to take care of this.
+The librabbitmq version needs to be > 0.8,  this is newer than what is in
+ubuntu 16.04. So you need to git clone from https://github.com/alanxz/rabbitmq-c
+then built it there. The launchpad PPA has a backport included to take care of
+this::
 
-
-export RABBIT_BUILD=*directory where rabbit has been built*
+  export RABBIT_BUILD=*directory where rabbit has been built*
 
 
 librabbitmq-dev - AMQP client library written in C - Dev Files
 libssl-dev  - OpenSSL client library (used for hash algorithms.)
 
-run dependencies:
-librabbitmq4 - AMQP client library written in C
-libssl - OpenSSL client library.
+run dependencies::
+
+  librabbitmq4 - AMQP client library written in C
+  libssl - OpenSSL client library.
 
 
   
@@ -123,13 +135,15 @@ libssl - OpenSSL client library.
 Dorval Computing Centre
 -----------------------
 
-If you are in the Dorval computing centre environment, then `SSM <https://expl.info/display/SSM>`_ is available and 
-a compatible version of rabbitmq-c can be obtained 
+If you are in the Dorval computing centre environment, then 
+`SSM <https://expl.info/display/SSM>`_ is available and a compatible version
+of rabbitmq-c can be obtained ::
 
-. ssmuse-sh -d /fs/ssm/main/opt/rabbitmqc/rabbitmqc-0.8.0
+  . ssmuse-sh -d /fs/ssm/main/opt/rabbitmqc/rabbitmqc-0.8.0
  
-To load sr_cpost
-. ssmuse-sh -d /fs/ssm/hpco/exp/sarrac-2.18.05b4
+To load sr_cpost::
+
+  . ssmuse-sh -d /fs/ssm/hpco/exp/sarrac-2.18.05b4
  
 
 Release Process
