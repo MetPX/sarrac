@@ -1,3 +1,12 @@
+sarrac (2.18.06b1) UNRELEASED; urgency=medium
+
+  * implemented daily log rotation.
+  * if cpost called with start|restart and sleep <= 0, make sure we do nothing.
+  * implemented sanity command.
+  * README updated my moving issues to github,
+
+ -- Peter Silva <peter@blacklab>  Sat, 09 Jun 2018 22:24:52 -0400
+
 sarrac (2.18.05b4) unstable; urgency=medium
 
   * fixed one case where connection was deferred too long (core dump.)
