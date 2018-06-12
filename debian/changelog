@@ -1,4 +1,4 @@
-sarrac (2.18.06b1) UNRELEASED; urgency=medium
+sarrac (2.18.06b2) unstable; urgency=medium
 
   * implemented daily log rotation.
   * if cpost called with start|restart and sleep <= 0, make sure we do nothing.
