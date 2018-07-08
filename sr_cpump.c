@@ -225,8 +225,6 @@ int main(int argc, char **argv)
   // Check if already running. (conflict in use of state files.)
 
   ret = sr_config_startstop( &sr_cfg );
-  log_msg( LOG_ERROR, "startstop returned=%d", ret );
-  fprintf(stderr, "startstop returned=%d\n", ret );
   if ( ret < 1 )
   {
        exit(abs(ret));
