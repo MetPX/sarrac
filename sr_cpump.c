@@ -222,13 +222,16 @@ int main(int argc, char **argv)
         exit(0);
   }
 
-    // Check if already running. (conflict in use of state files.)
+  // Check if already running. (conflict in use of state files.)
 
-    ret = sr_config_startstop( &sr_cfg );
-    if ( ret < 1 )
-    {
-        exit(abs(ret));
-    }
+  ret = sr_config_startstop( &sr_cfg );
+  log_msg( LOG_ERROR, "startstop returned=%d", ret );
+  fprintf(stderr, "startstop returned=%d\n", ret );
+  if ( ret < 1 )
+  {
+       exit(abs(ret));
+  }
+  fprintf(stderr, "still running\n" );
 
   sr_c = sr_context_init_config( &sr_cfg );
   if (!sr_c) {
