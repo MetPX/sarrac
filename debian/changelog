@@ -1,3 +1,9 @@
+sarrac (2.18.07b1ubuntu1) UNRELEASED; urgency=medium
+
+  * bugfix: sanity would restart stopped configurations
+
+ -- Peter Silva <peter@blacklab>  Sun, 08 Jul 2018 12:14:10 -0400
+
 sarrac (2.18.06b2) unstable; urgency=medium
 
   * implemented daily log rotation.
