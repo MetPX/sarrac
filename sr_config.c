@@ -1661,11 +1661,11 @@ int sr_config_startstop( struct sr_config_t *sr_cfg)
         /* At this point, config is not running which is good for actions cleanup/remove... */
         if ( !strcmp( sr_cfg->action, "cleanup" ) || !strcmp( sr_cfg->action, "remove" ) ) return(1);
 
-        /* for other actions warn not running */
-        fprintf( stderr, "config %s not running.\n", sr_cfg->configname );
+        /* for other actions inform not running */
+        fprintf( stderr, "config %s is stopped.\n", sr_cfg->configname );
 
         /*  MG FIXME if we are not running... if action is stop return 0 */
-        if ( !strcmp( sr_cfg->action, "stop" )   ) return(0);
+        if ( ( !strcmp( sr_cfg->action, "stop" ) || !strcmp( sr_cfg->action, "sanity" ))   ) return(0);
     }
 
     /*  MG FIXME whatever was the state... if action is status return 0 */
