@@ -1,4 +1,4 @@
-sarrac (2.18.07b1ubuntu1) UNRELEASED; urgency=medium
+sarrac (2.18.07b1ubuntu1) unstable; urgency=medium
 
   * bugfix: sanity would restart stopped configurations
 
