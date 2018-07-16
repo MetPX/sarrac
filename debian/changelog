@@ -1,4 +1,4 @@
-sarrac (2.18.07b1ubuntu2) unstable; urgency=medium
+sarrac (2.18.07b2) unstable; urgency=medium
 
   * change timezone of logs from UTC to local to match python implementation. 
 
