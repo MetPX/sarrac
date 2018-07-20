@@ -52,12 +52,20 @@ void srshim_initialize(const char* progname)
   static int config_read = 0;
   char *setstr;
   int finalize_good;
+  int   psdup1;
+  int   psdup2;
+  int   psdup3;
+
 
   if (sr_c) return;
 
   setstr = getenv( "SR_POST_CONFIG" ) ;
   if ( setstr != NULL )
   { 
+     // making use of 3 FD to try to avoid stepping over stdout stderr, for logs & broker connection.
+     psdup1 = open("/dev/null",O_APPEND);
+     psdup2 = dup(psdup1);
+     psdup3 = dup(psdup1);
 
      if ( config_read == 0 ) 
      {
@@ -80,6 +88,11 @@ void srshim_initialize(const char* progname)
 
      sr_c = sr_context_init_config(&sr_cfg);
 
+     if (psdup1 != -1) close_fn_ptr(psdup1);
+     if (psdup2 != -1) close_fn_ptr(psdup2);
+     if (psdup3 != -1) close_fn_ptr(psdup3);
+
+     fprintf( stderr, "initialized\n" );
   } 
 }
 
@@ -396,7 +409,9 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd, const char *ne
          return(status);
     }
 
+    fprintf( stderr, "renameolink about to init\n" );
     srshim_initialize("post");
+    fprintf( stderr, "renameolink about to init 2\n" );
 
     if (!sr_c) return(status);
 
