@@ -31,7 +31,7 @@ void log_msg(int prio, const char *format, ...)
     char *p;
 
     clock_gettime( CLOCK_REALTIME , &ts);
-    gmtime_r(&(ts.tv_sec),&s);
+    localtime_r(&(ts.tv_sec),&s);
 
     if (prio > log_level) return;
 
@@ -63,7 +63,7 @@ void log_msg(int prio, const char *format, ...)
          time_t yt;
 
          yt = ts.tv_sec-(23*3600);     /* FIXME: how to reliably pick yesterday? Is this OK? */
-         gmtime_r(&(yt),&ystm);
+         localtime_r(&(yt),&ystm);
          strcpy( buf, logfn );
          buflen = strlen(buf) ;
          //LRT snprintf( buf+buflen, PATH_MAX-buflen, ".%04d-%02d-%02d",  ystm.tm_year+1900, ystm.tm_mon+1, ystm.tm_min );

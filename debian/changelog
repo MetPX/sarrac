@@ -1,3 +1,9 @@
+sarrac (2.18.07b2) unstable; urgency=medium
+
+  * change timezone of logs from UTC to local to match python implementation. 
+
+ -- Peter Silva <peter@blacklab>  Mon, 16 Jul 2018 00:11:00 -0400
+
 sarrac (2.18.07b1ubuntu1) unstable; urgency=medium
 
   * bugfix: sanity would restart stopped configurations
