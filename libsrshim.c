@@ -61,8 +61,10 @@ void srshim_initialize(const char* progname)
 
      if ( config_read == 0 ) 
      {
+       setstr = strdup(setstr);
        sr_config_init(&sr_cfg,progname);
        config_read = sr_config_read(&sr_cfg,setstr,1,1);
+       free(setstr);
        if (!config_read) return;
      }
 
