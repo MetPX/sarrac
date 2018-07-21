@@ -190,15 +190,17 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
 
 
 struct sr_context *sr_context_connect(struct sr_context *sr_c) {
+
+/*
   int   psdup1;
   int   psdup2;
   int   psdup3;
-
 
   // making use of 3 FD to try to avoid stepping over stdout stderr, for logs & broker connection.
   psdup1 = open("/dev/null",O_APPEND);
   psdup2 = dup(psdup1);
   psdup3 = dup(psdup1);
+ */
 
   if (sr_c->cfg->broker)  {
        sr_c->cfg->broker = sr_broker_connect( sr_c->cfg->broker ) ; 
@@ -213,11 +215,12 @@ struct sr_context *sr_context_connect(struct sr_context *sr_c) {
        log_msg(  LOG_DEBUG, "%s connected to post broker %s\n", __sarra_version__, sr_broker_uri(sr_c->cfg->post_broker) );
   }
 
+/*
   // holding 3 FD until it works
   if (psdup1 != -1) close(psdup1);
   if (psdup2 != -1) close(psdup2);
   if (psdup3 != -1) close(psdup3);
-       
+ */      
   return(sr_c);
 
 }
