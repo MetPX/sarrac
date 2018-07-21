@@ -65,7 +65,7 @@ void srshim_initialize(const char* progname)
      // making use of 3 FD to try to avoid stepping over stdout stderr, for logs & broker connection.
      psdup1 = open("/dev/null",O_APPEND);
      psdup2 = dup(psdup1);
-     psdup3 = dup(psdup1);
+     psdup3 = dup(psdup2);
 
      if ( config_read == 0 ) 
      {
@@ -411,9 +411,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd, const char *ne
          return(status);
     }
 
-    fprintf( stderr, "renameolink about to init\n" );
     srshim_initialize("post");
-    fprintf( stderr, "renameolink about to init 2\n" );
 
     if (!sr_c) return(status);
 
