@@ -118,7 +118,7 @@ void amqp_header_add( char *tag, const char * value ) {
   {
      strncpy( value2, value, AMQP_MAX_SS );
      value2[AMQP_MAX_SS] = '\0';
-     log_msg( LOG_WARNING, "header %s too long (%d bytes), truncating to: %s\n", tag, strlen(value), value2 );
+     log_msg( LOG_WARNING, "header %s too long (%ld bytes), truncating to: %s\n", tag, strlen(value), value2 );
      headers[hdrcnt].value.value.bytes = amqp_cstring_bytes(value2);
   } else {
      headers[hdrcnt].value.value.bytes = amqp_cstring_bytes(value);
@@ -302,7 +302,7 @@ restart:
         sr_context_close(sr_c);
         sleep(to_sleep);
         if (to_sleep < 60) to_sleep<<=1;
-        log_msg( LOG_WARNING, "publish failed. Slept: %d seconds. Retrying...\n", to_sleep );
+        log_msg( LOG_WARNING, "publish failed. Slept: %ld seconds. Retrying...\n", to_sleep );
         sr_context_connect(sr_c);
 
     }

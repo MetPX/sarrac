@@ -58,6 +58,7 @@ void srshim_initialize(const char* progname)
 
 
   if (sr_c) return;
+  log_msg( LOG_CRITICAL, "FIXME srshim_initialize %s\n", progname);
 
   setstr = getenv( "SR_POST_CONFIG" ) ;
   if ( setstr != NULL )

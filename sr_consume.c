@@ -145,7 +145,7 @@ int sr_consume_setup(struct sr_context *sr_c)
   {
       sr_add_topic(sr_c->cfg, "#" );
   }
-  log_msg( LOG_DEBUG, "topics: %p, string=+%s+\n", sr_c->cfg->topics,  sr_c->cfg->topics  );
+  log_msg( LOG_DEBUG, "topics: %p, string=+%p+\n", sr_c->cfg->topics,  sr_c->cfg->topics  );
 
   for( t = sr_c->cfg->topics; t ; t=t->next )
   {
@@ -407,7 +407,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
   
     d = (amqp_basic_deliver_t *) frame.payload.method.decoded;
 
-    log_msg( LOG_DEBUG, "consumer_tag: %s, delivery_tag: %d\n", (char *)d->consumer_tag.bytes, d->delivery_tag );
+    log_msg( LOG_DEBUG, "consumer_tag: %s, delivery_tag: %ld\n", (char *)d->consumer_tag.bytes, d->delivery_tag );
 
     sr_c->cfg->broker->last_delivery_tag = d->delivery_tag ;
     /*

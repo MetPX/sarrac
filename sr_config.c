@@ -1343,7 +1343,7 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
       log_msg( LOG_INFO, "sr_%s %s settings: action=%s config_name=%s log_level=%d follow_symlinks=%s realpath=%s\n",
           sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_cfg->configname, log_level, sr_cfg->follow_symlinks?"yes":"no",  
           sr_cfg->realpath?"yes":"no" );
-      log_msg( LOG_INFO, "\tsleep=%g heartbeat=%g sanity_log_dead=%d cache=%g cache_file=%s accept_unmatch=%s\n",
+      log_msg( LOG_INFO, "\tsleep=%g heartbeat=%g sanity_log_dead=%ld cache=%g cache_file=%s accept_unmatch=%s\n",
           sr_cfg->sleep, sr_cfg->heartbeat, sr_cfg->sanity_log_dead, 
           sr_cfg->cache, sr_cfg->cachep?p:"off", sr_cfg->accept_unmatched?"on":"off" );
       log_msg( LOG_INFO, "\tevents=%04x directory=%s queuename=%s force_polling=%s sum=%c statehost=%c\n",
@@ -1607,7 +1607,7 @@ int sr_config_startstop( struct sr_config_t *sr_cfg)
                 ret=kill(sr_cfg->pid,0);
                 if (!ret) 
                 {
-                    log_msg( LOG_CRITICAL, "SIGKILL didn't work either. System not usable, Giving up!\n", sr_cfg->pid );
+                    log_msg( LOG_CRITICAL, "SIGKILL on pid=%d didn't work either. System not usable, Giving up!\n", sr_cfg->pid );
                     return(-1);
                 } 
             } else {

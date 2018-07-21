@@ -182,7 +182,7 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
       status = amqp_destroy_connection(broker->conn);
 
   sleep(to_sleep);
-  log_msg( LOG_INFO, "broker_connect slept %d seconds, trying again now.", to_sleep );
+  log_msg( LOG_INFO, "broker_connect slept %ld seconds, trying again now.", to_sleep );
   if (to_sleep < 60) to_sleep<<=1;
  
   }
@@ -318,7 +318,7 @@ void sr_context_heartbeat(struct sr_context *sr_c)
    {
        log_msg( LOG_INFO, "heartbeat starting to clean cache\n" );
        sr_cache_clean(sr_c->cfg->cachep, sr_c->cfg->cache );
-       log_msg( LOG_INFO, "heartbeat cleaned, hashes left: %ld\n", HASH_COUNT(sr_c->cfg->cachep->data) );
+       log_msg( LOG_INFO, "heartbeat cleaned, hashes left: %u\n", HASH_COUNT(sr_c->cfg->cachep->data) );
        if (HASH_COUNT(sr_c->cfg->cachep->data) == 0)
        {
           sr_c->cfg->cachep->data=NULL;

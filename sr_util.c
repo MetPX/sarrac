@@ -22,13 +22,15 @@ int logtoday=-1;
 int logmode=0700;
 int logrotate=5;
 
+#ifndef SR_DEBUG_LOGS
+
 void log_msg(int prio, const char *format, ...)
 {
-    va_list ap;
-    va_start(ap, format);
     struct timespec ts;
     struct tm s;
     char *p;
+    va_list ap,apforsprintf;
+    va_start(ap, format);
 
     clock_gettime( CLOCK_REALTIME , &ts);
     localtime_r(&(ts.tv_sec),&s);
@@ -90,19 +92,26 @@ void log_msg(int prio, const char *format, ...)
 
     dprintf( logfd, "%04d-%02d-%02d %02d:%02d:%02d,%03d [%s] ", s.tm_year+1900, s.tm_mon+1,
         s.tm_mday, s.tm_hour, s.tm_min, s.tm_sec, (int)(ts.tv_nsec/1e6), p );
-    vdprintf( logfd, format, ap);
+    va_copy( apforsprintf, ap);
+    va_end(ap);
 
+    vdprintf( logfd, format, apforsprintf);
 }
+
+#endif
 
 
 void log_setup(const char *f, mode_t mode, int severity, int logrotation ) 
 {
+
+#ifndef SR_DEBUG_LOGS
    logfn = strdup( f );
    logmode = mode;
    logrotate = logrotation;
 
    logfd = open( logfn, O_WRONLY|O_CREAT|O_APPEND, logmode );
    log_level = severity;
+#endif
 
    return;
 
@@ -110,9 +119,15 @@ void log_setup(const char *f, mode_t mode, int severity, int logrotation )
 
 void log_cleanup() 
 {
+#ifndef SR_DEBUG_LOGS
    free( logfn );
    logfn=NULL;
-   close( logfd );
+   if ( (logfd != -1) && ( logfd != 2)) close( logfd );
+   logfd=2;
+#endif
+
+   return;
+
 }
 
 void daemonize(int close_stdout)

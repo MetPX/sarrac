@@ -17,12 +17,17 @@ RABBIT_LINK = -Wl,-rpath,${RABBIT_LIBDIR} -L${RABBIT_LIBDIR}
 endif
 
 SARRA_LIBDIR = ${CURDIR}
-SARRA_LINK = -Wl,-rpath,${SARRA_LIBDIR} -L${SARRA_LIBDIR}
+
+SARRA_LINK = -Wl,-rpath,${SARRA_LIBDIR} -L${SARRA_LIBDIR} 
 
 # if neither variable is set, then it is assumed to be available from default environment.
 
 CC = gcc
-CFLAGS = -fPIC -g -std=gnu99 -Wall -D_GNU_SOURCE $(RABBIT_INCDIR)
+
+# add -DSR_DEBUG_LOGS to CFLAGS to replace log files with writing to stderr, and much improved compiler checks.
+#    if you try the explain library, need to add -lexplain to SARRA_LINK also.
+
+CFLAGS = -fPIC -fsanitize=bounds -ftest-coverage -fstack-check -fstack-protector-strong -std=gnu99 -Wall -g -D_GNU_SOURCE $(RABBIT_INCDIR)
 
 SARRA_HEADER = sr_cache.h sr_config.h sr_consume.h sr_context.h sr_credentials.h sr_event.h sr_post.h sr_util.h sr_version.h uthash.h
 SARRA_OBJECT = sr_post.o sr_consume.o sr_context.o sr_config.o sr_event.o sr_credentials.o sr_cache.o sr_util.o

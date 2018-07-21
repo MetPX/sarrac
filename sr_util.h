@@ -20,7 +20,22 @@ extern int log_level ;
 #define LOG_ERROR     (2)
 #define LOG_CRITICAL  (1)
 
+#ifdef SR_DEBUG_LOGS
+
+// following macro allows compiler to find errors in log_msg's variadic arguments.
+//  it disables use of log files, redirecting it all to stderr.
+#define log_msg(prio, ... ) fprintf( stderr, __VA_ARGS__ )
+
+/* install libexplain, and libexplain-dev, and add -lexplain and you might get some messages.
+#include <libexplain/fprintf.h>
+#define log_msg(prio, ... ) explain_fprintf_or_die( stderr, __VA_ARGS__ )
+ */
+
+#else
+
 void log_msg(const int prio, const char *format, ...);
+
+#endif
 
 void log_setup(const char *logfname, mode_t mode, int severity, int logrotation);
 // set up logging to the named file, suppressing messages of lower severity 
