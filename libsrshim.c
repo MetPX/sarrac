@@ -94,8 +94,27 @@ void srshim_initialize(const char* progname)
      if (psdup2 != -1) close_fn_ptr(psdup2);
      if (psdup3 != -1) close_fn_ptr(psdup3);
 
-     fprintf( stderr, "initialized\n" );
   } 
+}
+void srshim_connect(struct sr_context *sr_c) 
+{
+  if (!sr_connected) {
+     int   psdup1;
+     int   psdup2;
+     int   psdup3;
+
+     // making use of 3 FD to try to avoid stepping over stdout stderr, for logs & broker connection.
+     psdup1 = open("/dev/null",O_APPEND);
+     psdup2 = dup(psdup1);
+     psdup3 = dup(psdup2);
+
+     sr_c = sr_context_connect( sr_c );
+     sr_connected=1;
+
+     if (psdup1 != -1) close_fn_ptr(psdup1);
+     if (psdup2 != -1) close_fn_ptr(psdup2);
+     if (psdup3 != -1) close_fn_ptr(psdup3);
+  }
 }
 
 
@@ -167,10 +186,7 @@ void srshim_realpost(const char *path)
       return;
   }
 
-  if (!sr_connected) {
-     sr_c = sr_context_connect( sr_c );
-     sr_connected=1;
-  }
+  srshim_connect( sr_c );
 
   if ( statres )  {
       //log_msg( LOG_INFO, "ICI5 sr_post %s\n",fn);
@@ -447,10 +463,28 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd, const char *ne
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG renameorlink sr_c=%p, oreal_path=%s, real_path=%s\n", 
             sr_c, oreal_path, real_path );
 
+    srshim_connect( sr_c );
+
+/*
     if (!sr_connected) {
+       int   psdup1;
+       int   psdup2;
+       int   psdup3;
+
+       // making use of 3 FD to try to avoid stepping over stdout stderr, for logs & broker connection.
+       psdup1 = open("/dev/null",O_APPEND);
+       psdup2 = dup(psdup1);
+       psdup3 = dup(psdup2);
+
        sr_c = sr_context_connect( sr_c );
        sr_connected=1;
+
+       if (psdup1 != -1) close_fn_ptr(psdup1);
+       if (psdup2 != -1) close_fn_ptr(psdup2);
+       if (psdup3 != -1) close_fn_ptr(psdup3);
     }
+ */
+
     sr_post_rename( sr_c, oreal_path, real_path );
 
     return(status);

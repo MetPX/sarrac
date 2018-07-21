@@ -916,8 +916,6 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
 void sr_config_free( struct sr_config_t *sr_cfg )
 {
   struct sr_mask_t *e;
-  struct envvar_t *ev;
-  char *eq;
 
   if (sr_cfg->action) free(sr_cfg->action);
   if (sr_cfg->configname) free(sr_cfg->configname);
