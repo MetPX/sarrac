@@ -1,4 +1,4 @@
-sarrac (2.18.07b3) UNRELEASED; urgency=medium
+sarrac (2.18.07b3) unstable; urgency=medium
 
   * bugfixes to prevent core dumps when using shim library.
   * switched from putenv to setenv.  Putenv causes crashes... apparently. 
