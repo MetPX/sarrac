@@ -249,7 +249,6 @@ int shimpost( const char *path, int status )
     in_librshim_already_dammit=0;
 
     clerror(status);
-    perror("should never be an error");
     return(status);
 }
 
@@ -842,18 +841,18 @@ int fclose(FILE *f)
  
     fdstat = fcntl(fd, F_GETFL);
 
-    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG fclose %p fd=%i starting\n", f, fdstat );
+    //if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG fclose %p fd=%i starting\n", f, fdstat );
 
     if ( fdstat == -1) 
     {
-         if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG fclose NO POST not valid fd !\n" );
+         //if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG fclose NO POST not valid fd !\n" );
          errno=0;
          return fclose_fn_ptr(f);
     }
 
     if ( ((fdstat & O_ACCMODE) == O_RDONLY ) && ( !sr_c || !( SR_READ & sr_c->cfg->events ) ) )
     {
-         if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG fclose NO POST read-only. \n" );
+         //if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG fclose NO POST read-only. \n" );
          errno=0;
          return fclose_fn_ptr(f);
     }

@@ -1,3 +1,14 @@
+sarrac (2.18.07b3) UNRELEASED; urgency=medium
+
+  * bugfixes to prevent core dumps when using shim library.
+  * switched from putenv to setenv.  Putenv causes crashes... apparently. 
+  * added debuggning compile settings SR_DEBUG_LOGS which allowed 
+    identification and elimination fprintf VARAGS inconsistencies.
+  * moved dup/dup/dup code to libsrshim, whic is the only place
+    it should be used anyways.
+
+ -- Peter Silva <peter@blacklab>  Sat, 21 Jul 2018 20:09:21 -0400
+
 sarrac (2.18.07b2) unstable; urgency=medium
 
   * change timezone of logs from UTC to local to match python implementation. 
