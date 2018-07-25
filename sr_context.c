@@ -35,6 +35,9 @@
 #include <fcntl.h>
 #include <linux/limits.h>
 
+#include <sys/time.h>
+#include <sys/resource.h>
+
 #include <openssl/md5.h>
 #include <openssl/sha.h>
 
@@ -115,6 +118,7 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
   }
 
   while(1) {
+     //log_msg(  LOG_ERROR, "broker_connecting!? broker->con=%p.\n", broker->conn );
      broker->conn = amqp_new_connection();
 
      if ( broker->ssl ) {
@@ -191,17 +195,6 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
 
 struct sr_context *sr_context_connect(struct sr_context *sr_c) {
 
-/*
-  int   psdup1;
-  int   psdup2;
-  int   psdup3;
-
-  // making use of 3 FD to try to avoid stepping over stdout stderr, for logs & broker connection.
-  psdup1 = open("/dev/null",O_APPEND);
-  psdup2 = dup(psdup1);
-  psdup3 = dup(psdup1);
- */
-
   if (sr_c->cfg->broker)  {
        sr_c->cfg->broker = sr_broker_connect( sr_c->cfg->broker ) ; 
        if ( ! (sr_c->cfg->broker)  ) return(NULL);
@@ -215,12 +208,6 @@ struct sr_context *sr_context_connect(struct sr_context *sr_c) {
        log_msg(  LOG_DEBUG, "%s connected to post broker %s\n", __sarra_version__, sr_broker_uri(sr_c->cfg->post_broker) );
   }
 
-/*
-  // holding 3 FD until it works
-  if (psdup1 != -1) close(psdup1);
-  if (psdup2 != -1) close(psdup2);
-  if (psdup3 != -1) close(psdup3);
- */      
   return(sr_c);
 
 }
@@ -312,10 +299,14 @@ void sr_context_heartbeat(struct sr_context *sr_c)
  */
 {
    int cached_count;
+   struct rusage usage_before;
+   struct rusage usage_after;
 
    log_msg( LOG_INFO, "heartbeat processing start\n" );
    if (sr_c->cfg->cachep)
    {
+       getrusage( RUSAGE_SELF, &usage_before );
+
        log_msg( LOG_INFO, "heartbeat starting to clean cache\n" );
        sr_cache_clean(sr_c->cfg->cachep, sr_c->cfg->cache );
        log_msg( LOG_INFO, "heartbeat cleaned, hashes left: %u\n", HASH_COUNT(sr_c->cfg->cachep->data) );
@@ -324,7 +315,12 @@ void sr_context_heartbeat(struct sr_context *sr_c)
           sr_c->cfg->cachep->data=NULL;
        }
        cached_count = sr_cache_save(sr_c->cfg->cachep, 0 );
-       log_msg( LOG_INFO, "heartbeat after cleaning, cache stores %d entries.\n", cached_count );
+
+       getrusage( RUSAGE_SELF, &usage_after );
+
+//FIXME
+       log_msg( LOG_ERROR, "heartbeat after cleaning, cache stores %d entries. (memory: %ld kB)\n", 
+            cached_count, usage_after.ru_maxrss );
    }
    log_msg( LOG_INFO, "heartbeat processing completed\n" );
 }
