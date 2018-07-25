@@ -295,10 +295,12 @@ void sr_post_message( struct sr_context *sr_c, struct sr_message_t *m )
            }
            goto restart;
         }
+        amqp_maybe_release_buffers( sr_c->cfg->post_broker->conn );
         log_msg( LOG_INFO, "published: %s\n", sr_message_2log(m) );
         return;
     
 restart:
+        amqp_maybe_release_buffers( sr_c->cfg->post_broker->conn );
         sr_context_close(sr_c);
         sleep(to_sleep);
         if (to_sleep < 60) to_sleep<<=1;
@@ -657,6 +659,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
       sr_post( sr_c,  newname, &sb );
 
   free(first_user_header.key);  
+  free(first_user_header.value);  
   sr_c->cfg->user_headers = first_user_header.next ;
   
 
