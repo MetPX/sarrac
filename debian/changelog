@@ -1,4 +1,4 @@
-sarrac (2.18.07b4) UNRELEASED; urgency=medium
+sarrac (2.18.07b4) unstable; urgency=medium
 
   * plugged huge memory leak in sr_cpump, and a small one in sr_cpost. 
 
