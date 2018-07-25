@@ -395,15 +395,30 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
     result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
     //log_msg( LOG_DEBUG, "Result %d\n", result);
-    if (result < 0) return(NULL);
+    if (result < 0) 
+    {
+       amqp_destroy_envelope(&envelope);
+       amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
+       return(NULL);
+    }
   
     //log_msg( LOG_DEBUG, "Frame type %d, channel %d\n", frame.frame_type, frame.channel);
 
-    if (frame.frame_type != AMQP_FRAME_METHOD) return(NULL);
+    if (frame.frame_type != AMQP_FRAME_METHOD) 
+    {
+       amqp_destroy_envelope(&envelope);
+       amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
+       return(NULL);
+    }
   
     //log_msg( LOG_DEBUG, "Method %s\n", amqp_method_name(frame.payload.method.id));
 
-    if (frame.payload.method.id != AMQP_BASIC_DELIVER_METHOD) return(NULL);
+    if (frame.payload.method.id != AMQP_BASIC_DELIVER_METHOD) 
+    {
+       amqp_destroy_envelope(&envelope);
+       amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
+       return(NULL);
+    }
   
     d = (amqp_basic_deliver_t *) frame.payload.method.decoded;
 
@@ -517,6 +532,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
             );
      */
     }
+    amqp_destroy_envelope(&envelope);
   
     if (body_received != body_target) return(NULL);
           /* Can only happen when amqp_simple_wait_frame returns <= 0 */
