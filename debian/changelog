@@ -1,3 +1,9 @@
+sarrac (2.18.07b4) UNRELEASED; urgency=medium
+
+  * plugged huge memory leak in sr_cpump, and a small one in sr_cpost. 
+
+ -- Peter Silva <peter@blacklab>  Tue, 24 Jul 2018 23:47:47 -0400
+
 sarrac (2.18.07b3) unstable; urgency=medium
 
   * bugfixes to prevent core dumps when using shim library.
