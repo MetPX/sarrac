@@ -623,7 +623,7 @@ int main(int argc, char **argv)
 
     for (; i < argc; i++ )
     {
-          if ( !strcmp( sr_cfg.action,"foreground") || !strcmp( sr_cfg.action, "enable" ) ||
+          if ( !strcmp( sr_cfg.action, "foreground" ) || !strcmp( sr_cfg.action, "enable" ) ||
                !strcmp( sr_cfg.action, "disable" ) || !strcmp( sr_cfg.action, "add" ) ||
                !strcmp( sr_cfg.action, "remove" ) || !strcmp( sr_cfg.action, "edit" )
              )
