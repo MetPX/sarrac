@@ -319,7 +319,7 @@ void sr_context_heartbeat(struct sr_context *sr_c)
        getrusage( RUSAGE_SELF, &usage_after );
 
 //FIXME
-       log_msg( LOG_ERROR, "heartbeat after cleaning, cache stores %d entries. (memory: %ld kB)\n", 
+       log_msg( LOG_INFO, "heartbeat after cleaning, cache stores %d entries. (memory: %ld kB)\n", 
             cached_count, usage_after.ru_maxrss );
    }
    log_msg( LOG_INFO, "heartbeat processing completed\n" );
