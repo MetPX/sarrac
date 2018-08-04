@@ -1773,18 +1773,26 @@ int sr_config_add_one( struct sr_config_t *sr_cfg, const char *original_one )
          cp( original_one, newp );
          return(0);
      }
-     if ( getenv( "SR_CONFIG_EXAMPLES" ) ) 
+     if ( !getenv( "SR_CONFIG_EXAMPLES" ) ) 
      {
-        sprintf( oldp, "%s/%s/%s", getenv("SR_CONFIG_EXAMPLES"), sr_cfg->progname, original_one );
-        if ( !access( oldp, R_OK ) )
-        {
-            sprintf( newp, "%s/.config/sarra/%s/%s", getenv("HOME"), sr_cfg->progname, original_one ) ;
-            cp( oldp, newp );
-            return(0);
-        }
-     } else {
-        log_msg( LOG_ERROR, "Cannot add configurations because SR_CONFIG_EXAMPLES is not set.\n" );
-        return(1);
+         log_msg( LOG_ERROR, "Cannot add configurations because SR_CONFIG_EXAMPLES is not set.\n" );
+         return(1);
+     }
+     
+     sprintf( oldp, "%s", getenv("SR_CONFIG_EXAMPLES") );
+     if ( access( oldp, F_OK|R_OK ) )
+     {
+         log_msg( LOG_ERROR, "Cannot access SR_CONFIG_EXAMPLES directory %s.\n", oldp );
+         return(1);
+     }
+
+     sprintf( oldp, "%s/%s/%s", getenv("SR_CONFIG_EXAMPLES"), sr_cfg->progname, original_one );
+     fprintf( stderr, "add_one: should get here, file is=%s\n", oldp );
+     if ( !access( oldp, R_OK ) )
+     {
+         sprintf( newp, "%s/.config/sarra/%s/%s", getenv("HOME"), sr_cfg->progname, original_one ) ;
+         cp( oldp, newp );
+         return(0);
      }
 
      
@@ -1991,6 +1999,7 @@ void sr_config_list( struct sr_config_t *sr_cfg )
     fprintf( stdout, "sr_%s %s ", sr_cfg->progname, __sarra_version__ );
     fprintf( stdout, "Example configurations ( %s )\n\n", p );
     cld = opendir( p );
+    if (!cld) return;
     l=1;
     while ( (d = readdir(cld)) ) 
     {
