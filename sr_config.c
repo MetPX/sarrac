@@ -1787,7 +1787,6 @@ int sr_config_add_one( struct sr_config_t *sr_cfg, const char *original_one )
      }
 
      sprintf( oldp, "%s/%s/%s", getenv("SR_CONFIG_EXAMPLES"), sr_cfg->progname, original_one );
-     fprintf( stderr, "add_one: should get here, file is=%s\n", oldp );
      if ( !access( oldp, R_OK ) )
      {
          sprintf( newp, "%s/.config/sarra/%s/%s", getenv("HOME"), sr_cfg->progname, original_one ) ;
