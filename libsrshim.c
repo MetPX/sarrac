@@ -650,6 +650,54 @@ int dup3(int oldfd, int newfd, int flags )
     return status;
 }
 
+static int exit_init_done = 0;
+typedef void (*exit_fn) ( int );
+static exit_fn exit_fn_ptr = exit;
+
+void exit(int status)
+{   
+    int  fdstat;
+    char fdpath[32];
+    char real_path[PATH_MAX+1];
+    char *real_return;
+
+
+    fprintf( stderr, "FIXME: exiting group\n" );
+
+    for ( int fd = getdtablesize(); fd >= 0; fd-- )
+    {
+        fdstat = fcntl(fd, F_GETFL);
+
+        if ( fdstat == -1)
+            continue;
+
+       if ( ((fdstat & O_ACCMODE) == O_RDONLY ) && ( !sr_c || !( SR_READ & sr_c->cfg->events ) ) )
+           continue;
+
+       snprintf(fdpath, 32, "/proc/self/fd/%d", fd);
+       real_return = realpath(fdpath, real_path);
+
+       if ( (!real_return) || ( !strncmp(real_path,"/dev/", 5) ) || ( !strncmp(real_path,"/proc/", 6) ) )
+           continue;
+
+       if (!getenv("SR_POST_READS"))
+           srshim_initialize( "post" );
+
+       if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit posting %s\n", real_path );
+
+       shimpost(real_path, status);
+       //close(fd);
+    }
+    if (!exit_init_done) {
+        exit_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit");
+        exit_init_done = 1;
+    }
+
+     // do it for real.
+     exit_fn_ptr(status);
+}
+
+
 int link(const char *target, const char* linkpath) 
 {
     if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG link %s %s\n", target, linkpath );
