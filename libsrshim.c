@@ -683,6 +683,8 @@ void exit(int status)
        if (!getenv("SR_POST_READS"))
            srshim_initialize( "post" );
 
+       fsync(fd); // ensure data is flushed to disk before post occurs.
+
        if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit posting %s\n", real_path );
 
        shimpost(real_path, status);
