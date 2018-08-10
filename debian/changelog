@@ -1,3 +1,10 @@
+sarrac (2.18.08b1ubuntu1) unstable; urgency=medium
+
+  * fixed issue#11, programs which do not close their files, catch on process exit
+  * fixed stack smashing bug when environment variable improperly set.
+
+ -- Peter Silva <peter@blacklab>  Thu, 09 Aug 2018 22:18:54 -0400
+
 sarrac (2.18.07b4) unstable; urgency=medium
 
   * plugged huge memory leak in sr_cpump, and a small one in sr_cpost. 
