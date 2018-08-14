@@ -151,7 +151,6 @@ void srshim_realpost(const char *path)
 
   if (sr_cfg.realpath || sr_cfg.realpath_filter)
   {
-      //log_msg( LOG_INFO, "ICI2 realpath (_filter) \n");
       if (!statres) 
       {
           /* realpath of a link might result in a file or directory
@@ -178,8 +177,6 @@ void srshim_realpost(const char *path)
   }
 
   if ( sr_cfg.realpath ) strcpy( fn, fnreal );
-  //log_msg( LOG_INFO, "ICI3 fn %s\n",fn);
-  //log_msg( LOG_INFO, "ICI4 fnreal %s\n",fnreal);
 
   if ( sr_cfg.realpath_filter) {
      mask = isMatchingPattern(&sr_cfg, fnreal);
@@ -189,7 +186,7 @@ void srshim_realpost(const char *path)
 
   if ( (mask && !(mask->accepting)) || (!mask && !(sr_cfg.accept_unmatched)) )
   { //reject.
-      log_msg( LOG_INFO, "mask: %p, mask->accepting=%d accept_unmatched=%d\n", 
+      log_msg( LOG_DEBUG, "mask: %p, mask->accepting=%d accept_unmatched=%d\n", 
             mask, mask->accepting, sr_cfg.accept_unmatched );
       if (sr_cfg.debug) log_msg( LOG_DEBUG, "sr_%s rejected 2: %s\n", sr_cfg.progname, fn );
       return;
@@ -198,7 +195,6 @@ void srshim_realpost(const char *path)
   srshim_connect();
 
   if ( statres )  {
-      //log_msg( LOG_INFO, "ICI5 sr_post %s\n",fn);
       sr_post( sr_c, fn, NULL );
       return;
   }
@@ -221,7 +217,6 @@ int shimpost( const char *path, int status )
     char *cwd=NULL;
     char *real_path=NULL;
 
-    //log_msg( LOG_INFO, "ICI0 PATH %s\n", path);
 
     if (in_librshim_already_dammit) return(status);
 

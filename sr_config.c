@@ -358,9 +358,9 @@ int sr_add_decl(struct sr_config_t *cfg, char *what, char *s)
 
       return(3);
   } else if (!strcmp(what,"source")) {
-      log_msg( LOG_INFO, "FIXME: declare source %s ignored\n", s );
+      log_msg( LOG_WARNING, "FIXME: declare source %s ignored\n", s );
   } else if (!strcmp(what,"subscriber")) {
-      log_msg( LOG_INFO, "FIXME: declare subscriber %s ignored\n", s );
+      log_msg( LOG_WARNING, "FIXME: declare subscriber %s ignored\n", s );
   }
   return(2);
 
@@ -904,7 +904,7 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       retval=(2);
 
   } else {
-      log_msg( LOG_INFO, "info: %s option not implemented, ignored.\n", option );
+      log_msg( LOG_WARNING, "info: %s option not implemented, ignored.\n", option );
   } 
 
   if (argument) free(argument);
@@ -1340,17 +1340,17 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
   // Since we check how old the log is, we ust not write to the log during startup in sanity mode.
   if ( strcmp( sr_cfg->action, "sanity" ) ) 
   {
-      log_msg( LOG_INFO, "sr_%s %s settings: action=%s config_name=%s log_level=%d follow_symlinks=%s realpath=%s\n",
+      log_msg( LOG_DEBUG, "sr_%s %s settings: action=%s config_name=%s log_level=%d follow_symlinks=%s realpath=%s\n",
           sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_cfg->configname, log_level, sr_cfg->follow_symlinks?"yes":"no",  
           sr_cfg->realpath?"yes":"no" );
-      log_msg( LOG_INFO, "\tsleep=%g heartbeat=%g sanity_log_dead=%ld cache=%g cache_file=%s accept_unmatch=%s\n",
+      log_msg( LOG_DEBUG, "\tsleep=%g heartbeat=%g sanity_log_dead=%ld cache=%g cache_file=%s accept_unmatch=%s\n",
           sr_cfg->sleep, sr_cfg->heartbeat, sr_cfg->sanity_log_dead, 
           sr_cfg->cache, sr_cfg->cachep?p:"off", sr_cfg->accept_unmatched?"on":"off" );
-      log_msg( LOG_INFO, "\tevents=%04x directory=%s queuename=%s force_polling=%s sum=%c statehost=%c\n",
+      log_msg( LOG_DEBUG, "\tevents=%04x directory=%s queuename=%s force_polling=%s sum=%c statehost=%c\n",
           sr_cfg->events, sr_cfg->directory, sr_cfg->queuename, sr_cfg->force_polling?"on":"off", sr_cfg->sumalgo, sr_cfg->statehost  );
-      log_msg( LOG_INFO, "\tmessage_ttl=%d post_exchange=%s post_exchange_split=%d post_exchange_suffix=%s\n",
+      log_msg( LOG_DEBUG, "\tmessage_ttl=%d post_exchange=%s post_exchange_split=%d post_exchange_suffix=%s\n",
           sr_cfg->message_ttl, sr_cfg->post_exchange, sr_cfg->post_exchange_split, sr_cfg->post_exchange_suffix );
-      log_msg( LOG_INFO, "\tsource=%s to=%s post_base_url=%s topic_prefix=%s pid=%d\n",
+      log_msg( LOG_DEBUG, "\tsource=%s to=%s post_base_url=%s topic_prefix=%s pid=%d\n",
           sr_cfg->source, sr_cfg->to, sr_cfg->post_base_url, sr_cfg->topic_prefix, sr_cfg->pid  );
   }
 
@@ -1468,7 +1468,7 @@ struct sr_config_t *thecfg=NULL;
 
 void stop_handler(int sig)
 {
-     log_msg( LOG_INFO, "shutting down: signal %d received\n", sig);
+     log_msg( LOG_DEBUG, "shutting down: signal %d received\n", sig);
 
      if (thecfg && thecfg->cachep)
      {
@@ -1587,7 +1587,7 @@ int sr_config_startstop( struct sr_config_t *sr_cfg)
  
             // but otherwise it's normal, so kill the running one. 
 
-            log_msg( LOG_INFO, "killing running instance pid=%d\n", sr_cfg->pid );
+            log_msg( LOG_DEBUG, "killing running instance pid=%d\n", sr_cfg->pid );
 
             //  just kill it a little at first...
             kill(sr_cfg->pid,SIGTERM);
@@ -1601,7 +1601,7 @@ int sr_config_startstop( struct sr_config_t *sr_cfg)
             ret=kill(sr_cfg->pid,0);
             if (!ret) 
             {   // pid still running, and have permission to signal, so it didn't die... 
-                log_msg( LOG_INFO, "After 2 seconds, instance pid=%d did not respond to SIGTERM, sending SIGKILL\n", sr_cfg->pid );
+                log_msg( LOG_DEBUG, "After 2 seconds, instance pid=%d did not respond to SIGTERM, sending SIGKILL\n", sr_cfg->pid );
                 kill(sr_cfg->pid,SIGKILL);
                 nanosleep( &tsleep, NULL );
                 ret=kill(sr_cfg->pid,0);
@@ -1622,7 +1622,7 @@ int sr_config_startstop( struct sr_config_t *sr_cfg)
 
             } else { // just not running.
 
-                log_msg( LOG_INFO, "instance for config %s (pid %d) is not running.\n", sr_cfg->configname, sr_cfg->pid );
+                log_msg( LOG_DEBUG, "instance for config %s (pid %d) is not running.\n", sr_cfg->configname, sr_cfg->pid );
 
                 if ( !strcmp( sr_cfg->action, "stop" ) ) {
                     fprintf( stderr, "already stopped config %s (pid %d): deleting pidfile.\n", 
@@ -1664,7 +1664,7 @@ void cp( const char * s, const char *d )
    FILE *dfd=NULL;
    char buf[1024];
 
-   log_msg(LOG_INFO, "copying %s to %s.\n", s, d );
+   log_msg(LOG_DEBUG, "copying %s to %s.\n", s, d );
    if ( ! ( sfd=fopen(s,"r") ) ) 
    {
      log_msg(LOG_ERROR, "opening config to read %s failed.\n", s );
@@ -1923,7 +1923,7 @@ void sr_config_disable( struct sr_config_t *sr_cfg )
   {
      if (!strcmp( &(one[strlen(one)-4]),".off"))
      {
-         log_msg(LOG_INFO, "config %s already disabled.\n", one );
+         log_msg(LOG_WARNING, "config %s already disabled.\n", one );
      } else {
          sprintf( newp, "%s.off", one );
          rename( one, newp );
@@ -1936,7 +1936,7 @@ void sr_config_disable( struct sr_config_t *sr_cfg )
      {
          if (!strcmp( &(one[strlen(one)-4]),".off"))
          {
-            log_msg(LOG_INFO, "config %s already disabled.\n", one );
+            log_msg(LOG_WARNING, "config %s already disabled.\n", one );
          } else {
             sprintf( newp, "%s.off", one );
             rename( one, newp );

@@ -705,7 +705,7 @@ int sr_post_init( struct sr_context *sr_c )
     {
         for ( int i = 0; i < sr_c->cfg->post_broker->exchange_split ; i++ )
         {
-            log_msg( LOG_INFO, "declaring exchange %s%02d\n", sr_broker_uri( sr_c->cfg->post_broker ), i  );
+            log_msg( LOG_DEBUG, "declaring exchange %s%02d\n", sr_broker_uri( sr_c->cfg->post_broker ), i  );
             sprintf( exchange, "%s%02d", sr_c->cfg->post_broker->exchange, i );
             amqp_exchange_declare( sr_c->cfg->post_broker->conn, 1, amqp_cstring_bytes(exchange),
                  amqp_cstring_bytes("topic"), 0, sr_c->cfg->durable, 0, 0, amqp_empty_table );
@@ -716,7 +716,7 @@ int sr_post_init( struct sr_context *sr_c )
             }
         }
     } else  {
-        log_msg( LOG_INFO, "declaring exchange %s\n", sr_broker_uri( sr_c->cfg->post_broker )  );
+        log_msg( LOG_DEBUG, "declaring exchange %s\n", sr_broker_uri( sr_c->cfg->post_broker )  );
         amqp_exchange_declare( sr_c->cfg->post_broker->conn, 1, amqp_cstring_bytes(sr_c->cfg->post_broker->exchange),
              amqp_cstring_bytes("topic"), 0, sr_c->cfg->durable, 0, 0, amqp_empty_table );
         reply = amqp_get_rpc_reply(sr_c->cfg->post_broker->conn);

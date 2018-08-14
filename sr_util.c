@@ -152,7 +152,7 @@ void daemonize(int close_stdout)
      }
      // child processing.
 
-     log_msg( LOG_INFO, "child daemonizing start\n" );
+     log_msg( LOG_DEBUG, "child daemonizing start\n" );
      sid = setsid();
      if (sid < 0)
      {  
@@ -174,7 +174,7 @@ void daemonize(int close_stdout)
      close(2);
      dup2(logfd, STDERR_FILENO);
 
-     log_msg( LOG_INFO, "child daemonizing complete.\n" );
+     log_msg( LOG_DEBUG, "child daemonizing complete.\n" );
 }
 
 

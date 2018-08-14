@@ -186,7 +186,7 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
       status = amqp_destroy_connection(broker->conn);
 
   sleep(to_sleep);
-  log_msg( LOG_INFO, "broker_connect slept %ld seconds, trying again now.", to_sleep );
+  log_msg( LOG_DEBUG, "broker_connect slept %ld seconds, trying again now.", to_sleep );
   if (to_sleep < 60) to_sleep<<=1;
  
   }
@@ -288,7 +288,7 @@ void sr_context_close(struct sr_context *sr_c)  {
   if (sr_c->cfg->broker) 
   {
       sr_broker_close( sr_c->cfg->broker );
-      log_msg( LOG_INFO, "sr_cpost: subscription broker closed.\n");
+      log_msg( LOG_DEBUG, "sr_cpost: subscription broker closed.\n");
   } 
   if (sr_c->cfg->post_broker) sr_broker_close( sr_c->cfg->post_broker );
 
@@ -302,14 +302,14 @@ void sr_context_heartbeat(struct sr_context *sr_c)
    struct rusage usage_before;
    struct rusage usage_after;
 
-   log_msg( LOG_INFO, "heartbeat processing start\n" );
+   log_msg( LOG_DEBUG, "heartbeat processing start\n" );
    if (sr_c->cfg->cachep)
    {
        getrusage( RUSAGE_SELF, &usage_before );
 
        log_msg( LOG_INFO, "heartbeat starting to clean cache\n" );
        sr_cache_clean(sr_c->cfg->cachep, sr_c->cfg->cache );
-       log_msg( LOG_INFO, "heartbeat cleaned, hashes left: %u\n", HASH_COUNT(sr_c->cfg->cachep->data) );
+       log_msg( LOG_DEBUG, "heartbeat cleaned, hashes left: %u\n", HASH_COUNT(sr_c->cfg->cachep->data) );
        if (HASH_COUNT(sr_c->cfg->cachep->data) == 0)
        {
           sr_c->cfg->cachep->data=NULL;
@@ -322,7 +322,7 @@ void sr_context_heartbeat(struct sr_context *sr_c)
        log_msg( LOG_INFO, "heartbeat after cleaning, cache stores %d entries. (memory: %ld kB)\n", 
             cached_count, usage_after.ru_maxrss );
    }
-   log_msg( LOG_INFO, "heartbeat processing completed\n" );
+   log_msg( LOG_DEBUG, "heartbeat processing completed\n" );
 }
 
 

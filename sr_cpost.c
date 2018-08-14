@@ -705,7 +705,7 @@ int main(int argc, char **argv)
           ( ( !strcmp( sr_cfg.action, "start" ) ) ||
             ( !strcmp( sr_cfg.action, "restart" ) ) ))
     {
-        log_msg( LOG_INFO, "start|restart with sleep <= 0 does nothing. exiting normally\n");
+        log_msg( LOG_WARNING, "start|restart with sleep <= 0 does nothing. exiting normally\n");
         return(0);
     }
     sr_c = sr_context_init_config( &sr_cfg );
@@ -828,7 +828,7 @@ int main(int argc, char **argv)
             //log_msg( LOG_DEBUG, "debug: watch sleeping for %g seconds. \n", (sr_cfg.sleep-elapsed));
             nanosleep( &tsleep, NULL );
        } else 
-            log_msg( LOG_INFO, "INFO: watch, one pass takes longer than sleep interval, not sleeping at all\n");
+            log_msg( LOG_WARNING, "INFO: watch, one pass takes longer than sleep interval, not sleeping at all\n");
   
        pass++; 
     }
