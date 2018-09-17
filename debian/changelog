@@ -1,3 +1,9 @@
+sarrac (2.18.09b1) unstable; urgency=medium
+
+  * reduced default output (moved many INFO messages to DEBUG)
+
+ -- Peter Silva <peter@idefix>  Mon, 17 Sep 2018 15:37:26 -0400
+
 sarrac (2.18.08b2) unstable; urgency=medium
 
   * fixed seg fault when credentials.conf file missing.
