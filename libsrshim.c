@@ -883,6 +883,11 @@ int fclose(FILE *f)
            srshim_initialize( "post" );
     }
     fd = fileno(f);
+    if (fd == -1) 
+    {
+         errno=0;
+         return fclose_fn_ptr(f);
+    }
  
     fdstat = fcntl(fd, F_GETFL);
 
