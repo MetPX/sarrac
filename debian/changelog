@@ -1,3 +1,11 @@
+sarrac (2.18.09b4) unstable; urgency=medium
+
+  * added fix for fclose when given invalid FILE *
+  * added noreturn attribute to address gcc warning for exit call
+  * added ignore of files ending in ~ to config listing.
+
+ -- Peter Silva <peter@idefix>  Tue, 18 Sep 2018 09:41:51 -0400
+
 sarrac (2.18.09b1) unstable; urgency=medium
 
   * reduced default output (moved many INFO messages to DEBUG)

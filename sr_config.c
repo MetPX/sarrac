@@ -2003,6 +2003,8 @@ void sr_config_list( struct sr_config_t *sr_cfg )
     while ( (d = readdir(cld)) ) 
     {
        if ( d->d_name[0] == '.' ) continue;
+       l = strlen(d->d_name);
+       if ( d->d_name[l-1] == '~' ) continue;
        fprintf( stdout, "%20s ", d->d_name );
        if (l%4 == 0 ) 
        {
@@ -2026,6 +2028,7 @@ void sr_config_list( struct sr_config_t *sr_cfg )
        if ( d->d_name[0] == '.' ) continue;
 
        l = strlen(d->d_name);
+       if ( d->d_name[l-1] == '~' ) continue;
        l -=5;
        if ( l > 0 ) 
        {

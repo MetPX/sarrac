@@ -645,11 +645,13 @@ int dup3(int oldfd, int newfd, int flags )
     return status;
 }
 
+//void exit(int status) __attribute__((noreturn));
+
 static int exit_init_done = 0;
-typedef void (*exit_fn) ( int );
+typedef void (*exit_fn)( int ) __attribute__((noreturn));
 static exit_fn exit_fn_ptr = exit;
 
-void exit(int status)
+void exit(int status) 
 {   
     int  fdstat;
     char fdpath[32];
@@ -885,7 +887,7 @@ int fclose(FILE *f)
     fd = fileno(f);
     if (fd == -1) 
     {
-         errno=0;
+         clerror(fd);
          return fclose_fn_ptr(f);
     }
  
