@@ -152,7 +152,11 @@ Release Process
 To note changes:
   - dch, and add your points.
   - when ready to release, edit UNRELEASED to an appropriate status, usually unstable.
-  - git tag <release>
+  - git commit #what you need to commit...
+  - git tag <release> -m <release>
+  - git push
+  - git push tag <release>
+
   - go to Launchpad, and import source `here <https://code.launchpad.net/~ssc-hpc-chp-spc/metpx-sarrac/+git/master>`_.
   - go to launchpad, find the recipe and Request Build `here <https://code.launchpad.net/~ssc-hpc-chp-spc/+recipe/metpx-sarrac>`_.
 
