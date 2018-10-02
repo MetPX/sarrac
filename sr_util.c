@@ -374,8 +374,8 @@ char *set_sumstr( char algo, const char* fn, const char* partstr, char *linkstr,
 char nibble2hexchr( int i )
 
 {
-   unsigned char c =  i & 0xf;
-   return( (c < 10) ? ( c + '0' ) : ( c -10 + 'a' ) );
+   unsigned char c =  (unsigned char)(i & 0xf);
+   return( (char)((c < 10) ? ( c + '0' ) : ( c -10 + 'a' ) ));
 }
 
 int hexchr2nibble( char c )
@@ -398,7 +398,7 @@ unsigned char *sr_sumstr2hash( const char *s )
     
     for ( i=1; ( i < get_sumhashlen(s[0]) ) ; i++ )
     {
-        sumhash[i] = (hexchr2nibble(s[i<<1]) << 4) + hexchr2nibble(s[(i<<1)+1]) ;
+        sumhash[i] = (unsigned char)((hexchr2nibble(s[i<<1]) << 4) + hexchr2nibble(s[(i<<1)+1]));
     }
     return(sumhash);
 }

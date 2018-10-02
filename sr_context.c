@@ -339,8 +339,8 @@ float sr_context_heartbeat_check(struct sr_context *sr_c)
     static float since_last_heartbeat=0;
 
     clock_gettime( CLOCK_REALTIME, &tend );
-    elapsed = ( tend.tv_sec + (tend.tv_nsec/1e9) ) -
-              ( tstart.tv_sec + (tstart.tv_nsec/1e9) )  ;
+    elapsed = (float) ( ( tend.tv_sec + (tend.tv_nsec/1e9) ) - 
+                        ( tstart.tv_sec + (tstart.tv_nsec/1e9)) )  ;
 
     since_last_heartbeat = since_last_heartbeat + elapsed ;
 

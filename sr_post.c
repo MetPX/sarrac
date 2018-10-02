@@ -463,7 +463,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec, struct 
       m->mode = sb->st_mode & 07777 ;
 
       m->parts_blksz  = set_blocksize( sr_c->cfg->blocksize, sb->st_size );
-      m->parts_s = (m->parts_blksz < sb->st_size )? 'i':'1' ;
+      m->parts_s = (char)((m->parts_blksz < sb->st_size )?'i':'1') ;
 
       if ( m->parts_blksz == 0 ) {
           m->parts_rem = 0;

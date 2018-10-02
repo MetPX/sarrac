@@ -637,10 +637,10 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
               !strcmp( option, "suppress_duplicates" ) || !strcmp( option, "sd")  ) {
       if isalpha(*argument) {
           val = StringIsTrue(argument);
-          sr_cfg->cache = (val&2) ? 900 : 0;
+          sr_cfg->cache = (float) ((val&2) ? 900 : 0);
           retval=(1+(val&1));
       } else {
-          sr_cfg->cache = atof(argument);
+          sr_cfg->cache = (float)(atof(argument));
           retval=2;
       }
   } else if ( !strcmp( option, "chmod_log" ) ) {
@@ -727,7 +727,7 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       retval=(1+(val&1));
 
   } else if ( !strcmp( option, "heartbeat" ) || !strcmp( option, "hb" ) ) {
-      sr_cfg->heartbeat = atof(argument);
+      sr_cfg->heartbeat = (float)(atof(argument));
       retval=(2);
 
   } else if ( !strcmp( option, "help" ) || !strcmp( option, "h" ) ) {
@@ -848,7 +848,7 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       retval=(2);
 
   } else if ( !strcmp( option, "sleep" ) ) {
-      sr_cfg->sleep = atof(argument);
+      sr_cfg->sleep = (float)(atof(argument));
       retval=(2);
 
   } else if ( !strcmp( option, "source" ) ) {

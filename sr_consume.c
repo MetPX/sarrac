@@ -354,7 +354,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
    */  
     if ( ! sr_c->cfg->broker->started ) {
 
-       amqp_basic_qos( sr_c->cfg->broker->conn, 1, 0, sr_c->cfg->prefetch, 0 );
+       amqp_basic_qos( sr_c->cfg->broker->conn, 1, 0, (uint16_t)(sr_c->cfg->prefetch), 0 );
        reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);
        if (reply.reply_type != AMQP_RESPONSE_NORMAL ) 
        {
@@ -516,7 +516,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
                 strcpy( msg.consuminguser, tok );
                 tok = strtok(NULL," ");
                 //fprintf( stdout, "\t\"duration\" : \"%s\", \n", tok);
-                msg.duration = atof( tok );
+                msg.duration = (float)(atof( tok ));
         } else {
             msg.statuscode=0;
             msg.consumingurl[0]='\0';
