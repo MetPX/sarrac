@@ -270,14 +270,6 @@ int main(int argc, char **argv)
         return(0);
   }
 
-  /*
-  if ( !strcmp( sr_cfg.action, "start" ) )
-  {
-      log_msg( LOG_CRITICAL, "FIXME output file when running as daemon is broken, aborting.\n");
-      return(0);
-  }
-   */
-
   if ( strcmp( sr_cfg.action, "foreground" ) )
   {
       if (! sr_cfg.outlet) 

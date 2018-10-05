@@ -358,9 +358,9 @@ int sr_add_decl(struct sr_config_t *cfg, char *what, char *s)
 
       return(3);
   } else if (!strcmp(what,"source")) {
-      log_msg( LOG_WARNING, "FIXME: declare source %s ignored\n", s );
+      log_msg( LOG_DEBUG, "declare source %s ignored\n", s );
   } else if (!strcmp(what,"subscriber")) {
-      log_msg( LOG_WARNING, "FIXME: declare subscriber %s ignored\n", s );
+      log_msg( LOG_DEBUG, "declare subscriber %s ignored\n", s );
   }
   return(2);
 

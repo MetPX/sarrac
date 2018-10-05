@@ -659,7 +659,7 @@ void exit(int status)
     char *real_return;
 
 
-    fprintf( stderr, "FIXME: exiting group\n" );
+    //fprintf( stderr, "FIXME: exiting group\n" );
 
     for ( int fd = getdtablesize(); fd >= 0; fd-- )
     {
