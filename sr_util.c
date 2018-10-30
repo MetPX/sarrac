@@ -201,13 +201,16 @@ int get_sumhashlen( char algo )
     case 'N' : case 's' : case 'L' : case 'R' : 
         return(SHA512_DIGEST_LENGTH+1);
 
+    case 'z' :
+        return(2);
+
     default: 
         return(0);
   }
 }
 
 
-char *set_sumstr( char algo, const char* fn, const char* partstr, char *linkstr,
+char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, char *linkstr,
           unsigned long block_size, unsigned long block_count, unsigned long block_rem, unsigned long block_num 
      )
  /* 
@@ -220,7 +223,7 @@ char *set_sumstr( char algo, const char* fn, const char* partstr, char *linkstr,
      'N' - md5sum of filename (fn) + partstr.
      'R' - no checksum, value is random. -> now same as N.
      's' - sha512 sum of block.
-
+     'z' - downstream should recalculate with algo that is argument.
    block starts at block_size * block_num, and ends 
   */
 {
@@ -275,6 +278,8 @@ char *set_sumstr( char algo, const char* fn, const char* partstr, char *linkstr,
               start += bytes_read;
            } else {
               fprintf( stderr, "error reading %s for MD5\n", fn );
+              close(fd);
+              fd=0;
               return(NULL);
            } 
        }
@@ -351,6 +356,8 @@ char *set_sumstr( char algo, const char* fn, const char* partstr, char *linkstr,
               start += bytes_read;
            } else {
               fprintf( stderr, "error reading %s for SHA\n", fn );
+              close(fd);
+              fd=0;
               return(NULL);
            } 
        }
@@ -363,6 +370,11 @@ char *set_sumstr( char algo, const char* fn, const char* partstr, char *linkstr,
        }
        SHA512_Final(sumhash+1, &shactx);
        return(sr_hash2sumstr(sumhash)); 
+
+   case 'z':
+       sumhash[1]=algoz;
+       sumhash[2]='\0';
+       return( sr_hash2sumstr(sumhash) );
 
    default:
        fprintf( stderr, "sum algorithm %c unimplemented\n", algo );
@@ -395,6 +407,12 @@ unsigned char *sr_sumstr2hash( const char *s )
     if (!s) return(NULL);
     memset( sumhash, 0, SR_SUMHASHLEN );
     sumhash[0]=s[0];
+
+    if ( s[0] == 'z' ) 
+    {
+       sumhash[1] = s[2];
+       return(sumhash);
+    }
     
     for ( i=1; ( i < get_sumhashlen(s[0]) ) ; i++ )
     {
@@ -410,6 +428,13 @@ char *sr_hash2sumstr( const unsigned char *h )
   memset( sumstr, 0, SR_SUMSTRLEN );
   sumstr[0] = h[0];
   sumstr[1] = ',';
+
+  if ( sumstr[0] == 'z' )
+  {
+      sumstr[2] = h[1];
+      sumstr[3] = '\0';;
+      return(sumstr); 
+  }
 
   for(i=1; i < get_sumhashlen(h[0]); i++ )
   {

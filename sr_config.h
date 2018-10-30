@@ -146,6 +146,7 @@ struct sr_config_t {
   time_t              sanity_log_dead;
   float               sleep;
   char                sumalgo; // checksum algorithm to use.
+  char                sumalgoz; // if algo is z what is downstream...
   char               *source;
   char               *to;
   struct sr_topic_t  *topics;

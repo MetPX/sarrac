@@ -879,6 +879,8 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       }
   } else if ( !strcmp( option, "sum" ) ) {
       sr_cfg->sumalgo = argument[0];
+      if ( sr_cfg->sumalgo == 'z' )
+          sr_cfg->sumalgoz = argument[2];
       retval=(2);
 
   } else if ( !strcmp( option, "to" ) ) {
@@ -1036,6 +1038,7 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->source=NULL;
   sr_cfg->statehost='0';
   sr_cfg->sumalgo='s';
+  sr_cfg->sumalgoz='d';
   sr_cfg->to=NULL;
   sr_cfg->user_headers=NULL; 
   strcpy( sr_cfg->topic_prefix, "v02.post" );

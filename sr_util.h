@@ -75,7 +75,7 @@ int get_sumhashlen( char algo );
  /* return the length of the hash buffer (which includes the 1 char prefix for the type.
   */
 
-char *set_sumstr( char algo, const char* fn, const char* partstr, char *linkstr,
+char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, char *linkstr,
           unsigned long block_size, unsigned long block_count, unsigned long block_rem, unsigned long block_num
      );
 

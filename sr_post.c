@@ -421,6 +421,12 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec, struct 
   m->user_headers=sr_c->cfg->user_headers;
 
   m->sum[0]= sr_c->cfg->sumalgo;
+  if ( sr_c->cfg->sumalgo == 'z' )
+  {
+     m->sum[1] = ',';
+     m->sum[2] = sr_c->cfg->sumalgoz ;
+     m->sum[3] = '\0' ;
+  }
 
 
   if ( !sb ) 
@@ -485,7 +491,7 @@ struct sr_message_t *sr_file2message_seq(const char *pathspec, int seq, struct s
       m->parts_num = seq;
 
       strcpy( m->sum, 
-              set_sumstr( m->sum[0], pathspec, NULL, m->link, m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num ) 
+              set_sumstr( m->sum[0], m->sum[2], pathspec, NULL, m->link, m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num ) 
             ); 
 
       if ( !(m->sum) ) 
