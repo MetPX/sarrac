@@ -1,3 +1,10 @@
+sarrac (2.18.10b2) unstable; urgency=medium
+
+  * added support for z, checksum algorithm. 
+  * changed some error handling when there are problems calculating checksums.
+
+ -- Peter Silva <peter@idefix>  Wed, 31 Oct 2018 16:37:33 -0400
+
 sarrac (2.18.10b1) unstable; urgency=medium
 
   * removing useless debug/FIXME messages 
