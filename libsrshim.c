@@ -8,6 +8,7 @@
 #include <dlfcn.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <math.h>
 #include <stdarg.h>
 #include <errno.h>
@@ -49,15 +50,15 @@ static int close_init_done = 0;
 typedef int  (*close_fn) (int);
 static close_fn close_fn_ptr = close;
 
+#define PSDUPMAX (10)
+
 void srshim_initialize(const char* progname) 
 {
 
   static int config_read = 0;
   char *setstr;
   int finalize_good;
-  int   psdup1;
-  int   psdup2;
-  int   psdup3;
+  int   psdup[ PSDUPMAX ];
 
 
   if (sr_c) return;
@@ -70,9 +71,9 @@ void srshim_initialize(const char* progname)
   if ( setstr != NULL )
   { 
      // making use of 3 FD to try to avoid stepping over stdout stderr, for logs & broker connection.
-     psdup1 = open("/dev/null",O_APPEND);
-     psdup2 = dup(psdup1);
-     psdup3 = dup(psdup2);
+     psdup[0] = open("/dev/null",O_APPEND);
+     for ( int i = 0; i < PSDUPMAX ; i++ )
+          psdup[i] = dup(psdup[i-1]);
 
      if ( config_read == 0 ) 
      {
@@ -97,9 +98,8 @@ void srshim_initialize(const char* progname)
 
      sr_c = sr_context_init_config(&sr_cfg);
 
-     if (psdup1 != -1) close_fn_ptr(psdup1);
-     if (psdup2 != -1) close_fn_ptr(psdup2);
-     if (psdup3 != -1) close_fn_ptr(psdup3);
+     for ( int i = PSDUPMAX-1; i >= 0; i-- )
+         close_fn_ptr(psdup[i]);
 
   } 
 }
@@ -146,6 +146,9 @@ void srshim_realpost(const char *path)
   //log_msg( LOG_CRITICAL, "FIXME realpost 2 PATH %s\n", path);
 
   statres = lstat( path, &sb ) ;
+
+  if ( !S_ISREG(sb.st_mode) && !S_ISLNK(sb.st_mode) ) 
+     return;
 
   strcpy( fn, path );
 
@@ -661,7 +664,8 @@ void exit(int status)
 
     //fprintf( stderr, "FIXME: exiting group\n" );
 
-    for ( int fd = getdtablesize(); fd >= 0; fd-- )
+    //for ( int fd = getdtablesize(); fd >= 0; fd-- )
+    for ( int fd = 100; fd >= 0; fd-- )
     {
         fdstat = fcntl(fd, F_GETFL);
 
@@ -685,7 +689,7 @@ void exit(int status)
        if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit posting %s\n", real_path );
 
        shimpost(real_path, status);
-       //close(fd);
+      
     }
     if (!exit_init_done) {
         exit_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit");
@@ -847,6 +851,8 @@ int close(int fd)
     clerror(status);
     if (!real_return  ) return status;
 
+    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG close %s fd=%d\n", real_path, fd );
+
     if ( !strncmp(real_path,"/dev/", 5) ) 
     { 
         clerror(status);
@@ -858,8 +864,6 @@ int close(int fd)
         clerror(status);
         return(status);
     }
-
-    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG close %s\n", real_path );
 
     return shimpost(real_path, status) ;
 }
@@ -935,90 +939,3 @@ int fclose(FILE *f)
     return shimpost(real_path, status) ;
 }
 
-/*
-
-
-FIXME:
-  
-  Dunno if I want to go down this rabbit hole.  If someone opens a file and doesn't close it...
-  it only matters for readonly files (SR_POST_READS)
-  to deal with read on open would need:
-
-  fopen
-  fdopen
-  fdreopen(
-  open( 2args)
-  open( 3 args )
-  creat(
-  openat( 3args )
-  openat( 4args )
- 
-  dlopen(   
-  dlmopen(
-
-
-static int fopen_init_done = 0;
-typedef FILE* (*fopen_fn) (const char *, const char *);
-static fopen_fn fopen_fn_ptr = fopen;
-
-FILE *fopen(const char *pathname, const char *mode)
-{
-
-    FILE *f = NULL;
-
-    if (!fopen_init_done) {
-        fopen_fn_ptr = (fopen_fn) dlsym(RTLD_NEXT, "fopen");
-        fopen_init_done = 1;
-        if (getenv("SR_POST_READS"))
-           srshim_initialize( "post" );
-    }
-
-    if ( (!strcmp(mode,"r")) && ( !sr_c || !( SR_READ & sr_c->cfg->events ) ) )
-        return fopen_fn_ptr( pathname, mode );
-
-    f = fopen_fn_ptr( pathname, mode);
-    
-    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG fopen continue %s %s\n", pathname, mode );
-
-    shimpost( pathname, (f==NULL) );
- 
-    return(f);
-    
-}
-
-// MG modified open for 2 or 3 args
-
-static int open_init_done = 0;
-typedef int (*open_fn) (const char *, int, ...  );
-static open_fn open_fn_ptr = open;
-
-int open(const char *pathname, int flags, ... )
-{
-    int status = 0;
-    int fd;
-
-    // to support 2 or 3 args
-    va_list args;
-    va_start(args,flags);
-
-    if (!open_init_done) {
-        open_fn_ptr = (open_fn) dlsym(RTLD_NEXT, "open");
-        open_init_done = 1;
-        if (getenv("SR_POST_READS"))
-           srshim_initialize( "post" );
-    }
-
-    if ( (flags & O_RDONLY) && ( !sr_c || !( SR_READ & sr_c->cfg->events ) ) )
-        return open_fn_ptr( pathname, flags, args );
-
-    fd = open_fn_ptr( pathname, flags, args );
-    if ( fd == -1 ) status = -1;
-    
-    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG open continue %s %04x\n", pathname, flags );
-
-    status = shimpost( pathname, status );
-    return fd;
- 
-}
-
- */
