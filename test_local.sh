@@ -8,8 +8,11 @@ fi
 
 set -x
 
+bashexe=`which bash`
+
 echo "FIXME: KNOWN ISSUE redirection close does not get posted!"
-bash -c 'echo "hoho" >> ./hoho'
+
+$bashexe -c 'echo "hoho" >> ./hoho'
 
 truncate --size=2 ./hoho
 

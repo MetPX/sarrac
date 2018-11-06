@@ -8,6 +8,8 @@ fi
 
 set -x
 
+which bash
+
 echo "FIXME: KNOWN ISSUE redirection close does not get posted!"
 bash -c 'echo "hoho" >> ./hoho'
 
