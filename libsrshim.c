@@ -66,47 +66,40 @@ void srshim_initialize(const char* progname)
 
   setstr = getenv( "SR_POST_CONFIG" ) ;
 
+  if ( setstr == NULL )
+      return;
+
   //log_msg( LOG_CRITICAL, "FIXME srshim_initialize 2 %s setstr=%p\n", progname, setstr);
+  psdup[0] = open("/dev/null",O_APPEND);
+  for ( int i = 1; i < PSDUPMAX ; i++ )
+      psdup[i] = dup(psdup[i-1]);
 
-  if ( setstr != NULL )
-  { 
-     // skip many FD to try to avoid stepping over stdout stderr, for logs & broker connection.
-     psdup[0] = open("/dev/null",O_APPEND);
-     for ( int i = 1; i < PSDUPMAX ; i++ )
-          psdup[i] = dup(psdup[i-1]);
 
-     if ( config_read == 0 ) 
-     {
+   // skip many FD to try to avoid stepping over stdout stderr, for logs & broker connection.
+   if ( config_read == 0 ) 
+   {
        setstr = strdup(setstr);
        sr_config_init(&sr_cfg,progname);
        config_read = sr_config_read(&sr_cfg,setstr,1,1);
        free(setstr);
-       if (!config_read) {
-           errno=0;
-           return;
-       }
-     }
+       if (!config_read) goto RET;
+   }
 
-     if (!close_init_done) {
+   if (!close_init_done) {
          close_fn_ptr = (close_fn) dlsym(RTLD_NEXT, "close");
          close_init_done = 1;
-     }
+   }
 
-     finalize_good = sr_config_finalize( &sr_cfg, 0 );
+   finalize_good = sr_config_finalize( &sr_cfg, 0 );
 
-     if ( !finalize_good ) 
-     {
-        errno=0;
-        return;
-     }
+   if ( !finalize_good ) goto RET;
 
-     sr_c = sr_context_init_config(&sr_cfg);
+   sr_c = sr_context_init_config(&sr_cfg);
 
-     for ( int i = PSDUPMAX-1; i >= 0; i-- )
-         close_fn_ptr(psdup[i]);
-
-  } 
-  errno=0;
+RET:
+   for ( int i = PSDUPMAX-1; i >= 0; i-- )
+       close_fn_ptr(psdup[i]);
+   errno=0;
 }
 void srshim_connect() 
 {
@@ -702,8 +695,8 @@ void exit(int status)
         exit_init_done = 1;
     }
 
-     // do it for real.
-     exit_fn_ptr(status);
+    // do it for real.
+    exit_fn_ptr(status);
 }
 
 
