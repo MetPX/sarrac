@@ -70,9 +70,9 @@ void srshim_initialize(const char* progname)
 
   if ( setstr != NULL )
   { 
-     // making use of 3 FD to try to avoid stepping over stdout stderr, for logs & broker connection.
+     // skip many FD to try to avoid stepping over stdout stderr, for logs & broker connection.
      psdup[0] = open("/dev/null",O_APPEND);
-     for ( int i = 0; i < PSDUPMAX ; i++ )
+     for ( int i = 1; i < PSDUPMAX ; i++ )
           psdup[i] = dup(psdup[i-1]);
 
      if ( config_read == 0 ) 
@@ -81,7 +81,10 @@ void srshim_initialize(const char* progname)
        sr_config_init(&sr_cfg,progname);
        config_read = sr_config_read(&sr_cfg,setstr,1,1);
        free(setstr);
-       if (!config_read) return;
+       if (!config_read) {
+           errno=0;
+           return;
+       }
      }
 
      if (!close_init_done) {
@@ -93,6 +96,7 @@ void srshim_initialize(const char* progname)
 
      if ( !finalize_good ) 
      {
+        errno=0;
         return;
      }
 
@@ -102,26 +106,28 @@ void srshim_initialize(const char* progname)
          close_fn_ptr(psdup[i]);
 
   } 
+  errno=0;
 }
 void srshim_connect() 
 {
   if (!sr_connected) {
-     int   psdup1;
-     int   psdup2;
-     int   psdup3;
+
+     int  psdup[ PSDUPMAX ];
 
      // making use of 3 FD to try to avoid stepping over stdout stderr, for logs & broker connection.
-     psdup1 = open("/dev/null",O_APPEND);
-     psdup2 = dup(psdup1);
-     psdup3 = dup(psdup2);
+     psdup[0] = open("/dev/null",O_APPEND);
+     for ( int i = 1; i < PSDUPMAX ; i++ )
+          psdup[i] = dup(psdup[i-1]);
 
      sr_c = sr_context_connect( sr_c );
      sr_connected=1;
 
-     if (psdup1 != -1) close_fn_ptr(psdup1);
-     if (psdup2 != -1) close_fn_ptr(psdup2);
-     if (psdup3 != -1) close_fn_ptr(psdup3);
+     for ( int i = PSDUPMAX-1; i >= 0; i-- )
+         close_fn_ptr(psdup[i]);
+
+     errno=0;
   }
+
 }
 
 
