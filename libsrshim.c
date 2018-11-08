@@ -829,7 +829,9 @@ int close(int fd)
         if (getenv("SR_POST_READS"))
            srshim_initialize( "post" );
     }
-    
+
+    if (in_librshim_already_dammit) return close_fn_ptr(fd);
+
     fdstat = fcntl(fd, F_GETFL);
 
     if ( fdstat == -1) {
