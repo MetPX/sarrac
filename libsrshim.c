@@ -101,6 +101,8 @@ RET:
        close_fn_ptr(psdup[i]);
    errno=0;
 }
+
+
 void srshim_connect() 
 {
   if (!sr_connected) {
@@ -694,6 +696,10 @@ void exit(int status)
         exit_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit");
         exit_init_done = 1;
     }
+
+    // after this point things get closed, so cannot reliably post.
+    // turn off libsrshim functionality.
+    in_librshim_already_dammit=1;
 
     // do it for real.
     exit_fn_ptr(status);
