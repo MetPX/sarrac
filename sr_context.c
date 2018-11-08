@@ -265,21 +265,19 @@ void sr_broker_close(struct sr_broker_t *broker)
   reply = amqp_channel_close(broker->conn, 1, AMQP_REPLY_SUCCESS);
   if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
       log_msg( LOG_ERROR, "sr_cpost: amqp channel close failed.\n");
-      return;
-  }
-
-  reply = amqp_connection_close(broker->conn, AMQP_REPLY_SUCCESS);
-  if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-      log_msg( LOG_ERROR, "sr_cpost: amqp connection close failed.\n");
-      return;
+  } else {
+      reply = amqp_connection_close(broker->conn, AMQP_REPLY_SUCCESS);
+      if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
+          log_msg( LOG_ERROR, "sr_cpost: amqp connection close failed.\n");
+      }
   }
 
   status = amqp_destroy_connection(broker->conn);
   if (status < 0 ) 
   {
       log_msg( LOG_ERROR, "sr_cpost: amqp context close failed.\n");
-      return;
   }
+
 }
 
 
