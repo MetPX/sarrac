@@ -198,7 +198,7 @@ int get_sumhashlen( char algo )
     case '0': 
         return(4+1);
 
-    case 'N' : case 's' : case 'L' : case 'R' : 
+    case 'p' : case 's' : case 'L' : case 'R' : 
         return(SHA512_DIGEST_LENGTH+1);
 
     case 'z' :
@@ -220,7 +220,7 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
      'd' - md5sum of block.
      'n' - md5sum of filename (fn).
      'L' - now sha512 sum of link value.
-     'N' - md5sum of filename (fn) + partstr.
+     'p' - md5sum of filename (fn) + partstr.
      'R' - no checksum, value is random. -> now same as N.
      's' - sha512 sum of block.
      'z' - downstream should recalculate with algo that is argument.
@@ -319,7 +319,7 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
         SHA512_Final(sumhash+1, &shactx);
         return(sr_hash2sumstr(sumhash)); 
 
-   case 'N' :
+   case 'p' :
        SHA512_Init(&shactx);
        just_the_name = rindex(fn,'/')+1;
        if (just_the_name<(char*)2) just_the_name=fn;
