@@ -670,7 +670,6 @@ void exit(int status)
     char real_path[PATH_MAX+1];
     char *real_return;
 
-
     if (!exit_init_done) {
         exit_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit");
         exit_init_done = 1;
@@ -707,7 +706,9 @@ void exit(int status)
        shimpost(real_path, status);
       
     }
-    sr_context_close(sr_c);
+    if (sr_c) sr_context_close(sr_c);
+    free(sr_c);
+    sr_c=NULL;
     //free(sr_c);
     //sr_config_free(&sr_cfg);
 
@@ -846,7 +847,7 @@ int close(int fd)
            srshim_initialize( "post" );
     }
 
-    if (in_librshim_already_dammit) return close_fn_ptr(fd);
+    if (!sr_c || in_librshim_already_dammit) return close_fn_ptr(fd);
 
     fdstat = fcntl(fd, F_GETFL);
 
