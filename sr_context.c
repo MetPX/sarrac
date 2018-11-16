@@ -262,6 +262,10 @@ void sr_broker_close(struct sr_broker_t *broker)
   amqp_rpc_reply_t reply;
   signed int status;
 
+  if (!(broker->conn)) 
+  {
+     return;
+  }
   reply = amqp_channel_close(broker->conn, 1, AMQP_REPLY_SUCCESS);
   if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
       log_msg( LOG_ERROR, "sr_cpost: amqp channel close failed.\n");
@@ -273,6 +277,7 @@ void sr_broker_close(struct sr_broker_t *broker)
   }
 
   status = amqp_destroy_connection(broker->conn);
+
   if (status < 0 ) 
   {
       log_msg( LOG_ERROR, "sr_cpost: amqp context close failed.\n");
@@ -283,12 +288,18 @@ void sr_broker_close(struct sr_broker_t *broker)
 
 void sr_context_close(struct sr_context *sr_c)  {
 
+  if (!sr_c) return;
+  if (!sr_c->cfg) return;
+
   if (sr_c->cfg->broker) 
   {
       sr_broker_close( sr_c->cfg->broker );
       log_msg( LOG_DEBUG, "sr_cpost: subscription broker closed.\n");
   } 
-  if (sr_c->cfg->post_broker) sr_broker_close( sr_c->cfg->post_broker );
+  if (sr_c->cfg->post_broker) {
+      sr_broker_close( sr_c->cfg->post_broker );
+      log_msg( LOG_DEBUG, "sr_cpost: subscription post broker closed.\n");
+  } 
 
 }
 

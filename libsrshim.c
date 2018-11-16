@@ -670,6 +670,7 @@ void exit(int status)
     char real_path[PATH_MAX+1];
     char *real_return;
 
+    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit 0\n" );
     if (!exit_init_done) {
         exit_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit");
         exit_init_done = 1;
@@ -707,6 +708,7 @@ void exit(int status)
       
     }
     if (sr_c) sr_context_close(sr_c);
+
     free(sr_c);
     sr_c=NULL;
     //free(sr_c);
@@ -846,8 +848,7 @@ int close(int fd)
         if (getenv("SR_POST_READS"))
            srshim_initialize( "post" );
     }
-
-    if (!sr_c || in_librshim_already_dammit) return close_fn_ptr(fd);
+    if (in_librshim_already_dammit) return close_fn_ptr(fd);
 
     fdstat = fcntl(fd, F_GETFL);
 
