@@ -290,7 +290,7 @@ void sr_broker_close(struct sr_broker_t *broker)
   broker->conn = NULL;
   broker->next=NULL;
 
-  if (broker->socket) free(broker->socket);
+  //if (broker->socket) free(broker->socket);
 
   broker->socket=NULL;
   broker->started=0;
