@@ -670,7 +670,7 @@ void exit(int status)
     char real_path[PATH_MAX+1];
     char *real_return;
 
-    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit 0\n" );
+    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit 0, context=%p\n", sr_c );
     if (!exit_init_done) {
         exit_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit");
         exit_init_done = 1;
@@ -707,6 +707,7 @@ void exit(int status)
        shimpost(real_path, status);
       
     }
+    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit closing context %p\n", sr_c );
     if (sr_c) sr_context_close(sr_c);
 
     free(sr_c);

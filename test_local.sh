@@ -8,6 +8,8 @@ fi
 
 set -x
 
+which which
+
 bashexe=`which bash`
 
 echo "FIXME: KNOWN ISSUE redirection close does not get posted!"

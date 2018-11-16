@@ -112,6 +112,8 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
   amqp_tx_select_ok_t *select_status;
   time_t to_sleep=1;
 
+  if (!broker) return(NULL);
+
   if ( !(broker->password) ) {
     log_msg(  LOG_ERROR, "No broker password found.\n" );
     return(NULL);
@@ -162,7 +164,7 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
        goto have_channel;
      }
 
-     select_status = amqp_tx_select(broker->conn, 1);
+     select_status = amqp_tx_select(broker->conn,1);
      if (select_status == NULL ) {
        log_msg( LOG_ERROR, "failed AMQP amqp_tx_select\n");
        reply = amqp_get_rpc_reply(broker->conn);
@@ -181,9 +183,11 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
 
   have_socket:
       reply = amqp_connection_close(broker->conn, AMQP_REPLY_SUCCESS);
+      broker->socket = NULL;
 
   have_connection:
       status = amqp_destroy_connection(broker->conn);
+      broker->conn = NULL;
 
   sleep(to_sleep);
   log_msg( LOG_DEBUG, "broker_connect slept %ld seconds, trying again now.", to_sleep );
@@ -194,6 +198,9 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
 
 
 struct sr_context *sr_context_connect(struct sr_context *sr_c) {
+
+  if (!sr_c) return(NULL);
+  if (!(sr_c->cfg)) return(NULL);
 
   if (sr_c->cfg->broker)  {
        sr_c->cfg->broker = sr_broker_connect( sr_c->cfg->broker ) ; 
@@ -226,6 +233,8 @@ struct sr_context *sr_context_init_config(struct sr_config_t *sr_cfg)
 {
 
   struct sr_context *sr_c;
+
+  if (!sr_cfg) return(NULL);
 
   // seed for random checksums... random enough...
   // also initializes tstart for use by heartbeat processing.
@@ -264,6 +273,7 @@ void sr_broker_close(struct sr_broker_t *broker)
 
   if (!(broker->conn)) 
   {
+     log_msg( LOG_ERROR, "sr_cpost: amqp broker close: no connection present.\n");
      return;
   }
   reply = amqp_channel_close(broker->conn, 1, AMQP_REPLY_SUCCESS);
@@ -277,6 +287,16 @@ void sr_broker_close(struct sr_broker_t *broker)
   }
 
   status = amqp_destroy_connection(broker->conn);
+  broker->conn = NULL;
+  broker->next=NULL;
+
+  if (broker->socket) free(broker->socket);
+
+  broker->socket=NULL;
+  broker->started=0;
+  broker->last_delivery_tag=0;
+
+
 
   if (status < 0 ) 
   {
