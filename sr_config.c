@@ -974,6 +974,7 @@ void sr_config_free( struct sr_config_t *sr_cfg )
   free(sr_cfg->logfn);
 
   sr_cache_close( sr_cfg->cachep );
+  sr_cfg->cachep=NULL;
 
 }
 void sr_config_init( struct sr_config_t *sr_cfg, const char *progname ) 

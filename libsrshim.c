@@ -680,8 +680,9 @@ void exit(int status)
 
     //fprintf( stderr, "FIXME: exiting group\n" );
 
-    //for ( int fd = getdtablesize(); fd >= 0; fd-- )
-    for ( int fd = 100; fd >= 0; fd-- )
+    //exclude stdin, which should never be writeable, so should never need posting.
+    //for ( int fd = getdtablesize(); fd > 0; fd-- )
+    for ( int fd = 100; fd > 0 ; fd-- )
     {
         fdstat = fcntl(fd, F_GETFL);
 
