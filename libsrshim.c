@@ -698,9 +698,6 @@ void exit(int status)
        if ( (!real_return) || ( !strncmp(real_path,"/dev/", 5) ) || ( !strncmp(real_path,"/proc/", 6) ) )
            continue;
 
-       if (!getenv("SR_POST_READS"))
-           srshim_initialize( "post" );
-
        fsync(fd); // ensure data is flushed to disk before post occurs.
 
        if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit posting %s\n", real_path );
