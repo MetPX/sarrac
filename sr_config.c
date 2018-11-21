@@ -26,6 +26,7 @@ status:
 
 // for local_fqdn()
 #include <sys/socket.h>
+
 #include <netdb.h>
 
 //for opendir/readdir
@@ -37,6 +38,9 @@ status:
 #include <errno.h>
 
 #include <time.h>
+
+#include <dlfcn.h>
+
 
 #include "sr_credentials.h"
 
@@ -127,6 +131,17 @@ void sr_add_topic( struct sr_config_t *sr_cfg, const char* sub )
    }
 }
 
+#ifdef FORCE_LIBC_REGEX
+
+typedef int  (*regcomp_fn) (regex_t *pregg, const char *regex, int clfags );
+static regcomp_fn regcomp_fn_ptr = NULL;
+
+typedef int (*regexec_fn) (const regex_t *preg, const char *string, size_t nmatch,
+                   regmatch_t pmatch[], int eflags);
+
+static regexec_fn regexec_fn_ptr = NULL;
+
+#endif
 
 struct sr_mask_t *isMatchingPattern(struct sr_config_t *sr_cfg, const char* chaine )
    /* return pointer to matched pattern, if there is one, NULL otherwise.
@@ -148,7 +163,11 @@ struct sr_mask_t *isMatchingPattern(struct sr_config_t *sr_cfg, const char* chai
        //     log_msg( LOG_DEBUG,  "isMatchingPattern, testing mask: %s %-30s next=%p\n", 
        //          (entry->accepting)?"accept":"reject", entry->clause, (entry->next) );
 
-       if ( !regexec(&(entry->regexp), chaine, (size_t)0, NULL, 0 ) ) {
+#ifdef FORCE_LIBC_REGEX
+       if ( !regexec_fn_ptr(&(entry->regexp), chaine, (size_t)0, NULL, 0 ) ) {
+#else
+       if ( !regexec_fn_ptr(&(entry->regexp), chaine, (size_t)0, NULL, 0 ) ) {
+#endif
            break; // matched
        }
        entry = entry->next; 
@@ -171,6 +190,7 @@ void add_mask(struct sr_config_t *sr_cfg, char *directory, char *option, int acc
     struct sr_mask_t *new_entry;
     struct sr_mask_t *next_entry;
     int status;
+    void *handle;
 
     //if ( (sr_cfg) && sr_cfg->debug )
     //    fprintf( stderr, "adding mask: %s %s\n", accept?"accept":"reject", option );
@@ -180,7 +200,25 @@ void add_mask(struct sr_config_t *sr_cfg, char *directory, char *option, int acc
     new_entry->directory = (directory?strdup(directory):NULL);
     new_entry->accepting = accept;
     new_entry->clause = strdup(option);
+
+#ifdef FORCE_LIBC_REGEX
+    if ( ! regcomp_fn_ptr ) 
+    {
+         handle = dlopen( FORCE_LIBC_REGEX , RTLD_LAZY);
+
+         regcomp_fn_ptr = dlsym(handle,"regcomp");
+         regexec_fn_ptr = dlsym(handle,"regexec");
+         if ( ! regcomp_fn_ptr ) 
+         {
+            log_msg( LOG_CRITICAL, "cannot find regcomp library function: regex %s ignored\n", option );
+            return;
+         }
+    }
+    status = regcomp_fn_ptr( &(new_entry->regexp), option, REG_EXTENDED|REG_NOSUB );
+#else
     status = regcomp( &(new_entry->regexp), option, REG_EXTENDED|REG_NOSUB );
+#endif
+
     if (status) {
         log_msg( LOG_ERROR, "invalid regular expression: %s. Ignored\n", option );
         return;
