@@ -166,7 +166,7 @@ struct sr_mask_t *isMatchingPattern(struct sr_config_t *sr_cfg, const char* chai
 #ifdef FORCE_LIBC_REGEX
        if ( !regexec_fn_ptr(&(entry->regexp), chaine, (size_t)0, NULL, 0 ) ) {
 #else
-       if ( !regexec_fn_ptr(&(entry->regexp), chaine, (size_t)0, NULL, 0 ) ) {
+       if ( !regexec(&(entry->regexp), chaine, (size_t)0, NULL, 0 ) ) {
 #endif
            break; // matched
        }
