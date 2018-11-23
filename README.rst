@@ -130,6 +130,19 @@ run dependencies::
   libssl - OpenSSL client library.
 
 
+CAVEATS
+-------
+
+If you see::
+
+  2018-11-21 00:08:17,315 [ERROR] invalid regular expression: .*\/tmp\/.*. Ignored
+
+and the regex is valid... the symptom we had was that the library was
+calling a version of the regular expresison routines included in a binary
+(ksh93 in this case) instead of the ones in libc that were expected.
+In the Makefile.intel file you can see an example use of adding the
+FORCE_LIBC_REGEX="/path/to/libc" to CFLAGS in order to override
+that binding.
   
 
 Dorval Computing Centre
