@@ -231,7 +231,7 @@ int main(int argc, char **argv)
   }
   fprintf(stderr, "still running\n" );
 
-  sr_c = sr_context_init_config( &sr_cfg );
+  sr_c = sr_context_init_config( &sr_cfg, 0 );
   if (!sr_c) {
      log_msg( LOG_ERROR, "failed to build context from configuration\n");
      return(1);

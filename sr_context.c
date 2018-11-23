@@ -50,6 +50,9 @@
 #include "sr_context.h"
 #include "sr_version.h"
 
+#define PSDUPMAX (10)
+
+static int sr_context_avoid_std_fds = 0;
 
 void sr_amqp_error_print(int x, char const *context)
 {
@@ -199,8 +202,17 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
 
 struct sr_context *sr_context_connect(struct sr_context *sr_c) {
 
+  int psdup[ PSDUPMAX ];
+
   if (!sr_c) return(NULL);
   if (!(sr_c->cfg)) return(NULL);
+
+  if (sr_context_avoid_std_fds) 
+  {
+     psdup[0] = open("/dev/null",O_APPEND);
+     for ( int i = 1; i < PSDUPMAX ; i++ )
+         psdup[i] = dup(psdup[i-1]);
+  }
 
   if (sr_c->cfg->broker)  {
        sr_c->cfg->broker = sr_broker_connect( sr_c->cfg->broker ) ; 
@@ -213,6 +225,11 @@ struct sr_context *sr_context_connect(struct sr_context *sr_c) {
        sr_c->cfg->post_broker = sr_broker_connect( sr_c->cfg->post_broker ) ; 
        if ( ! (sr_c->cfg->post_broker)  ) return(NULL);
        log_msg(  LOG_DEBUG, "%s connected to post broker %s\n", __sarra_version__, sr_broker_uri(sr_c->cfg->post_broker) );
+  }
+  if (sr_context_avoid_std_fds) 
+  {
+    for (int i = PSDUPMAX-1; i >= 0; i-- )
+       close(psdup[i]);
   }
 
   return(sr_c);
@@ -229,12 +246,14 @@ struct timespec time_of_last_run()
    return(tstart);
 }
 
-struct sr_context *sr_context_init_config(struct sr_config_t *sr_cfg) 
+struct sr_context *sr_context_init_config(struct sr_config_t *sr_cfg, int must_avoid_std_fds ) 
 {
 
   struct sr_context *sr_c;
 
   if (!sr_cfg) return(NULL);
+
+  sr_context_avoid_std_fds = must_avoid_std_fds ;
 
   // seed for random checksums... random enough...
   // also initializes tstart for use by heartbeat processing.

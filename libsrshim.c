@@ -50,7 +50,6 @@ static int close_init_done = 0;
 typedef int  (*close_fn) (int);
 static close_fn close_fn_ptr = close;
 
-#define PSDUPMAX (10)
 
 void srshim_initialize(const char* progname) 
 {
@@ -58,7 +57,6 @@ void srshim_initialize(const char* progname)
   static int config_read = 0;
   char *setstr;
   int finalize_good;
-  int   psdup[ PSDUPMAX ];
 
 
   if (sr_c) return;
@@ -70,10 +68,6 @@ void srshim_initialize(const char* progname)
       return;
 
   //log_msg( LOG_CRITICAL, "FIXME srshim_initialize 2 %s setstr=%p\n", progname, setstr);
-  psdup[0] = open("/dev/null",O_APPEND);
-  for ( int i = 1; i < PSDUPMAX ; i++ )
-      psdup[i] = dup(psdup[i-1]);
-
 
    // skip many FD to try to avoid stepping over stdout stderr, for logs & broker connection.
    if ( config_read == 0 ) 
@@ -94,11 +88,9 @@ void srshim_initialize(const char* progname)
 
    if ( !finalize_good ) goto RET;
 
-   sr_c = sr_context_init_config(&sr_cfg);
+   sr_c = sr_context_init_config(&sr_cfg, 1);
 
 RET:
-   for ( int i = PSDUPMAX-1; i >= 0; i-- )
-       close_fn_ptr(psdup[i]);
    errno=0;
 }
 
@@ -107,18 +99,9 @@ void srshim_connect()
 {
   if (!sr_connected) {
 
-     int  psdup[ PSDUPMAX ];
-
-     // making use of 3 FD to try to avoid stepping over stdout stderr, for logs & broker connection.
-     psdup[0] = open("/dev/null",O_APPEND);
-     for ( int i = 1; i < PSDUPMAX ; i++ )
-          psdup[i] = dup(psdup[i-1]);
 
      sr_c = sr_context_connect( sr_c );
      sr_connected=1;
-
-     for ( int i = PSDUPMAX-1; i >= 0; i-- )
-         close_fn_ptr(psdup[i]);
 
      errno=0;
   }

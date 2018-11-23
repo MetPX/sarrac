@@ -708,7 +708,7 @@ int main(int argc, char **argv)
         log_msg( LOG_WARNING, "start|restart with sleep <= 0 does nothing. exiting normally\n");
         return(0);
     }
-    sr_c = sr_context_init_config( &sr_cfg );
+    sr_c = sr_context_init_config( &sr_cfg, 0 );
     if (!sr_c) 
     {
         log_msg( LOG_CRITICAL, "failed to read config\n");
