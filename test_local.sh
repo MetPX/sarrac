@@ -2,10 +2,12 @@
 
 if [ ! "${SR_POST_CONFIG}" ]; then
    export SR_POST_CONFIG=`pwd`/local_post.conf
-   export LD_PRELOAD=`pwd`/libsrshim.so.1.0.0
+   export LD_PRELOAD="`pwd`/libsrshim.so.1.0.0:${LD_PRELOAD}"
    exec $0
 fi
 
+echo "LD_PRELOAD=$LD_PRELOAD"
+echo "SR_POST_CONFIG=$SR_POST_CONFIG"
 set -x
 
 which which

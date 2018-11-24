@@ -71,6 +71,25 @@ struct sr_context *sr_context_init_config(struct sr_config_t *sr_cfg, const int 
 /* context_init sets up a context.
    returns connection to a broker based on given configuration.
    returns an sr_context ready for use by connect.
+
+   This routine opens a socket connection to the broker, which uses an file 
+   descriptor. When called from the shim library, it can be called by code 
+   like this:
+
+   close(1)
+   open("....) 
+   write( 1,   ... ) 
+
+   The above assumes and requires fd returned by open will be 1, which is 
+   normally safe, however, if the broker connection is established before the 
+   next file is opened, then the socket will use the first available file 
+   descriptor which could be 0, 1, or 2. 
+
+   When avoid_std_fds is set, a number of file descriptors are associated with 
+   /dev/null prior to connecting to the broker to ensure that the fd assigned
+   to that socket will not be one of the standard ones. When called from 
+   well-behaved code such as a single C-program, this is unnecessary.
+
  */
 
 struct timespec time_of_last_run();
