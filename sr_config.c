@@ -1093,7 +1093,12 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sprintf( p, "%s/.config/sarra", getenv("HOME") );
   if (access(p, R_OK )) mkdir(p,0700);
   
-  sprintf( p, "%s/.config/sarra/%s", getenv("HOME"), progname );
+  if (! strcmp( progname, "srshim" ) )
+  {
+      sprintf( p, "%s/.config/sarra/%s", getenv("HOME"), "post" );
+  } else {
+      sprintf( p, "%s/.config/sarra/%s", getenv("HOME"), progname );
+  }
   if (access(p, R_OK )) mkdir(p,0700);
 
   sprintf( p, "%s/.config/sarra/default.conf", getenv("HOME") );
@@ -1137,8 +1142,8 @@ int sr_config_read( struct sr_config_t *sr_cfg, char *filename, int abort, int m
   /* linux config location */
   if ( *filename != '/' ) 
   {
-      sprintf( p, "%s/.config/sarra/%s/%s", getenv("HOME"), sr_cfg->progname, filename );
-
+      sprintf( p, "%s/.config/sarra/%s/%s", getenv("HOME"), 
+           strcmp(sr_cfg->progname,"srshim")?sr_cfg->progname:"post", filename );
   } else {
       strcpy( p, filename );
   }

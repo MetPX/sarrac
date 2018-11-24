@@ -152,10 +152,13 @@ calling a version of the regular expresison routines included in a binary
 (ksh93 in this case) instead of the ones in libc that were expected.
 without this option being set, the shim library will compile and user
 Korn Shell regular expression grammar instead of the libc/posix ones.
-This could be confusing in practic.
+This could be confusing in practice.
 
-Set the option -DFORCE_LIBC_REGEX=\"/lib/x86_64-linux-gnu/libc.so.6\" to
-the file containing the regcomp and regexec routines what are to be 
+Set the option::
+   
+   -DFORCE_LIBC_REGEX=\"/lib/x86_64-linux-gnu/libc.so.6\" 
+
+to the file containing the regcomp and regexec routines what are to be 
 used. The code uses dynamic library loading to force use of the specified
 routines. Obviously this setting is architecture dependent and would
 need adjustment if compiling on another platform, such as ARM or MIPS.
@@ -164,7 +167,9 @@ SR_DEBUG_LOGS
 ~~~~~~~~~~~~~
 
 To disable all log file support, so that diagnostics messages 
-are sent to standard error instead, include -DSR_DEBUG_LOGS=1
+are sent to standard error instead, include::
+
+  -DSR_DEBUG_LOGS=1
 
 
 Dorval Computing Centre

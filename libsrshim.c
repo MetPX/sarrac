@@ -215,7 +215,7 @@ int shimpost( const char *path, int status )
     in_librshim_already_dammit=1;
     if (!status) 
     {
-       srshim_initialize( "post" );
+       srshim_initialize( "srshim" );
        if (path[0] == '/' )
        {
           if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG absolute shimpost %s, status=%d\n", path, status );
@@ -444,7 +444,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd, const char *ne
          return(status);
     }
 
-    srshim_initialize("post");
+    srshim_initialize("srshim");
 
     clerror(status);
     if (!sr_c) return(status);
@@ -510,7 +510,7 @@ int dup2(int oldfd, int newfd )
         dup2_fn_ptr = (dup2_fn) dlsym(RTLD_NEXT, "dup2");
         dup2_init_done = 1;
         if (getenv("SR_POST_READS"))
-           srshim_initialize( "post" );
+           srshim_initialize( "srshim" );
     }
 
     errno=0;
@@ -554,7 +554,7 @@ int dup2(int oldfd, int newfd )
     }
 
     if (!getenv("SR_POST_READS"))
-       srshim_initialize( "post" );
+       srshim_initialize( "srshim" );
 
     status = dup2_fn_ptr (oldfd, newfd);
     if ( status == -1 ) return status;
@@ -589,7 +589,7 @@ int dup3(int oldfd, int newfd, int flags )
         dup3_fn_ptr = (dup3_fn) dlsym(RTLD_NEXT, "dup3");
         dup3_init_done = 1;
         if (getenv("SR_POST_READS"))
-           srshim_initialize( "post" );
+           srshim_initialize( "srshim" );
     }
 
     if (in_librshim_already_dammit  || ( oldfd == newfd )) {
@@ -628,7 +628,7 @@ int dup3(int oldfd, int newfd, int flags )
     }
 
     if (!getenv("SR_POST_READS"))
-       srshim_initialize( "post" );
+       srshim_initialize( "srshim" );
 
     errno=0;
     status = dup3_fn_ptr (oldfd, newfd, flags);
@@ -893,7 +893,7 @@ int close(int fd)
         close_fn_ptr = (close_fn) dlsym(RTLD_NEXT, "close");
         close_init_done = 1;
         if (getenv("SR_POST_READS"))
-           srshim_initialize( "post" );
+           srshim_initialize( "srshim" );
     }
     if (in_librshim_already_dammit) return close_fn_ptr(fd);
 
@@ -914,7 +914,7 @@ int close(int fd)
     real_return = realpath(fdpath, real_path);
 
     if (!getenv("SR_POST_READS"))
-       srshim_initialize( "post" );
+       srshim_initialize( "srshim" );
 
     errno=0;
     status = close_fn_ptr(fd);
@@ -958,7 +958,7 @@ int fclose(FILE *f)
         fclose_fn_ptr = (fclose_fn) dlsym(RTLD_NEXT, "fclose");
         fclose_init_done = 1;
         if (getenv("SR_POST_READS"))
-           srshim_initialize( "post" );
+           srshim_initialize( "srshim" );
     }
     if (in_librshim_already_dammit) return fclose_fn_ptr(f);
 
