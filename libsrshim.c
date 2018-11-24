@@ -13,6 +13,7 @@
 #include <stdarg.h>
 #include <errno.h>
 
+#include <dirent.h>
 #define clerror(s)  if (s==0) { errno=0; }
 
 #include "sr_post.h"
@@ -50,7 +51,6 @@ static int close_init_done = 0;
 typedef int  (*close_fn) (int);
 static close_fn close_fn_ptr = close;
 
-#define PSDUPMAX (10)
 
 void srshim_initialize(const char* progname) 
 {
@@ -58,7 +58,6 @@ void srshim_initialize(const char* progname)
   static int config_read = 0;
   char *setstr;
   int finalize_good;
-  int   psdup[ PSDUPMAX ];
 
 
   if (sr_c) return;
@@ -70,10 +69,6 @@ void srshim_initialize(const char* progname)
       return;
 
   //log_msg( LOG_CRITICAL, "FIXME srshim_initialize 2 %s setstr=%p\n", progname, setstr);
-  psdup[0] = open("/dev/null",O_APPEND);
-  for ( int i = 1; i < PSDUPMAX ; i++ )
-      psdup[i] = dup(psdup[i-1]);
-
 
    // skip many FD to try to avoid stepping over stdout stderr, for logs & broker connection.
    if ( config_read == 0 ) 
@@ -94,11 +89,9 @@ void srshim_initialize(const char* progname)
 
    if ( !finalize_good ) goto RET;
 
-   sr_c = sr_context_init_config(&sr_cfg);
+   sr_c = sr_context_init_config(&sr_cfg, 1);
 
 RET:
-   for ( int i = PSDUPMAX-1; i >= 0; i-- )
-       close_fn_ptr(psdup[i]);
    errno=0;
 }
 
@@ -107,18 +100,9 @@ void srshim_connect()
 {
   if (!sr_connected) {
 
-     int  psdup[ PSDUPMAX ];
-
-     // making use of 3 FD to try to avoid stepping over stdout stderr, for logs & broker connection.
-     psdup[0] = open("/dev/null",O_APPEND);
-     for ( int i = 1; i < PSDUPMAX ; i++ )
-          psdup[i] = dup(psdup[i-1]);
 
      sr_c = sr_context_connect( sr_c );
      sr_connected=1;
-
-     for ( int i = PSDUPMAX-1; i >= 0; i-- )
-         close_fn_ptr(psdup[i]);
 
      errno=0;
   }
@@ -663,12 +647,23 @@ static int exit_init_done = 0;
 typedef void (*exit_fn)( int ) __attribute__((noreturn));
 static exit_fn exit_fn_ptr = exit;
 
+#define MAX_PARENT_OPEN_FILES (100)
+
 void exit(int status) 
 {   
     int  fdstat;
-    char fdpath[32];
+    char fdpath[500];
+    int  fdpathlen;
     char real_path[PATH_MAX+1];
     char *real_return;
+    int  fd;
+    int  found;
+    int  ppid;
+    DIR  *fddir=NULL;
+    struct dirent *fdde;
+    int  max_parent_file_open = 0;
+    char *parent_files_open[ MAX_PARENT_OPEN_FILES ];
+    
 
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit 0, context=%p\n", sr_c );
     if (!exit_init_done) {
@@ -678,24 +673,69 @@ void exit(int status)
 
     if (in_librshim_already_dammit) exit_fn_ptr(status);
 
-    //fprintf( stderr, "FIXME: exiting group\n" );
 
-    //exclude stdin, which should never be writeable, so should never need posting.
-    //for ( int fd = getdtablesize(); fd > 0; fd-- )
-    for ( int fd = 100; fd > 0 ; fd-- )
+    // build an array of the file names currently opened by the parent process.
+    
+    snprintf( fdpath, 499, "/proc/%d/fd", getppid() );
+    fddir = opendir( fdpath );
+    
+    while ( (fdde = readdir( fddir )) ) 
     {
+        fdpathlen = readlinkat( dirfd(fddir), fdde->d_name, fdpath, 500 );
+
+        if ( fdpathlen < 0 )
+            continue;
+
+        fdpath[fdpathlen]='\0';
+
+        if (!strncmp( fdpath, "/dev/", 5 )) 
+            continue;
+
+        if (!strncmp( fdpath, "/proc/", 6 )) 
+            continue;
+
+        parent_files_open[ max_parent_file_open++ ] = strdup( fdpath ); 
+
+        if ( max_parent_file_open >= MAX_PARENT_OPEN_FILES )
+            break;
+
+    }
+    closedir(fddir);
+
+
+    // In the current process, find files which are not opened by the parent
+    // that need posting.
+
+    fddir = opendir( "/proc/self/fd" );
+
+    while ( (fdde = readdir( fddir )) ) 
+    {
+        if ( fdde->d_name[0] == '.' ) continue;
+
+        fd = atoi( fdde->d_name );
         fdstat = fcntl(fd, F_GETFL);
 
         if ( fdstat == -1)
             continue;
 
-       if ( ((fdstat & O_ACCMODE) == O_RDONLY ) && ( !sr_c || !( SR_READ & sr_c->cfg->events ) ) )
+        if ( ((fdstat & O_ACCMODE) == O_RDONLY ) && ( !sr_c || !( SR_READ & sr_c->cfg->events ) ) )
            continue;
 
-       snprintf(fdpath, 32, "/proc/self/fd/%d", fd);
-       real_return = realpath(fdpath, real_path);
+        snprintf( fdpath, 499, "/proc/self/fd/%s", fdde->d_name );
+        real_return = realpath(fdpath, real_path);
 
        if ( (!real_return) || ( !strncmp(real_path,"/dev/", 5) ) || ( !strncmp(real_path,"/proc/", 6) ) )
+           continue;
+
+       found=0;
+       for( int i = 0; ( i < max_parent_file_open ) ; i++ )
+          if ( !strcmp(real_path,parent_files_open[i]) ) 
+          {
+              found=1;
+              break;
+          }
+
+       if (found) 
            continue;
 
        fsync(fd); // ensure data is flushed to disk before post occurs.
@@ -703,13 +743,18 @@ void exit(int status)
        if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit posting %s\n", real_path );
 
        shimpost(real_path, status);
-      
     }
+    closedir(fddir);
+
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit closing context %p\n", sr_c );
     if (sr_c) sr_context_close(sr_c);
 
     free(sr_c);
     sr_c=NULL;
+
+    //FIXME: free the parent file open array...
+
+
     //free(sr_c);
     //sr_config_free(&sr_cfg);
 
