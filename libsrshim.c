@@ -85,6 +85,10 @@ void srshim_initialize(const char* progname)
          close_init_done = 1;
    }
 
+   /* FIXME: since action is *foreground*, no separate log file will be set up.
+        worry that if we ever use a log file, then there might be a
+        conflict where the log file uses one of the standard file descriptors.
+    */
    finalize_good = sr_config_finalize( &sr_cfg, 0 );
 
    if ( !finalize_good ) goto RET;
@@ -658,11 +662,10 @@ void exit(int status)
     char *real_return;
     int  fd;
     int  found;
-    int  ppid;
     DIR  *fddir=NULL;
     struct dirent *fdde;
-    int  max_parent_file_open = 0;
     char *parent_files_open[ MAX_PARENT_OPEN_FILES ];
+    int  last_pfo = 0;
     
 
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit 0, context=%p\n", sr_c );
@@ -675,6 +678,7 @@ void exit(int status)
 
 
     // build an array of the file names currently opened by the parent process.
+    
     
     snprintf( fdpath, 499, "/proc/%d/fd", getppid() );
     fddir = opendir( fdpath );
@@ -694,9 +698,9 @@ void exit(int status)
         if (!strncmp( fdpath, "/proc/", 6 )) 
             continue;
 
-        parent_files_open[ max_parent_file_open++ ] = strdup( fdpath ); 
+        parent_files_open[ last_pfo++ ] = strdup( fdpath ); 
 
-        if ( max_parent_file_open >= MAX_PARENT_OPEN_FILES )
+        if ( last_pfo >= MAX_PARENT_OPEN_FILES )
             break;
 
     }
@@ -728,7 +732,7 @@ void exit(int status)
            continue;
 
        found=0;
-       for( int i = 0; ( i < max_parent_file_open ) ; i++ )
+       for( int i = 0; ( i < last_pfo ) ; i++ )
           if ( !strcmp(real_path,parent_files_open[i]) ) 
           {
               found=1;
@@ -754,12 +758,11 @@ void exit(int status)
 
     //FIXME: free the parent file open array...
 
-
-    //free(sr_c);
     //sr_config_free(&sr_cfg);
 
     // after this point things get closed, so cannot reliably post.
     // turn off libsrshim functionality.
+
     in_librshim_already_dammit=1;
 
     // do it for real.
