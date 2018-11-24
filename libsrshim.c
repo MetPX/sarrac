@@ -664,8 +664,10 @@ void exit(int status)
     int  found;
     DIR  *fddir=NULL;
     struct dirent *fdde;
-    char *parent_files_open[ MAX_PARENT_OPEN_FILES ];
+    //char *parent_files_open[ MAX_PARENT_OPEN_FILES ];
+    char **parent_files_open = NULL;
     int  last_pfo = 0;
+    int  max_pfo = 1;
     
 
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit 0, context=%p\n", sr_c );
@@ -679,7 +681,8 @@ void exit(int status)
 
     // build an array of the file names currently opened by the parent process.
     
-    
+    parent_files_open = (char**)malloc( sizeof(char*) );
+
     snprintf( fdpath, 499, "/proc/%d/fd", getppid() );
     fddir = opendir( fdpath );
     
@@ -700,8 +703,14 @@ void exit(int status)
 
         parent_files_open[ last_pfo++ ] = strdup( fdpath ); 
 
-        if ( last_pfo >= MAX_PARENT_OPEN_FILES )
-            break;
+        if ( last_pfo >= max_pfo )
+        {
+           char **save_pfo = parent_files_open;
+           max_pfo *= 2;
+           parent_files_open = (char**)malloc( max_pfo * sizeof(char*) );
+           for (int i = 0; i < last_pfo ; i++ ) 
+                parent_files_open[i] = save_pfo[i];
+        }
 
     }
     closedir(fddir);
