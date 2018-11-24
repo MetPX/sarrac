@@ -651,8 +651,6 @@ static int exit_init_done = 0;
 typedef void (*exit_fn)( int ) __attribute__((noreturn));
 static exit_fn exit_fn_ptr = exit;
 
-#define MAX_PARENT_OPEN_FILES (100)
-
 void exit(int status) 
 {   
     int  fdstat;
@@ -664,7 +662,6 @@ void exit(int status)
     int  found;
     DIR  *fddir=NULL;
     struct dirent *fdde;
-    //char *parent_files_open[ MAX_PARENT_OPEN_FILES ];
     char **parent_files_open = NULL;
     int  last_pfo = 0;
     int  max_pfo = 1;
