@@ -195,7 +195,7 @@ To note changes:
   - git commit #what you need to commit...
   - git tag <release> -m <release>
   - git push
-  - git push tag <release>
+  - git push origin <release>
 
   - go to Launchpad, and import source `here <https://code.launchpad.net/~ssc-hpc-chp-spc/metpx-sarrac/+git/master>`_.
   - go to launchpad, find the recipe and Request Build `here <https://code.launchpad.net/~ssc-hpc-chp-spc/+recipe/metpx-sarrac>`_.
