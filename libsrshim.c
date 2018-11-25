@@ -707,6 +707,7 @@ void exit(int status)
            parent_files_open = (char**)malloc( max_pfo * sizeof(char*) );
            for (int i = 0; i < last_pfo ; i++ ) 
                 parent_files_open[i] = save_pfo[i];
+           free(save_pfo);
         }
 
     }
@@ -761,6 +762,11 @@ void exit(int status)
 
     free(sr_c);
     sr_c=NULL;
+
+    // cleaning up parent file open list.
+    for( int i = 0; ( i < last_pfo ) ; i++ )
+          free(parent_files_open[i]);
+    free(parent_files_open);
 
     //FIXME: free the parent file open array...
 
