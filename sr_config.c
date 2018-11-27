@@ -1076,7 +1076,7 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->help=0;
   sr_cfg->source=NULL;
   sr_cfg->statehost='0';
-  sr_cfg->sumalgo='s';
+  sr_cfg->sumalgo='d';
   sr_cfg->sumalgoz='d';
   sr_cfg->to=NULL;
   sr_cfg->user_headers=NULL; 

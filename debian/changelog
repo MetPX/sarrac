@@ -1,3 +1,9 @@
+sarrac (2.18.11b5) unstable; urgency=medium
+
+  * change default checksum to md5sum ('d') to humour Eric.
+
+ -- Peter Silva <peter@idefix>  Tue, 27 Nov 2018 14:15:17 -0500
+
 sarrac (2.18.11b4) unstable; urgency=medium
 
   * libsrshim: move code that avoids standard file descriptors to libsarra so
