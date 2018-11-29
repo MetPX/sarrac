@@ -20,7 +20,7 @@ int log_level=LOG_INFO;
 char *logfn=NULL;
 int logtoday=-1;
 int logmode=0700;
-int logrotate=5;
+float logrotate=5.0*24*3600;
 
 #ifndef SR_DEBUG_LOGS
 
@@ -79,7 +79,7 @@ void log_msg(int prio, const char *format, ...)
          //LRT logtoday = s.tm_min;
 
          // remove old one.         
-         yt = ts.tv_sec - logrotate*(24*3600);
+         yt = ts.tv_sec - logrotate;
          //LRT yt = ts.tv_sec - logrotate*(60);
          gmtime_r(&(yt),&ystm);
          strcpy( buf, logfn );
@@ -101,7 +101,7 @@ void log_msg(int prio, const char *format, ...)
 #endif
 
 
-void log_setup(const char *f, mode_t mode, int severity, int logrotation ) 
+void log_setup(const char *f, mode_t mode, int severity, float logrotation ) 
 {
 
 #ifndef SR_DEBUG_LOGS

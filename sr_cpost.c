@@ -828,7 +828,8 @@ int main(int argc, char **argv)
             //log_msg( LOG_DEBUG, "debug: watch sleeping for %g seconds. \n", (sr_cfg.sleep-elapsed));
             nanosleep( &tsleep, NULL );
        } else 
-            log_msg( LOG_WARNING, "INFO: watch, one pass takes longer than sleep interval, not sleeping at all\n");
+            log_msg( LOG_WARNING, "INFO: watch, one pass takes longer (%d) than sleep interval (%g), not sleeping at all\n",
+                     elapsed, sr_cfg.sleep );
   
        pass++; 
     }

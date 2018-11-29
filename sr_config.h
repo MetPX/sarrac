@@ -113,7 +113,7 @@ struct sr_config_t {
   sr_event_t          events;
   char                *exchange;
   char                *exchange_suffix;
-  int                 expire;
+  float               expire;
   int                 follow_symlinks;
   int                 force_polling;
   float               heartbeat;
@@ -123,11 +123,11 @@ struct sr_config_t {
   char               *list;          //method to generate initial input list:  file or queue
   int                 log;           // use a log file, rather than standard files.
   char               *logfn;           // use a log file, rather than standard files.
-  int                 logrotate;       // number of days to keep log files around.
+  float               logrotate;       // number of days to keep log files around.
   int                 logseverity;      // severity of messages to log (regardless of where.)
   struct sr_mask_t   *masks;
   struct sr_mask_t   *match;
-  int                 message_ttl;
+  float              message_ttl;
   char               *outlet;
   int                 pid;
   char               *pidfile;
@@ -143,7 +143,7 @@ struct sr_config_t {
   int                 realpath;
   int                 realpath_filter;
   int                 recursive;
-  time_t              sanity_log_dead;
+  float               sanity_log_dead;
   float               sleep;
   char                sumalgo; // checksum algorithm to use.
   char                sumalgoz; // if algo is z what is downstream...

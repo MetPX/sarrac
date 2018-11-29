@@ -471,9 +471,9 @@ long int chunksize_from_str(char *s)
    power=0;
    switch(u) 
    { 
-   case 'k': case 'K': power=10; break;
-   case 'g': case 'G': power=30; break;
-   case 't': case 'T': power=40; break;
+       case 'k': case 'K': power=10; break;
+       case 'g': case 'G': power=30; break;
+       case 't': case 'T': power=40; break;
    }
    return( value<<power);
    
@@ -517,6 +517,24 @@ char *local_fqdn()
     return(hostname);
 }
 
+float seconds_from_duration_str( char* s )
+{
+   int last;
+   int factor=1;
+
+   if (!s) return(0.0);
+
+   last=strlen(s)-1;
+   switch (s[last])
+   {
+      case 'm': case 'M': factor *= 60         ; break;
+      case 'h': case 'H': factor *= 60*60      ; break;
+      case 'd': case 'D': factor *= 24*60*60   ; break;
+      case 'w': case 'W': factor *= 7*24*60*60 ; break;
+      case 's': default: break;
+   }
+   return( atof(s) * factor );
+}
 char *subarg( struct sr_config_t *sr_cfg, char *arg )
 /* 
    do variable substitution in arguments to options.  There are some pre-defined ones, 
@@ -678,7 +696,7 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
           sr_cfg->cache = (float) ((val&2) ? 900 : 0);
           retval=(1+(val&1));
       } else {
-          sr_cfg->cache = (float)(atof(argument));
+          sr_cfg->cache = seconds_from_duration_str(argument);
           retval=2;
       }
   } else if ( !strcmp( option, "chmod_log" ) ) {
@@ -748,10 +766,10 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
   } else if ( !strcmp( option, "expire" ) || !strcmp( option, "expiry" ) ) {
       if isalpha(*argument) {
           val = StringIsTrue(argument);
-          sr_cfg->expire = (val&2) ? 3*60*1000 : 0;
+          sr_cfg->expire = (val&2) ? 3*60 : 0;
           retval=(1+(val&1));
       } else {
-          sr_cfg->expire = atoi(argument)*60*1000;
+          sr_cfg->expire = seconds_from_duration_str(argument);
           retval=(2);
       }
   } else if ( !strcmp( option, "follow_symlinks" ) || !strcmp( option, "fs") || !strcmp(option, "follow") ) {
@@ -765,7 +783,7 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       retval=(1+(val&1));
 
   } else if ( !strcmp( option, "heartbeat" ) || !strcmp( option, "hb" ) ) {
-      sr_cfg->heartbeat = (float)(atof(argument));
+      sr_cfg->heartbeat = seconds_from_duration_str(argument);
       retval=(2);
 
   } else if ( !strcmp( option, "help" ) || !strcmp( option, "h" ) ) {
@@ -778,7 +796,7 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
 
   } else if ( !strcmp( option, "logrotate" ) || !strcmp( option, "lr") || !strcmp( option, "logdays") || !strcmp( option, "ld") ) {
 
-      sr_cfg->logrotate = atoi(argument);
+      sr_cfg->logrotate = seconds_from_duration_str(argument);
       retval=(2);
 
   } else if ( !strcmp( option, "loglevel" ) ) {
@@ -808,10 +826,10 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
   } else if ( !strcmp( option, "message-ttl" ) || !strcmp( option, "msgttl" ) || !strcmp( option, "mttl") ) {
       if isalpha(*argument) {
           val = StringIsTrue(argument);
-          sr_cfg->message_ttl = (val&2) ? 30*60*1000 : 0;
+          sr_cfg->message_ttl = (val&2) ? 30*60 : 0;
           retval=(1+(val&1));
       } else {
-          sr_cfg->message_ttl = atoi(argument)*60*1000;
+          sr_cfg->message_ttl = seconds_from_duration_str(argument);
           retval=(2);
       }
   } else if ( !strcmp( option, "outlet" ) ) {
@@ -882,11 +900,11 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       return(1+(val&1));
    */
   } else if ( !strcmp( option, "sanity_log_dead" ) ) {
-      sr_cfg->sanity_log_dead = atoi(argument);
+      sr_cfg->sanity_log_dead = seconds_from_duration_str(argument);
       retval=(2);
 
   } else if ( !strcmp( option, "sleep" ) ) {
-      sr_cfg->sleep = (float)(atof(argument));
+      sr_cfg->sleep = seconds_from_duration_str(argument);
       retval=(2);
 
   } else if ( !strcmp( option, "source" ) ) {
@@ -1044,11 +1062,11 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->last_matched=NULL;
   sr_cfg->log=0;
   sr_cfg->logfn=NULL;
-  sr_cfg->logrotate=5;
+  sr_cfg->logrotate=5.0;
   sr_cfg->logseverity=LOG_INFO;
   sr_cfg->masks=NULL;
   sr_cfg->match=NULL;
-  sr_cfg->message_ttl=0;
+  sr_cfg->message_ttl=0.0;
   sr_cfg->outlet=strdup("json");
   sr_cfg->paths=NULL;
   sr_cfg->pid=-1;
@@ -1070,7 +1088,7 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->realpath=0;
   sr_cfg->realpath_filter=0;
   sr_cfg->recursive=1;
-  sr_cfg->sanity_log_dead=0;
+  sr_cfg->sanity_log_dead=0.0;
   sr_cfg->sleep=0.0;
   sr_cfg->heartbeat=300.0;
   sr_cfg->help=0;
@@ -1374,7 +1392,7 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
                sr_cfg->progname, sr_cfg->configname, sr_cfg->instance );
   }
 
-  if (sr_cfg->sanity_log_dead == 0)  sr_cfg->sanity_log_dead = 1.5 * sr_cfg->heartbeat ;
+  if (sr_cfg->sanity_log_dead == 0.0)  sr_cfg->sanity_log_dead = 1.5 * sr_cfg->heartbeat ;
   if (sr_cfg->sanity_log_dead < 450) sr_cfg->sanity_log_dead = 450;
   
   if (sr_cfg->cache > 0) 
@@ -1390,12 +1408,13 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
       log_msg( LOG_DEBUG, "sr_%s %s settings: action=%s config_name=%s log_level=%d follow_symlinks=%s realpath=%s\n",
           sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_cfg->configname, log_level, sr_cfg->follow_symlinks?"yes":"no",  
           sr_cfg->realpath?"yes":"no" );
-      log_msg( LOG_DEBUG, "\tsleep=%g heartbeat=%g sanity_log_dead=%ld cache=%g cache_file=%s accept_unmatch=%s\n",
-          sr_cfg->sleep, sr_cfg->heartbeat, sr_cfg->sanity_log_dead, 
-          sr_cfg->cache, sr_cfg->cachep?p:"off", sr_cfg->accept_unmatched?"on":"off" );
+      log_msg( LOG_DEBUG, "\tsleep=%g expire=%g heartbeat=%g sanity_log_dead=%g cache=%g\n",
+          sr_cfg->sleep, sr_cfg->expire, sr_cfg->heartbeat, sr_cfg->sanity_log_dead, sr_cfg->cache );
+      log_msg( LOG_DEBUG, "\tcache_file=%s accept_unmatch=%s\n",
+          sr_cfg->cachep?p:"off", sr_cfg->accept_unmatched?"on":"off" );
       log_msg( LOG_DEBUG, "\tevents=%04x directory=%s queuename=%s force_polling=%s sum=%c statehost=%c\n",
           sr_cfg->events, sr_cfg->directory, sr_cfg->queuename, sr_cfg->force_polling?"on":"off", sr_cfg->sumalgo, sr_cfg->statehost  );
-      log_msg( LOG_DEBUG, "\tmessage_ttl=%d post_exchange=%s post_exchange_split=%d post_exchange_suffix=%s\n",
+      log_msg( LOG_DEBUG, "\tmessage_ttl=%g post_exchange=%s post_exchange_split=%d post_exchange_suffix=%s\n",
           sr_cfg->message_ttl, sr_cfg->post_exchange, sr_cfg->post_exchange_split, sr_cfg->post_exchange_suffix );
       log_msg( LOG_DEBUG, "\tsource=%s to=%s post_base_url=%s topic_prefix=%s pid=%d\n",
           sr_cfg->source, sr_cfg->to, sr_cfg->post_base_url, sr_cfg->topic_prefix, sr_cfg->pid  );

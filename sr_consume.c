@@ -96,7 +96,7 @@ int sr_consume_setup(struct sr_context *sr_c)
   {
       table_entries[tecnt].key = amqp_cstring_bytes("x-expiry");
       table_entries[tecnt].value.kind = AMQP_FIELD_KIND_I64;
-      table_entries[tecnt].value.value.i64 = sr_c->cfg->expire ;
+      table_entries[tecnt].value.value.i64 = (sr_c->cfg->expire * 1000) ; // AMQP says milliseconds.
       tecnt++;
       props._flags |= AMQP_BASIC_EXPIRATION_FLAG ;
   } 
@@ -105,7 +105,7 @@ int sr_consume_setup(struct sr_context *sr_c)
   {
       table_entries[tecnt].key = amqp_cstring_bytes("x-message-ttl");
       table_entries[tecnt].value.kind = AMQP_FIELD_KIND_I64;
-      table_entries[tecnt].value.value.i64 = sr_c->cfg->message_ttl ;
+      table_entries[tecnt].value.value.i64 = (sr_c->cfg->message_ttl*1000) ; // is in milliseconds.
       tecnt++;
       props._flags |= AMQP_BASIC_TIMESTAMP_FLAG ;
   } 
