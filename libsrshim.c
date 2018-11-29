@@ -673,7 +673,7 @@ void exit(int status)
         exit_init_done = 1;
     }
 
-    if (in_librshim_already_dammit) exit_fn_ptr(status);
+    if ( !getenv( "SR_POST_CONFIG" ) || in_librshim_already_dammit) exit_fn_ptr(status);
 
 
     // build an array of the file names currently opened by the parent process.
