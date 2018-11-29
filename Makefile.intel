@@ -29,8 +29,8 @@ CC = icc
 
 #CFLAGS = -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE $(RABBIT_INCDIR)
 
-LIBCLOCATION=/lib/x86_64-linux-gnu/libc.so.6
-#LIBCLOCATION := $(shell ldd /bin/sh | awk " /libc\.so\./ { print \\$3; } ")
+LIBCLOCATION=$(shell ldd /bin/sh | awk '/libc\.so\./ { print; }' | cut -d' ' -f3 )
+
 
 CFLAGS = -DFORCE_LIBC_REGEX=\"$(LIBCLOCATION)\" -fPIC -std=gnu99 -Wcheck -Wall -g -D_GNU_SOURCE $(RABBIT_INCDIR)
 
