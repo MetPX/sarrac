@@ -16,7 +16,7 @@ are performance concerns that this implementation would help with..
 Installation
 ------------
 
-easiest way to obtain it, if you are on Ubuntu 14.04/16.04/17.10/18.04) is to
+easiest way to obtain it, if you are on Ubuntu >= 14.04, is to
 use the PPA on Launchpad.net::
 
   sudo add-apt-repository ppa:ssc-hpc-chp-spc/metpx
