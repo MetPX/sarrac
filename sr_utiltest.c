@@ -71,8 +71,8 @@ int main( int argc, char *argv[] )
         strcpy( rtsumstr, sr_hash2sumstr( rt_hash ) );
 
 
-        fprintf( stderr, "     original hash is: +%s+ length: %ld\n" , osumstr, strlen(osumstr) );
-        fprintf( stderr, "round-tripped hash is: +%s+ length: %ld\n" , rtsumstr, strlen(rtsumstr) );
+        fprintf( stderr, "     original hash is: +%s+ length: %ld\n" , osumstr, (long)strlen(osumstr) );
+        fprintf( stderr, "round-tripped hash is: +%s+ length: %ld\n" , rtsumstr, (long)strlen(rtsumstr) );
 
         if ( !strcmp( osumstr, rtsumstr ) ) 
         {
