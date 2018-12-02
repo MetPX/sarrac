@@ -58,6 +58,8 @@ int main( int argc, char *argv[] )
 
     memcpy( original_hash, sha512hash( "hoho" ), SHA512_DIGEST_LENGTH + 1 );
 
+    fprintf( stderr, "sumstr=%s", sr_hash2sumstr( sr_sumstr2hash( "z,d" ) ) );
+
     for( i=0; i < 9; i++ )
     {
         for(i=1; i < get_sumhashlen(osumstr[0]); i++ )
@@ -69,8 +71,8 @@ int main( int argc, char *argv[] )
         strcpy( rtsumstr, sr_hash2sumstr( rt_hash ) );
 
 
-        fprintf( stderr, "     original hash is: +%s+ length: %ld\n" , osumstr, strlen(osumstr) );
-        fprintf( stderr, "round-tripped hash is: +%s+ length: %ld\n" , rtsumstr, strlen(rtsumstr) );
+        fprintf( stderr, "     original hash is: +%s+ length: %ld\n" , osumstr, (long)strlen(osumstr) );
+        fprintf( stderr, "round-tripped hash is: +%s+ length: %ld\n" , rtsumstr, (long)strlen(rtsumstr) );
 
         if ( !strcmp( osumstr, rtsumstr ) ) 
         {

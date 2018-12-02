@@ -222,15 +222,16 @@ int main(int argc, char **argv)
         exit(0);
   }
 
-    // Check if already running. (conflict in use of state files.)
+  // Check if already running. (conflict in use of state files.)
 
-    ret = sr_config_startstop( &sr_cfg );
-    if ( ret < 1 )
-    {
-        exit(abs(ret));
-    }
+  ret = sr_config_startstop( &sr_cfg );
+  if ( ret < 1 )
+  {
+       exit(abs(ret));
+  }
+  fprintf(stderr, "still running\n" );
 
-  sr_c = sr_context_init_config( &sr_cfg );
+  sr_c = sr_context_init_config( &sr_cfg, 0 );
   if (!sr_c) {
      log_msg( LOG_ERROR, "failed to build context from configuration\n");
      return(1);
@@ -268,14 +269,6 @@ int main(int argc, char **argv)
         ret = sr_cpump_cleanup(sr_c,&sr_cfg,0);
         return(0);
   }
-
-  /*
-  if ( !strcmp( sr_cfg.action, "start" ) )
-  {
-      log_msg( LOG_CRITICAL, "FIXME output file when running as daemon is broken, aborting.\n");
-      return(0);
-  }
-   */
 
   if ( strcmp( sr_cfg.action, "foreground" ) )
   {

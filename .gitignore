@@ -1,4 +1,5 @@
 *.o
+*.gcno
 *.so.*
 *.swp
 *.tmp

@@ -35,6 +35,9 @@
 #include <fcntl.h>
 #include <linux/limits.h>
 
+#include <sys/time.h>
+#include <sys/resource.h>
+
 #include <openssl/md5.h>
 #include <openssl/sha.h>
 
@@ -47,6 +50,9 @@
 #include "sr_context.h"
 #include "sr_version.h"
 
+#define PSDUPMAX (10)
+
+static int sr_context_avoid_std_fds = 0;
 
 void sr_amqp_error_print(int x, char const *context)
 {
@@ -109,12 +115,15 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
   amqp_tx_select_ok_t *select_status;
   time_t to_sleep=1;
 
+  if (!broker) return(NULL);
+
   if ( !(broker->password) ) {
     log_msg(  LOG_ERROR, "No broker password found.\n" );
     return(NULL);
   }
 
   while(1) {
+     //log_msg(  LOG_ERROR, "broker_connecting!? broker->con=%p.\n", broker->conn );
      broker->conn = amqp_new_connection();
 
      if ( broker->ssl ) {
@@ -158,7 +167,7 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
        goto have_channel;
      }
 
-     select_status = amqp_tx_select(broker->conn, 1);
+     select_status = amqp_tx_select(broker->conn,1);
      if (select_status == NULL ) {
        log_msg( LOG_ERROR, "failed AMQP amqp_tx_select\n");
        reply = amqp_get_rpc_reply(broker->conn);
@@ -177,12 +186,14 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
 
   have_socket:
       reply = amqp_connection_close(broker->conn, AMQP_REPLY_SUCCESS);
+      broker->socket = NULL;
 
   have_connection:
       status = amqp_destroy_connection(broker->conn);
+      broker->conn = NULL;
 
   sleep(to_sleep);
-  log_msg( LOG_INFO, "broker_connect slept %d seconds, trying again now.", to_sleep );
+  log_msg( LOG_DEBUG, "broker_connect slept %ld seconds, trying again now.", to_sleep );
   if (to_sleep < 60) to_sleep<<=1;
  
   }
@@ -190,15 +201,18 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
 
 
 struct sr_context *sr_context_connect(struct sr_context *sr_c) {
-  int   psdup1;
-  int   psdup2;
-  int   psdup3;
 
+  int psdup[ PSDUPMAX ];
 
-  // making use of 3 FD to try to avoid stepping over stdout stderr, for logs & broker connection.
-  psdup1 = open("/dev/null",O_APPEND);
-  psdup2 = dup(psdup1);
-  psdup3 = dup(psdup1);
+  if (!sr_c) return(NULL);
+  if (!(sr_c->cfg)) return(NULL);
+
+  if (sr_context_avoid_std_fds) 
+  {
+     psdup[0] = open("/dev/null",O_APPEND);
+     for ( int i = 1; i < PSDUPMAX ; i++ )
+         psdup[i] = dup(psdup[i-1]);
+  }
 
   if (sr_c->cfg->broker)  {
        sr_c->cfg->broker = sr_broker_connect( sr_c->cfg->broker ) ; 
@@ -212,12 +226,12 @@ struct sr_context *sr_context_connect(struct sr_context *sr_c) {
        if ( ! (sr_c->cfg->post_broker)  ) return(NULL);
        log_msg(  LOG_DEBUG, "%s connected to post broker %s\n", __sarra_version__, sr_broker_uri(sr_c->cfg->post_broker) );
   }
+  if (sr_context_avoid_std_fds) 
+  {
+    for (int i = PSDUPMAX-1; i >= 0; i-- )
+       close(psdup[i]);
+  }
 
-  // holding 3 FD until it works
-  if (psdup1 != -1) close(psdup1);
-  if (psdup2 != -1) close(psdup2);
-  if (psdup3 != -1) close(psdup3);
-       
   return(sr_c);
 
 }
@@ -232,10 +246,14 @@ struct timespec time_of_last_run()
    return(tstart);
 }
 
-struct sr_context *sr_context_init_config(struct sr_config_t *sr_cfg) 
+struct sr_context *sr_context_init_config(struct sr_config_t *sr_cfg, int must_avoid_std_fds ) 
 {
 
   struct sr_context *sr_c;
+
+  if (!sr_cfg) return(NULL);
+
+  sr_context_avoid_std_fds = must_avoid_std_fds ;
 
   // seed for random checksums... random enough...
   // also initializes tstart for use by heartbeat processing.
@@ -272,35 +290,55 @@ void sr_broker_close(struct sr_broker_t *broker)
   amqp_rpc_reply_t reply;
   signed int status;
 
+  if (!(broker->conn)) 
+  {
+     log_msg( LOG_ERROR, "amqp broker close: no connection present.\n");
+     return;
+  }
   reply = amqp_channel_close(broker->conn, 1, AMQP_REPLY_SUCCESS);
   if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-      log_msg( LOG_ERROR, "sr_cpost: amqp channel close failed.\n");
-      return;
-  }
-
-  reply = amqp_connection_close(broker->conn, AMQP_REPLY_SUCCESS);
-  if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-      log_msg( LOG_ERROR, "sr_cpost: amqp connection close failed.\n");
-      return;
+      log_msg( LOG_ERROR, "amqp channel close failed.\n");
+  } else {
+      reply = amqp_connection_close(broker->conn, AMQP_REPLY_SUCCESS);
+      if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
+          log_msg( LOG_ERROR, "amqp connection close failed.\n");
+      }
   }
 
   status = amqp_destroy_connection(broker->conn);
+  broker->conn = NULL;
+  broker->next=NULL;
+
+  //if (broker->socket) free(broker->socket);
+
+  broker->socket=NULL;
+  broker->started=0;
+  broker->last_delivery_tag=0;
+
+
+
   if (status < 0 ) 
   {
-      log_msg( LOG_ERROR, "sr_cpost: amqp context close failed.\n");
-      return;
+      log_msg( LOG_ERROR, "amqp context close failed.\n");
   }
+
 }
 
 
 void sr_context_close(struct sr_context *sr_c)  {
 
+  if (!sr_c) return;
+  if (!sr_c->cfg) return;
+
   if (sr_c->cfg->broker) 
   {
       sr_broker_close( sr_c->cfg->broker );
-      log_msg( LOG_INFO, "sr_cpost: subscription broker closed.\n");
+      log_msg( LOG_DEBUG, "%s subscription broker closed.\n", sr_c->cfg->progname );
   } 
-  if (sr_c->cfg->post_broker) sr_broker_close( sr_c->cfg->post_broker );
+  if (sr_c->cfg->post_broker) {
+      sr_broker_close( sr_c->cfg->post_broker );
+      log_msg( LOG_DEBUG, "%s subscription post broker closed.\n", sr_c->cfg->progname);
+  } 
 
 }
 
@@ -309,21 +347,30 @@ void sr_context_heartbeat(struct sr_context *sr_c)
  */
 {
    int cached_count;
+   struct rusage usage_before;
+   struct rusage usage_after;
 
-   log_msg( LOG_INFO, "heartbeat processing start\n" );
+   log_msg( LOG_DEBUG, "heartbeat processing start\n" );
    if (sr_c->cfg->cachep)
    {
+       getrusage( RUSAGE_SELF, &usage_before );
+
        log_msg( LOG_INFO, "heartbeat starting to clean cache\n" );
        sr_cache_clean(sr_c->cfg->cachep, sr_c->cfg->cache );
-       log_msg( LOG_INFO, "heartbeat cleaned, hashes left: %ld\n", HASH_COUNT(sr_c->cfg->cachep->data) );
+       log_msg( LOG_DEBUG, "heartbeat cleaned, hashes left: %u\n", HASH_COUNT(sr_c->cfg->cachep->data) );
        if (HASH_COUNT(sr_c->cfg->cachep->data) == 0)
        {
           sr_c->cfg->cachep->data=NULL;
        }
        cached_count = sr_cache_save(sr_c->cfg->cachep, 0 );
-       log_msg( LOG_INFO, "heartbeat after cleaning, cache stores %d entries.\n", cached_count );
+
+       getrusage( RUSAGE_SELF, &usage_after );
+
+//FIXME
+       log_msg( LOG_INFO, "heartbeat after cleaning, cache stores %d entries. (memory: %ld kB)\n", 
+            cached_count, usage_after.ru_maxrss );
    }
-   log_msg( LOG_INFO, "heartbeat processing completed\n" );
+   log_msg( LOG_DEBUG, "heartbeat processing completed\n" );
 }
 
 
@@ -340,8 +387,8 @@ float sr_context_heartbeat_check(struct sr_context *sr_c)
     static float since_last_heartbeat=0;
 
     clock_gettime( CLOCK_REALTIME, &tend );
-    elapsed = ( tend.tv_sec + (tend.tv_nsec/1e9) ) -
-              ( tstart.tv_sec + (tstart.tv_nsec/1e9) )  ;
+    elapsed = (float) ( ( tend.tv_sec + (tend.tv_nsec/1e9) ) - 
+                        ( tstart.tv_sec + (tstart.tv_nsec/1e9)) )  ;
 
     since_last_heartbeat = since_last_heartbeat + elapsed ;
 

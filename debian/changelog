@@ -1,9 +1,98 @@
-sarrac (2.18.06b1) UNRELEASED; urgency=medium
+sarrac (2.18.11b5) unstable; urgency=medium
+
+  * change default checksum to md5sum ('d') to humour Eric.
+
+ -- Peter Silva <peter@idefix>  Tue, 27 Nov 2018 14:15:17 -0500
+
+sarrac (2.18.11b4) unstable; urgency=medium
+
+  * libsrshim: move code that avoids standard file descriptors to libsarra so
+  *            that it avoidance happens when reconnecting after an error.
+  * libsrshim: exit processing re-written to only close descriptors which are 
+  *            not opened by parent pid.  This should improve performance. 
+  * libsrshim: error code processing reviewed to ensure same error returned in 
+  *            all conditions.
+  * some messages removed to remove hard-coded *cpost* strings
+  * error messages now say *sr_shim* instead of sr_cpost.
+
+ -- Peter Silva <peter@blacklab>  Sat, 24 Nov 2018 21:07:39 -0500
+
+sarrac (2.18.10b2) unstable; urgency=medium
+
+  * added support for z, checksum algorithm. 
+  * changed some error handling when there are problems calculating checksums.
+
+ -- Peter Silva <peter@idefix>  Wed, 31 Oct 2018 16:37:33 -0400
+
+sarrac (2.18.10b1) unstable; urgency=medium
+
+  * removing useless debug/FIXME messages 
+  * compiled with intel compiler, added -Wcheck, got rid of all warnings.
+
+ -- Peter Silva <peter@idefix>  Fri, 05 Oct 2018 18:07:48 -0400
+
+sarrac (2.18.09b4) unstable; urgency=medium
+
+  * added fix for fclose when given invalid FILE *
+  * added noreturn attribute to address gcc warning for exit call
+  * added ignore of files ending in ~ to config listing.
+
+ -- Peter Silva <peter@idefix>  Tue, 18 Sep 2018 09:41:51 -0400
+
+sarrac (2.18.09b1) unstable; urgency=medium
+
+  * reduced default output (moved many INFO messages to DEBUG)
+
+ -- Peter Silva <peter@idefix>  Mon, 17 Sep 2018 15:37:26 -0400
+
+sarrac (2.18.08b2) unstable; urgency=medium
+
+  * fixed seg fault when credentials.conf file missing.
+
+ -- Peter Silva <peter@idefix>  Tue, 14 Aug 2018 14:25:50 -0400
+
+sarrac (2.18.08b1ubuntu1) unstable; urgency=medium
+
+  * fixed issue#11, programs which do not close their files, catch on process exit
+  * fixed stack smashing bug when environment variable improperly set.
+
+ -- Peter Silva <peter@blacklab>  Thu, 09 Aug 2018 22:18:54 -0400
+
+sarrac (2.18.07b4) unstable; urgency=medium
+
+  * plugged huge memory leak in sr_cpump, and a small one in sr_cpost. 
+
+ -- Peter Silva <peter@blacklab>  Tue, 24 Jul 2018 23:47:47 -0400
+
+sarrac (2.18.07b3) unstable; urgency=medium
+
+  * bugfixes to prevent core dumps when using shim library.
+  * switched from putenv to setenv.  Putenv causes crashes... apparently. 
+  * added debuggning compile settings SR_DEBUG_LOGS which allowed 
+    identification and elimination fprintf VARAGS inconsistencies.
+  * moved dup/dup/dup code to libsrshim, whic is the only place
+    it should be used anyways.
+
+ -- Peter Silva <peter@blacklab>  Sat, 21 Jul 2018 20:09:21 -0400
+
+sarrac (2.18.07b2) unstable; urgency=medium
+
+  * change timezone of logs from UTC to local to match python implementation. 
+
+ -- Peter Silva <peter@blacklab>  Mon, 16 Jul 2018 00:11:00 -0400
+
+sarrac (2.18.07b1ubuntu1) unstable; urgency=medium
+
+  * bugfix: sanity would restart stopped configurations
+
+ -- Peter Silva <peter@blacklab>  Sun, 08 Jul 2018 12:14:10 -0400
+
+sarrac (2.18.06b2) unstable; urgency=medium
 
   * implemented daily log rotation.
   * if cpost called with start|restart and sleep <= 0, make sure we do nothing.
   * implemented sanity command.
-  * README updated my moving issues to github,
+  * README updated by moving issues to github, adding ssm link.
 
  -- Peter Silva <peter@blacklab>  Sat, 09 Jun 2018 22:24:52 -0400
 

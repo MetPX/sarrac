@@ -1,17 +1,22 @@
 
 
 if [ ! "${SR_POST_CONFIG}" ]; then
-   export SR_POST_CONFIG=`pwd`/test_post.conf
-   export LD_PRELOAD=`pwd`/libsrshim.so.1.0.0
+   export SR_POST_CONFIG=`pwd`/local_post.conf
+   export LD_PRELOAD="`pwd`/libsrshim.so.1.0.0:${LD_PRELOAD}"
    exec $0
 fi
 
+echo "LD_PRELOAD=$LD_PRELOAD"
+echo "SR_POST_CONFIG=$SR_POST_CONFIG"
 set -x
 
-which bash
+which which
+
+bashexe=`which bash`
 
 echo "FIXME: KNOWN ISSUE redirection close does not get posted!"
-bash -c 'echo "hoho" >> ./hoho'
+
+$bashexe -c 'echo "hoho" >> ./hoho'
 
 truncate --size=2 ./hoho
 

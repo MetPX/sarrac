@@ -96,7 +96,7 @@ int sr_consume_setup(struct sr_context *sr_c)
   {
       table_entries[tecnt].key = amqp_cstring_bytes("x-expiry");
       table_entries[tecnt].value.kind = AMQP_FIELD_KIND_I64;
-      table_entries[tecnt].value.value.i64 = sr_c->cfg->expire ;
+      table_entries[tecnt].value.value.i64 = (sr_c->cfg->expire * 1000) ; // AMQP says milliseconds.
       tecnt++;
       props._flags |= AMQP_BASIC_EXPIRATION_FLAG ;
   } 
@@ -105,7 +105,7 @@ int sr_consume_setup(struct sr_context *sr_c)
   {
       table_entries[tecnt].key = amqp_cstring_bytes("x-message-ttl");
       table_entries[tecnt].value.kind = AMQP_FIELD_KIND_I64;
-      table_entries[tecnt].value.value.i64 = sr_c->cfg->message_ttl ;
+      table_entries[tecnt].value.value.i64 = (sr_c->cfg->message_ttl*1000) ; // is in milliseconds.
       tecnt++;
       props._flags |= AMQP_BASIC_TIMESTAMP_FLAG ;
   } 
@@ -145,7 +145,7 @@ int sr_consume_setup(struct sr_context *sr_c)
   {
       sr_add_topic(sr_c->cfg, "#" );
   }
-  log_msg( LOG_DEBUG, "topics: %p, string=+%s+\n", sr_c->cfg->topics,  sr_c->cfg->topics  );
+  log_msg( LOG_DEBUG, "topics: %p, string=+%p+\n", sr_c->cfg->topics,  sr_c->cfg->topics  );
 
   for( t = sr_c->cfg->topics; t ; t=t->next )
   {
@@ -354,7 +354,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
    */  
     if ( ! sr_c->cfg->broker->started ) {
 
-       amqp_basic_qos( sr_c->cfg->broker->conn, 1, 0, sr_c->cfg->prefetch, 0 );
+       amqp_basic_qos( sr_c->cfg->broker->conn, 1, 0, (uint16_t)(sr_c->cfg->prefetch), 0 );
        reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);
        if (reply.reply_type != AMQP_RESPONSE_NORMAL ) 
        {
@@ -395,19 +395,34 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
     result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
     //log_msg( LOG_DEBUG, "Result %d\n", result);
-    if (result < 0) return(NULL);
+    if (result < 0) 
+    {
+       amqp_destroy_envelope(&envelope);
+       amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
+       return(NULL);
+    }
   
     //log_msg( LOG_DEBUG, "Frame type %d, channel %d\n", frame.frame_type, frame.channel);
 
-    if (frame.frame_type != AMQP_FRAME_METHOD) return(NULL);
+    if (frame.frame_type != AMQP_FRAME_METHOD) 
+    {
+       amqp_destroy_envelope(&envelope);
+       amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
+       return(NULL);
+    }
   
     //log_msg( LOG_DEBUG, "Method %s\n", amqp_method_name(frame.payload.method.id));
 
-    if (frame.payload.method.id != AMQP_BASIC_DELIVER_METHOD) return(NULL);
+    if (frame.payload.method.id != AMQP_BASIC_DELIVER_METHOD) 
+    {
+       amqp_destroy_envelope(&envelope);
+       amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
+       return(NULL);
+    }
   
     d = (amqp_basic_deliver_t *) frame.payload.method.decoded;
 
-    log_msg( LOG_DEBUG, "consumer_tag: %s, delivery_tag: %d\n", (char *)d->consumer_tag.bytes, d->delivery_tag );
+    log_msg( LOG_DEBUG, "consumer_tag: %s, delivery_tag: %ld\n", (char *)d->consumer_tag.bytes, d->delivery_tag );
 
     sr_c->cfg->broker->last_delivery_tag = d->delivery_tag ;
     /*
@@ -501,7 +516,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
                 strcpy( msg.consuminguser, tok );
                 tok = strtok(NULL," ");
                 //fprintf( stdout, "\t\"duration\" : \"%s\", \n", tok);
-                msg.duration = atof( tok );
+                msg.duration = (float)(atof( tok ));
         } else {
             msg.statuscode=0;
             msg.consumingurl[0]='\0';
@@ -517,6 +532,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
             );
      */
     }
+    amqp_destroy_envelope(&envelope);
   
     if (body_received != body_target) return(NULL);
           /* Can only happen when amqp_simple_wait_frame returns <= 0 */

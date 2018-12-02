@@ -98,13 +98,20 @@ void sr_credentials_init() {
   FILE *f;
   char cfnbuf[1024];
   struct stat sb;
+  int status;
 
   strcpy( cfnbuf, getenv("HOME"));
   strcat( cfnbuf, "/.config/sarra/credentials.conf" );
   
-  stat( cfnbuf, &sb );
+
+  status = stat( cfnbuf, &sb );
+
+  if (status) 
+  {
+     sb.st_size=1;
+  }
   sr_credentials = (char *)malloc(sb.st_size+1);
- 
+
   //fprintf( stderr, "opening %s\n", cfnbuf );
 
   f = fopen( cfnbuf, "r" );

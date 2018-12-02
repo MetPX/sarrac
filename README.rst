@@ -16,7 +16,7 @@ are performance concerns that this implementation would help with..
 Installation
 ------------
 
-easiest way to obtain it, if you are on Ubuntu 14.04/16.04/17.10/18.04) is to
+easiest way to obtain it, if you are on Ubuntu >= 14.04, is to
 use the PPA on Launchpad.net::
 
   sudo add-apt-repository ppa:ssc-hpc-chp-spc/metpx
@@ -34,9 +34,11 @@ to install the bits yourself.
 
 Use
 ---
+
+
 A library, libsarra is built, with external interfaces one can access from C 
 using the entry points and data structures documented in sr_context.h, 
-sr_post.h, and sr_consume.h files.  The library uses sr_config(7) style config
+sr_post.h, and sr_consume.h files. The library uses sr_subscribe(1) style config
 files (see Limitations). A sample usage of the libraries is a command line
 binary, that can call the library::
 
@@ -100,12 +102,16 @@ Limitations of the C implementation
 
  - This library and tools do not work with any plugins from the python 
    implementation.
- - This library is a single process, the *instances* setting is completely 
-   ignored.
+
+ - This library is a single process oriented, the *instances* setting 
+   is ignored.
+
  - The queue settings established by a consumer are not the same as those
    of the python implementation, so queues cannot be shared between the two.
- - The shim library is very Linux specific.  Porting to other operating systems
+
+ - The shim library is very Linux specific. Porting to other operating systems
    will be a significant re-write.
+
  - The C is infected by python taste... 4 character indent, with spaces, all
    the time.
 
@@ -134,7 +140,41 @@ On RPM-based distributions::
   librabbitmq-devel
 
 
-  
+BUILD OPTIONS
+-------------
+
+FORCE_LIBC_REGEX
+~~~~~~~~~~~~~~~~
+
+This option is set by default as it is usually desired.
+If you see::
+
+  2018-11-21 00:08:17,315 [ERROR] invalid regular expression: .*\/tmp\/.*. Ignored
+
+and the regex is valid... the symptom we had was that the library was
+calling a version of the regular expresison routines included in a binary
+(ksh93 in this case) instead of the ones in libc that were expected.
+without this option being set, the shim library will compile and user
+Korn Shell regular expression grammar instead of the libc/posix ones.
+This could be confusing in practice.
+
+Set the option::
+   
+   -DFORCE_LIBC_REGEX=\"/lib/x86_64-linux-gnu/libc.so.6\" 
+
+to the file containing the regcomp and regexec routines what are to be 
+used. The code uses dynamic library loading to force use of the specified
+routines. Obviously this setting is architecture dependent and would
+need adjustment if compiling on another platform, such as ARM or MIPS.
+ 
+SR_DEBUG_LOGS
+~~~~~~~~~~~~~
+
+To disable all log file support, so that diagnostics messages 
+are sent to standard error instead, include::
+
+  -DSR_DEBUG_LOGS=1
+
 
 Dorval Computing Centre
 -----------------------
@@ -156,6 +196,11 @@ Release Process
 To note changes:
   - dch, and add your points.
   - when ready to release, edit UNRELEASED to an appropriate status, usually unstable.
+  - git commit #what you need to commit...
+  - git tag <release> -m <release>
+  - git push
+  - git push origin <release>
+
   - go to Launchpad, and import source `here <https://code.launchpad.net/~ssc-hpc-chp-spc/metpx-sarrac/+git/master>`_.
   - go to launchpad, find the recipe and Request Build `here <https://code.launchpad.net/~ssc-hpc-chp-spc/+recipe/metpx-sarrac>`_.
 

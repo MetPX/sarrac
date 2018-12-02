@@ -26,6 +26,7 @@ status:
 
 // for local_fqdn()
 #include <sys/socket.h>
+
 #include <netdb.h>
 
 //for opendir/readdir
@@ -38,18 +39,14 @@ status:
 
 #include <time.h>
 
+#include <dlfcn.h>
+
+
 #include "sr_credentials.h"
 
 #include "sr_config.h"
 
 #include "sr_version.h"
-
-struct envvar_t {
-   char *var;
-   struct envvar_t *n;
-};
-
-struct envvar_t *vars_putenved = NULL;
 
 void sr_add_path( struct sr_config_t *sr_cfg, const char* option )
    /* Append to linked list of paths to post
@@ -134,6 +131,17 @@ void sr_add_topic( struct sr_config_t *sr_cfg, const char* sub )
    }
 }
 
+#ifdef FORCE_LIBC_REGEX
+
+typedef int  (*regcomp_fn) (regex_t *pregg, const char *regex, int clfags );
+static regcomp_fn regcomp_fn_ptr = NULL;
+
+typedef int (*regexec_fn) (const regex_t *preg, const char *string, size_t nmatch,
+                   regmatch_t pmatch[], int eflags);
+
+static regexec_fn regexec_fn_ptr = NULL;
+
+#endif
 
 struct sr_mask_t *isMatchingPattern(struct sr_config_t *sr_cfg, const char* chaine )
    /* return pointer to matched pattern, if there is one, NULL otherwise.
@@ -155,7 +163,11 @@ struct sr_mask_t *isMatchingPattern(struct sr_config_t *sr_cfg, const char* chai
        //     log_msg( LOG_DEBUG,  "isMatchingPattern, testing mask: %s %-30s next=%p\n", 
        //          (entry->accepting)?"accept":"reject", entry->clause, (entry->next) );
 
+#ifdef FORCE_LIBC_REGEX
+       if ( !regexec_fn_ptr(&(entry->regexp), chaine, (size_t)0, NULL, 0 ) ) {
+#else
        if ( !regexec(&(entry->regexp), chaine, (size_t)0, NULL, 0 ) ) {
+#endif
            break; // matched
        }
        entry = entry->next; 
@@ -178,6 +190,7 @@ void add_mask(struct sr_config_t *sr_cfg, char *directory, char *option, int acc
     struct sr_mask_t *new_entry;
     struct sr_mask_t *next_entry;
     int status;
+    void *handle;
 
     //if ( (sr_cfg) && sr_cfg->debug )
     //    fprintf( stderr, "adding mask: %s %s\n", accept?"accept":"reject", option );
@@ -187,7 +200,25 @@ void add_mask(struct sr_config_t *sr_cfg, char *directory, char *option, int acc
     new_entry->directory = (directory?strdup(directory):NULL);
     new_entry->accepting = accept;
     new_entry->clause = strdup(option);
+
+#ifdef FORCE_LIBC_REGEX
+    if ( ! regcomp_fn_ptr ) 
+    {
+         handle = dlopen( FORCE_LIBC_REGEX , RTLD_LAZY);
+
+         regcomp_fn_ptr = dlsym(handle,"regcomp");
+         regexec_fn_ptr = dlsym(handle,"regexec");
+         if ( ! regcomp_fn_ptr ) 
+         {
+            log_msg( LOG_CRITICAL, "cannot find regcomp library function: regex %s ignored\n", option );
+            return;
+         }
+    }
+    status = regcomp_fn_ptr( &(new_entry->regexp), option, REG_EXTENDED|REG_NOSUB );
+#else
     status = regcomp( &(new_entry->regexp), option, REG_EXTENDED|REG_NOSUB );
+#endif
+
     if (status) {
         log_msg( LOG_ERROR, "invalid regular expression: %s. Ignored\n", option );
         return;
@@ -347,30 +378,27 @@ int sr_add_decl(struct sr_config_t *cfg, char *what, char *s)
     0 if invalid.
    */
 {
-  char *eq;
-  struct envvar_t *spare_vars_putenved;
+  char *eq,*s2;
 
   if (!strcmp(what,"env")||!strcmp(what,"var")) {
-      eq=strchr(s, '=');
+      s2=strdup(s);
+      eq=strchr(s2, '=');
       if (!eq) {
         log_msg( LOG_ERROR, "for: declare env name=value, = missing: %s\n", s );
+        free(s2);
         return(3);
       }
 
-      // FIXME: valgrind will call this a memory leak, but I will never overwrite or reassign this...
+      *eq='\0';
+      setenv( s2, (eq+1), 1 );
+      *eq='=';
+      free(s2);
 
-      spare_vars_putenved = vars_putenved?vars_putenved:NULL;
-
-      vars_putenved = malloc( sizeof(struct envvar_t) );
-      vars_putenved->n = spare_vars_putenved;
-      vars_putenved->var=strdup(s);
-      
-      putenv( vars_putenved->var );
       return(3);
   } else if (!strcmp(what,"source")) {
-      log_msg( LOG_INFO, "FIXME: declare source %s ignored\n", s );
+      log_msg( LOG_DEBUG, "declare source %s ignored\n", s );
   } else if (!strcmp(what,"subscriber")) {
-      log_msg( LOG_INFO, "FIXME: declare subscriber %s ignored\n", s );
+      log_msg( LOG_DEBUG, "declare subscriber %s ignored\n", s );
   }
   return(2);
 
@@ -443,9 +471,9 @@ long int chunksize_from_str(char *s)
    power=0;
    switch(u) 
    { 
-   case 'k': case 'K': power=10; break;
-   case 'g': case 'G': power=30; break;
-   case 't': case 'T': power=40; break;
+       case 'k': case 'K': power=10; break;
+       case 'g': case 'G': power=30; break;
+       case 't': case 'T': power=40; break;
    }
    return( value<<power);
    
@@ -489,6 +517,24 @@ char *local_fqdn()
     return(hostname);
 }
 
+float seconds_from_duration_str( char* s )
+{
+   int last;
+   int factor=1;
+
+   if (!s) return(0.0);
+
+   last=strlen(s)-1;
+   switch (s[last])
+   {
+      case 'm': case 'M': factor *= 60         ; break;
+      case 'h': case 'H': factor *= 60*60      ; break;
+      case 'd': case 'D': factor *= 24*60*60   ; break;
+      case 'w': case 'W': factor *= 7*24*60*60 ; break;
+      case 's': default: break;
+   }
+   return( atof(s) * factor );
+}
 char *subarg( struct sr_config_t *sr_cfg, char *arg )
 /* 
    do variable substitution in arguments to options.  There are some pre-defined ones, 
@@ -647,10 +693,10 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
               !strcmp( option, "suppress_duplicates" ) || !strcmp( option, "sd")  ) {
       if isalpha(*argument) {
           val = StringIsTrue(argument);
-          sr_cfg->cache = (val&2) ? 900 : 0;
+          sr_cfg->cache = (float) ((val&2) ? 900 : 0);
           retval=(1+(val&1));
       } else {
-          sr_cfg->cache = atof(argument);
+          sr_cfg->cache = seconds_from_duration_str(argument);
           retval=2;
       }
   } else if ( !strcmp( option, "chmod_log" ) ) {
@@ -720,10 +766,10 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
   } else if ( !strcmp( option, "expire" ) || !strcmp( option, "expiry" ) ) {
       if isalpha(*argument) {
           val = StringIsTrue(argument);
-          sr_cfg->expire = (val&2) ? 3*60*1000 : 0;
+          sr_cfg->expire = (val&2) ? 3*60 : 0;
           retval=(1+(val&1));
       } else {
-          sr_cfg->expire = atoi(argument)*60*1000;
+          sr_cfg->expire = seconds_from_duration_str(argument);
           retval=(2);
       }
   } else if ( !strcmp( option, "follow_symlinks" ) || !strcmp( option, "fs") || !strcmp(option, "follow") ) {
@@ -737,7 +783,7 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       retval=(1+(val&1));
 
   } else if ( !strcmp( option, "heartbeat" ) || !strcmp( option, "hb" ) ) {
-      sr_cfg->heartbeat = atof(argument);
+      sr_cfg->heartbeat = seconds_from_duration_str(argument);
       retval=(2);
 
   } else if ( !strcmp( option, "help" ) || !strcmp( option, "h" ) ) {
@@ -750,7 +796,7 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
 
   } else if ( !strcmp( option, "logrotate" ) || !strcmp( option, "lr") || !strcmp( option, "logdays") || !strcmp( option, "ld") ) {
 
-      sr_cfg->logrotate = atoi(argument);
+      sr_cfg->logrotate = seconds_from_duration_str(argument);
       retval=(2);
 
   } else if ( !strcmp( option, "loglevel" ) ) {
@@ -780,10 +826,10 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
   } else if ( !strcmp( option, "message-ttl" ) || !strcmp( option, "msgttl" ) || !strcmp( option, "mttl") ) {
       if isalpha(*argument) {
           val = StringIsTrue(argument);
-          sr_cfg->message_ttl = (val&2) ? 30*60*1000 : 0;
+          sr_cfg->message_ttl = (val&2) ? 30*60 : 0;
           retval=(1+(val&1));
       } else {
-          sr_cfg->message_ttl = atoi(argument)*60*1000;
+          sr_cfg->message_ttl = seconds_from_duration_str(argument);
           retval=(2);
       }
   } else if ( !strcmp( option, "outlet" ) ) {
@@ -854,11 +900,11 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       return(1+(val&1));
    */
   } else if ( !strcmp( option, "sanity_log_dead" ) ) {
-      sr_cfg->sanity_log_dead = atoi(argument);
+      sr_cfg->sanity_log_dead = seconds_from_duration_str(argument);
       retval=(2);
 
   } else if ( !strcmp( option, "sleep" ) ) {
-      sr_cfg->sleep = atof(argument);
+      sr_cfg->sleep = seconds_from_duration_str(argument);
       retval=(2);
 
   } else if ( !strcmp( option, "source" ) ) {
@@ -889,6 +935,8 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       }
   } else if ( !strcmp( option, "sum" ) ) {
       sr_cfg->sumalgo = argument[0];
+      if ( sr_cfg->sumalgo == 'z' )
+          sr_cfg->sumalgoz = argument[2];
       retval=(2);
 
   } else if ( !strcmp( option, "to" ) ) {
@@ -914,7 +962,7 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       retval=(2);
 
   } else {
-      log_msg( LOG_INFO, "info: %s option not implemented, ignored.\n", option );
+      log_msg( LOG_WARNING, "info: %s option not implemented, ignored.\n", option );
   } 
 
   if (argument) free(argument);
@@ -926,7 +974,6 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
 void sr_config_free( struct sr_config_t *sr_cfg )
 {
   struct sr_mask_t *e;
-  struct envvar_t *ev;
 
   if (sr_cfg->action) free(sr_cfg->action);
   if (sr_cfg->configname) free(sr_cfg->configname);
@@ -978,17 +1025,12 @@ void sr_config_free( struct sr_config_t *sr_cfg )
        free(tmpp);
   }
 
-  while ( ( ev=vars_putenved ) ) {
-     vars_putenved=vars_putenved->n;
-     free(ev->var);
-     free(ev);
-  }
-
   sr_credentials_cleanup();
   log_cleanup();
   free(sr_cfg->logfn);
 
   sr_cache_close( sr_cfg->cachep );
+  sr_cfg->cachep=NULL;
 
 }
 void sr_config_init( struct sr_config_t *sr_cfg, const char *progname ) 
@@ -1020,11 +1062,11 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->last_matched=NULL;
   sr_cfg->log=0;
   sr_cfg->logfn=NULL;
-  sr_cfg->logrotate=5;
+  sr_cfg->logrotate=5.0;
   sr_cfg->logseverity=LOG_INFO;
   sr_cfg->masks=NULL;
   sr_cfg->match=NULL;
-  sr_cfg->message_ttl=0;
+  sr_cfg->message_ttl=0.0;
   sr_cfg->outlet=strdup("json");
   sr_cfg->paths=NULL;
   sr_cfg->pid=-1;
@@ -1046,13 +1088,14 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->realpath=0;
   sr_cfg->realpath_filter=0;
   sr_cfg->recursive=1;
-  sr_cfg->sanity_log_dead=0;
+  sr_cfg->sanity_log_dead=0.0;
   sr_cfg->sleep=0.0;
   sr_cfg->heartbeat=300.0;
   sr_cfg->help=0;
   sr_cfg->source=NULL;
   sr_cfg->statehost='0';
-  sr_cfg->sumalgo='s';
+  sr_cfg->sumalgo='d';
+  sr_cfg->sumalgoz='d';
   sr_cfg->to=NULL;
   sr_cfg->user_headers=NULL; 
   strcpy( sr_cfg->topic_prefix, "v02.post" );
@@ -1068,7 +1111,12 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sprintf( p, "%s/.config/sarra", getenv("HOME") );
   if (access(p, R_OK )) mkdir(p,0700);
   
-  sprintf( p, "%s/.config/sarra/%s", getenv("HOME"), progname );
+  if (! strcmp( progname, "srshim" ) )
+  {
+      sprintf( p, "%s/.config/sarra/%s", getenv("HOME"), "post" );
+  } else {
+      sprintf( p, "%s/.config/sarra/%s", getenv("HOME"), progname );
+  }
   if (access(p, R_OK )) mkdir(p,0700);
 
   sprintf( p, "%s/.config/sarra/default.conf", getenv("HOME") );
@@ -1112,8 +1160,8 @@ int sr_config_read( struct sr_config_t *sr_cfg, char *filename, int abort, int m
   /* linux config location */
   if ( *filename != '/' ) 
   {
-      sprintf( p, "%s/.config/sarra/%s/%s", getenv("HOME"), sr_cfg->progname, filename );
-
+      sprintf( p, "%s/.config/sarra/%s/%s", getenv("HOME"), 
+           strcmp(sr_cfg->progname,"srshim")?sr_cfg->progname:"post", filename );
   } else {
       strcpy( p, filename );
   }
@@ -1344,7 +1392,7 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
                sr_cfg->progname, sr_cfg->configname, sr_cfg->instance );
   }
 
-  if (sr_cfg->sanity_log_dead == 0)  sr_cfg->sanity_log_dead = 1.5 * sr_cfg->heartbeat ;
+  if (sr_cfg->sanity_log_dead == 0.0)  sr_cfg->sanity_log_dead = 1.5 * sr_cfg->heartbeat ;
   if (sr_cfg->sanity_log_dead < 450) sr_cfg->sanity_log_dead = 450;
   
   if (sr_cfg->cache > 0) 
@@ -1357,17 +1405,18 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
   // Since we check how old the log is, we ust not write to the log during startup in sanity mode.
   if ( strcmp( sr_cfg->action, "sanity" ) ) 
   {
-      log_msg( LOG_INFO, "sr_%s %s settings: action=%s config_name=%s log_level=%d follow_symlinks=%s realpath=%s\n",
+      log_msg( LOG_DEBUG, "sr_%s %s settings: action=%s config_name=%s log_level=%d follow_symlinks=%s realpath=%s\n",
           sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_cfg->configname, log_level, sr_cfg->follow_symlinks?"yes":"no",  
           sr_cfg->realpath?"yes":"no" );
-      log_msg( LOG_INFO, "\tsleep=%g heartbeat=%g sanity_log_dead=%d cache=%g cache_file=%s accept_unmatch=%s\n",
-          sr_cfg->sleep, sr_cfg->heartbeat, sr_cfg->sanity_log_dead, 
-          sr_cfg->cache, sr_cfg->cachep?p:"off", sr_cfg->accept_unmatched?"on":"off" );
-      log_msg( LOG_INFO, "\tevents=%04x directory=%s queuename=%s force_polling=%s sum=%c statehost=%c\n",
+      log_msg( LOG_DEBUG, "\tsleep=%g expire=%g heartbeat=%g sanity_log_dead=%g cache=%g\n",
+          sr_cfg->sleep, sr_cfg->expire, sr_cfg->heartbeat, sr_cfg->sanity_log_dead, sr_cfg->cache );
+      log_msg( LOG_DEBUG, "\tcache_file=%s accept_unmatch=%s\n",
+          sr_cfg->cachep?p:"off", sr_cfg->accept_unmatched?"on":"off" );
+      log_msg( LOG_DEBUG, "\tevents=%04x directory=%s queuename=%s force_polling=%s sum=%c statehost=%c\n",
           sr_cfg->events, sr_cfg->directory, sr_cfg->queuename, sr_cfg->force_polling?"on":"off", sr_cfg->sumalgo, sr_cfg->statehost  );
-      log_msg( LOG_INFO, "\tmessage_ttl=%d post_exchange=%s post_exchange_split=%d post_exchange_suffix=%s\n",
+      log_msg( LOG_DEBUG, "\tmessage_ttl=%g post_exchange=%s post_exchange_split=%d post_exchange_suffix=%s\n",
           sr_cfg->message_ttl, sr_cfg->post_exchange, sr_cfg->post_exchange_split, sr_cfg->post_exchange_suffix );
-      log_msg( LOG_INFO, "\tsource=%s to=%s post_base_url=%s topic_prefix=%s pid=%d\n",
+      log_msg( LOG_DEBUG, "\tsource=%s to=%s post_base_url=%s topic_prefix=%s pid=%d\n",
           sr_cfg->source, sr_cfg->to, sr_cfg->post_base_url, sr_cfg->topic_prefix, sr_cfg->pid  );
   }
 
@@ -1485,7 +1534,7 @@ struct sr_config_t *thecfg=NULL;
 
 void stop_handler(int sig)
 {
-     log_msg( LOG_INFO, "shutting down: signal %d received\n", sig);
+     log_msg( LOG_DEBUG, "shutting down: signal %d received\n", sig);
 
      if (thecfg && thecfg->cachep)
      {
@@ -1604,7 +1653,7 @@ int sr_config_startstop( struct sr_config_t *sr_cfg)
  
             // but otherwise it's normal, so kill the running one. 
 
-            log_msg( LOG_INFO, "killing running instance pid=%d\n", sr_cfg->pid );
+            log_msg( LOG_DEBUG, "killing running instance pid=%d\n", sr_cfg->pid );
 
             //  just kill it a little at first...
             kill(sr_cfg->pid,SIGTERM);
@@ -1618,13 +1667,13 @@ int sr_config_startstop( struct sr_config_t *sr_cfg)
             ret=kill(sr_cfg->pid,0);
             if (!ret) 
             {   // pid still running, and have permission to signal, so it didn't die... 
-                log_msg( LOG_INFO, "After 2 seconds, instance pid=%d did not respond to SIGTERM, sending SIGKILL\n", sr_cfg->pid );
+                log_msg( LOG_DEBUG, "After 2 seconds, instance pid=%d did not respond to SIGTERM, sending SIGKILL\n", sr_cfg->pid );
                 kill(sr_cfg->pid,SIGKILL);
                 nanosleep( &tsleep, NULL );
                 ret=kill(sr_cfg->pid,0);
                 if (!ret) 
                 {
-                    log_msg( LOG_CRITICAL, "SIGKILL didn't work either. System not usable, Giving up!\n", sr_cfg->pid );
+                    log_msg( LOG_CRITICAL, "SIGKILL on pid=%d didn't work either. System not usable, Giving up!\n", sr_cfg->pid );
                     return(-1);
                 } 
             } else {
@@ -1639,7 +1688,7 @@ int sr_config_startstop( struct sr_config_t *sr_cfg)
 
             } else { // just not running.
 
-                log_msg( LOG_INFO, "instance for config %s (pid %d) is not running.\n", sr_cfg->configname, sr_cfg->pid );
+                log_msg( LOG_DEBUG, "instance for config %s (pid %d) is not running.\n", sr_cfg->configname, sr_cfg->pid );
 
                 if ( !strcmp( sr_cfg->action, "stop" ) ) {
                     fprintf( stderr, "already stopped config %s (pid %d): deleting pidfile.\n", 
@@ -1661,11 +1710,11 @@ int sr_config_startstop( struct sr_config_t *sr_cfg)
         /* At this point, config is not running which is good for actions cleanup/remove... */
         if ( !strcmp( sr_cfg->action, "cleanup" ) || !strcmp( sr_cfg->action, "remove" ) ) return(1);
 
-        /* for other actions warn not running */
-        fprintf( stderr, "config %s not running.\n", sr_cfg->configname );
+        /* for other actions inform not running */
+        fprintf( stderr, "config %s is stopped.\n", sr_cfg->configname );
 
         /*  MG FIXME if we are not running... if action is stop return 0 */
-        if ( !strcmp( sr_cfg->action, "stop" )   ) return(0);
+        if ( ( !strcmp( sr_cfg->action, "stop" ) || !strcmp( sr_cfg->action, "sanity" ))   ) return(0);
     }
 
     /*  MG FIXME whatever was the state... if action is status return 0 */
@@ -1681,7 +1730,7 @@ void cp( const char * s, const char *d )
    FILE *dfd=NULL;
    char buf[1024];
 
-   log_msg(LOG_INFO, "copying %s to %s.\n", s, d );
+   log_msg(LOG_DEBUG, "copying %s to %s.\n", s, d );
    if ( ! ( sfd=fopen(s,"r") ) ) 
    {
      log_msg(LOG_ERROR, "opening config to read %s failed.\n", s );
@@ -1790,18 +1839,25 @@ int sr_config_add_one( struct sr_config_t *sr_cfg, const char *original_one )
          cp( original_one, newp );
          return(0);
      }
-     if ( getenv( "SR_CONFIG_EXAMPLES" ) ) 
+     if ( !getenv( "SR_CONFIG_EXAMPLES" ) ) 
      {
-        sprintf( oldp, "%s/%s/%s", getenv("SR_CONFIG_EXAMPLES"), sr_cfg->progname, original_one );
-        if ( !access( oldp, R_OK ) )
-        {
-            sprintf( newp, "%s/.config/sarra/%s/%s", getenv("HOME"), sr_cfg->progname, original_one ) ;
-            cp( oldp, newp );
-            return(0);
-        }
-     } else {
-        log_msg( LOG_ERROR, "Cannot add configurations because SR_CONFIG_EXAMPLES is not set.\n" );
-        return(1);
+         log_msg( LOG_ERROR, "Cannot add configurations because SR_CONFIG_EXAMPLES is not set.\n" );
+         return(1);
+     }
+     
+     sprintf( oldp, "%s", getenv("SR_CONFIG_EXAMPLES") );
+     if ( access( oldp, F_OK|R_OK ) )
+     {
+         log_msg( LOG_ERROR, "Cannot access SR_CONFIG_EXAMPLES directory %s.\n", oldp );
+         return(1);
+     }
+
+     sprintf( oldp, "%s/%s/%s", getenv("SR_CONFIG_EXAMPLES"), sr_cfg->progname, original_one );
+     if ( !access( oldp, R_OK ) )
+     {
+         sprintf( newp, "%s/.config/sarra/%s/%s", getenv("HOME"), sr_cfg->progname, original_one ) ;
+         cp( oldp, newp );
+         return(0);
      }
 
      
@@ -1933,7 +1989,7 @@ void sr_config_disable( struct sr_config_t *sr_cfg )
   {
      if (!strcmp( &(one[strlen(one)-4]),".off"))
      {
-         log_msg(LOG_INFO, "config %s already disabled.\n", one );
+         log_msg(LOG_WARNING, "config %s already disabled.\n", one );
      } else {
          sprintf( newp, "%s.off", one );
          rename( one, newp );
@@ -1946,7 +2002,7 @@ void sr_config_disable( struct sr_config_t *sr_cfg )
      {
          if (!strcmp( &(one[strlen(one)-4]),".off"))
          {
-            log_msg(LOG_INFO, "config %s already disabled.\n", one );
+            log_msg(LOG_WARNING, "config %s already disabled.\n", one );
          } else {
             sprintf( newp, "%s.off", one );
             rename( one, newp );
@@ -2008,10 +2064,13 @@ void sr_config_list( struct sr_config_t *sr_cfg )
     fprintf( stdout, "sr_%s %s ", sr_cfg->progname, __sarra_version__ );
     fprintf( stdout, "Example configurations ( %s )\n\n", p );
     cld = opendir( p );
+    if (!cld) return;
     l=1;
     while ( (d = readdir(cld)) ) 
     {
        if ( d->d_name[0] == '.' ) continue;
+       l = strlen(d->d_name);
+       if ( d->d_name[l-1] == '~' ) continue;
        fprintf( stdout, "%20s ", d->d_name );
        if (l%4 == 0 ) 
        {
@@ -2035,6 +2094,7 @@ void sr_config_list( struct sr_config_t *sr_cfg )
        if ( d->d_name[0] == '.' ) continue;
 
        l = strlen(d->d_name);
+       if ( d->d_name[l-1] == '~' ) continue;
        l -=5;
        if ( l > 0 ) 
        {

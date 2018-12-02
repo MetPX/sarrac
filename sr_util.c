@@ -20,18 +20,20 @@ int log_level=LOG_INFO;
 char *logfn=NULL;
 int logtoday=-1;
 int logmode=0700;
-int logrotate=5;
+float logrotate=5.0*24*3600;
+
+#ifndef SR_DEBUG_LOGS
 
 void log_msg(int prio, const char *format, ...)
 {
-    va_list ap;
-    va_start(ap, format);
     struct timespec ts;
     struct tm s;
     char *p;
+    va_list ap,apforsprintf;
+    va_start(ap, format);
 
     clock_gettime( CLOCK_REALTIME , &ts);
-    gmtime_r(&(ts.tv_sec),&s);
+    localtime_r(&(ts.tv_sec),&s);
 
     if (prio > log_level) return;
 
@@ -63,7 +65,7 @@ void log_msg(int prio, const char *format, ...)
          time_t yt;
 
          yt = ts.tv_sec-(23*3600);     /* FIXME: how to reliably pick yesterday? Is this OK? */
-         gmtime_r(&(yt),&ystm);
+         localtime_r(&(yt),&ystm);
          strcpy( buf, logfn );
          buflen = strlen(buf) ;
          //LRT snprintf( buf+buflen, PATH_MAX-buflen, ".%04d-%02d-%02d",  ystm.tm_year+1900, ystm.tm_mon+1, ystm.tm_min );
@@ -77,7 +79,7 @@ void log_msg(int prio, const char *format, ...)
          //LRT logtoday = s.tm_min;
 
          // remove old one.         
-         yt = ts.tv_sec - logrotate*(24*3600);
+         yt = ts.tv_sec - logrotate;
          //LRT yt = ts.tv_sec - logrotate*(60);
          gmtime_r(&(yt),&ystm);
          strcpy( buf, logfn );
@@ -90,19 +92,26 @@ void log_msg(int prio, const char *format, ...)
 
     dprintf( logfd, "%04d-%02d-%02d %02d:%02d:%02d,%03d [%s] ", s.tm_year+1900, s.tm_mon+1,
         s.tm_mday, s.tm_hour, s.tm_min, s.tm_sec, (int)(ts.tv_nsec/1e6), p );
-    vdprintf( logfd, format, ap);
+    va_copy( apforsprintf, ap);
+    va_end(ap);
 
+    vdprintf( logfd, format, apforsprintf);
 }
 
+#endif
 
-void log_setup(const char *f, mode_t mode, int severity, int logrotation ) 
+
+void log_setup(const char *f, mode_t mode, int severity, float logrotation ) 
 {
+
+#ifndef SR_DEBUG_LOGS
    logfn = strdup( f );
    logmode = mode;
    logrotate = logrotation;
 
    logfd = open( logfn, O_WRONLY|O_CREAT|O_APPEND, logmode );
    log_level = severity;
+#endif
 
    return;
 
@@ -110,9 +119,15 @@ void log_setup(const char *f, mode_t mode, int severity, int logrotation )
 
 void log_cleanup() 
 {
+#ifndef SR_DEBUG_LOGS
    free( logfn );
    logfn=NULL;
-   close( logfd );
+   if ( (logfd != -1) && ( logfd != 2)) close( logfd );
+   logfd=2;
+#endif
+
+   return;
+
 }
 
 void daemonize(int close_stdout)
@@ -137,7 +152,7 @@ void daemonize(int close_stdout)
      }
      // child processing.
 
-     log_msg( LOG_INFO, "child daemonizing start\n" );
+     log_msg( LOG_DEBUG, "child daemonizing start\n" );
      sid = setsid();
      if (sid < 0)
      {  
@@ -159,7 +174,7 @@ void daemonize(int close_stdout)
      close(2);
      dup2(logfd, STDERR_FILENO);
 
-     log_msg( LOG_INFO, "child daemonizing complete.\n" );
+     log_msg( LOG_DEBUG, "child daemonizing complete.\n" );
 }
 
 
@@ -183,8 +198,11 @@ int get_sumhashlen( char algo )
     case '0': 
         return(4+1);
 
-    case 'N' : case 's' : case 'L' : case 'R' : 
+    case 'p' : case 's' : case 'L' : case 'R' : 
         return(SHA512_DIGEST_LENGTH+1);
+
+    case 'z' :
+        return(2);
 
     default: 
         return(0);
@@ -192,7 +210,7 @@ int get_sumhashlen( char algo )
 }
 
 
-char *set_sumstr( char algo, const char* fn, const char* partstr, char *linkstr,
+char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, char *linkstr,
           unsigned long block_size, unsigned long block_count, unsigned long block_rem, unsigned long block_num 
      )
  /* 
@@ -202,10 +220,10 @@ char *set_sumstr( char algo, const char* fn, const char* partstr, char *linkstr,
      'd' - md5sum of block.
      'n' - md5sum of filename (fn).
      'L' - now sha512 sum of link value.
-     'N' - md5sum of filename (fn) + partstr.
+     'p' - md5sum of filename (fn) + partstr.
      'R' - no checksum, value is random. -> now same as N.
      's' - sha512 sum of block.
-
+     'z' - downstream should recalculate with algo that is argument.
    block starts at block_size * block_num, and ends 
   */
 {
@@ -260,6 +278,8 @@ char *set_sumstr( char algo, const char* fn, const char* partstr, char *linkstr,
               start += bytes_read;
            } else {
               fprintf( stderr, "error reading %s for MD5\n", fn );
+              close(fd);
+              fd=0;
               return(NULL);
            } 
        }
@@ -299,7 +319,7 @@ char *set_sumstr( char algo, const char* fn, const char* partstr, char *linkstr,
         SHA512_Final(sumhash+1, &shactx);
         return(sr_hash2sumstr(sumhash)); 
 
-   case 'N' :
+   case 'p' :
        SHA512_Init(&shactx);
        just_the_name = rindex(fn,'/')+1;
        if (just_the_name<(char*)2) just_the_name=fn;
@@ -336,6 +356,8 @@ char *set_sumstr( char algo, const char* fn, const char* partstr, char *linkstr,
               start += bytes_read;
            } else {
               fprintf( stderr, "error reading %s for SHA\n", fn );
+              close(fd);
+              fd=0;
               return(NULL);
            } 
        }
@@ -349,6 +371,11 @@ char *set_sumstr( char algo, const char* fn, const char* partstr, char *linkstr,
        SHA512_Final(sumhash+1, &shactx);
        return(sr_hash2sumstr(sumhash)); 
 
+   case 'z':
+       sumhash[1]=algoz;
+       sumhash[2]='\0';
+       return( sr_hash2sumstr(sumhash) );
+
    default:
        fprintf( stderr, "sum algorithm %c unimplemented\n", algo );
        return(NULL);
@@ -359,8 +386,8 @@ char *set_sumstr( char algo, const char* fn, const char* partstr, char *linkstr,
 char nibble2hexchr( int i )
 
 {
-   unsigned char c =  i & 0xf;
-   return( (c < 10) ? ( c + '0' ) : ( c -10 + 'a' ) );
+   unsigned char c =  (unsigned char)(i & 0xf);
+   return( (char)((c < 10) ? ( c + '0' ) : ( c -10 + 'a' ) ));
 }
 
 int hexchr2nibble( char c )
@@ -380,10 +407,16 @@ unsigned char *sr_sumstr2hash( const char *s )
     if (!s) return(NULL);
     memset( sumhash, 0, SR_SUMHASHLEN );
     sumhash[0]=s[0];
+
+    if ( s[0] == 'z' ) 
+    {
+       sumhash[1] = s[2];
+       return(sumhash);
+    }
     
     for ( i=1; ( i < get_sumhashlen(s[0]) ) ; i++ )
     {
-        sumhash[i] = (hexchr2nibble(s[i<<1]) << 4) + hexchr2nibble(s[(i<<1)+1]) ;
+        sumhash[i] = (unsigned char)((hexchr2nibble(s[i<<1]) << 4) + hexchr2nibble(s[(i<<1)+1]));
     }
     return(sumhash);
 }
@@ -395,6 +428,13 @@ char *sr_hash2sumstr( const unsigned char *h )
   memset( sumstr, 0, SR_SUMSTRLEN );
   sumstr[0] = h[0];
   sumstr[1] = ',';
+
+  if ( sumstr[0] == 'z' )
+  {
+      sumstr[2] = h[1];
+      sumstr[3] = '\0';;
+      return(sumstr); 
+  }
 
   for(i=1; i < get_sumhashlen(h[0]); i++ )
   {

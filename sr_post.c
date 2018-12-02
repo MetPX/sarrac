@@ -118,7 +118,7 @@ void amqp_header_add( char *tag, const char * value ) {
   {
      strncpy( value2, value, AMQP_MAX_SS );
      value2[AMQP_MAX_SS] = '\0';
-     log_msg( LOG_WARNING, "header %s too long (%d bytes), truncating to: %s\n", tag, strlen(value), value2 );
+     log_msg( LOG_WARNING, "header %s too long (%ld bytes), truncating to: %s\n", tag, strlen(value), value2 );
      headers[hdrcnt].value.value.bytes = amqp_cstring_bytes(value2);
   } else {
      headers[hdrcnt].value.value.bytes = amqp_cstring_bytes(value);
@@ -295,14 +295,16 @@ void sr_post_message( struct sr_context *sr_c, struct sr_message_t *m )
            }
            goto restart;
         }
+        amqp_maybe_release_buffers( sr_c->cfg->post_broker->conn );
         log_msg( LOG_INFO, "published: %s\n", sr_message_2log(m) );
         return;
     
 restart:
+        amqp_maybe_release_buffers( sr_c->cfg->post_broker->conn );
         sr_context_close(sr_c);
         sleep(to_sleep);
         if (to_sleep < 60) to_sleep<<=1;
-        log_msg( LOG_WARNING, "publish failed. Slept: %d seconds. Retrying...\n", to_sleep );
+        log_msg( LOG_WARNING, "publish failed. Slept: %ld seconds. Retrying...\n", to_sleep );
         sr_context_connect(sr_c);
 
     }
@@ -419,6 +421,12 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec, struct 
   m->user_headers=sr_c->cfg->user_headers;
 
   m->sum[0]= sr_c->cfg->sumalgo;
+  if ( sr_c->cfg->sumalgo == 'z' )
+  {
+     m->sum[1] = ',';
+     m->sum[2] = sr_c->cfg->sumalgoz ;
+     m->sum[3] = '\0' ;
+  }
 
 
   if ( !sb ) 
@@ -461,7 +469,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec, struct 
       m->mode = sb->st_mode & 07777 ;
 
       m->parts_blksz  = set_blocksize( sr_c->cfg->blocksize, sb->st_size );
-      m->parts_s = (m->parts_blksz < sb->st_size )? 'i':'1' ;
+      m->parts_s = (char)((m->parts_blksz < sb->st_size )?'i':'1') ;
 
       if ( m->parts_blksz == 0 ) {
           m->parts_rem = 0;
@@ -483,7 +491,7 @@ struct sr_message_t *sr_file2message_seq(const char *pathspec, int seq, struct s
       m->parts_num = seq;
 
       strcpy( m->sum, 
-              set_sumstr( m->sum[0], pathspec, NULL, m->link, m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num ) 
+              set_sumstr( m->sum[0], m->sum[2], pathspec, NULL, m->link, m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num ) 
             ); 
 
       if ( !(m->sum) ) 
@@ -657,6 +665,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
       sr_post( sr_c,  newname, &sb );
 
   free(first_user_header.key);  
+  free(first_user_header.value);  
   sr_c->cfg->user_headers = first_user_header.next ;
   
 
@@ -702,7 +711,7 @@ int sr_post_init( struct sr_context *sr_c )
     {
         for ( int i = 0; i < sr_c->cfg->post_broker->exchange_split ; i++ )
         {
-            log_msg( LOG_INFO, "declaring exchange %s%02d\n", sr_broker_uri( sr_c->cfg->post_broker ), i  );
+            log_msg( LOG_DEBUG, "declaring exchange %s%02d\n", sr_broker_uri( sr_c->cfg->post_broker ), i  );
             sprintf( exchange, "%s%02d", sr_c->cfg->post_broker->exchange, i );
             amqp_exchange_declare( sr_c->cfg->post_broker->conn, 1, amqp_cstring_bytes(exchange),
                  amqp_cstring_bytes("topic"), 0, sr_c->cfg->durable, 0, 0, amqp_empty_table );
@@ -713,7 +722,7 @@ int sr_post_init( struct sr_context *sr_c )
             }
         }
     } else  {
-        log_msg( LOG_INFO, "declaring exchange %s\n", sr_broker_uri( sr_c->cfg->post_broker )  );
+        log_msg( LOG_DEBUG, "declaring exchange %s\n", sr_broker_uri( sr_c->cfg->post_broker )  );
         amqp_exchange_declare( sr_c->cfg->post_broker->conn, 1, amqp_cstring_bytes(sr_c->cfg->post_broker->exchange),
              amqp_cstring_bytes("topic"), 0, sr_c->cfg->durable, 0, 0, amqp_empty_table );
         reply = amqp_get_rpc_reply(sr_c->cfg->post_broker->conn);

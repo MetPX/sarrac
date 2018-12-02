@@ -623,7 +623,7 @@ int main(int argc, char **argv)
 
     for (; i < argc; i++ )
     {
-          if ( !strcmp( sr_cfg.action,"foreground") || !strcmp( sr_cfg.action, "enable" ) ||
+          if ( !strcmp( sr_cfg.action, "foreground" ) || !strcmp( sr_cfg.action, "enable" ) ||
                !strcmp( sr_cfg.action, "disable" ) || !strcmp( sr_cfg.action, "add" ) ||
                !strcmp( sr_cfg.action, "remove" ) || !strcmp( sr_cfg.action, "edit" )
              )
@@ -705,10 +705,10 @@ int main(int argc, char **argv)
           ( ( !strcmp( sr_cfg.action, "start" ) ) ||
             ( !strcmp( sr_cfg.action, "restart" ) ) ))
     {
-        log_msg( LOG_INFO, "start|restart with sleep <= 0 does nothing. exiting normally\n");
+        log_msg( LOG_WARNING, "start|restart with sleep <= 0 does nothing. exiting normally\n");
         return(0);
     }
-    sr_c = sr_context_init_config( &sr_cfg );
+    sr_c = sr_context_init_config( &sr_cfg, 0 );
     if (!sr_c) 
     {
         log_msg( LOG_CRITICAL, "failed to read config\n");
@@ -828,7 +828,8 @@ int main(int argc, char **argv)
             //log_msg( LOG_DEBUG, "debug: watch sleeping for %g seconds. \n", (sr_cfg.sleep-elapsed));
             nanosleep( &tsleep, NULL );
        } else 
-            log_msg( LOG_INFO, "INFO: watch, one pass takes longer than sleep interval, not sleeping at all\n");
+            log_msg( LOG_WARNING, "INFO: watch, one pass takes longer (%d) than sleep interval (%g), not sleeping at all\n",
+                     elapsed, sr_cfg.sleep );
   
        pass++; 
     }
