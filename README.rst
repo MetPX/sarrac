@@ -129,6 +129,10 @@ run dependencies::
   librabbitmq4 - AMQP client library written in C
   libssl - OpenSSL client library.
 
+On RPM-based distributions::
+  
+  librabbitmq-devel
+
 
   
 
