@@ -715,6 +715,11 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       log_level=255;
       retval=(1+(val&1));
 
+  } else if ( !strcmp( option, "defer_posting_to_exit" ) ) {
+      val = StringIsTrue(argument);
+      sr_cfg->defer_posting_to_exit = val&2;
+      retval=(1+(val&1));
+
   } else if ( !strcmp( option, "declare" ) ) {
       retval = sr_add_decl(sr_cfg, argument, arg2);
 
@@ -1048,6 +1053,7 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->chmod_log=0600;
   sr_cfg->configname=NULL;
   sr_cfg->debug=0;
+  sr_cfg->defer_posting_to_exit=0;
   sr_cfg->delete=0;
   sr_cfg->directory=NULL;
   sr_cfg->post_base_dir=NULL;

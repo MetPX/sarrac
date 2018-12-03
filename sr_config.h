@@ -104,6 +104,7 @@ struct sr_config_t {
   mode_t              chmod_log;
   char               *configname;
   int                 debug;
+  int                 defer_posting_to_exit;
   int                 delete;
   char               *directory;
   char               *post_base_dir;

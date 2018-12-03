@@ -53,7 +53,7 @@ when supplied causes it to loop, checking for new items every *sleep* seconds
 which obtains messages and, by default, prints them to standard output in json
 format identical the the format used by the python implementation for 
 save/restore. In order to have a complete downloader, one needs a script to
-parse the json output and invoke an appropriate binary downloader.  One can
+parse the json output and invoke an appropriate binary downloader. One can
 use the 'outlet' switch to choose other formats:
  
 json:
@@ -85,7 +85,7 @@ shim library, and the shim library will apply the "mypost.conf" configuration
 to figure out whether it should post the file being closed, and if so, to what
 broker.  
 
-Normally, posting  will only occur for files that have been written. If one
+Normally, posting  will only occur for files that have been written.  If one 
 wants to post files opened even in readonly mode, this triggers more overhead
 as even trivial programs such as *cat* need to configure a connection to the
 broker in case they end up posting to it. Normally, the connection is only
@@ -93,6 +93,14 @@ established when there is a modified file is checked for posting. To enable
 full access monitoring, set the SR_POST_READS variable. This provides an
 auditing function and/or the ability to mirror a complete environment (even
 files that we didn't know we needed.)
+
+There is a configuration setting which is useful only in the shim library::
+
+   defer_posting_to_exit True
+
+When this option is set, instead of posting files during process execution,
+(potentially posting the same file multiple times.) the shim library will
+accumulate file names, and only post when the process exits.
 
 If the SR_SHIMDEBUG variable is set, rather verbose messaging will occur.
 

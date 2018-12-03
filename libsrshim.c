@@ -51,6 +51,41 @@ static int close_init_done = 0;
 typedef int  (*close_fn) (int);
 static close_fn close_fn_ptr = close;
 
+char **deferred_post_filenames = NULL;
+int  deferred_post_count = 0;
+int  deferred_post_max = 0;
+
+void defer_post(const char* fn)
+{
+
+  /* already scheduled to post? */
+  for( int i= 0; i < deferred_post_count ; i++ )
+    if (!strcmp(deferred_post_filenames[i],fn) )
+    {
+        log_msg( LOG_DEBUG, "suppress repeated post of %s (count=%d) \n", fn, deferred_post_count );
+        return;
+    }
+  /* add to the list */
+  if ( deferred_post_count >= deferred_post_max )
+  {
+      if (!deferred_post_filenames)
+      {
+            deferred_post_filenames = (char**)malloc( 1*sizeof(char *) );
+            deferred_post_max=1;
+      } else {
+            char **saved_post_filenames = deferred_post_filenames ;
+            deferred_post_max *= 2;
+            deferred_post_filenames = (char**)malloc( deferred_post_max*sizeof(char *) );
+
+            for (int i = 0; i < deferred_post_count ; i++ ) 
+                deferred_post_filenames[i] = saved_post_filenames[i];
+      }
+  }
+  deferred_post_filenames[deferred_post_count++] = strdup(fn);
+  log_msg( LOG_DEBUG, "deferred post of %s (count=%d) \n", fn, deferred_post_count );
+}
+
+
 
 void srshim_initialize(const char* progname) 
 {
@@ -182,6 +217,12 @@ void srshim_realpost(const char *path)
             mask, mask->accepting, sr_cfg.accept_unmatched );
       if (sr_cfg.debug) log_msg( LOG_DEBUG, "sr_%s rejected 2: %s\n", sr_cfg.progname, fn );
       return;
+  }
+
+  if( sr_c->cfg->defer_posting_to_exit ) 
+  {
+     defer_post(fn);
+     return;
   }
 
   srshim_connect();
@@ -654,6 +695,8 @@ static exit_fn exit_fn_ptr = exit;
 void exit(int status) 
 {   
     int  fdstat;
+    struct stat sb;
+    int statres;
     char fdpath[500];
     int  fdpathlen;
     char real_path[PATH_MAX+1];
@@ -756,6 +799,46 @@ void exit(int status)
        shimpost(real_path, status);
     }
     closedir(fddir);
+
+    /* execute deferred posts, FIXME: embarrasing n**2 algo, should do better later */
+    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "deferred posting.\n" );
+
+    for (int i=0; i < deferred_post_count; i++ )
+    {
+        found=0;
+        for(int j=0; j < last_pfo ; j++ )
+        {
+          if( !strcmp(deferred_post_filenames[i],parent_files_open[j]) )
+          {
+            found = 1;
+            break;
+          }
+        }
+
+        if (!found) 
+        {
+           srshim_connect();
+
+           statres = lstat( deferred_post_filenames[i], &sb );
+
+           if (statres) 
+           {
+               sr_post( sr_c, deferred_post_filenames[i], NULL );
+           } else {
+               if (S_ISLNK(sb.st_mode))  
+               {
+                  real_return = readlink(deferred_post_filenames[i], real_path, PATH_MAX);
+                  if (real_return)              
+                  {
+                     sr_post( sr_c, real_path, &sb );
+                  }
+               } else {
+                  sr_post( sr_c, deferred_post_filenames[i], &sb );
+               }
+           }
+        }
+    }
+
 
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit closing context %p\n", sr_c );
     if (sr_c) sr_context_close(sr_c);
