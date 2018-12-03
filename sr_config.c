@@ -533,7 +533,7 @@ float seconds_from_duration_str( char* s )
       case 'w': case 'W': factor *= 7*24*60*60 ; break;
       case 's': default: break;
    }
-   return( atof(s) * factor );
+   return( (float)(atof(s) * factor) );
 }
 char *subarg( struct sr_config_t *sr_cfg, char *arg )
 /* 
@@ -771,7 +771,7 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
   } else if ( !strcmp( option, "expire" ) || !strcmp( option, "expiry" ) ) {
       if isalpha(*argument) {
           val = StringIsTrue(argument);
-          sr_cfg->expire = (val&2) ? 3*60 : 0;
+          sr_cfg->expire = (float)((val&2) ? 3*60 : 0);
           retval=(1+(val&1));
       } else {
           sr_cfg->expire = seconds_from_duration_str(argument);
@@ -831,7 +831,7 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
   } else if ( !strcmp( option, "message-ttl" ) || !strcmp( option, "msgttl" ) || !strcmp( option, "mttl") ) {
       if isalpha(*argument) {
           val = StringIsTrue(argument);
-          sr_cfg->message_ttl = (val&2) ? 30*60 : 0;
+          sr_cfg->message_ttl = (float)((val&2) ? 30*60 : 0);
           retval=(1+(val&1));
       } else {
           sr_cfg->message_ttl = seconds_from_duration_str(argument);
@@ -1398,8 +1398,8 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
                sr_cfg->progname, sr_cfg->configname, sr_cfg->instance );
   }
 
-  if (sr_cfg->sanity_log_dead == 0.0)  sr_cfg->sanity_log_dead = 1.5 * sr_cfg->heartbeat ;
-  if (sr_cfg->sanity_log_dead < 450) sr_cfg->sanity_log_dead = 450;
+  if (sr_cfg->sanity_log_dead == 0.0)  sr_cfg->sanity_log_dead = (float)(1.5 * sr_cfg->heartbeat) ;
+  if (sr_cfg->sanity_log_dead < 450) sr_cfg->sanity_log_dead = 450.0;
   
   if (sr_cfg->cache > 0) 
   {

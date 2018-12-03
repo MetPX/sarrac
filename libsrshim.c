@@ -827,9 +827,10 @@ void exit(int status)
            } else {
                if (S_ISLNK(sb.st_mode))  
                {
-                  real_return = readlink(deferred_post_filenames[i], real_path, PATH_MAX);
-                  if (real_return)              
+                  statres = readlink(deferred_post_filenames[i], real_path, PATH_MAX);
+                  if (statres)              
                   {
+                     real_path[statres]='\0'; 
                      sr_post( sr_c, real_path, &sb );
                   }
                } else {
