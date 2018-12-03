@@ -1,3 +1,13 @@
+sarrac (2.18.12b1) UNRELEASED; urgency=medium
+
+  * libsrshim: potential optimization, implemented defer_posting_to_exit (EXPERIMENTAL) issue #15
+  * libsrshim: skip exit processing when no configuration set.
+  * bugfix:  issue #15: time intervals now interpreted same as python
+  * bugfix:  issue #17: portability to other platforms (non x86_64)
+  * bugfix:  raspberry pi build works again.
+
+ -- Peter Silva <peter@idefix>  Mon, 03 Dec 2018 17:48:19 -0500
+
 sarrac (2.18.11b5) unstable; urgency=medium
 
   * change default checksum to md5sum ('d') to humour Eric.
