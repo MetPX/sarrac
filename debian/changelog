@@ -1,6 +1,9 @@
 sarrac (2.18.12b1) UNRELEASED; urgency=medium
 
-  * libsrshim: potential optimization, implemented defer_posting_to_exit (EXPERIMENTAL) issue #15
+  * libsrshim: potential optimization, issue #15
+  *            shim_skip_parent_open_files EXPERIMENTAL option implemented.
+  *            shim_defer_post_once EXPERIMENTAL option implemented.
+  *            shim_defer_posting_to_exit EXPERIMENTAL option implemented.
   * libsrshim: skip exit processing when no configuration set.
   * bugfix:  issue #15: time intervals now interpreted same as python
   * bugfix:  issue #17: portability to other platforms (non x86_64)
