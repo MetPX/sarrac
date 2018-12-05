@@ -42,6 +42,73 @@
       - ordinary calls are dealt with... dunno that we need a separate 64 variety.
 
  */
+void exit_cleanup_posts();
+int exit_cleanup_posts_setup =0;
+
+/*
+ I had a problem that, in some cases, exit_cleanup processing does not seem to happen.
+ tried adding atexit to guarantee that exit_cleanup processing will run.
+ didn't change anything, so commented it out for now
+ */
+void setup_exit()
+{
+   if (!exit_cleanup_posts_setup) 
+   {
+      //atexit(exit_cleanup_posts);
+      exit_cleanup_posts_setup =1;
+   }
+}
+
+char **parent_files_open = NULL;
+int  last_pfo = 0;
+int  max_pfo = 1;
+
+/* build list of files opened by parent pid
+ */
+void setup_pfo()
+{
+    char fdpath[500];
+    int  fdpathlen;
+    DIR  *fddir=NULL;
+    struct dirent *fdde;
+    
+
+    parent_files_open = (char**)malloc( sizeof(char*) );
+
+    snprintf( fdpath, 499, "/proc/%d/fd", getppid() );
+    fddir = opendir( fdpath );
+    
+    while ( (fdde = readdir( fddir )) ) 
+    {
+        fdpathlen = readlinkat( dirfd(fddir), fdde->d_name, fdpath, 500 );
+
+        if ( fdpathlen < 0 )
+            continue;
+
+        fdpath[fdpathlen]='\0';
+
+        if (!strncmp( fdpath, "/dev/", 5 )) 
+            continue;
+
+        if (!strncmp( fdpath, "/proc/", 6 )) 
+            continue;
+        parent_files_open[ last_pfo++ ] = strdup( fdpath ); 
+
+        if ( last_pfo >= max_pfo )
+        {
+           char **save_pfo = parent_files_open;
+           max_pfo *= 2;
+           parent_files_open = (char**)malloc( max_pfo * sizeof(char*) );
+           for (int i = 0; i < last_pfo ; i++ ) 
+                parent_files_open[i] = save_pfo[i];
+           free(save_pfo);
+        }
+
+    }
+    closedir(fddir);
+}
+
+
 static struct sr_context *sr_c = NULL;
 static struct sr_config_t sr_cfg; 
 static int sr_connected = 0;
@@ -51,38 +118,48 @@ static int close_init_done = 0;
 typedef int  (*close_fn) (int);
 static close_fn close_fn_ptr = close;
 
-char **deferred_post_filenames = NULL;
-int  deferred_post_count = 0;
-int  deferred_post_max = 0;
+char **remembered_post_filenames = NULL;
+int  remembered_post_count = 0;
+int  remembered_post_max = 0;
 
-void defer_post(const char* fn)
+/* check files posted by this pid, 
+   return true if it has been posted already.
+               or if the file is open by ppid.
+ */
+
+int remember_post(const char* fn)
 {
-
-  /* already scheduled to post? */
-  for( int i= 0; i < deferred_post_count ; i++ )
-    if (!strcmp(deferred_post_filenames[i],fn) )
+  /* open by parent */
+  for( int i = 0; ( i < last_pfo ) ; i++ )
+     if ( !strcmp(fn,parent_files_open[i]) )  return(1);
+  
+  /* already remembered to post? */
+  for( int i= 0; i < remembered_post_count ; i++ )
+    if (!strcmp(remembered_post_filenames[i],fn) )
     {
-        log_msg( LOG_DEBUG, "suppress repeated post of %s (count=%d) \n", fn, deferred_post_count );
-        return;
+        log_msg( LOG_DEBUG, "suppress repeated post of %s (count=%d) \n", fn, remembered_post_count );
+        return(1);
     }
   /* add to the list */
-  if ( deferred_post_count >= deferred_post_max )
+  if ( remembered_post_count >= remembered_post_max )
   {
-      if (!deferred_post_filenames)
+      if (!remembered_post_filenames)
       {
-            deferred_post_filenames = (char**)malloc( 1*sizeof(char *) );
-            deferred_post_max=1;
+            remembered_post_filenames = (char**)malloc( 1*sizeof(char *) );
+            remembered_post_max=1;
       } else {
-            char **saved_post_filenames = deferred_post_filenames ;
-            deferred_post_max *= 2;
-            deferred_post_filenames = (char**)malloc( deferred_post_max*sizeof(char *) );
+            char **saved_post_filenames = remembered_post_filenames ;
+            remembered_post_max *= 2;
+            remembered_post_filenames = (char**)malloc( remembered_post_max*sizeof(char *) );
 
-            for (int i = 0; i < deferred_post_count ; i++ ) 
-                deferred_post_filenames[i] = saved_post_filenames[i];
+            for (int i = 0; i < remembered_post_count ; i++ ) 
+                remembered_post_filenames[i] = saved_post_filenames[i];
       }
   }
-  deferred_post_filenames[deferred_post_count++] = strdup(fn);
-  log_msg( LOG_DEBUG, "deferred post of %s (count=%d) \n", fn, deferred_post_count );
+  remembered_post_filenames[remembered_post_count++] = strdup(fn);
+  log_msg( LOG_DEBUG, "remembering post of %s (count=%d) \n", fn, remembered_post_count );
+  return(0);
+
 }
 
 
@@ -103,6 +180,7 @@ void srshim_initialize(const char* progname)
   if ( setstr == NULL )
       return;
 
+
   //log_msg( LOG_CRITICAL, "FIXME srshim_initialize 2 %s setstr=%p\n", progname, setstr);
 
    // skip many FD to try to avoid stepping over stdout stderr, for logs & broker connection.
@@ -116,6 +194,7 @@ void srshim_initialize(const char* progname)
    }
 
    if (!close_init_done) {
+         setup_exit();
          close_fn_ptr = (close_fn) dlsym(RTLD_NEXT, "close");
          close_init_done = 1;
    }
@@ -127,6 +206,8 @@ void srshim_initialize(const char* progname)
    finalize_good = sr_config_finalize( &sr_cfg, 0 );
 
    if ( !finalize_good ) goto RET;
+
+   if (sr_cfg.shim_skip_parent_open_files) setup_pfo();
 
    sr_c = sr_context_init_config(&sr_cfg, 1);
 
@@ -171,7 +252,7 @@ void srshim_realpost(const char *path)
 
   statres = lstat( path, &sb ) ;
 
-  if ( !S_ISREG(sb.st_mode) && !S_ISLNK(sb.st_mode) ) 
+  if ( !statres && !S_ISREG(sb.st_mode) && !S_ISLNK(sb.st_mode) ) 
      return;
 
   strcpy( fn, path );
@@ -219,12 +300,11 @@ void srshim_realpost(const char *path)
       return;
   }
 
-  if( sr_c->cfg->defer_posting_to_exit ) 
-  {
-     defer_post(fn);
-     return;
-  }
+  if (remember_post(fn) && sr_c->cfg->shim_post_once) return;
 
+  if( sr_c->cfg->shim_defer_posting_to_exit )  return;
+
+     
   srshim_connect();
 
   if ( statres )  {
@@ -290,6 +370,7 @@ int truncate(const char *path, off_t length)
     int status;
 
     if (!truncate_init_done) {
+        setup_exit();
         truncate_fn_ptr = (truncate_fn) dlsym(RTLD_NEXT, "truncate");
         truncate_init_done = 1;
     }
@@ -320,6 +401,7 @@ int symlink(const char *target, const char* linkpath)
 
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG symlink %s %s\n", target, linkpath );
     if (!symlink_init_done) {
+        setup_exit();
         symlink_fn_ptr = (symlink_fn) dlsym(RTLD_NEXT, "symlink");
         symlink_init_done = 1;
     }
@@ -350,6 +432,7 @@ int unlinkat(int dirfd, const char *path, int flags)
 
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG unlinkat %s dirfd=%i\n", path, dirfd );
     if (!unlinkat_init_done) {
+        setup_exit();
         unlinkat_fn_ptr = (unlinkat_fn) dlsym(RTLD_NEXT, "unlinkat");
         unlinkat_init_done = 1;
     }
@@ -387,6 +470,7 @@ int unlink(const char *path)
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG unlink %s\n", path );
     if (!unlink_init_done) 
     {
+        setup_exit();
         unlink_fn_ptr = (unlink_fn) dlsym(RTLD_NEXT, "unlink");
         unlink_init_done = 1;
     }
@@ -439,6 +523,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd, const char *ne
 
     if (!renameat2_init_done) 
     {
+        setup_exit();
         renameat2_fn_ptr = (renameat2_fn) dlsym(RTLD_NEXT, "renameat2");
         renameat2_init_done = 1;
     }
@@ -548,6 +633,7 @@ int dup2(int oldfd, int newfd )
     if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG dup2 oldfd %d newfd %d\n",oldfd,newfd );
 
     if (!dup2_init_done) {
+        setup_exit();
         dup2_fn_ptr = (dup2_fn) dlsym(RTLD_NEXT, "dup2");
         dup2_init_done = 1;
         if (getenv("SR_POST_READS"))
@@ -627,6 +713,7 @@ int dup3(int oldfd, int newfd, int flags )
     if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG dup3 oldfd %d newfd %d flags %d\n",oldfd,newfd,flags );
 
     if (!dup3_init_done) {
+        setup_exit();
         dup3_fn_ptr = (dup3_fn) dlsym(RTLD_NEXT, "dup3");
         dup3_init_done = 1;
         if (getenv("SR_POST_READS"))
@@ -686,76 +773,25 @@ int dup3(int oldfd, int newfd, int flags )
     return status;
 }
 
-//void exit(int status) __attribute__((noreturn));
 
-static int exit_init_done = 0;
-typedef void (*exit_fn)( int ) __attribute__((noreturn));
-static exit_fn exit_fn_ptr = exit;
-
-void exit(int status) 
+void exit_cleanup_posts() 
 {   
     int  fdstat;
     struct stat sb;
     int statres;
     char fdpath[500];
-    int  fdpathlen;
     char real_path[PATH_MAX+1];
     char *real_return;
     int  fd;
     int  found;
     DIR  *fddir=NULL;
     struct dirent *fdde;
-    char **parent_files_open = NULL;
-    int  last_pfo = 0;
-    int  max_pfo = 1;
     
 
-    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit 0, context=%p\n", sr_c );
-    if (!exit_init_done) {
-        exit_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit");
-        exit_init_done = 1;
-    }
-
-    if ( !getenv( "SR_POST_CONFIG" ) || in_librshim_already_dammit) exit_fn_ptr(status);
-
-
+    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit_cleanup_posts, context=%p\n", sr_c );
     // build an array of the file names currently opened by the parent process.
     
-    parent_files_open = (char**)malloc( sizeof(char*) );
-
-    snprintf( fdpath, 499, "/proc/%d/fd", getppid() );
-    fddir = opendir( fdpath );
-    
-    while ( (fdde = readdir( fddir )) ) 
-    {
-        fdpathlen = readlinkat( dirfd(fddir), fdde->d_name, fdpath, 500 );
-
-        if ( fdpathlen < 0 )
-            continue;
-
-        fdpath[fdpathlen]='\0';
-
-        if (!strncmp( fdpath, "/dev/", 5 )) 
-            continue;
-
-        if (!strncmp( fdpath, "/proc/", 6 )) 
-            continue;
-
-        parent_files_open[ last_pfo++ ] = strdup( fdpath ); 
-
-        if ( last_pfo >= max_pfo )
-        {
-           char **save_pfo = parent_files_open;
-           max_pfo *= 2;
-           parent_files_open = (char**)malloc( max_pfo * sizeof(char*) );
-           for (int i = 0; i < last_pfo ; i++ ) 
-                parent_files_open[i] = save_pfo[i];
-           free(save_pfo);
-        }
-
-    }
-    closedir(fddir);
-
+    if (in_librshim_already_dammit) return;
 
     // In the current process, find files which are not opened by the parent
     // that need posting.
@@ -778,7 +814,8 @@ void exit(int status)
         snprintf( fdpath, 499, "/proc/self/fd/%s", fdde->d_name );
         real_return = realpath(fdpath, real_path);
 
-       if ( (!real_return) || ( !strncmp(real_path,"/dev/", 5) ) || ( !strncmp(real_path,"/proc/", 6) ) )
+       if ( (!real_return) || ( real_path[0] != '/' ) ||
+            ( !strncmp(real_path,"/dev/", 5) ) || ( !strncmp(real_path,"/proc/", 6) ) )
            continue;
 
        found=0;
@@ -796,51 +833,57 @@ void exit(int status)
 
        if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit posting %s\n", real_path );
 
-       shimpost(real_path, status);
+       shimpost(real_path, 0);
     }
     closedir(fddir);
 
-    /* execute deferred posts, FIXME: embarrasing n**2 algo, should do better later */
-    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "deferred posting.\n" );
+    if( sr_c->cfg->shim_defer_posting_to_exit )  
+    {    
+      /* execute deferred posts, FIXME: embarrasing n**2 algo, should do better later */
+      if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "deferred posting.\n" );
 
-    for (int i=0; i < deferred_post_count; i++ )
-    {
-        found=0;
-        for(int j=0; j < last_pfo ; j++ )
-        {
-          if( !strcmp(deferred_post_filenames[i],parent_files_open[j]) )
+      for (int i=0; i < remembered_post_count; i++ )
+      {
+          if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "deferred posting remembered_post_count=%d remembered_post_filenames[%d]=%s\n", remembered_post_count, i,
+              remembered_post_filenames[i] );
+          found=0;
+          for(int j=0; j < last_pfo ; j++ )
           {
-            found = 1;
-            break;
+            if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "deferred posting last_pfo=%d, parent_file_open[%d]=%s\n", last_pfo, j, parent_files_open[j] );
+            if( !strcmp(remembered_post_filenames[i],parent_files_open[j]) )
+            {
+              found = 1;
+              break;
+            }
           }
-        }
 
-        if (!found) 
-        {
-           srshim_connect();
+          if (!found) 
+          {
+             srshim_initialize("srshim");
 
-           statres = lstat( deferred_post_filenames[i], &sb );
+             srshim_connect();
 
-           if (statres) 
-           {
-               sr_post( sr_c, deferred_post_filenames[i], NULL );
-           } else {
-               if (S_ISLNK(sb.st_mode))  
-               {
-                  statres = readlink(deferred_post_filenames[i], real_path, PATH_MAX);
-                  if (statres)              
-                  {
-                     real_path[statres]='\0'; 
-                     sr_post( sr_c, real_path, &sb );
-                  }
-               } else {
-                  sr_post( sr_c, deferred_post_filenames[i], &sb );
-               }
-           }
-        }
+             statres = lstat( remembered_post_filenames[i], &sb );
+
+             if (statres) 
+             {
+                 sr_post( sr_c, remembered_post_filenames[i], NULL );
+             } else {
+                 if (S_ISLNK(sb.st_mode))  
+                 {
+                    statres = readlink(remembered_post_filenames[i], real_path, PATH_MAX);
+                    if (statres)              
+                    {
+                       real_path[statres]='\0'; 
+                       sr_post( sr_c, real_path, &sb );
+                    }
+                 } else {
+                    sr_post( sr_c, remembered_post_filenames[i], &sb );
+                 }
+             }
+          }
+      }
     }
-
-
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit closing context %p\n", sr_c );
     if (sr_c) sr_context_close(sr_c);
 
@@ -861,10 +904,49 @@ void exit(int status)
 
     in_librshim_already_dammit=1;
 
-    // do it for real.
-    exit_fn_ptr(status);
 }
 
+//void exit(int status) __attribute__((noreturn));
+
+typedef void (*exit_fn)( int ) __attribute__((noreturn));
+
+void exit(int status) 
+{   
+    static exit_fn exit_fn_ptr = NULL;
+
+    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit 0, context=%p\n", sr_c );
+
+    exit_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit");
+
+    if ( !getenv( "SR_POST_CONFIG" ) || in_librshim_already_dammit) exit_fn_ptr(status);
+
+    exit_cleanup_posts();
+
+    // do it for real.
+    exit_fn_ptr(status);
+
+}
+
+/*  
+   in some process traces, saw that exit wasn't being called, only exit_group.
+   added this, but it didn't solve the problem, so removing for now...
+
+void exit_group(int status)
+{
+    static exit_fn exit_group_fn_ptr = NULL;
+
+    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit_group 0, context=%p\n", sr_c );
+
+    exit_group_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit_group");
+
+    if ( !getenv( "SR_POST_CONFIG" ) || in_librshim_already_dammit) exit_group_fn_ptr(status);
+
+    exit_cleanup_posts();
+
+    // do it for real.
+    exit_group_fn_ptr(status);
+}
+ */
 
 int link(const char *target, const char* linkpath) 
 {

@@ -94,14 +94,34 @@ full access monitoring, set the SR_POST_READS variable. This provides an
 auditing function and/or the ability to mirror a complete environment (even
 files that we didn't know we needed.)
 
-There is a configuration setting which is useful only in the shim library::
+Experimental settings in the shim library. These are configurable for now,
+perhaps we will see what the best values are and eliminate the options::
 
-   defer_posting_to_exit True
+   shim_defer_posting_to_exit 
 
-When this option is set, instead of posting files during process execution,
-(potentially posting the same file multiple times.) the shim library will
-accumulate file names, and only post when the process exits.
+When shim_defer_posting_to_exit is set (default: False), instead of posting 
+files during process execution, (potentially posting the same file 
+multiple times.) the shim library will accumulate file names, and only 
+post when the process exits. An opposite approach::
 
+   shim_post_once 
+
+When set, The shim_post_once (default: False) does duplicate suppression 
+based only on the file name within a single process. the shim library 
+cannot use the duplicate suppression cache used by other calls, because 
+the cache is not multi-thread safe (expects to be run by a single task.) 
+A per process cache might *do the right thing*.::
+
+   shim_skip_parent_open_files
+
+The shim_skip_parent_open_files (default: True) option means that a 
+process checks whether the parent process has the same file open, and 
+does not post if that is the case, sinc the parent will take care
+of it eventually.
+
+
+
+ 
 If the SR_SHIMDEBUG variable is set, rather verbose messaging will occur.
 
 
