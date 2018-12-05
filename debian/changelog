@@ -1,4 +1,13 @@
-sarrac (2.18.12b1) UNRELEASED; urgency=medium
+sarrac (2.18.12b2) unstable; urgency=medium
+
+  * libsrshim: fix for segfault based on change of "cpost" progname to "srshim"
+  * libsrshim: remove SR_READ feature.
+  * libsrshim: some optimizations.
+  * libsrshim: fix to avoid segfault when broker connection fails.
+
+ -- Peter Silva <peter@idefix>  Wed, 05 Dec 2018 18:12:25 -0500
+
+sarrac (2.18.12b1) unstable; urgency=medium
 
   * libsrshim: potential optimization, issue #15
   *            shim_skip_parent_open_files EXPERIMENTAL option implemented.
@@ -8,6 +17,8 @@ sarrac (2.18.12b1) UNRELEASED; urgency=medium
   * bugfix:  issue #15: time intervals now interpreted same as python
   * bugfix:  issue #17: portability to other platforms (non x86_64)
   * bugfix:  raspberry pi build works again.
+  * 
+  * 
 
  -- Peter Silva <peter@idefix>  Mon, 03 Dec 2018 17:48:19 -0500
 
