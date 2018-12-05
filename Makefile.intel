@@ -24,13 +24,13 @@ SARRA_LINK = -Wl,-rpath,${SARRA_LIBDIR} -L${SARRA_LIBDIR}
 
 CC = icc
 
+LIBCLOCATION=$(shell ldd /bin/sh | awk '/libc\.so\./ { print; }' | cut -d' ' -f3 )
+
+
 # add -DSR_DEBUG_LOGS to CFLAGS to replace log files with writing to stderr, and much improved compiler checks.
 #    if you try the explain library, need to add -lexplain to SARRA_LINK also.
 
 #CFLAGS = -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE $(RABBIT_INCDIR)
-
-LIBCLOCATION=$(shell ldd /bin/sh | awk '/libc\.so\./ { print; }' | cut -d' ' -f3 )
-
 
 CFLAGS = -DFORCE_LIBC_REGEX=\"$(LIBCLOCATION)\" -fPIC -std=gnu99 -Wcheck -Wall -g -D_GNU_SOURCE $(RABBIT_INCDIR)
 
