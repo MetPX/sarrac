@@ -1439,7 +1439,7 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
   }
 
   // FIXME: Missing: topics, user_headers, 
-  if  ( !strcmp(sr_cfg->progname,"post") || !strcmp(sr_cfg->progname,"cpost") ) 
+  if  ( !strcmp(sr_cfg->progname,"post") || !strcmp(sr_cfg->progname,"cpost") || !strcmp(sr_cfg->progname,"srshim") ) 
   {
       if ( !(sr_cfg->post_broker) && (sr_cfg->broker)) 
       {
