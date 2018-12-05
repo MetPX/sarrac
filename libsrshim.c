@@ -87,11 +87,15 @@ void setup_pfo()
 
         fdpath[fdpathlen]='\0';
 
+        if ( fdpath[0] != '/' )  //only looking for ordinary files, not sockets and pipes.
+            continue;
+
         if (!strncmp( fdpath, "/dev/", 5 )) 
             continue;
 
         if (!strncmp( fdpath, "/proc/", 6 )) 
             continue;
+
         parent_files_open[ last_pfo++ ] = strdup( fdpath ); 
 
         if ( last_pfo >= max_pfo )
@@ -106,6 +110,7 @@ void setup_pfo()
 
     }
     closedir(fddir);
+    log_msg( LOG_DEBUG, "setup pfo done.\n" );
 }
 
 
@@ -172,8 +177,8 @@ void srshim_initialize(const char* progname)
   int finalize_good;
 
 
+  //log_msg( LOG_DEBUG, "FIXME srshim_initialize %s starting..\n", progname);
   if (sr_c) return;
-  //log_msg( LOG_CRITICAL, "FIXME srshim_initialize %s\n", progname);
 
   setstr = getenv( "SR_POST_CONFIG" ) ;
 
@@ -181,7 +186,7 @@ void srshim_initialize(const char* progname)
       return;
 
 
-  //log_msg( LOG_CRITICAL, "FIXME srshim_initialize 2 %s setstr=%p\n", progname, setstr);
+  //log_msg( LOG_DEBUG, "FIXME srshim_initialize 2 %s setstr=%p\n", progname, setstr);
 
    // skip many FD to try to avoid stepping over stdout stderr, for logs & broker connection.
    if ( config_read == 0 ) 
@@ -216,17 +221,16 @@ RET:
 }
 
 
-void srshim_connect() 
+int srshim_connect() 
 {
   if (!sr_connected) {
 
-
      sr_c = sr_context_connect( sr_c );
-     sr_connected=1;
+     if (sr_c) sr_connected=1;
 
      errno=0;
-  }
-
+  } 
+  return( sr_connected );
 }
 
 
@@ -244,11 +248,11 @@ void srshim_realpost(const char *path)
   char fn[PATH_MAX+1];
   char fnreal[PATH_MAX+1];
 
-  //log_msg( LOG_CRITICAL, "FIXME realpost PATH %s src=%p\n", path, sr_c);
+  //log_msg( LOG_DEBUG, "FIXME realpost PATH %s src=%p\n", path, sr_c);
 
   if (!path || !sr_c) return;
  
-  //log_msg( LOG_CRITICAL, "FIXME realpost 2 PATH %s\n", path);
+  //log_msg( LOG_DEBUG, "FIXME realpost 2 PATH %s\n", path);
 
   statres = lstat( path, &sb ) ;
 
@@ -299,15 +303,17 @@ void srshim_realpost(const char *path)
       if (sr_cfg.debug) log_msg( LOG_DEBUG, "sr_%s rejected 2: %s\n", sr_cfg.progname, fn );
       return;
   }
+  log_msg( LOG_DEBUG, "accepted... %s now\n", fn );
 
   if (remember_post(fn) && sr_c->cfg->shim_post_once) return;
 
   if( sr_c->cfg->shim_defer_posting_to_exit )  return;
 
      
-  srshim_connect();
+  if (!srshim_connect()) return;
 
   if ( statres )  {
+      log_msg( LOG_DEBUG, "should be really posting %s now sr_c=%p\n", fn, sr_c );
       sr_post( sr_c, fn, NULL );
       return;
   }
@@ -337,6 +343,7 @@ int shimpost( const char *path, int status )
     if (!status) 
     {
        srshim_initialize( "srshim" );
+
        if (path[0] == '/' )
        {
           if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG absolute shimpost %s, status=%d\n", path, status );
@@ -609,7 +616,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd, const char *ne
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG renameorlink sr_c=%p, oreal_path=%s, real_path=%s\n", 
             sr_c, oreal_path, real_path );
 
-    srshim_connect();
+    if (!srshim_connect()) return(status);
 
     sr_post_rename( sr_c, oreal_path, real_path );
 
@@ -656,7 +663,7 @@ int dup2(int oldfd, int newfd )
          return dup2_fn_ptr(oldfd, newfd);
     }
 
-    if ( (fdstat & O_ACCMODE) == O_RDONLY  && ( !sr_c || !( SR_READ & sr_c->cfg->events ) ) )
+    if ( (fdstat & O_ACCMODE) == O_RDONLY) 
     {
          //if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG dup2 NO POST read mode !\n" );
          errno=0;
@@ -720,7 +727,8 @@ int dup3(int oldfd, int newfd, int flags )
            srshim_initialize( "srshim" );
     }
 
-    if (in_librshim_already_dammit  || ( oldfd == newfd )) {
+    if (in_librshim_already_dammit  || ( oldfd == newfd )) 
+    {
          //if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG dup3 NO POST oldfd = newfd \n" );
          errno=0;
          return dup3_fn_ptr(oldfd, newfd, flags);
@@ -728,13 +736,15 @@ int dup3(int oldfd, int newfd, int flags )
 
     fdstat = fcntl(newfd, F_GETFL);
 
-    if ( fdstat == -1) {
+    if ( fdstat == -1) 
+    {
          //if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG dup3 NO POST not valid fd !\n" );
          errno=0;
          return dup3_fn_ptr(oldfd, newfd, flags);
     }
 
-    if ( (fdstat & O_ACCMODE) == O_RDONLY  && ( !sr_c || !( SR_READ & sr_c->cfg->events ) ) ){
+    if ( (fdstat & O_ACCMODE) == O_RDONLY  ) 
+    {
          //if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG dup3 NO POST read mode !\n" );
          errno=0;
          return dup3_fn_ptr(oldfd, newfd, flags);
@@ -789,13 +799,11 @@ void exit_cleanup_posts()
     
 
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit_cleanup_posts, context=%p\n", sr_c );
-    // build an array of the file names currently opened by the parent process.
     
-    if (in_librshim_already_dammit) return;
+    if (in_librshim_already_dammit||!getenv("SR_POST_CONFIG")) return;
 
     // In the current process, find files which are not opened by the parent
     // that need posting.
-
     fddir = opendir( "/proc/self/fd" );
 
     while ( (fdde = readdir( fddir )) ) 
@@ -808,7 +816,7 @@ void exit_cleanup_posts()
         if ( fdstat == -1)
             continue;
 
-        if ( ((fdstat & O_ACCMODE) == O_RDONLY ) && ( !sr_c || !( SR_READ & sr_c->cfg->events ) ) )
+        if ((fdstat & O_ACCMODE) == O_RDONLY ) 
            continue;
 
         snprintf( fdpath, 499, "/proc/self/fd/%s", fdde->d_name );
@@ -820,11 +828,13 @@ void exit_cleanup_posts()
 
        found=0;
        for( int i = 0; ( i < last_pfo ) ; i++ )
-          if ( !strcmp(real_path,parent_files_open[i]) ) 
-          {
-              found=1;
-              break;
-          }
+       {
+           if ( !strcmp(real_path,parent_files_open[i]) ) 
+           {
+                  found=1;
+                  break;
+           }
+       }
 
        if (found) 
            continue;
@@ -837,19 +847,17 @@ void exit_cleanup_posts()
     }
     closedir(fddir);
 
-    if( sr_c->cfg->shim_defer_posting_to_exit )  
-    {    
-      /* execute deferred posts, FIXME: embarrasing n**2 algo, should do better later */
-      if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "deferred posting.\n" );
+    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit posting... deferred posting start.\n" );
 
-      for (int i=0; i < remembered_post_count; i++ )
-      {
-          if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "deferred posting remembered_post_count=%d remembered_post_filenames[%d]=%s\n", remembered_post_count, i,
-              remembered_post_filenames[i] );
+    /* execute deferred posts, FIXME: embarrasing n**2 algo, should do better later */
+    for (int i=0; i < remembered_post_count; i++ )
+    {
+          //if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "deferred posting remembered_post_count=%d remembered_post_filenames[%d]=%s\n", remembered_post_count, i,
+          //    remembered_post_filenames[i] );
           found=0;
           for(int j=0; j < last_pfo ; j++ )
           {
-            if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "deferred posting last_pfo=%d, parent_file_open[%d]=%s\n", last_pfo, j, parent_files_open[j] );
+            //if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "deferred posting last_pfo=%d, parent_file_open[%d]=%s\n", last_pfo, j, parent_files_open[j] );
             if( !strcmp(remembered_post_filenames[i],parent_files_open[j]) )
             {
               found = 1;
@@ -861,7 +869,9 @@ void exit_cleanup_posts()
           {
              srshim_initialize("srshim");
 
-             srshim_connect();
+             if( ! (sr_c->cfg->shim_defer_posting_to_exit) ) continue; 
+
+             if (!srshim_connect()) continue;
 
              statres = lstat( remembered_post_filenames[i], &sb );
 
@@ -871,20 +881,19 @@ void exit_cleanup_posts()
              } else {
                  if (S_ISLNK(sb.st_mode))  
                  {
+                    //if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit reading link: %s\n", remembered_post_filenames[i] );
                     statres = readlink(remembered_post_filenames[i], real_path, PATH_MAX);
                     if (statres)              
                     {
                        real_path[statres]='\0'; 
                        sr_post( sr_c, real_path, &sb );
                     }
-                 } else {
-                    sr_post( sr_c, remembered_post_filenames[i], &sb );
                  }
+                 sr_post( sr_c, remembered_post_filenames[i], &sb );
              }
           }
-      }
     }
-    if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit closing context %p\n", sr_c );
+    //if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit closing context %p\n", sr_c );
     if (sr_c) sr_context_close(sr_c);
 
     free(sr_c);
@@ -918,7 +927,6 @@ void exit(int status)
 
     exit_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit");
 
-    if ( !getenv( "SR_POST_CONFIG" ) || in_librshim_already_dammit) exit_fn_ptr(status);
 
     exit_cleanup_posts();
 
@@ -1083,7 +1091,7 @@ int close(int fd)
          return close_fn_ptr(fd);
     }
 
-    if ( ((fdstat & O_ACCMODE) == O_RDONLY ) && ( !sr_c || !( SR_READ & sr_c->cfg->events ) ) )
+    if ((fdstat & O_ACCMODE) == O_RDONLY ) 
     {
          errno=0;
          return close_fn_ptr(fd);
@@ -1158,7 +1166,7 @@ int fclose(FILE *f)
          return fclose_fn_ptr(f);
     }
 
-    if ( ((fdstat & O_ACCMODE) == O_RDONLY ) && ( !sr_c || !( SR_READ & sr_c->cfg->events ) ) )
+    if ( (fdstat & O_ACCMODE) == O_RDONLY ) 
     {
          //if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG fclose NO POST read-only. \n" );
          errno=0;

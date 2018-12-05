@@ -123,8 +123,8 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
   }
 
   while(1) {
-     //log_msg(  LOG_ERROR, "broker_connecting!? broker->con=%p.\n", broker->conn );
      broker->conn = amqp_new_connection();
+     //log_msg(  LOG_DEBUG, "FIXME: broker_connecting!? broker->con=%p. user=%s, pw=%s\n", broker->conn, broker->user, broker->password );
 
      if ( broker->ssl ) {
         broker->socket = amqp_ssl_socket_new(broker->conn);
