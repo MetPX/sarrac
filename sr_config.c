@@ -1129,7 +1129,7 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sprintf( p, "%s/.config/sarra", getenv("HOME") );
   if (access(p, R_OK )) mkdir(p,0700);
   
-  if (! strcmp( progname, "srshim" ) )
+  if (! strcmp( progname, "shim" ) )
   {
       sprintf( p, "%s/.config/sarra/%s", getenv("HOME"), "post" );
   } else {
@@ -1179,7 +1179,7 @@ int sr_config_read( struct sr_config_t *sr_cfg, char *filename, int abort, int m
   if ( *filename != '/' ) 
   {
       sprintf( p, "%s/.config/sarra/%s/%s", getenv("HOME"), 
-           strcmp(sr_cfg->progname,"srshim")?sr_cfg->progname:"post", filename );
+           strcmp(sr_cfg->progname,"shim")?sr_cfg->progname:"post", filename );
   } else {
       strcpy( p, filename );
   }
@@ -1439,7 +1439,7 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
   }
 
   // FIXME: Missing: topics, user_headers, 
-  if  ( !strcmp(sr_cfg->progname,"post") || !strcmp(sr_cfg->progname,"cpost") || !strcmp(sr_cfg->progname,"srshim") ) 
+  if  ( !strcmp(sr_cfg->progname,"post") || !strcmp(sr_cfg->progname,"cpost") || !strcmp(sr_cfg->progname,"shim") ) 
   {
       if ( !(sr_cfg->post_broker) && (sr_cfg->broker)) 
       {
