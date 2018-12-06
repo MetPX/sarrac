@@ -167,7 +167,7 @@ int remember_post(const char* fn)
 
 }
 
-static int in_librshim_already_dammit = 0;
+static int shim_disabled = 0;
 
 
 void srshim_initialize(const char* progname) 
@@ -198,7 +198,7 @@ void srshim_initialize(const char* progname)
        free(setstr);
        if (!config_read) 
        {
-           in_librshim_already_dammit=1; // turn off the library so stuff works without it.
+           shim_disabled=1; // turn off the library so stuff works without it.
            errno=0;
            return;
        }
@@ -218,7 +218,7 @@ void srshim_initialize(const char* progname)
 
    if ( !finalize_good ) 
    {
-      in_librshim_already_dammit=1; // turn off the library so stuff works without it.
+      shim_disabled=1; // turn off the library so stuff works without it.
       errno=0;
       return;
    }
@@ -346,9 +346,9 @@ int shimpost( const char *path, int status )
     char *real_path=NULL;
 
 
-    if (in_librshim_already_dammit) return(status);
+    if (shim_disabled) return(status);
 
-    in_librshim_already_dammit=1;
+    shim_disabled=1;
     if (!status) 
     {
        srshim_initialize( "shim" );
@@ -370,7 +370,7 @@ int shimpost( const char *path, int status )
           free(cwd);
        }
     }
-    in_librshim_already_dammit=0;
+    shim_disabled=0;
 
     clerror(status);
     return(status);
@@ -392,7 +392,7 @@ int truncate(const char *path, off_t length)
     }
     status = truncate_fn_ptr(path,length);
 
-    if (in_librshim_already_dammit) return(status);
+    if (shim_disabled) return(status);
 
     //clerror(status);
     if ( status == -1) return status;
@@ -422,7 +422,7 @@ int symlink(const char *target, const char* linkpath)
         symlink_init_done = 1;
     }
     status = symlink_fn_ptr(target,linkpath);
-    if (in_librshim_already_dammit) return(status);
+    if (shim_disabled) return(status);
 
     clerror(status);
     if ( status == -1) return status;
@@ -454,7 +454,7 @@ int unlinkat(int dirfd, const char *path, int flags)
     }
 
     status = unlinkat_fn_ptr(dirfd, path, flags);
-    if (in_librshim_already_dammit) return(status);
+    if (shim_disabled) return(status);
     clerror(status);
     if ( status == -1) return status;
 
@@ -491,7 +491,7 @@ int unlink(const char *path)
         unlink_init_done = 1;
     }
     status = unlink_fn_ptr(path);
-    if (in_librshim_already_dammit) return(status);
+    if (shim_disabled) return(status);
 
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG unlink 2 %s status=%d\n", path, status );
 
@@ -578,7 +578,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd, const char *ne
           return(-1);
        }
     }
-    if (in_librshim_already_dammit) return(status);
+    if (shim_disabled) return(status);
 
     if (status == -1) 
     {
@@ -658,7 +658,7 @@ int dup2(int oldfd, int newfd )
 
     errno=0;
 
-    if (in_librshim_already_dammit  || ( oldfd == newfd )) {
+    if (shim_disabled  || ( oldfd == newfd )) {
          //if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG dup2 NO POST oldfd = newfd \n" );
          return dup2_fn_ptr(oldfd, newfd);
     }
@@ -736,7 +736,7 @@ int dup3(int oldfd, int newfd, int flags )
            srshim_initialize( "shim" );
     }
 
-    if (in_librshim_already_dammit  || ( oldfd == newfd )) 
+    if (shim_disabled  || ( oldfd == newfd )) 
     {
          //if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG dup3 NO POST oldfd = newfd \n" );
          errno=0;
@@ -809,7 +809,7 @@ void exit_cleanup_posts()
 
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit_cleanup_posts, context=%p\n", sr_c );
     
-    if (in_librshim_already_dammit||!getenv("SR_POST_CONFIG")) return;
+    if (shim_disabled||!getenv("SR_POST_CONFIG")) return;
 
     // In the current process, find files which are not opened by the parent
     // that need posting.
@@ -920,7 +920,7 @@ void exit_cleanup_posts()
     // after this point things get closed, so cannot reliably post.
     // turn off libsrshim functionality.
 
-    in_librshim_already_dammit=1;
+    shim_disabled=1;
 
 }
 
@@ -956,7 +956,7 @@ void exit_group(int status)
 
     exit_group_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit_group");
 
-    if ( !getenv( "SR_POST_CONFIG" ) || in_librshim_already_dammit) exit_group_fn_ptr(status);
+    if ( !getenv( "SR_POST_CONFIG" ) || shim_disabled) exit_group_fn_ptr(status);
 
     exit_cleanup_posts();
 
@@ -1020,7 +1020,7 @@ ssize_t sendfile(int out_fd, int in_fd, off_t *offset, size_t count)
     }
     status = sendfile_fn_ptr( out_fd, in_fd, offset, count );
     if ( status == -1 ) return status;
-    if (in_librshim_already_dammit) return(status);
+    if (shim_disabled) return(status);
 
     snprintf( fdpath, 32, "/proc/self/fd/%d", out_fd );
     real_return = realpath(fdpath, real_path);
@@ -1057,7 +1057,7 @@ ssize_t copy_file_range(int fd_in, loff_t *off_in, int fd_out, loff_t *off_out, 
         copy_file_range_init_done = 1;
     }
     status = copy_file_range_fn_ptr( fd_in, off_in, fd_out, off_out, len, flags );
-    if (in_librshim_already_dammit) return(status);
+    if (shim_disabled) return(status);
 
     snprintf( fdpath, 32, "/proc/self/fd/%d", fd_out );
     real_return = realpath(fdpath, real_path);
@@ -1090,7 +1090,7 @@ int close(int fd)
         if (getenv("SR_POST_READS"))
            srshim_initialize( "shim" );
     }
-    if (in_librshim_already_dammit) return close_fn_ptr(fd);
+    if (shim_disabled) return close_fn_ptr(fd);
 
     fdstat = fcntl(fd, F_GETFL);
 
@@ -1155,7 +1155,7 @@ int fclose(FILE *f)
         if (getenv("SR_POST_READS"))
            srshim_initialize( "shim" );
     }
-    if (in_librshim_already_dammit) return fclose_fn_ptr(f);
+    if (shim_disabled) return fclose_fn_ptr(f);
 
     fd = fileno(f);
     if (fd == -1) 
