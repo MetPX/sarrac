@@ -1,3 +1,10 @@
+sarrac (2.18.12b3) unstable; urgency=medium
+
+  * libsrshim: changed "srshim" to "shim" for progname (so messages are tagged sr_shim)
+  * libsrshim: fail-open: fixes to avoid crashing on bad configs.
+
+ -- Peter Silva <peter@blacklab>  Thu, 06 Dec 2018 00:40:54 -0500
+
 sarrac (2.18.12b2) unstable; urgency=medium
 
   * libsrshim: fix for segfault based on change of "cpost" progname to "srshim"
