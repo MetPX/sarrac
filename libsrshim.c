@@ -198,6 +198,7 @@ void srshim_initialize(const char* progname)
        free(setstr);
        if (!config_read) 
        {
+           log_msg( LOG_ERROR, "srshim_initialize problem with configuration file. library disabled\n" );
            shim_disabled=1; // turn off the library so stuff works without it.
            errno=0;
            return;
