@@ -222,6 +222,10 @@ Release Process
 ---------------
 
 To note changes:
+  - Compile once with -DSR_DEBUG_LOGS to verify that no msg_log calls have errors (compiler will report)
+  - run some ./test scripts.
+  - build package (without -DSR_DEBUG_LOGS) and install.
+  - Run through a flow test.
   - dch, and add your points.
   - when ready to release, edit UNRELEASED to an appropriate status, usually unstable.
   - git commit #what you need to commit...
