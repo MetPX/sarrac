@@ -45,6 +45,8 @@
 void exit_cleanup_posts();
 int exit_cleanup_posts_setup =0;
 
+static struct sr_config_t sr_cfg; 
+
 /*
  I had a problem that, in some cases, exit_cleanup processing does not seem to happen.
  tried adding atexit to guarantee that exit_cleanup processing will run.
@@ -115,7 +117,6 @@ void setup_pfo()
 
 
 static struct sr_context *sr_c = NULL;
-static struct sr_config_t sr_cfg; 
 static int sr_connected = 0;
 
 
@@ -123,46 +124,90 @@ static int close_init_done = 0;
 typedef int  (*close_fn) (int);
 static close_fn close_fn_ptr = close;
 
-char **remembered_post_filenames = NULL;
-int  remembered_post_count = 0;
-int  remembered_post_max = 0;
 
-/* check files posted by this pid, 
-   return true if it has been posted already.
-               or if the file is open by ppid.
+struct filename_memory {
+   int clean;
+   struct timespec ts;
+   char *name;
+};
+
+
+
+struct filename_memory (*remembered_filenames)[] = NULL;
+int  remembered_count = 0;
+int  remembered_max = 0;
+
+
+int should_not_post(const char* fn)
+/*
+   given the file name fn, return(1) if we should post it, 0 otherwise.
+
+   return true:
+       - file isn't opened by parent pid.
+       - file hasn't been seen by this routine in minterval seconds.
+
+   otherwise returns false.
+
+   side effect: builds an array of files the routine has seen, and when.
+   (called remembered_filenames);
  */
 
-int remember_post(const char* fn)
 {
-  /* open by parent */
+  struct timespec ts;
+  struct tm s;
+  float  interval;
+
+  clock_gettime( CLOCK_REALTIME , &ts);
+  localtime_r(&(ts.tv_sec),&s);
+
+  /* check against files opened by parent */
   for( int i = 0; ( i < last_pfo ) ; i++ )
      if ( !strcmp(fn,parent_files_open[i]) )  return(1);
   
-  /* already remembered to post? */
-  for( int i= 0; i < remembered_post_count ; i++ )
-    if (!strcmp(remembered_post_filenames[i],fn) )
+  /* if already seen, then return (either too soon, or OK!) */
+  for( int i= 0; i < remembered_count ; i++ )
+    if (!strcmp((*remembered_filenames)[i].name,fn) )
     {
-        log_msg( LOG_DEBUG, "suppress repeated post of %s (count=%d) \n", fn, remembered_post_count );
-        return(1);
+        interval = (ts.tv_sec + ts.tv_nsec/1e9) -
+           ((*remembered_filenames)[i].ts.tv_sec+(*remembered_filenames)[i].ts.tv_nsec/1e9) ;
+        if (interval < sr_cfg.shim_post_minterval )
+        {
+           log_msg( LOG_DEBUG, "suppress repeated post of %s (count=%d) (only: %g seconds ago, minterval is: %g)\n", 
+                fn, remembered_count, interval, sr_cfg.shim_post_minterval );
+           (*remembered_filenames)[i].clean = 0;
+           return(1);
+        } else {
+           log_msg( LOG_DEBUG, "shim_post_minterval (%g) exceeded (%g), repeat post of %s (count=%d) \n", 
+               sr_cfg.shim_post_minterval, interval, fn, remembered_count );
+           (*remembered_filenames)[i].ts = ts;
+           (*remembered_filenames)[i].clean = !(sr_c->cfg->shim_defer_posting_to_exit) ;  
+           return(0);
+        }
     }
-  /* add to the list */
-  if ( remembered_post_count >= remembered_post_max )
-  {
-      if (!remembered_post_filenames)
-      {
-            remembered_post_filenames = (char**)malloc( 1*sizeof(char *) );
-            remembered_post_max=1;
-      } else {
-            char **saved_post_filenames = remembered_post_filenames ;
-            remembered_post_max *= 2;
-            remembered_post_filenames = (char**)malloc( remembered_post_max*sizeof(char *) );
 
-            for (int i = 0; i < remembered_post_count ; i++ ) 
-                remembered_post_filenames[i] = saved_post_filenames[i];
+  /* lengthen list, if necessary */
+  if ( remembered_count >= remembered_max )
+  {
+      if (!remembered_filenames)
+      {
+            remembered_filenames = malloc( 1*sizeof(struct filename_memory) );
+            remembered_max=1;
+      } else {
+            struct filename_memory (*saved_post_filenames)[] = remembered_filenames ;
+            remembered_max *= 2;
+            remembered_filenames = malloc( remembered_max*sizeof(struct filename_memory) );
+
+            for (int i = 0; i < remembered_count ; i++ ) 
+                (*remembered_filenames)[i] = (*saved_post_filenames)[i];
       }
   }
-  remembered_post_filenames[remembered_post_count++] = strdup(fn);
-  log_msg( LOG_DEBUG, "remembering post of %s (count=%d) \n", fn, remembered_post_count );
+
+  /* add last item to the list */
+  (*remembered_filenames)[remembered_count].clean = !(sr_c->cfg->shim_defer_posting_to_exit) ;
+  (*remembered_filenames)[remembered_count].ts = ts;
+  (*remembered_filenames)[remembered_count++].name = strdup(fn);
+
+  log_msg( LOG_DEBUG, "remembering post of %s (count=%d) \n", fn, remembered_count );
   return(0);
 
 }
@@ -316,7 +361,7 @@ void srshim_realpost(const char *path)
   }
   log_msg( LOG_DEBUG, "accepted... %s now\n", fn );
 
-  if (remember_post(fn) && sr_c->cfg->shim_post_once) return;
+  if (should_not_post(fn)) return;
 
   if( sr_c->cfg->shim_defer_posting_to_exit )  return;
 
@@ -815,7 +860,7 @@ void exit_cleanup_posts()
     // In the current process, find files which are not opened by the parent
     // that need posting.
     fddir = opendir( "/proc/self/fd" );
-
+   
     while ( (fdde = readdir( fddir )) ) 
     {
         if ( fdde->d_name[0] == '.' ) continue;
@@ -859,49 +904,35 @@ void exit_cleanup_posts()
 
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit posting... deferred posting start.\n" );
 
-    /* execute deferred posts, FIXME: embarrasing n**2 algo, should do better later */
-    for (int i=0; i < remembered_post_count; i++ )
+
+    /* execute deferred/remembered posts, FIXME: embarrasing n**2 algo, should do better later */
+    for (int i=0; i < remembered_count; i++ )
     {
-          //if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "deferred posting remembered_post_count=%d remembered_post_filenames[%d]=%s\n", remembered_post_count, i,
-          //    remembered_post_filenames[i] );
-          found=0;
-          for(int j=0; j < last_pfo ; j++ )
-          {
-            //if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "deferred posting last_pfo=%d, parent_file_open[%d]=%s\n", last_pfo, j, parent_files_open[j] );
-            if( !strcmp(remembered_post_filenames[i],parent_files_open[j]) )
-            {
-              found = 1;
-              break;
-            }
-          }
+             // if a file was already posted and hasn't been written since.
+             if (  !(sr_cfg.shim_defer_posting_to_exit) && (*remembered_filenames)[i].clean) continue;
 
-          if (!found) 
-          {
              srshim_initialize("shim");
-
-             if( ! (sr_c->cfg->shim_defer_posting_to_exit) ) continue; 
 
              if (!srshim_connect()) continue;
 
-             statres = lstat( remembered_post_filenames[i], &sb );
+             statres = lstat( (*remembered_filenames)[i].name, &sb );
 
              if (statres) 
              {
-                 sr_post( sr_c, remembered_post_filenames[i], NULL );
+                 sr_post( sr_c, (*remembered_filenames)[i].name, NULL );
              } else {
                  if (S_ISLNK(sb.st_mode))  
                  {
-                    //if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit reading link: %s\n", remembered_post_filenames[i] );
-                    statres = readlink(remembered_post_filenames[i], real_path, PATH_MAX);
+                    //if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit reading link: %s\n", (*remembered_filenames)[i].name );
+                    statres = readlink((*remembered_filenames)[i].name, real_path, PATH_MAX);
                     if (statres)              
                     {
                        real_path[statres]='\0'; 
                        sr_post( sr_c, real_path, &sb );
                     }
                  }
-                 sr_post( sr_c, remembered_post_filenames[i], &sb );
+                 sr_post( sr_c, (*remembered_filenames)[i].name, &sb );
              }
-          }
     }
     //if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit closing context %p\n", sr_c );
     if (sr_c) sr_context_close(sr_c);

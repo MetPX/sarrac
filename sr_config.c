@@ -715,21 +715,6 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       log_level=255;
       retval=(1+(val&1));
 
-  } else if ( !strcmp( option, "shim_defer_posting_to_exit" ) ) {
-      val = StringIsTrue(argument);
-      sr_cfg->shim_defer_posting_to_exit = val&2;
-      retval=(1+(val&1));
-
-  } else if ( !strcmp( option, "shim_post_once" ) ) {
-      val = StringIsTrue(argument);
-      sr_cfg->shim_post_once = val&2;
-      retval=(1+(val&1));
-
-  } else if ( !strcmp( option, "shim_skip_parent_open_files" ) ) {
-      val = StringIsTrue(argument);
-      sr_cfg->shim_skip_parent_open_files = val&2;
-      retval=(1+(val&1));
-
   } else if ( !strcmp( option, "declare" ) ) {
       retval = sr_add_decl(sr_cfg, argument, arg2);
 
@@ -918,6 +903,25 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       sr_cfg->sanity_log_dead = seconds_from_duration_str(argument);
       retval=(2);
 
+  } else if ( !strcmp( option, "shim_defer_posting_to_exit" ) ) {
+      val = StringIsTrue(argument);
+      sr_cfg->shim_defer_posting_to_exit = val&2;
+      retval=(1+(val&1));
+
+  } else if ( !strcmp( option, "shim_post_minterval" ) ) {
+      sr_cfg->shim_post_minterval = seconds_from_duration_str(argument);
+      retval=(2);
+
+  } else if ( !strcmp( option, "shim_post_once" ) ) {
+      val = StringIsTrue(argument);
+      sr_cfg->shim_post_minterval = (val&2)?(3600*24*7):0.0;
+      retval=(1+(val&1));
+
+  } else if ( !strcmp( option, "shim_skip_parent_open_files" ) ) {
+      val = StringIsTrue(argument);
+      sr_cfg->shim_skip_parent_open_files = val&2;
+      retval=(1+(val&1));
+
   } else if ( !strcmp( option, "sleep" ) ) {
       sr_cfg->sleep = seconds_from_duration_str(argument);
       retval=(2);
@@ -1063,9 +1067,6 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->chmod_log=0600;
   sr_cfg->configname=NULL;
   sr_cfg->debug=0;
-  sr_cfg->shim_defer_posting_to_exit=0;
-  sr_cfg->shim_post_once=0;
-  sr_cfg->shim_skip_parent_open_files=1;
   sr_cfg->delete=0;
   sr_cfg->directory=NULL;
   sr_cfg->post_base_dir=NULL;
@@ -1107,6 +1108,9 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->realpath_filter=0;
   sr_cfg->recursive=1;
   sr_cfg->sanity_log_dead=0.0;
+  sr_cfg->shim_defer_posting_to_exit=0;
+  sr_cfg->shim_post_minterval=5.0;
+  sr_cfg->shim_skip_parent_open_files=1;
   sr_cfg->sleep=0.0;
   sr_cfg->heartbeat=300.0;
   sr_cfg->help=0;

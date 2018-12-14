@@ -104,9 +104,6 @@ struct sr_config_t {
   mode_t              chmod_log;
   char               *configname;
   int                 debug;
-  int                 shim_defer_posting_to_exit;
-  int                 shim_post_once;
-  int                 shim_skip_parent_open_files;
   int                 delete;
   char               *directory;
   char               *post_base_dir;
@@ -147,6 +144,9 @@ struct sr_config_t {
   int                 realpath_filter;
   int                 recursive;
   float               sanity_log_dead;
+  int                 shim_defer_posting_to_exit;
+  float               shim_post_minterval;
+  int                 shim_skip_parent_open_files;
   float               sleep;
   char                sumalgo; // checksum algorithm to use.
   char                sumalgoz; // if algo is z what is downstream...
