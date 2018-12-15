@@ -1,3 +1,11 @@
+sarrac (2.18.12b4) unstable; urgency=medium
+
+  * libsrshim: replaced shim_post_once with shim_post_minterval (see issue #15)
+  * libsrshim: exit processing now posts files if they are different from last post.
+  * libsrshim: if config is unusable, print an explicit message that library is disabled.
+
+ -- Peter Silva <peter@blacklab>  Sat, 15 Dec 2018 12:26:46 -0500
+
 sarrac (2.18.12b3) unstable; urgency=medium
 
   * libsrshim: changed "srshim" to "shim" for progname (so messages are tagged sr_shim)
