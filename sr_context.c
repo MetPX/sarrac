@@ -146,12 +146,14 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
 
      status = amqp_socket_open(broker->socket, broker->hostname, broker->port);
      if (status < 0) {
-       sr_amqp_error_print(status, "failed opening AMQP socket");
+       sr_amqp_error_print(status, "failed opening AMQP socket" );
+       log_msg( LOG_ERROR, "Failed to open AMQP socket host: %s, port: %d\n", broker->hostname, broker->port );
        goto have_socket;
      }
      reply = amqp_login(broker->conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, broker->user, broker->password);
      if (reply.reply_type != AMQP_RESPONSE_NORMAL ) {
        sr_amqp_reply_print(reply, "failed AMQP login");
+       log_msg( LOG_ERROR, "Failed AMQP login user: %s\n", broker->user );
        goto have_socket;
      }
 
@@ -193,7 +195,7 @@ struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker) {
       broker->conn = NULL;
 
   sleep(to_sleep);
-  log_msg( LOG_DEBUG, "broker_connect slept %ld seconds, trying again now.", to_sleep );
+  log_msg( LOG_DEBUG, "broker_connect slept %ld seconds. Trying again now.\n", to_sleep );
   if (to_sleep < 60) to_sleep<<=1;
  
   }

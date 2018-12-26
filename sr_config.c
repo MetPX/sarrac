@@ -301,9 +301,9 @@ struct sr_broker_t *broker_uri_parse( char *src )
     save = c;
     d = strchr( save, ':' );
     if (d) { // port specified.
+        *d='\0';
         d++;
         b->port = atoi(d);
-        *d='\0';
     } else if (b->ssl) {
         b->port=5671;
     } else b->port=5672;
@@ -319,7 +319,7 @@ struct sr_broker_t *broker_uri_parse( char *src )
     b->started=1;
     b->last_delivery_tag=0;
 
-    //fprintf( stderr, "broker ssl=%d, host: +%s+ , port: %d, user: +%s+ password: _%s_\n", 
+    // fprintf( stderr, "FIXME: broker ssl=%d, host: +%s+ , port: %d, user: +%s+ password: _%s_\n", 
     //   b->ssl, b->hostname, b->port, b->user, b->password );
     return(b);
 } 
