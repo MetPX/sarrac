@@ -512,7 +512,10 @@ char *local_fqdn()
     {
         found=p->ai_canonname;
     }
-    strcpy(hostname, found );
+
+    if (found)
+        strcpy(hostname, found);
+
     freeaddrinfo(info);    
     return(hostname);
 }
