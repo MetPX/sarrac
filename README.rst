@@ -67,7 +67,8 @@ url:
 
 There is also an LD_PRELOAD shim library. (libsrshim.c) that uses the posting
 API, this is to be used in `very high volume use cases <https://github.com/MetPX/sarracenia/blob/master/doc/mirroring_use_case.rst>`_
- ) sample usage::
+
+Sample usage::
 
    export SR_POST_CONFIG="mypost"
    export LD_PRELOAD=`pwd`/libsrshim.so.1.0.0
