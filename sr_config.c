@@ -16,6 +16,7 @@ status:
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <string.h>
 #include <strings.h>
@@ -618,7 +619,7 @@ char *subarg( struct sr_config_t *sr_cfg, char *arg )
      c=e+1; 
   }
   *d='\0';
-  //log_msg( LOG_DEBUG, "argument after substitutions: %s\n", subargbuf );
+  log_msg( LOG_DEBUG, "argument after substitutions: %s\n", subargbuf );
   return(subargbuf);
   
 }
@@ -1115,6 +1116,7 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   }
 
   sr_cfg->queuename=NULL;
+  srand(time(0));
   sr_cfg->randid=malloc((RANDID_LEN+1) * sizeof(char));
   for(c = sr_cfg->randid; c < (sr_cfg->randid + RANDID_LEN); ++c)
     sprintf(c, "%x", rand() % 16);
@@ -1528,36 +1530,39 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
   }
 
   // Assess sr_cfg->queuename validity: if a queue was already created, use it!
-  if (!sr_cfg->queuename && !(sr_cfg->progname && sr_cfg->configname && sr_cfg->broker && sr_cfg->broker->user) )
+  if ( !sr_cfg->queuename && !(sr_cfg->progname && sr_cfg->configname && sr_cfg->broker && sr_cfg->broker->user) )
   {
-     log_msg( LOG_ERROR, "incomplete configuration, cannot guess queue\n" );
-     return(0);
+    log_msg( LOG_ERROR, "incomplete configuration, cannot guess queue\n" );
+    return(0);
   }
   sprintf( p, "%s/.cache/sarra/%s/%s/sr_%s.%s.%s", getenv("HOME"),
            sr_cfg->progname, sr_cfg->configname, sr_cfg->progname, sr_cfg->configname, sr_cfg->broker->user );
   f =  fopen( p, "r" );
   if ( f ) // read the queue name from the file.
   {
-     fgets(q,PATH_MAX,f);
-     sr_cfg->queuename=strdup(q);
-     fclose(f);
-  } else {
-     sprintf( q, "q_%s.sr_%s.%s.%ld.%ld",
-              sr_cfg->broker->user, sr_cfg->progname, sr_cfg->configname,
-              random(), random() );
-     sr_cfg->queuename=strdup(q);
-
-     f = fopen( p, "w" ); // save the queue name for next time.
-     if (f)
-     {
-       log_msg( LOG_DEBUG, "writing %s to %s\n", q, p );
-       fputs( q, f );
-       fclose(f);
-     }
+    fgets(q,PATH_MAX,f);
+    sr_cfg->queuename=strdup(q);
+    fclose(f);
+  } else
+  {
+    // If unset in config, set queuename now
+    if ( !sr_cfg->queuename ) {
+      sprintf( q, "q_%s.sr_%s.%s.%ld.%ld",
+               sr_cfg->broker->user, sr_cfg->progname, sr_cfg->configname,
+               random(), random() );
+      sr_cfg->queuename=strdup(q);
+    }
+    f = fopen( p, "w" ); // save the queue name for next time.
+    if ( f )
+    {
+      log_msg( LOG_DEBUG, "writing %s to %s\n", sr_cfg->queuename, p );
+      fputs( sr_cfg->queuename, f );
+      fclose(f);
+    }
   }
   if ( !strcmp( sr_cfg->action, "cleanup") )
   {
-     unlink(p);
+    unlink(p);
   }
 
   return(1);
