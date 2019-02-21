@@ -1528,7 +1528,7 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
   }
 
   // Assess sr_cfg->queuename validity: if a queue was already created, use it!
-  if (!sr_cfg->queuename || !sr_cfg->progname || !sr_cfg->configname || !sr_cfg->broker || !sr_cfg->broker->user )
+  if (!sr_cfg->queuename && !(sr_cfg->progname && sr_cfg->configname && sr_cfg->broker && sr_cfg->broker->user) )
   {
      log_msg( LOG_ERROR, "incomplete configuration, cannot guess queue\n" );
      return(0);
