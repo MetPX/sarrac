@@ -80,38 +80,44 @@ void setup_pfo()
     snprintf( fdpath, 499, "/proc/%d/fd", getppid() );
     fddir = opendir( fdpath );
     
-    while ( (fdde = readdir( fddir )) ) 
+    if (fddir) 
     {
-        fdpathlen = readlinkat( dirfd(fddir), fdde->d_name, fdpath, 500 );
-
-        if ( fdpathlen < 0 )
-            continue;
-
-        fdpath[fdpathlen]='\0';
-
-        if ( fdpath[0] != '/' )  //only looking for ordinary files, not sockets and pipes.
-            continue;
-
-        if (!strncmp( fdpath, "/dev/", 5 )) 
-            continue;
-
-        if (!strncmp( fdpath, "/proc/", 6 )) 
-            continue;
-
-        parent_files_open[ last_pfo++ ] = strdup( fdpath ); 
-
-        if ( last_pfo >= max_pfo )
+        while ( (fdde = readdir( fddir )) ) 
         {
-           char **save_pfo = parent_files_open;
-           max_pfo *= 2;
-           parent_files_open = (char**)malloc( max_pfo * sizeof(char*) );
-           for (int i = 0; i < last_pfo ; i++ ) 
-                parent_files_open[i] = save_pfo[i];
-           free(save_pfo);
-        }
+            if ( fdde->d_name[0] == '.' )
+                continue;
 
+            fdpathlen = readlinkat( dirfd(fddir), fdde->d_name, fdpath, 500 );
+    
+            if ( fdpathlen < 0 )
+                continue;
+    
+            fdpath[fdpathlen]='\0';
+    
+            if ( fdpath[0] != '/' )  //only looking for ordinary files, not sockets and pipes.
+                continue;
+    
+            if (!strncmp( fdpath, "/dev/", 5 )) 
+                continue;
+    
+            if (!strncmp( fdpath, "/proc/", 6 )) 
+                continue;
+    
+            parent_files_open[ last_pfo++ ] = strdup( fdpath ); 
+    
+            if ( last_pfo >= max_pfo )
+            {
+               char **save_pfo = parent_files_open;
+               max_pfo *= 2;
+               parent_files_open = (char**)malloc( max_pfo * sizeof(char*) );
+               for (int i = 0; i < last_pfo ; i++ ) 
+                    parent_files_open[i] = save_pfo[i];
+               free(save_pfo);
+            }
+    
+        }
+        closedir(fddir);
     }
-    closedir(fddir);
     log_msg( LOG_DEBUG, "setup pfo done.\n" );
 }
 
@@ -861,46 +867,49 @@ void exit_cleanup_posts()
     // that need posting.
     fddir = opendir( "/proc/self/fd" );
    
-    while ( (fdde = readdir( fddir )) ) 
+    if (fddir) 
     {
-        if ( fdde->d_name[0] == '.' ) continue;
-
-        fd = atoi( fdde->d_name );
-        fdstat = fcntl(fd, F_GETFL);
-
-        if ( fdstat == -1)
-            continue;
-
-        if ((fdstat & O_ACCMODE) == O_RDONLY ) 
-           continue;
-
-        snprintf( fdpath, 499, "/proc/self/fd/%s", fdde->d_name );
-        real_return = realpath(fdpath, real_path);
-
-       if ( (!real_return) || ( real_path[0] != '/' ) ||
-            ( !strncmp(real_path,"/dev/", 5) ) || ( !strncmp(real_path,"/proc/", 6) ) )
-           continue;
-
-       found=0;
-       for( int i = 0; ( i < last_pfo ) ; i++ )
-       {
-           if ( !strcmp(real_path,parent_files_open[i]) ) 
+        while ( (fdde = readdir( fddir )) ) 
+        {
+            if ( fdde->d_name[0] == '.' ) continue;
+    
+            fd = atoi( fdde->d_name );
+            fdstat = fcntl(fd, F_GETFL);
+    
+            if ( fdstat == -1)
+                continue;
+    
+            if ((fdstat & O_ACCMODE) == O_RDONLY ) 
+               continue;
+    
+            snprintf( fdpath, 499, "/proc/self/fd/%s", fdde->d_name );
+            real_return = realpath(fdpath, real_path);
+    
+           if ( (!real_return) || ( real_path[0] != '/' ) ||
+                ( !strncmp(real_path,"/dev/", 5) ) || ( !strncmp(real_path,"/proc/", 6) ) )
+               continue;
+    
+           found=0;
+           for( int i = 0; ( i < last_pfo ) ; i++ )
            {
-                  found=1;
-                  break;
+               if ( !strcmp(real_path,parent_files_open[i]) ) 
+               {
+                      found=1;
+                      break;
+               }
            }
-       }
-
-       if (found) 
-           continue;
-
-       fsync(fd); // ensure data is flushed to disk before post occurs.
-
-       if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit posting %s\n", real_path );
-
-       shimpost(real_path, 0);
+    
+           if (found) 
+               continue;
+    
+           fsync(fd); // ensure data is flushed to disk before post occurs.
+    
+           if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit posting %s\n", real_path );
+    
+           shimpost(real_path, 0);
+        }
+        closedir(fddir);
     }
-    closedir(fddir);
 
     if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit posting... deferred posting start.\n" );
 
