@@ -52,6 +52,8 @@ status:
 
 #define PATH_MAXNUL (PATH_MAX+1)
 
+#define RANDID_LEN  (4)
+
 #include "sr_cache.h"
 
 struct sr_path_t {
@@ -106,9 +108,6 @@ struct sr_config_t {
   int                 debug;
   int                 delete;
   char               *directory;
-  char               *post_base_dir;
-  char                statehost;  // '0','s','f' meaning no, short fqdn
-  char               *statehostval;  // actual hostname resulting from statehost.
   int                 durable;
   sr_event_t          events;
   char                *exchange;
@@ -135,11 +134,14 @@ struct sr_config_t {
   char               *progname;
   struct sr_path_t   *paths;
   int                 pipe;  // pipe mode, read file names from standard input
+  char               *post_base_dir;
+  char               *post_base_url;
   struct sr_broker_t *post_broker;
   char               *post_exchange;
   int                 post_exchange_split;
   char               *post_exchange_suffix;
   char               *queuename;
+  char               *randid;
   int                 realpath;
   int                 realpath_filter;
   int                 recursive;
@@ -148,13 +150,14 @@ struct sr_config_t {
   float               shim_post_minterval;
   int                 shim_skip_parent_open_files;
   float               sleep;
+  char                statehost;  // '0','s','f' meaning no, short fqdn
+  char               *statehostval;  // actual hostname resulting from statehost.
   char                sumalgo; // checksum algorithm to use.
   char                sumalgoz; // if algo is z what is downstream...
   char               *source;
   char               *to;
   struct sr_topic_t  *topics;
   char                topic_prefix[AMQP_MAX_SS];
-  char               *post_base_url;
   struct sr_header_t *user_headers;
   
 };
