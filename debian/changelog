@@ -1,17 +1,26 @@
+sarrac (2.19.02b2) unstable; urgency=medium
+
+  * bugfix: issue #24 libsrshim failure when called from ssh session.
+  * bugfix: issue #10 missing ${RANDID} support (first patch from Michael!)
+  * bugfix: crash if host has no fully qualified domain name. (some vm's and containers)
+  * bugfix: broker url with port number was incorrectly parsed.
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 26 Feb 2019 06:47:46 -0500
+
 sarrac (2.18.12b4) unstable; urgency=medium
 
   * libsrshim: replaced shim_post_once with shim_post_minterval (see issue #15)
   * libsrshim: exit processing now posts files if they are different from last post.
   * libsrshim: if config is unusable, print an explicit message that library is disabled.
 
- -- Peter Silva <peter@blacklab>  Sat, 15 Dec 2018 12:26:46 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Sat, 15 Dec 2018 12:26:46 -0500
 
 sarrac (2.18.12b3) unstable; urgency=medium
 
   * libsrshim: changed "srshim" to "shim" for progname (so messages are tagged sr_shim)
   * libsrshim: fail-open: fixes to avoid crashing on bad configs.
 
- -- Peter Silva <peter@blacklab>  Thu, 06 Dec 2018 00:40:54 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Thu, 06 Dec 2018 00:40:54 -0500
 
 sarrac (2.18.12b2) unstable; urgency=medium
 
@@ -20,7 +29,7 @@ sarrac (2.18.12b2) unstable; urgency=medium
   * libsrshim: some optimizations.
   * libsrshim: fix to avoid segfault when broker connection fails.
 
- -- Peter Silva <peter@idefix>  Wed, 05 Dec 2018 18:12:25 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Wed, 05 Dec 2018 18:12:25 -0500
 
 sarrac (2.18.12b1) unstable; urgency=medium
 
@@ -35,13 +44,13 @@ sarrac (2.18.12b1) unstable; urgency=medium
   * 
   * 
 
- -- Peter Silva <peter@idefix>  Mon, 03 Dec 2018 17:48:19 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Mon, 03 Dec 2018 17:48:19 -0500
 
 sarrac (2.18.11b5) unstable; urgency=medium
 
   * change default checksum to md5sum ('d') to humour Eric.
 
- -- Peter Silva <peter@idefix>  Tue, 27 Nov 2018 14:15:17 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 27 Nov 2018 14:15:17 -0500
 
 sarrac (2.18.11b4) unstable; urgency=medium
 
@@ -54,21 +63,21 @@ sarrac (2.18.11b4) unstable; urgency=medium
   * some messages removed to remove hard-coded *cpost* strings
   * error messages now say *sr_shim* instead of sr_cpost.
 
- -- Peter Silva <peter@blacklab>  Sat, 24 Nov 2018 21:07:39 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Sat, 24 Nov 2018 21:07:39 -0500
 
 sarrac (2.18.10b2) unstable; urgency=medium
 
   * added support for z, checksum algorithm. 
   * changed some error handling when there are problems calculating checksums.
 
- -- Peter Silva <peter@idefix>  Wed, 31 Oct 2018 16:37:33 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Wed, 31 Oct 2018 16:37:33 -0400
 
 sarrac (2.18.10b1) unstable; urgency=medium
 
   * removing useless debug/FIXME messages 
   * compiled with intel compiler, added -Wcheck, got rid of all warnings.
 
- -- Peter Silva <peter@idefix>  Fri, 05 Oct 2018 18:07:48 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Fri, 05 Oct 2018 18:07:48 -0400
 
 sarrac (2.18.09b4) unstable; urgency=medium
 
@@ -76,32 +85,32 @@ sarrac (2.18.09b4) unstable; urgency=medium
   * added noreturn attribute to address gcc warning for exit call
   * added ignore of files ending in ~ to config listing.
 
- -- Peter Silva <peter@idefix>  Tue, 18 Sep 2018 09:41:51 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 18 Sep 2018 09:41:51 -0400
 
 sarrac (2.18.09b1) unstable; urgency=medium
 
   * reduced default output (moved many INFO messages to DEBUG)
 
- -- Peter Silva <peter@idefix>  Mon, 17 Sep 2018 15:37:26 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Mon, 17 Sep 2018 15:37:26 -0400
 
 sarrac (2.18.08b2) unstable; urgency=medium
 
   * fixed seg fault when credentials.conf file missing.
 
- -- Peter Silva <peter@idefix>  Tue, 14 Aug 2018 14:25:50 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 14 Aug 2018 14:25:50 -0400
 
 sarrac (2.18.08b1ubuntu1) unstable; urgency=medium
 
   * fixed issue#11, programs which do not close their files, catch on process exit
   * fixed stack smashing bug when environment variable improperly set.
 
- -- Peter Silva <peter@blacklab>  Thu, 09 Aug 2018 22:18:54 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Thu, 09 Aug 2018 22:18:54 -0400
 
 sarrac (2.18.07b4) unstable; urgency=medium
 
   * plugged huge memory leak in sr_cpump, and a small one in sr_cpost. 
 
- -- Peter Silva <peter@blacklab>  Tue, 24 Jul 2018 23:47:47 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 24 Jul 2018 23:47:47 -0400
 
 sarrac (2.18.07b3) unstable; urgency=medium
 
@@ -112,19 +121,19 @@ sarrac (2.18.07b3) unstable; urgency=medium
   * moved dup/dup/dup code to libsrshim, whic is the only place
     it should be used anyways.
 
- -- Peter Silva <peter@blacklab>  Sat, 21 Jul 2018 20:09:21 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Sat, 21 Jul 2018 20:09:21 -0400
 
 sarrac (2.18.07b2) unstable; urgency=medium
 
   * change timezone of logs from UTC to local to match python implementation. 
 
- -- Peter Silva <peter@blacklab>  Mon, 16 Jul 2018 00:11:00 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Mon, 16 Jul 2018 00:11:00 -0400
 
 sarrac (2.18.07b1ubuntu1) unstable; urgency=medium
 
   * bugfix: sanity would restart stopped configurations
 
- -- Peter Silva <peter@blacklab>  Sun, 08 Jul 2018 12:14:10 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Sun, 08 Jul 2018 12:14:10 -0400
 
 sarrac (2.18.06b2) unstable; urgency=medium
 
@@ -133,26 +142,26 @@ sarrac (2.18.06b2) unstable; urgency=medium
   * implemented sanity command.
   * README updated by moving issues to github, adding ssm link.
 
- -- Peter Silva <peter@blacklab>  Sat, 09 Jun 2018 22:24:52 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Sat, 09 Jun 2018 22:24:52 -0400
 
 sarrac (2.18.05b4) unstable; urgency=medium
 
   * fixed one case where connection was deferred too long (core dump.)
 
- -- peter <peter@blacklab.bsqt.homeip.net>  Thu, 24 May 2018 19:53:08 -0400
+ -- peter <peter@bsqt.homeip.net>  Thu, 24 May 2018 19:53:08 -0400
 
 sarrac (2.18.05b3) unstable; urgency=medium
 
   * added log rotation.
   * efficiency: connection broker deferred until last possible moment. 
 
- -- peter <peter@blacklab.bsqt.homeip.net>  Thu, 24 May 2018 09:24:14 -0400
+ -- peter <peter@bsqt.homeip.net>  Thu, 24 May 2018 09:24:14 -0400
 
 sarrac (2.18.04b3) unstable; urgency=medium
 
   * Split sarrac off as a separate package from python sarracenia implementation. 
 
- -- Peter Silva <peter@idefix>  Tue, 20 Apr 2018 16:24:04 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 20 Apr 2018 16:24:04 -0400
 
 sarrac (2.18.04b2) unstable; urgency=medium
 
@@ -163,7 +172,7 @@ sarrac (2.18.04b2) unstable; urgency=medium
   *         C libsrshim enforced checks on commands'status
   *         C any Python, topic and path with # encoded into %23 (as blank into %20)
 
- -- Peter Silva <peter@idefix>  Tue, 10 Apr 2018 11:17:31 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 10 Apr 2018 11:17:31 -0400
 
 sarrac (2.18.04b1) unstable; urgency=medium
 
@@ -177,7 +186,7 @@ sarrac (2.18.03b1) unstable; urgency=medium
 
   * new    realpath_filter (PY and C), realpath also named realpath_post
 
- -- Peter Silva <peter@idefix>  Fri, 23 Mar 2018 11:57:09 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Fri, 23 Mar 2018 11:57:09 -0400
 
 sarrac (2.18.03a4) unstable; urgency=medium
 
@@ -217,7 +226,7 @@ sarrac (2.18.02a1) unstable; urgency=medium
   * bugfix: C: queue_name random seed wasn't. 
   * bugfix: C: components crash on add when SR_CONFIG_EXAMPLES is not set. Now complain and error exit.
   
- -- Peter Silva <peter@blacklab>  Sat, 17 Feb 2018 11:03:08 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Sat, 17 Feb 2018 11:03:08 -0500
 
 sarrac (2.18.01a5) unstable; urgency=medium
 
@@ -226,14 +235,14 @@ sarrac (2.18.01a5) unstable; urgency=medium
   * *remove* action calls cleanup. (py and C)
   * C: added prefetch option.
 
- -- Peter Silva <peter@blacklab>  Sat, 27 Jan 2018 16:31:25 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Sat, 27 Jan 2018 16:31:25 -0500
 
 sarrac (2.18.01a2) unstable; urgency=medium
 
   * lkely fix included for 1 in 200 file missing in HPC mirroring.
   * C: now imports version info from python, so C version is meaningful (instead of always 1.0.0)
 
- -- Peter Silva <peter@blacklab>  Fri, 05 Jan 2018 11:40:22 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Fri, 05 Jan 2018 11:40:22 -0500
 
 sarrac (2.18.01a1) unstable; urgency=medium
 
@@ -246,13 +255,13 @@ sarrac (2.18.01a1) unstable; urgency=medium
   * C: fix: segfault if credentials.conf is missing.
 
 
- -- Peter Silva <peter@idefix>  Wed, 03 Jan 2018 14:27:18 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Wed, 03 Jan 2018 14:27:18 -0500
 
 sarrac (2.17.12a8) unstable; urgency=medium
 
   * c: segault in mv if there's no slashes in the source path, oops!
 
- -- Peter Silva <peter@blacklab>  Mon, 18 Dec 2017 22:48:00 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Mon, 18 Dec 2017 22:48:00 -0500
 
 sarrac (2.17.12a7) unstable; urgency=medium
 
@@ -264,7 +273,7 @@ sarrac (2.17.12a7) unstable; urgency=medium
   * removed 's' from the 'headers' option in python, to match C.
   * C: realpath only applied if an absolute path was supplied, now works for relative ones also.
 
- -- Peter Silva <peter@blacklab>  Mon, 18 Dec 2017 13:15:10 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Mon, 18 Dec 2017 13:15:10 -0500
 
 sarrac (2.17.12a6) unstable; urgency=medium
 
@@ -279,13 +288,13 @@ sarrac (2.17.12a6) unstable; urgency=medium
   * C: implemented *source* option
   * C: corrected picking of "main file" for configuration name.
 
- -- Peter Silva <peter@blacklab>  Tue, 12 Dec 2017 21:19:37 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 12 Dec 2017 21:19:37 -0500
 
 sarrac (2.17.12a2) unstable; urgency=medium
 
   * C: added recovery code after posting errors.
 
- -- Peter Silva <peter@idefix>  Tue, 05 Dec 2017 18:01:18 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 05 Dec 2017 18:01:18 -0500
 
 sarrac (2.17.12a1) unstable; urgency=medium
 
@@ -295,7 +304,7 @@ sarrac (2.17.12a1) unstable; urgency=medium
   * C: bugfix: pbu synonym for post_base_url, was not accepted, corrected.
   * C: fixed when renaming across file systems, it would fail, rather than copying the file.
 
- -- Peter Silva <peter@idefix>  Mon, 04 Dec 2017 17:45:52 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Mon, 04 Dec 2017 17:45:52 -0500
 
 sarrac (2.17.11a2) unstable; urgency=medium
 
@@ -305,7 +314,7 @@ sarrac (2.17.11a2) unstable; urgency=medium
   * fixed: list,get,remove,edit,log not working for other than subscribe.
   * excessive debug messaging removed.
 
- -- Peter Silva <peter@idefix>  Thu, 09 Nov 2017 17:04:06 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Thu, 09 Nov 2017 17:04:06 -0500
 
 sarrac (2.17.10a4) unstable; urgency=medium
 
@@ -313,7 +322,7 @@ sarrac (2.17.10a4) unstable; urgency=medium
   * C: loglevel now accepts words: none, critical, error, warning, info, debug. (like python version.)
   * C: logevel numbers inverted (formerly 99 was be very quiet, no 0 is quiet.)
 
- -- Peter Silva <peter@idefix>  Mon, 30 Oct 2017 17:43:28 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Mon, 30 Oct 2017 17:43:28 -0400
 
 sarrac (2.17.10a3) unstable; urgency=medium
 
@@ -323,7 +332,7 @@ sarrac (2.17.10a3) unstable; urgency=medium
   * C: added directory support to sr_post_rename
   * C: libsrshim: added support for the truncate(2) system call.
 
- -- Peter Silva <peter@idefix>  Fri, 27 Oct 2017 17:26:21 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Fri, 27 Oct 2017 17:26:21 -0400
 
 sarrac (2.17.10a2) unstable; urgency=medium
 
@@ -334,18 +343,18 @@ sarrac (2.17.10a2) unstable; urgency=medium
   * C: added tx.select & tx.confirm (publish acknowledgements)
   * C: integrated into flow_tests.
 
- -- Peter Silva <peter@idefix>  Fri, 20 Oct 2017 13:21:57 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Fri, 20 Oct 2017 13:21:57 -0400
 
 sarrac (2.17.08a1) unstable; urgency=medium
 
   * C posting library, including sr_cpost that replicates post and watch is complete.
   * C libc shim that calls C posting library complete.
 
- -- Peter Silva <peter@idefix>  Mon, 14 Aug 2017 17:54:33 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Mon, 14 Aug 2017 17:54:33 -0400
 
 sarrac (2.17.07a1) unstable; urgency=medium
 
   * C implementation of libsrshim, libsarra, sr_cpost, and sr_subjsondump  in C (not packaged yet.)
 
- -- peter <peter@blacklab.bsqt.homeip.net>  Tue, 25 Jul 2017 20:51:34 -0400
+ -- peter <peter@bsqt.homeip.net>  Tue, 25 Jul 2017 20:51:34 -0400
 
