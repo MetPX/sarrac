@@ -13,6 +13,11 @@ are performance concerns that this implementation would help with..
 
  - in-process invocation of sr_post on file closes (libsrshim.)
 
+Detailed use case:
+
+  https://github.com/MetPX/sarracenia/blob/master/doc/mirroring_use_case.rst
+
+
 Installation
 ------------
 

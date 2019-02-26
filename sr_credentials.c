@@ -5,11 +5,11 @@
  Copyright (C) Her Majesty The Queen in Right of Canada, Environment Canada, 2008-2015
 
  Questions or bugs report: dps-client@ec.gc.ca
- sarracenia repository: git://git.code.sf.net/p/metpx/git
- Documentation: http://metpx.sourceforge.net/#SarraDocumentation
+ sarracenia repository: https://github.com/MetPX/Sarrac
+ Documentation: https://github.com/MetPX/sarracenia
 
  Code contributed by:
-     Peter Silva - 2017
+     Peter Silva - 2017-2019
 
  */
 #include <stdlib.h>
