@@ -15,6 +15,7 @@
  */
 
 #include <openssl/sha.h>
+#include <string.h>
 #include <time.h>
 #include "uthash.h"
 
@@ -32,7 +33,7 @@ void hash_print(unsigned char *hash) {
 
 }
 
-int sr_cache_check( struct sr_cache_t *cachep, char algo, unsigned char *ekey, char *path, char* partstr )
+int sr_cache_check( struct sr_cache_t *cachep, char *cache_basis, char algo, unsigned char *ekey, char *path, char* partstr )
  /* 
    insert new item if it isn't in the cache.
    retun value:
@@ -41,6 +42,14 @@ int sr_cache_check( struct sr_cache_t *cachep, char algo, unsigned char *ekey, c
       -1 - key too long, could not be inserted anyways, so not present.
  */
 {
+     if ( !strcmp(cache_basis, "name") ) {
+         path = strdup(basename(path));
+     } else if ( !strcmp(cache_basis, "path") ) {
+         /* do nothing */
+     } else if ( !strcmp(cache_basis, "data") ) {
+         path = strdup("data");
+     }
+
      struct sr_cache_entry_t *c = NULL;
      struct sr_cache_entry_path_t *p;
      unsigned char keyhash[SR_SUMHASHLEN];

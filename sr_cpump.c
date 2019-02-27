@@ -43,6 +43,7 @@ void usage()
     fprintf( stderr, "\tsuppress_duplicates|sd|cache|caching <on|off|integer> (default: off)\n" );
     fprintf( stderr, "\t\tsuppress duplicate receptions < *cache* seconds apart.  \"on\" means 15 minute caching (on=900).\n" );
     fprintf( stderr, "\t\tsuppress duplicate announcements < *cache* seconds apart.  \"on\" means 15 minute caching (on=900).\n" );
+    fprintf( stderr, "\tsuppress_duplicates_basis|sdb|cache_basis|cb <data|name|path> (default: path)\n" );
     fprintf( stderr, "\ttopic_prefix <string> - AMQP topic prefix (default: v02.post )\n" );
     fprintf( stderr, "\tto <destination> - clusters pump network should forward to (default: broker).\n" );
     fprintf( stderr, "\turl <url>[,<url>]... - retrieval base url in the posted files.\n" );
@@ -312,7 +313,7 @@ int main(int argc, char **argv)
       // check cache.
       if (sr_cfg.cachep)
       {
-          ret = sr_cache_check( sr_cfg.cachep, m->parts_s, (unsigned char*)m->sum, m->path, sr_message_partstr(m) );
+          ret = sr_cache_check( sr_cfg.cachep, sr_cfg.cache_basis, m->parts_s, (unsigned char*)m->sum, m->path, sr_message_partstr(m) );
           if (!ret) continue; // cache hit.
       }
       // do_pump=NULL

@@ -103,6 +103,7 @@ struct sr_config_t {
   struct sr_broker_t *broker;
   float               cache;
   struct sr_cache_t  *cachep;
+  char               *cache_basis;
   mode_t              chmod_log;
   char               *configname;
   int                 debug;

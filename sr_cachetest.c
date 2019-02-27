@@ -49,7 +49,7 @@ int main( int argc, char *argv[] )
 
    unlink( "sr_cache_save.test" );
    cache = sr_cache_open( "sr_cache_save.test" );
-   ret = sr_cache_check( cache, 's', sha512hash( "hoho" ), "hoho", "1,1,0,0" );
+   ret = sr_cache_check( cache, "path", 's', sha512hash( "hoho" ), "hoho", "1,1,0,0" );
    if (ret > 0) {
        fprintf( stdout, "OK: added hoho to the cache\n" );
        success_count++;
@@ -62,7 +62,7 @@ int main( int argc, char *argv[] )
    sts.tv_nsec=501000000;
    nanosleep(&sts,NULL);
 
-   ret = sr_cache_check( cache, 's', sha512hash( "haha" ), "haha", "1,1,0,0" );
+   ret = sr_cache_check( cache, "path", 's', sha512hash( "haha" ), "haha", "1,1,0,0" );
    if (ret > 0) {
        fprintf( stdout, "OK: added haha to the cache\n" );
        success_count++;
@@ -72,7 +72,7 @@ int main( int argc, char *argv[] )
    test_count++;
    nanosleep(&sts,NULL);
 
-   ret = sr_cache_check( cache, 's', sha512hash( "hoho" ), "hoho", "1,1,0,0" );
+   ret = sr_cache_check( cache, "path", 's', sha512hash( "hoho" ), "hoho", "1,1,0,0" );
    if (ret > 0) 
        fprintf( stdout, "ERROR: added hoho to the cache a second time\n" );
    else if ( ret == 0 )
@@ -83,7 +83,7 @@ int main( int argc, char *argv[] )
    test_count++;
    nanosleep(&sts,NULL);
 
-   ret = sr_cache_check( cache, 's', sha512hash( "hoho" ), "haha2", "1,1,0,0" );
+   ret = sr_cache_check( cache, "path", 's', sha512hash( "hoho" ), "haha2", "1,1,0,0" );
    if (ret > 0)  {
        fprintf( stdout, "OK: added haha to the cache with same sum as hoho\n" );
        success_count++;
@@ -95,7 +95,7 @@ int main( int argc, char *argv[] )
    test_count++;
    nanosleep(&sts,NULL);
 
-   ret = sr_cache_check( cache, 'd', md5hash( "lala" ), "lolo/lala", "1,1,0,0" );
+   ret = sr_cache_check( cache, "path", 'd', md5hash( "lala" ), "lolo/lala", "1,1,0,0" );
    if (ret > 0)  {
        fprintf( stdout, "OK: added lolo to the cache with same an md5 sum\n" );
        success_count++;
@@ -107,7 +107,7 @@ int main( int argc, char *argv[] )
    test_count++;
    nanosleep(&sts,NULL);
 
-   ret = sr_cache_check( cache, 'd', md5hash( "lala" ), "lolo/lala", "1,1,0,0" );
+   ret = sr_cache_check( cache, "path", 'd', md5hash( "lala" ), "lolo/lala", "1,1,0,0" );
    if (ret > 0) 
        fprintf( stdout, "ERROR: added lala to the cache a second time\n" );
    else if ( ret == 0 )
@@ -118,7 +118,7 @@ int main( int argc, char *argv[] )
    test_count++;
    nanosleep(&sts,NULL);
 
-   ret = sr_cache_check( cache, 'd', md5hash( "lala" ), "lolo/lily", "1,1,0,0" );
+   ret = sr_cache_check( cache, "path", 'd', md5hash( "lala" ), "lolo/lily", "1,1,0,0" );
    if (ret > 0)  {
        fprintf( stdout, "OK: added lily to the cache with same sum as lolo\n" );
        success_count++;

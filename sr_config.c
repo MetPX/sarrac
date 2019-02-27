@@ -708,6 +708,15 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
           sr_cfg->cache = seconds_from_duration_str(argument);
           retval=2;
       }
+  } else if ( !strcmp( option, "suppress_duplicates_basis" ) || !strcmp( option, "sdb" ) ||
+              !strcmp( option, "cache_basis" ) || !strcmp( option, "cb" ) ) {
+      if ( !strcmp(argument, "data") || !strcmp(argument, "name") || !strcmp(argument, "path") ) {
+          sr_cfg->cache_basis = strdup(argument);
+      } else {
+          log_msg( LOG_ERROR, "unknown basis for duplicate suppression: %s (...using default: %s)\n", argument, sr_cfg->cache_basis );
+      }
+      retval=(2);
+
   } else if ( !strcmp( option, "chmod_log" ) ) {
       sscanf( argument, "%04o", &(sr_cfg->chmod_log) ); 
       retval=2;
@@ -1060,6 +1069,7 @@ void sr_config_free( struct sr_config_t *sr_cfg )
 
   sr_cache_close( sr_cfg->cachep );
   sr_cfg->cachep=NULL;
+  if(sr_cfg->cache_basis) free(sr_cfg->cache_basis);
 
 }
 void sr_config_init( struct sr_config_t *sr_cfg, const char *progname ) 
@@ -1074,6 +1084,7 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->broker=NULL;
   sr_cfg->cache=0;
   sr_cfg->cachep=NULL;
+  sr_cfg->cache_basis=strdup("path");
   sr_cfg->chmod_log=0600;
   sr_cfg->configname=NULL;
   sr_cfg->debug=0;

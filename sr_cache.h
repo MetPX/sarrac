@@ -46,7 +46,7 @@ void sr_cache_close( struct sr_cache_t *c );
     frees structure established by open, but does not set c to NULL.
  */
 
-int sr_cache_check( struct sr_cache_t *cachep, char algo, unsigned char *ekey, char*path, char *partstr ); 
+int sr_cache_check( struct sr_cache_t *cachep, char *cache_basis, char algo, unsigned char *ekey, char*path, char *partstr ); 
 
  /* 
 
