@@ -524,7 +524,8 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb )
       {
            if ( sr_c->cfg->cache > 0 ) 
            { 
-               status = sr_cache_check( sr_c->cfg->cachep, m.sum[0], (unsigned char*)(m.sum), m.path, sr_message_partstr(&m) ); 
+               status = sr_cache_check( sr_c->cfg->cachep, sr_c->cfg->cache_basis,
+                   m.sum[0], (unsigned char*)(m.sum), m.path, sr_message_partstr(&m) );
                log_msg( LOG_DEBUG, "sr_post cache_check: %s\n", status?"not found":"already there, no post" );
                if (!status) continue; // cache hit.
            }
