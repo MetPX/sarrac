@@ -734,7 +734,7 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       retval=(1+(val&1));
 
   } else if ( !strcmp( option, "declare" ) ) {
-      retval = sr_add_decl(sr_cfg, argument, arg2);
+      retval = sr_add_decl(sr_cfg, argument, argument2);
 
   } else if ( !strcmp( option, "delete" ) ) {
       val = StringIsTrue(argument);
