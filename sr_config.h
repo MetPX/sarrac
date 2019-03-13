@@ -130,10 +130,8 @@ struct sr_config_t {
                              1 ( send entire file in one block ),  
                              else a literal blocksize
           used for partitioning of large files.*/
-  struct sr_broker_t *broker;
- /**< broker: the rabbitmq AMQP broker to connect to.*/
-  float               cache;
- /**< cache: the expiry age, in seconds of entries in the recent files cache.*/
+  struct sr_broker_t *broker; /**< broker: the rabbitmq AMQP broker to connect to.*/
+  float               cache; /**< cache: the expiry age, in seconds of entries in the recent files cache.*/
   struct sr_cache_t  *cachep; /**< the recent files cache.*/
   char               *cache_basis; /**< 'file' | 'path' | 'none' -> modifies which cache entries are comparable.*/
   mode_t              chmod_log; /**< permission mode bits to use for the log files.*/
@@ -185,6 +183,7 @@ struct sr_config_t {
   float               sleep; /**< number of seconds to sleep between polls/processing loops.*/
   char                statehost;  /**< flagish thing: '0','s','f' meaning no, short fqdn*/
   char               *statehostval;  /**< actual hostname resulting from statehost.*/
+  int                 strip; /**< number of path elements to strip from posted path  */
   char                sumalgo; /**< checksum algorithm to use.*/
   char                sumalgoz; /**< if algo is z what is the real checksum algorithm to apply.*/
   char               *source; /**< indicates the cluster of origin of a post.*/
