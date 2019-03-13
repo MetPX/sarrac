@@ -153,6 +153,7 @@ struct sr_config_t {
   float               sleep;
   char                statehost;  // '0','s','f' meaning no, short fqdn
   char               *statehostval;  // actual hostname resulting from statehost.
+  int                 strip;
   char                sumalgo; // checksum algorithm to use.
   char                sumalgoz; // if algo is z what is downstream...
   char               *source;
