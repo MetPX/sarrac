@@ -1,16 +1,11 @@
 
 /*
- This file is part of metpx-sarracenia.
- The sarracenia suite is Free and is proudly provided by the Government of Canada
- Copyright (C) Her Majesty The Queen in Right of Canada, Environment Canada, 2017
-
- author: Peter Silva
-
-status: 
-  This is just a beginning stub, not working at all. 
-
-  Purpose is to have something that parses the sarracenia configuration files in C.
-
+ * This file is part of MetPX-Sarrac.
+ * The Sarrac suite is Free and is proudly provided by the Government of Canada
+ * Copyright (C) Her Majesty The Queen in Right of Canada, Environment Canada, 2017-2019
+ *
+ * Original Author: Peter.Silva@canada.ca
+ *
  */
 
 #include <stdio.h>
@@ -49,7 +44,7 @@ status:
 
 #include "sr_version.h"
 
-/*
+/**
  * sr_add_path() - interpret switch (no leading -) arguments (either setting action, or path entry)
  * @arg: 
  *    sr_cfg - the input configuration (to be modified)
@@ -116,9 +111,19 @@ void sr_add_path( struct sr_config_t *sr_cfg, const char* option )
    }
 }
 
+/**
+ * sr_add_topic() - add to the list of topics in an sr_cfg
+ * @arg:
+ *    sr_cfg - the configuration to be modified with the additional topic.
+ *    sub  - the subtopic to be appended to the list.
+ * 
+ * Add the given topic to the list of known ones for a sr_cfg.
+ *
+ * Return:
+ *   the sr_cfg with the added (sub)topics.
+ */
+
 void sr_add_topic( struct sr_config_t *sr_cfg, const char* sub )
-  /* append to linked list of topics
-   */
 {
    struct sr_topic_t *t;
    struct sr_topic_t *n;
@@ -156,10 +161,19 @@ static regexec_fn regexec_fn_ptr = NULL;
 
 #endif
 
+/**
+ * isMatchingPattern() - return pointer to matched pattern, if there is one, NULL otherwise.
+ * @arg:
+ *    sr_cfg - the configuration with the masks to match against.
+ *    chaine - the character string to be matched
+ *
+ * (optimization) If called repeatedly with the same argument, return the same result.
+ *
+ * Return:
+ *    the mask entry that matched, if any. (not a copy, do not play with it.)
+ */
+
 struct sr_mask_t *isMatchingPattern(struct sr_config_t *sr_cfg, const char* chaine )
-   /* return pointer to matched pattern, if there is one, NULL otherwise.
-      if called repeatedly with the same argument, just return the same result.
-    */
 {
    struct sr_mask_t *entry;
    
