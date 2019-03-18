@@ -1119,7 +1119,7 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->post_base_dir=NULL;
   sr_cfg->durable=1;
   sr_cfg->events= ( SR_MODIFY | SR_DELETE | SR_LINK ) ;
-  sr_cfg->expire=3*60*1000 ;
+  sr_cfg->expire=3*60 ;
   sr_cfg->exchange=NULL;
   sr_cfg->exchange_suffix=NULL;
   sr_cfg->follow_symlinks=0;
