@@ -49,6 +49,18 @@ status:
 
 #include "sr_version.h"
 
+/*
+ * sr_add_path() - interpret switch (no leading -) arguments (either setting action, or path entry)
+ * @arg: 
+ *    sr_cfg - the input configuration (to be modified)
+ *    option - the optio to be parsed (and included in the sr_cfg)
+ *
+ * After having parsed all the configuration switches (starting with a dash), at the end of the command
+ * line there should be an action and possibly some path names (in post case, the paths are the files to be posted)
+ * This routine determines whether the option is an action or a path, and updates sr_cfg appropriately.
+ *
+ * Return: modification of sr_cfg with paths added, as well as action set.
+ */
 void sr_add_path( struct sr_config_t *sr_cfg, const char* option )
    /* Append to linked list of paths to post
     */
