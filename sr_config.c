@@ -46,9 +46,8 @@
 
 /**
  * sr_add_path() - interpret switch (no leading -) arguments (either setting action, or path entry)
- * @arg: 
- *    sr_cfg - the input configuration (to be modified)
- *    option - the optio to be parsed (and included in the sr_cfg)
+ * @arg1: sr_cfg - the input configuration (to be modified)
+ * @arg2: option - the optio to be parsed (and included in the sr_cfg)
  *
  * After having parsed all the configuration switches (starting with a dash), at the end of the command
  * line there should be an action and possibly some path names (in post case, the paths are the files to be posted)
@@ -57,8 +56,6 @@
  * Return: modification of sr_cfg with paths added, as well as action set.
  */
 void sr_add_path( struct sr_config_t *sr_cfg, const char* option )
-   /* Append to linked list of paths to post
-    */
 {
    struct sr_path_t *p;
    struct sr_path_t *n;
@@ -113,14 +110,12 @@ void sr_add_path( struct sr_config_t *sr_cfg, const char* option )
 
 /**
  * sr_add_topic() - add to the list of topics in an sr_cfg
- * @arg:
- *    sr_cfg - the configuration to be modified with the additional topic.
- *    sub  - the subtopic to be appended to the list.
+ * @arg1: sr_cfg - the configuration to be modified with the additional topic.
+ * @arg2: sub  - the subtopic to be appended to the list.
  * 
  * Add the given topic to the list of known ones for a sr_cfg.
  *
- * Return:
- *   the sr_cfg with the added (sub)topics.
+ * Return: the sr_cfg with the added (sub)topics.
  */
 
 void sr_add_topic( struct sr_config_t *sr_cfg, const char* sub )
@@ -163,14 +158,12 @@ static regexec_fn regexec_fn_ptr = NULL;
 
 /**
  * isMatchingPattern() - return pointer to matched pattern, if there is one, NULL otherwise.
- * @arg:
- *    sr_cfg - the configuration with the masks to match against.
- *    chaine - the character string to be matched
+ * @arg1: sr_cfg - the configuration with the masks to match against.
+ * @arg2: chaine - the character string to be matched
  *
  * (optimization) If called repeatedly with the same argument, return the same result.
  *
- * Return:
- *    the mask entry that matched, if any. (not a copy, do not play with it.)
+ * Return: The mask entry that matched, if any. (not a copy, do not play with it.)
  */
 
 struct sr_mask_t *isMatchingPattern(struct sr_config_t *sr_cfg, const char* chaine )
@@ -266,6 +259,13 @@ void add_mask(struct sr_config_t *sr_cfg, char *directory, char *option, int acc
 
 #define NULTERM(x)  if (x != NULL) *x = '\0' ;
 
+/**
+ * sr_broker_uri - given an sr_broker_t, return a url string.
+ * @arg1: b - the broker structure to build the string from.
+ *
+ * Returns: a static buffer containing the URL corresponding to the broker.
+ */
+
 char *sr_broker_uri( struct sr_broker_t *b )
 {
    static char buf[PATH_MAX];
@@ -288,6 +288,15 @@ char *sr_broker_uri( struct sr_broker_t *b )
    return(buf);
 }
 
+/**
+ * broker_uri_parse() - given a URL string, return an sr_broker_t struct.
+ * @arg1: src - the url string to parse.
+ *
+ * interpret a broker url (e.g. amqp://hoho@localhost ) and to allocate
+ * and initialize an sr_brokert_t struct.
+ *
+ * Return: an initialized allocated sr_broker_t struct.
+ */
 
 struct sr_broker_t *broker_uri_parse( char *src ) 
 {
@@ -351,6 +360,12 @@ struct sr_broker_t *broker_uri_parse( char *src )
     return(b);
 } 
 
+/**
+ * broker_free() - free all allocated elements of an sr_broker struct, and the struct itself.
+ * @arg1: b - the broker struct to de-allocate.
+ *
+ * Return: void
+ */
 void broker_free( struct sr_broker_t *b ) 
 {
      if (!b) return;
