@@ -1,16 +1,17 @@
 
 /*
- This file is part of metpx-sarracenia.
+ This file is part of MetPX-Sarrac.
  The sarracenia suite is Free and is proudly provided by the Government of Canada
- Copyright (C) Her Majesty The Queen in Right of Canada, Environment Canada, 2017
+ Copyright (C) Her Majesty The Queen in Right of Canada, Environment Canada, 2017-2019
 
  author: Peter Silva
 
 status: 
-  This is just a beginning stub, it does basic stuff required for posting.
-  and throws an *unimplemented* option for the rest.
-
   Purpose is to have something that parses the sarracenia configuration files in C.
+
+  See mainly:
+
+  https://github.com/MetPX/sarracenia/tree/master/doc/sr_subscribe.1.rst
 
  */
 
@@ -56,21 +57,55 @@ status:
 
 #include "sr_cache.h"
 
+/**
+ * struct sr_path_t - Non option arguments (paths, either of config files, or files to be posted.)
+ * @path: the path itself.
+ * @next: link to the next item in the singly linked list.
+ */
+
 struct sr_path_t {
    char path[PATH_MAX];
    struct sr_path_t *next;
 };
+
+/* FIXME: pas 2019 I find these struct comments completely useless.
+ *        it is bloody obviously a struct, and that it has a single element followed
+ *        by a next member, means it is a singly linked list. 
+ *        the description restates the name of the struct... there is no additional information.
+ */
+
+/**
+ * struct sr_topic_t - topic arguments.
+ * @topic: the topic itself.
+ * @next: link to the next item in the singly linked list.
+ */
 
 struct sr_topic_t {
   char topic[AMQP_MAX_SS]; 
   struct sr_topic_t *next;
 };
 
+/**
+ * struct sr_header_t -  store headers: a list of key-value string pairs.
+ * @key: the key string
+ * @value: the value string
+ * @next: link to the next item in the singly linked list.
+ */
+
 struct sr_header_t {
   char *key;
   char *value;
   struct sr_header_t *next;
 };
+
+/**
+ * struct sr_mask_t -  store a list of accept/reject file filter masks: 
+ * @clause: the original regexp string
+ * @directory: the directory in effect when the clause is applied
+ * @regexp: the compiled representation of the clause.
+ * @accepting: boolean:  reject(0) / accept(1)  the direction to apply the clause
+ * @next: link to the next item in the singly linked list.
+ */
 
 struct sr_mask_t {
   char* clause;
@@ -79,6 +114,22 @@ struct sr_mask_t {
   int   accepting;
   struct sr_mask_t *next;
 };
+
+/**
+ * struct sr_broker_t -  store a list of brokers
+ * @ssl: whether the connection includes encryption (TLS at this point)
+ * @user: user name to authenticate to the broker
+ * @password: password to authenticate to the broker.
+ * @hostname: broker host name.
+ * @port: broker port number ( 1-65535 )
+ * @exchange: name of the exchange to publish to on the broker.
+ * @exchange_split: number of exchanges to split publishes among.
+ * @last_delivery_tag: some AMQP thing... no idea.
+ * @socket: part of an established connection to a broker
+ * @conn:  part of an established connection to a broker
+ * @started: boolean whether the connection has been established or not.
+ * @next: link to the next item in the singly linked list.
+ */
 
 struct sr_broker_t {
   int ssl;                     
@@ -95,6 +146,14 @@ struct sr_broker_t {
   struct sr_broker_t *next; 
 };
 
+/**
+ * struct sr_config_t - the master config struct hold an entire one.
+ * @accept_unmatched: if no masks match, reject(0), or accept(1) the file.
+ * @action:  the action to perform: start, stop, status, add, remove, foreground, enable, disable, etc...
+ * @blocksize: the size of blocks 0 (guess), 1 ( send entire file in one block ),  else a literal blocksize
+ *             used for partitioning of large files.
+ * FIXME: not done yet.
+ */
 
 struct sr_config_t {
   int                 accept_unmatched;
