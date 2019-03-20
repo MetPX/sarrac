@@ -213,6 +213,7 @@ struct sr_broker_t {
  * @topic_prefix: the topic prefix to either subscribe or post to.
  * @user_headers: list of arbitrary user headers for extensions and upward compatibility.
  *
+ * Contains the entire configuration for a component.
  */
 
 struct sr_config_t {
