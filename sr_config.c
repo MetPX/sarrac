@@ -110,8 +110,8 @@ void sr_add_path( struct sr_config_t *sr_cfg, const char* option )
 
 /**
  * sr_add_topic() - add to the list of topics in an sr_cfg
- * @arg1: sr_cfg - the configuration to be modified with the additional topic.
- * @arg2: sub  - the subtopic to be appended to the list.
+ * @sr_cfg: The configuration to be modified with the additional topic.
+ * @sub:    The subtopic to be appended to the list.
  * 
  * Add the given topic to the list of known ones for a sr_cfg.
  *
@@ -155,16 +155,6 @@ typedef int (*regexec_fn) (const regex_t *preg, const char *string, size_t nmatc
 static regexec_fn regexec_fn_ptr = NULL;
 
 #endif
-
-/**
- * isMatchingPattern() - return pointer to matched pattern, if there is one, NULL otherwise.
- * @arg1: sr_cfg - the configuration with the masks to match against.
- * @arg2: chaine - the character string to be matched
- *
- * (optimization) If called repeatedly with the same argument, return the same result.
- *
- * Return: The mask entry that matched, if any. (not a copy, do not play with it.)
- */
 
 struct sr_mask_t *isMatchingPattern(struct sr_config_t *sr_cfg, const char* chaine )
 {
@@ -1842,6 +1832,7 @@ void cp( const char * s, const char *d )
    fclose(dfd);
 
 }
+
 
 char* sr_config_find_one( struct sr_config_t *sr_cfg, const char *original_one )
 {
