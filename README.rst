@@ -130,6 +130,23 @@ of it eventually.
  
 If the SR_SHIMDEBUG variable is set, rather verbose messaging will occur.
 
+Source Code Documentation
+-------------------------
+
+Partial implementation of Doxygen docs.
+to view::
+
+  sudo apt install doxygen
+  sudo apt install doxygen-gui
+  sudo apt install graphviz
+  doxywizard
+
+and run, and it will create browseable html/ subdirectory
+with some documentation.  Unfortunately only a few files
+out of the total have been properly annoted. 
+ 
+
+
 
 Limitations of the C implementation
 -----------------------------------

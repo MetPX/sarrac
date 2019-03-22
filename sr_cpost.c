@@ -571,7 +571,6 @@ void usage()
      fprintf( stderr, "\tpost_base_url <url>[,<url>]... - retrieval base url in the posted files.\n" );
      fprintf( stderr, "\t\t(a comma separated list of urls will result in alternation among multiple file postings.)\n" );
      fprintf( stderr, "\trealpath <boolean> - resolve paths before posting (default: off)\n" );
-     fprintf( stderr, "\trecursive <boolean> - walk subdirectories (default: off)\n" );
      fprintf( stderr, "\tsum <algo> - how to set fingerprint for posts: (default: s)\n" );
      fprintf( stderr, "\t\td-MD5 sum of entire file.\n" );
      fprintf( stderr, "\t\tn-MD5 sum of file name.\n" );

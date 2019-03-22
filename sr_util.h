@@ -55,7 +55,7 @@ void daemonize(int close_stdout);
 #define SR_SUMSTRLEN  (2 * SHA512_DIGEST_LENGTH + 3 )
 
 
- /* 
+ /**
    return a correct sumstring (assume it is big enough)  as per sr_post(7)
    algo = 
      '0' - no checksum, value is random. -> now same as N.
@@ -73,7 +73,8 @@ void daemonize(int close_stdout);
   */
 
 int get_sumhashlen( char algo );
- /* return the length of the hash buffer (which includes the 1 char prefix for the type.
+ /**
+ return the length of the hash buffer (which includes the 1 char prefix for the type.
   */
 
 char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, char *linkstr,
