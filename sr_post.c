@@ -213,6 +213,7 @@ void sr_post_message( struct sr_context *sr_c, struct sr_message_t *m )
         }
         memset(m->path, 0, sizeof(m->path));
         strcpy(m->path, c);
+        free(c);
     }
 
     // MG white space in filename
