@@ -384,15 +384,17 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec, struct 
     //               include updated path tagged as "rename" in header
     if (sr_c->cfg->strip > 0) {
         i = sr_c->cfg->strip;
-        c = m->path;
+        c = strdup(m->path);
+        d = c;
         while (i--) {
-            while (*c && (*c != '/'))
-                ++c;
+            if (*c == '/')
+                *c = 'x';
+            c = strchrnul(c, '/');
             if (!*c)
                 break;
-            ++c;
         }
-        strcpy(m->rename, (!*c) ? basename(m->path) : c);
+        strcpy(m->rename, *c ? c : "/");
+        free(d);
     }
 
   if (sr_c->cfg->post_base_dir) 
