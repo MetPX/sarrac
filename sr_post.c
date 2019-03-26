@@ -181,7 +181,6 @@ unsigned long int set_blocksize( long int bssetting, size_t fsz )
 
 void sr_post_message( struct sr_context *sr_c, struct sr_message_t *m )
 {
-    int i;
     char fn[PATH_MAXNUL];
     char message_body[1024];
     char smallbuf[256];
@@ -194,27 +193,6 @@ void sr_post_message( struct sr_context *sr_c, struct sr_message_t *m )
     signed int status;
     struct sr_header_t *uh;
     time_t to_sleep = 1;
-
-    // Strip option: remove prefix from path according to / #
-    if (sr_c->cfg->strip > 0) {
-        i = sr_c->cfg->strip;
-        c = m->path;
-        while (i--) {
-            while (*c && (*c != '/'))
-                ++c;
-            if (!*c)
-                break;
-            ++c;
-        }
-        if (!*c) {
-            c = strdup(basename(m->path));
-        } else {
-            c = strdup(c);
-        }
-        memset(m->path, 0, sizeof(m->path));
-        strcpy(m->path, c);
-        free(c);
-    }
 
     // MG white space in filename
     strcpy(fn, m->path);
@@ -250,6 +228,9 @@ void sr_post_message( struct sr_context *sr_c, struct sr_message_t *m )
      
         header_reset();
     
+        if (sr_c->cfg->strip > 0)
+            amqp_header_add("rename", m->rename);
+
         if ( m->from_cluster && m->from_cluster[0] )
             amqp_header_add( "from_cluster", m->from_cluster );
     
@@ -337,6 +318,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec, struct 
   reading a file, initialize the message that corresponds to it. Return the number of messages to post entire file.
  */
 {
+  int   i;
   char  *drfound;
   char  fn[PATH_MAXNUL];
   char *c, *d;
@@ -397,6 +379,21 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec, struct 
         }
   *c='\0';
   //strcpy( m->path, fn );
+
+    // Strip option: remove prefix from path according to / #
+    //               include updated path tagged as "rename" in header
+    if (sr_c->cfg->strip > 0) {
+        i = sr_c->cfg->strip;
+        c = m->path;
+        while (i--) {
+            while (*c && (*c != '/'))
+                ++c;
+            if (!*c)
+                break;
+            ++c;
+        }
+        strcpy(m->rename, (!*c) ? basename(m->path) : c);
+    }
 
   if (sr_c->cfg->post_base_dir) 
   {

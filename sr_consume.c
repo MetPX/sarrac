@@ -254,6 +254,9 @@ char *sr_message_2log(struct sr_message_t *m)
      sprintf( strchr( b, '\0' ), " link=%s", m->link );
      }
 
+     if ( m->rename[0] )
+        sprintf( strchr( b, '\0' ), " rename=%s", m->rename );
+
      for( struct sr_header_t *h = m->user_headers ; h ; h=h->next ) 
           sprintf( strchr( b, '\0' ), " %s=%s", h->key, h->value );
      return(b);
