@@ -1,3 +1,12 @@
+sarrac (2.19.03b5ubuntu1) unstable; urgency=medium
+
+  * bugfix: issue #14 strip works for cpost, as per python. (from Michael!)
+  * bugfix: noticed expiry setting interpreted as 1000 times longer than it should be.
+  * new:    additional documentation, support for doxygen.
+  * new:    added support for suppress_duplicates_basis option, as per python. (from Michael!)
+
+ -- Peter Silva <peter@idefix>  Fri, 29 Mar 2019 16:41:30 -0400
+
 sarrac (2.19.02b2) unstable; urgency=medium
 
   * bugfix: issue #24 libsrshim failure when called from ssh session.
