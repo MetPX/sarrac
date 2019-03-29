@@ -380,6 +380,17 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec, struct 
   *c='\0';
   //strcpy( m->path, fn );
 
+    if (sr_c->cfg->post_base_dir)
+    {
+        drfound = strstr(fn, sr_c->cfg->post_base_dir );
+
+        if (drfound)
+        {
+            drfound += strlen(sr_c->cfg->post_base_dir);
+            strcpy( m->path, drfound );
+        }
+    }
+
     // Strip option: remove prefix from path according to / #
     //               include updated path tagged as "rename" in header
     if (sr_c->cfg->strip > 0) {
@@ -396,17 +407,6 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec, struct 
         strcpy(m->rename, *c ? c : "/");
         free(d);
     }
-
-  if (sr_c->cfg->post_base_dir) 
-  {
-      drfound = strstr(fn, sr_c->cfg->post_base_dir ); 
-   
-      if (drfound) 
-      {
-          drfound += strlen(sr_c->cfg->post_base_dir) ; 
-          strcpy( m->path, drfound );
-      } 
-  } 
 
   // use tmprk variable to fix  255 AMQP_SS_LEN limit
   strcpy( tmprk, sr_c->cfg->topic_prefix );
