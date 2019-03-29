@@ -228,6 +228,9 @@ void sr_post_message( struct sr_context *sr_c, struct sr_message_t *m )
      
         header_reset();
     
+        if (sr_c->cfg->strip > 0)
+            amqp_header_add("rename", m->rename);
+
         if ( m->from_cluster && m->from_cluster[0] )
             amqp_header_add( "from_cluster", m->from_cluster );
     
@@ -315,6 +318,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec, struct 
   reading a file, initialize the message that corresponds to it. Return the number of messages to post entire file.
  */
 {
+  int   i;
   char  *drfound;
   char  fn[PATH_MAXNUL];
   char *c, *d;
@@ -376,16 +380,33 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec, struct 
   *c='\0';
   //strcpy( m->path, fn );
 
-  if (sr_c->cfg->post_base_dir) 
-  {
-      drfound = strstr(fn, sr_c->cfg->post_base_dir ); 
-   
-      if (drfound) 
-      {
-          drfound += strlen(sr_c->cfg->post_base_dir) ; 
-          strcpy( m->path, drfound );
-      } 
-  } 
+    if (sr_c->cfg->post_base_dir)
+    {
+        drfound = strstr(fn, sr_c->cfg->post_base_dir );
+
+        if (drfound)
+        {
+            drfound += strlen(sr_c->cfg->post_base_dir);
+            strcpy( m->path, drfound );
+        }
+    }
+
+    // Strip option: remove prefix from path according to / #
+    //               include updated path tagged as "rename" in header
+    if (sr_c->cfg->strip > 0) {
+        i = sr_c->cfg->strip;
+        c = strdup(m->path);
+        d = c;
+        while (i--) {
+            if (*c == '/')
+                *c = 'x';
+            c = strchrnul(c, '/');
+            if (!*c)
+                break;
+        }
+        strcpy(m->rename, *c ? c : "/");
+        free(d);
+    }
 
   // use tmprk variable to fix  255 AMQP_SS_LEN limit
   strcpy( tmprk, sr_c->cfg->topic_prefix );

@@ -43,6 +43,7 @@ struct sr_message_t {
   long parts_num;
   char path[PATH_MAXNUL];
   char queue[AMQP_MAX_SS];
+  char rename[PATH_MAXNUL];
   char routing_key[AMQP_MAX_SS];
   char source[AMQP_MAX_SS];
   char sum[SR_SUMSTRLEN];

@@ -1001,6 +1001,14 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
          };
          retval=(1+(val&1));
       }
+  } else if ( !strcmp( option, "strip" ) ) {
+      sr_cfg->strip = atoi(argument);
+      // Check if arg was a number, if not: REGEX
+      if (sr_cfg->strip == 0 && argument[0] != '0') {
+         // REGEX processing...
+      }
+      retval=(2);
+
   } else if ( !strcmp( option, "sum" ) ) {
       sr_cfg->sumalgo = argument[0];
       if ( sr_cfg->sumalgo == 'z' )
@@ -1175,6 +1183,7 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->help=0;
   sr_cfg->source=NULL;
   sr_cfg->statehost='0';
+  sr_cfg->strip=0;
   sr_cfg->sumalgo='d';
   sr_cfg->sumalgoz='d';
   sr_cfg->to=NULL;
