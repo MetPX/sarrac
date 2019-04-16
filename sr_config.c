@@ -17,6 +17,7 @@
 #include <strings.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/xattr.h>
 #include <fcntl.h>
 #include <ctype.h>
 
@@ -34,6 +35,7 @@
 #include <errno.h>
 
 #include <time.h>
+#include <sys/time.h>
 
 #include <dlfcn.h>
 
@@ -105,6 +107,36 @@ void sr_add_path( struct sr_config_t *sr_cfg, const char* option )
        n=sr_cfg->paths;
        while( n->next ) n=n->next;
        n->next = p;
+   }
+
+   // Add xattrs to files if sum header was added
+   struct sr_header_t *q = sr_cfg->user_headers;
+   while (q) {
+       if (!strcmp("sum", q->key)) {
+           // Set sum xattr
+           setxattr(p->path, "sum", q->value, strlen(q->value), 0);
+
+           // Generate time string
+           time_t raw_time;
+           time(&raw_time);
+
+           struct tm *time_info = gmtime(&raw_time);
+
+           struct timeval tv;
+           gettimeofday(&tv, NULL);
+
+           char s[100];
+           sprintf(s, "%04d%02d%02d%02d%02d%02d.%03d",
+               time_info->tm_year + 1900, time_info->tm_mon + 1, time_info->tm_mday,
+               time_info->tm_hour, time_info->tm_min, time_info->tm_sec,
+               ((unsigned int) tv.tv_usec) / 1000);
+
+           // Set mtime xattr
+           setxattr(p->path, "mtime", s, strlen(s), 0);
+
+           break;
+       }
+       q = q->next;
    }
 }
 
