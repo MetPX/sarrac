@@ -117,22 +117,10 @@ void sr_add_path( struct sr_config_t *sr_cfg, const char* option )
            setxattr(p->path, "sum", q->value, strlen(q->value), 0);
 
            // Generate time string
-           time_t raw_time;
-           time(&raw_time);
-
-           struct tm *time_info = gmtime(&raw_time);
-
-           struct timeval tv;
-           gettimeofday(&tv, NULL);
-
-           char s[100];
-           sprintf(s, "%04d%02d%02d%02d%02d%02d.%03d",
-               time_info->tm_year + 1900, time_info->tm_mon + 1, time_info->tm_mday,
-               time_info->tm_hour, time_info->tm_min, time_info->tm_sec,
-               ((unsigned int) tv.tv_usec) / 1000);
+           char *t = sr_time2str(NULL);
 
            // Set mtime xattr
-           setxattr(p->path, "mtime", s, strlen(s), 0);
+           setxattr(p->path, "mtime", t, strlen(t), 0);
 
            break;
        }
