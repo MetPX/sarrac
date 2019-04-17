@@ -210,17 +210,18 @@ int get_sumhashlen( char algo )
 }
 
 
-char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, char *linkstr,
+char *set_sumstr( char algo, char algoz, const char* fn, char* partstr, char *linkstr,
           unsigned long block_size, unsigned long block_count, unsigned long block_rem, unsigned long block_num 
      )
  /* 
    return a correct sumstring (assume it is big enough)  as per sr_post(7)
    algo = 
      '0' - no checksum, value is random. -> now same as N.
+     'a' - arbitrary checksum, set sum to provided value (partstr)
      'd' - md5sum of block.
      'n' - md5sum of filename (fn).
      'L' - now sha512 sum of link value.
-     'p' - md5sum of filename (fn) + partstr.
+     'p' - md5sum of filename (fn) + partstr. FIXME
      'R' - no checksum, value is random. -> now same as N.
      's' - sha512 sum of block.
      'z' - downstream should recalculate with algo that is argument.
@@ -251,6 +252,10 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
        sprintf( sumstr, "%c,%03ld", algo, random()%1000 );
        return(sumstr);
        break;
+
+   case 'a' :
+        return(partstr);
+        break;
 
    case 'd' :
        MD5_Init(&md5ctx);

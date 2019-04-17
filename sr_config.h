@@ -186,6 +186,7 @@ struct sr_config_t {
   int                 strip; /**< number of path elements to strip from posted path  */
   char                sumalgo; /**< checksum algorithm to use.*/
   char                sumalgoz; /**< if algo is z what is the real checksum algorithm to apply.*/
+  char               *sum_preset; /**< if algo is a, pointer to arbitrary checksum string, else NULL.*/
   char               *source; /**< indicates the cluster of origin of a post.*/
   char               *to; /**< indicates destination cluster(s) for a post.*/
   struct sr_topic_t  *topics; /**< list of sub-topics to subscribe to.*/

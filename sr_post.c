@@ -503,7 +503,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec, struct 
   return(m->parts_blkcount);
 }
 
-struct sr_message_t *sr_file2message_seq(const char *pathspec, int seq, struct sr_message_t *m ) 
+struct sr_message_t *sr_file2message_seq(struct sr_context *sr_c, const char *pathspec, int seq, struct sr_message_t *m)
 /*
   Given a message from a "started" file, the prototype message, and a sequence number ( sequence is number of blocks of partsze )
   return the adjusted prototype message.  (requires reading part of the file to checksum it.)
@@ -512,7 +512,8 @@ struct sr_message_t *sr_file2message_seq(const char *pathspec, int seq, struct s
       m->parts_num = seq;
 
       strcpy( m->sum, 
-              set_sumstr( m->sum[0], m->sum[2], pathspec, NULL, m->link, m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num ) 
+              set_sumstr(m->sum[0], m->sum[2], pathspec, sr_c->cfg->sum_preset,
+                  m->link, m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num)
             ); 
 
       if ( !(m->sum) ) 
@@ -541,7 +542,7 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb )
 
   for( int blk=0; (blk < numblks); blk++ )
   {
-      if ( sr_file2message_seq(pathspec, blk, &m ) ) 
+      if (sr_file2message_seq(sr_c, pathspec, blk, &m))
       {
            if ( sr_c->cfg->cache > 0 ) 
            { 
