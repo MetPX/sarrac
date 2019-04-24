@@ -56,7 +56,7 @@ int sr_cache_check( struct sr_cache_t *cachep, char *cache_basis, char algo, uns
   
      memset( keyhash, 0, SR_SUMHASHLEN);
 
-     memcpy( keyhash, (unsigned char *)ekey, get_sumhashlen(ekey[0]) );
+     memcpy( keyhash, (unsigned char *)ekey, (ekey[0] == 'a') ? strlen((char *)ekey) : get_sumhashlen(ekey[0]) );
 
      HASH_FIND( hh, cachep->data, keyhash, SR_CACHEKEYSZ, c );
   
