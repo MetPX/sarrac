@@ -481,6 +481,13 @@ int sr_add_header(struct sr_config_t *cfg, char *s)
   new_header->value=strdup(eq+1); 
   new_header->next=cfg->user_headers;
   cfg->user_headers=new_header; 
+
+  if ( !strcmp(new_header->key, "sum") && (new_header->value[0] == 'a') ) {
+      log_msg( LOG_DEBUG, "sr_config:sr_add_header:: sum header detected");
+      cfg->sumalgo = new_header->value[0];
+      cfg->sum_preset = strdup(&(new_header->value[2]));
+  }
+
   return(3);
 }
 
@@ -1033,8 +1040,6 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       sr_cfg->sumalgo = argument[0];
       if ( sr_cfg->sumalgo == 'z' )
           sr_cfg->sumalgoz = argument[2];
-      if ( sr_cfg->sumalgo == 'a' )
-          sr_cfg->sum_preset = strdup(&argument[2]);
       retval=(2);
 
   } else if ( !strcmp( option, "to" ) ) {
