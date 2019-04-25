@@ -59,7 +59,7 @@ void daemonize(int close_stdout);
    return a correct sumstring (assume it is big enough)  as per sr_post(7)
    algo = 
      '0' - no checksum, value is random. -> now same as N.
-     'a' - arbitrary checksum, set sum to provided value (partstr)
+     'a' - arbitrary checksum, set sum to provided value (sum_preset)
      'd' - md5sum of block.
      'n' - md5sum of filename (fn).
      'L' - now sha512 sum of link value.
