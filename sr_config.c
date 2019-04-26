@@ -114,13 +114,13 @@ void sr_add_path( struct sr_config_t *sr_cfg, const char* option )
    while (q) {
        if (!strcmp("sum", q->key)) {
            // Set sum xattr
-           setxattr(p->path, "user.sum", q->value, strlen(q->value), 0);
+           setxattr(p->path, "user.sr_sum", q->value, strlen(q->value), 0);
 
            // Generate time string
            char *t = sr_time2str(NULL);
 
            // Set mtime xattr
-           setxattr(p->path, "user.mtime", t, strlen(t), 0);
+           setxattr(p->path, "user.sr_mtime", t, strlen(t), 0);
 
            break;
        }
