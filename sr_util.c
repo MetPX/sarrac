@@ -52,7 +52,7 @@ void log_msg(int prio, const char *format, ...)
     localtime_r(&ts.tv_sec, &tc);
 
     /* log rotation */
-    if (*logfn && (logfd != STDERR_FILENO) && ( (ts.tv_sec-logbase) > logrotate_interval )) {
+    if ( (logfd != STDERR_FILENO) && ((ts.tv_sec-logbase) > logrotate_interval) ) {
         logbase = ts.tv_sec;
 
         close(logfd);
