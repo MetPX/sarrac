@@ -761,7 +761,6 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       val = StringIsTrue(argument);
       sr_cfg->debug = val&2;
       sr_cfg->loglevel=255;
-      log_level=255;
       retval=(1+(val&1));
 
   } else if ( !strcmp( option, "declare" ) ) {
@@ -867,10 +866,9 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
          sr_cfg->loglevel = LOG_DEBUG ;
       } else if ( !strcasecmp( argument, "none" ) ) {
          sr_cfg->loglevel = 0 ;
-      } else     
+      } else {
          sr_cfg->loglevel = atoi(argument);
-      
-      log_level = sr_cfg->loglevel;
+      }
       retval=(2);
 
   } else if ( !strcmp( option, "log" ) ) {
@@ -1503,7 +1501,7 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
   if ( strcmp( sr_cfg->action, "sanity" ) ) 
   {
       log_msg( LOG_DEBUG, "sr_%s %s settings: action=%s config_name=%s log_level=%d follow_symlinks=%s realpath=%s\n",
-          sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_cfg->configname, log_level, sr_cfg->follow_symlinks?"yes":"no",  
+          sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_cfg->configname, sr_cfg->loglevel, sr_cfg->follow_symlinks?"yes":"no",
           sr_cfg->realpath?"yes":"no" );
       log_msg( LOG_DEBUG, "\tsleep=%g expire=%g heartbeat=%g sanity_log_dead=%g cache=%g\n",
           sr_cfg->sleep, sr_cfg->expire, sr_cfg->heartbeat, sr_cfg->sanity_log_dead, sr_cfg->cache );

@@ -10,9 +10,6 @@
 #include <time.h>
 #include <openssl/sha.h>
 
-// message > log_level will be printed.
-extern int log_level ;
-
 // log message severities.
 #define LOG_DEBUG     (5)
 #define LOG_INFO      (4)
