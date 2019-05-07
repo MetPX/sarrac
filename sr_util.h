@@ -37,7 +37,7 @@ void log_msg(const int prio, const char *format, ...);
 
 #endif
 
-void log_setup(const char *logfname, mode_t mode, int severity, float logrotation);
+void log_setup(const char *fn, mode_t mode, int level, int lr, int lri);
 // set up logging to the named file, suppressing messages of lower severity 
 // logrotation is a floating point number of seconds, indicating number of days to retain.
 

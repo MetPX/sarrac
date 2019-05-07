@@ -153,8 +153,9 @@ struct sr_config_t {
   char               *list;     /**< method to generate initial input list:  file or queue*/
   int                 log;      /**< Use a log file, rather than standard files.*/
   char               *logfn;      /**< Use this log file, rather than standard files.*/
-  float               logrotate;  /**< number of days to keep log files around.*/
-  int                 logseverity; /**< severity of messages to log (regardless of where.)*/
+  int                 logrotate;  /**< number of log files to keep around.*/
+  int                 logrotate_interval; /**< number of seconds between log rotations.*/
+  int                 loglevel; /**< severity of messages to log (regardless of where.)*/
   struct sr_mask_t   *masks; /**< the list of masks to compare file names to.*/
   struct sr_mask_t   *match; /**< the current matched mask */
   float              message_ttl; /**< a time (in seconds) passed to the broker as message lifetime.*/
