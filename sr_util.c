@@ -10,6 +10,7 @@
 #include <openssl/md5.h>
 #include <string.h>
 #include <time.h>
+#include <sys/time.h>
 #include <stdarg.h>
 #include <linux/limits.h>
 
@@ -18,137 +19,118 @@
 int     logfd = STDERR_FILENO;
 time_t  logbase;
 /* default values set in sr_config.c:sr_config_init() */
-char    *logfn;
+char    logfn[PATH_MAX];
 char    logfn_ts[PATH_MAX];
 int     loglevel;
 int     logmode;
 int     logrotate;
 int     logrotate_interval;
 
-time_t  t;
-struct  tm tc;
+struct  timespec ts;
+struct  tm tc; /* ie Time_Calendar */
+
+void log_set_fnts();
 
 #ifndef SR_DEBUG_LOGS
 void log_msg(int prio, const char *format, ...)
 {
-    char *p;
-    va_list ap
-    va_list apforsprintf;
-
-    va_start(ap, format);
+    char *level;
+    va_list ap;
 
     if (prio > loglevel) return;
 
-    switch (prio)
-    {
-        case LOG_DEBUG    : p = "DEBUG"; break;
-        case LOG_INFO     : p = "INFO"; break;
-        case LOG_WARNING  : p = "WARNING"; break;
-        case LOG_ERROR    : p = "ERROR"; break;
-        case LOG_CRITICAL : p = "CRITICAL"; break;
-        default           : p = "UNKNOWN";
+    switch (prio) {
+    case LOG_DEBUG    : level = "DEBUG";    break;
+    case LOG_INFO     : level = "INFO";     break;
+    case LOG_WARNING  : level = "WARNING";  break;
+    case LOG_ERROR    : level = "ERROR";    break;
+    case LOG_CRITICAL : level = "CRITICAL"; break;
+    default           : level = "UNKNOWN";
     }
 
-    time(t);
-    localtime_r(t, &tc);
+    clock_gettime(CLOCK_REALTIME, &ts);
+    localtime_r(&ts.tv_sec, &tc);
 
     /* log rotation */
-    if ( logfn && ( (t-logbase) > logrotate_interval ) )
-    {
-      char buf[PATH_MAX];
-      int buflen;
-      struct tm ystm;
-      time_t yt;
+    if (*logfn && (logfd != STDERR_FILENO) && ( (ts.tv_sec-logbase) > logrotate_interval )) {
+        logbase = ts.tv_sec;
 
-      yt = ts.tv_sec-(23*3600);
-      localtime_r(&(yt),&ystm);
-      strcpy( buf, logfn );
-      buflen = strlen(buf) ;
-
-      snprintf( buf+buflen, PATH_MAX-buflen, ".%04d-%02d-%02d",  ystm.tm_year+1900, ystm.tm_mon+1, ystm.tm_mday );
-      if ( !rename( logfn, buf ) ) {
-         close( logfd );
-         logfd = open( logfn, O_WRONLY|O_CREAT|O_APPEND, logmode );
-      }
-
-      logbase = tc.tm_mday;
-
-      /* remove logs that are too old */
-      yt = ts.tv_sec - logrotate;
-
-      gmtime_r(&(yt),&ystm);
-      strcpy( buf, logfn );
-      buflen = strlen(buf) ;
-
-      snprintf( buf+buflen, PATH_MAX-buflen, ".%04d-%02d-%02d",  ystm.tm_year+1900, ystm.tm_mon+1, ystm.tm_mday );
-      unlink( buf );
+        close(logfd);
+        log_set_fnts();
+        logfd = open(logfn_ts, O_WRONLY|O_CREAT|O_APPEND, logmode);
     }
+
     /* logging */
-    dprintf( logfd, "%04d-%02d-%02d %02d:%02d:%02d,%03d [%s] ", tc.tm_year+1900, tc.tm_mon+1,
-        tc.tm_mday, tc.tm_hour, tc.tm_min, tc.tm_sec, (int)(ts.tv_nsec/1e6), p );
-    va_copy( apforsprintf, ap);
+    dprintf(logfd, "%04d-%02d-%02d %02d:%02d:%02d,%03d [%s] ",
+            tc.tm_year+1900, tc.tm_mon+1, tc.tm_mday,
+            tc.tm_hour, tc.tm_min, tc.tm_sec, (int)(ts.tv_nsec/1e6), level);
+
+    va_start(ap, format);
+    vdprintf(logfd, format, ap);
     va_end(ap);
-    vdprintf( logfd, format, apforsprintf);
 }
 #endif
 
-void log_set_fn(struct tm *tc)
+void log_setup(const char *fn, mode_t mode, int level, int lr, int lri )
+{
+#ifndef SR_DEBUG_LOGS
+    strcpy(logfn, fn);
+    logmode = mode;
+    logrotate = lr;
+    logrotate_interval = lri;
+    loglevel = level;
+
+    clock_gettime(CLOCK_REALTIME, &ts);
+    localtime_r(&ts.tv_sec, &tc);
+    logbase = ts.tv_sec;
+
+    log_set_fnts();
+    logfd = open(logfn_ts, O_WRONLY|O_CREAT|O_APPEND, logmode);
+#endif
+    return;
+}
+
+void log_cleanup()
+{
+#ifndef SR_DEBUG_LOGS
+    if (logfd != STDERR_FILENO)
+        close(logfd);
+    logfd = STDERR_FILENO;
+#endif
+    return;
+}
+
+void log_set_fnts()
 {
     char *p;
+    char b[PATH_MAX];
 
-    strcpy(logfn_ts, logfn);
-    p = logfn_ts + strlen(logfn);
+    strcpy(b, logfn);
+    p = b + strlen(logfn);
+
+    *p++ = '.';
 
     int lri = logrotate_interval;
     if        ( !(lri % (24*60*60)) ) {
         /* daily resolution */
         strcpy(p, "%04d-%02d-%02d");
+        sprintf(logfn_ts, b, tc.tm_year+1900, tc.tm_mon+1, tc.tm_mday);
 
     } else if ( !(lri % (60*60)) ) {
         /* hourly resolution */
-        strcpy(p, "%04d-%02d-%02d");
+        strcpy(p, "%04d-%02d-%02d_%02d");
+        sprintf(logfn_ts, b, tc.tm_year+1900, tc.tm_mon+1, tc.tm_mday, tc.tm_hour);
 
     } else if ( !(lri % (60)) ) {
         /* minute resolution */
-        strcpy(p, "%04d-%02d-%02d");
+        strcpy(p, "%04d-%02d-%02d_%02d-%02d");
+        sprintf(logfn_ts, b, tc.tm_year+1900, tc.tm_mon+1, tc.tm_mday, tc.tm_hour, tc.tm_min);
 
     } else {
         /* second resolution */
-        strcpy(p, "%04d-%02d-%02d");
+        strcpy(p, "%04d-%02d-%02d_%02d-%02d-%02d");
+        sprintf(logfn_ts, b, tc.tm_year+1900, tc.tm_mon+1, tc.tm_mday, tc.tm_hour, tc.tm_min, tc.tm_sec);
     }
-
-    /* FIXME commiting only to ensure data safety during VM manipulations */
-}
-
-void log_setup(const char *fn, mode_t mode, int level, int lr, int lri )
-{
-#ifndef SR_DEBUG_LOGS
-   logfn = strdup( fn );
-   logmode = mode;
-   logrotate = lr;
-   logrotate_interval = lri;
-
-   time(t);
-   localtime_r(t, &tc);
-   logbase = t;
-
-   logfd = open( logfn, O_WRONLY|O_CREAT|O_APPEND, logmode );
-   loglevel = level;
-#endif
-   return;
-}
-
-void log_cleanup() 
-{
-#ifndef SR_DEBUG_LOGS
-   free( logfn );
-   logfn = NULL;
-
-   if ( (logfd != -1) && ( logfd != STDERR_FILENO))
-        close( logfd );
-   logfd = STDERR_FILENO;
-#endif
-   return;
 }
 
 void daemonize(int close_stdout)
