@@ -28,6 +28,8 @@ int     logrotate_interval = 24*60*60;
 struct  timespec ts;
 struct  tm tc; /* ie Time_Calendar */
 
+struct  logfn_tab_t ltab;
+
 void log_set_fnts();
 
 #ifndef SR_DEBUG_LOGS
@@ -57,6 +59,16 @@ void log_msg(int prio, const char *format, ...)
         close(logfd);
         log_set_fnts();
         logfd = open(logfn_ts, O_WRONLY|O_CREAT|O_APPEND, logmode);
+
+        if (logrotate > 0) {
+            if (ltab.fns[ltab.i]) {
+                remove(ltab.fns[ltab.i]);
+                free(ltab.fns[ltab.i]);
+                ltab.fns[ltab.i] = NULL;
+            }
+            ltab.fns[ltab.i] = strdup(logfn_ts);
+            ltab.i = (ltab.i + 1) % ltab.size;
+        }
     }
 
     /* logging */
@@ -85,6 +97,17 @@ void log_setup(const char *fn, mode_t mode, int level, int lr, int lri )
 
     log_set_fnts();
     logfd = open(logfn_ts, O_WRONLY|O_CREAT|O_APPEND, logmode);
+
+    if (logrotate > 0) {
+        ltab.fns = (char **) malloc(sizeof(char *)*logrotate);
+        for(ltab.i = 0; ltab.i < logrotate; ++ltab.i)
+            ltab.fns[ltab.i] = NULL;
+        ltab.i = 0;
+        ltab.size = logrotate;
+
+        ltab.fns[ltab.i] = strdup(logfn_ts);
+        ltab.i = (ltab.i + 1) % ltab.size;
+    }
 #endif
     return;
 }
