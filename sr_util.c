@@ -109,7 +109,6 @@ void log_setup(const char *fn, mode_t mode, int level, int lr, int lri )
         ltab.i = (ltab.i + 1) % ltab.size;
     }
 #endif
-    return;
 }
 
 void log_cleanup()
@@ -118,8 +117,16 @@ void log_cleanup()
     if (logfd != STDERR_FILENO)
         close(logfd);
     logfd = STDERR_FILENO;
+
+    if (logrotate > 0) {
+        for(ltab.i = 0; ltab.i < logrotate; ++ltab.i)
+            if (ltab.fns[ltab.i])
+                free(ltab.fns[ltab.i]);
+        free(ltab.fns);
+        ltab.i = 0;
+        ltab.size = 0;
+    }
 #endif
-    return;
 }
 
 void log_set_fnts()
