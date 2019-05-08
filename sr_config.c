@@ -760,7 +760,7 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
   } else if ( !strcmp( option, "debug" ) ) {
       val = StringIsTrue(argument);
       sr_cfg->debug = val&2;
-      sr_cfg->loglevel=255;
+      sr_cfg->loglevel=LOG_DEBUG;
       retval=(1+(val&1));
 
   } else if ( !strcmp( option, "declare" ) ) {
