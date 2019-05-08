@@ -60,6 +60,7 @@ void log_msg(int prio, const char *format, ...)
         log_set_fnts();
         logfd = open(logfn_ts, O_WRONLY|O_CREAT|O_APPEND, logmode);
 
+        /* delete outdated logs */
         if (logrotate > 0) {
             if (ltab.fns[ltab.i]) {
                 remove(ltab.fns[ltab.i]);
@@ -109,6 +110,12 @@ void log_setup(const char *fn, mode_t mode, int level, int lr, int lri )
         ltab.i = (ltab.i + 1) % ltab.size;
     }
 #endif
+}
+
+/* global accessor for loglevel, ugly but better than using a global variable... */
+void set_loglevel(int level)
+{
+    loglevel = level;
 }
 
 void log_cleanup()
