@@ -16,15 +16,14 @@
 
 #include "sr_util.h"
 
-int     logfd = STDERR_FILENO;
 time_t  logbase;
-/* default values set in sr_config.c:sr_config_init() */
+int     logfd = STDERR_FILENO;
 char    logfn[PATH_MAX];
 char    logfn_ts[PATH_MAX];
-int     loglevel;
-int     logmode;
-int     logrotate;
-int     logrotate_interval;
+int     loglevel = LOG_INFO;
+int     logmode = 0600;
+int     logrotate = 5;
+int     logrotate_interval = 24*60*60;
 
 struct  timespec ts;
 struct  tm tc; /* ie Time_Calendar */
