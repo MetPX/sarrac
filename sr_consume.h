@@ -98,13 +98,6 @@ void sr_message_2url(struct sr_message_t *m);
 
  */
 
-void sr_message_2post(struct sr_context *src, struct sr_message_t *m);
-/*
-  post a pessage to post the given message. 
-
- */
-
-
 struct sr_message_t *sr_consume(struct sr_context *sr_c);
 
 #endif 
