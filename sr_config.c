@@ -760,8 +760,8 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
   } else if ( !strcmp( option, "debug" ) ) {
       val = StringIsTrue(argument);
       sr_cfg->debug = val&2;
-      sr_cfg->logseverity=255;
-      log_level=255;
+      sr_cfg->loglevel=LOG_DEBUG;
+      set_loglevel(LOG_DEBUG);
       retval=(1+(val&1));
 
   } else if ( !strcmp( option, "declare" ) ) {
@@ -844,27 +844,33 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       retval=(1+(val&1));
 
   } else if ( !strcmp( option, "logrotate" ) || !strcmp( option, "lr") || !strcmp( option, "logdays") || !strcmp( option, "ld") ) {
+      if ( !strcmp( option, "logdays") || !strcmp( option, "ld") ) {
+          printf("Option %s is deprecated: please use logrotate or lr instead\n", option);
+      }
+      sr_cfg->logrotate = atoi(argument);
+      retval=(2);
 
-      sr_cfg->logrotate = seconds_from_duration_str(argument);
+  } else if ( !strcmp( option, "logrotate_interval") || !strcmp( option, "lri") ) {
+      sr_cfg->logrotate_interval = (int) seconds_from_duration_str(argument);
       retval=(2);
 
   } else if ( !strcmp( option, "loglevel" ) ) {
       if ( !strcasecmp( argument, "info" ) ) {
-         sr_cfg->logseverity = LOG_INFO ;
+         sr_cfg->loglevel = LOG_INFO ;
       } else if ( !strcasecmp( argument, "warning" ) || !strcasecmp( argument, "warn" ) ) {
-         sr_cfg->logseverity = LOG_WARNING ;
+         sr_cfg->loglevel = LOG_WARNING ;
       } else if ( !strcasecmp( argument, "error" ) ) {
-         sr_cfg->logseverity = LOG_ERROR ;
+         sr_cfg->loglevel = LOG_ERROR ;
       } else if ( !strcasecmp( argument, "critical" ) ) {
-         sr_cfg->logseverity = LOG_CRITICAL ;
+         sr_cfg->loglevel = LOG_CRITICAL ;
       } else if ( !strcasecmp( argument, "debug" ) ) {
-         sr_cfg->logseverity = LOG_DEBUG ;
+         sr_cfg->loglevel = LOG_DEBUG ;
       } else if ( !strcasecmp( argument, "none" ) ) {
-         sr_cfg->logseverity = 0 ;
-      } else     
-         sr_cfg->logseverity = atoi(argument);
-      
-      log_level = sr_cfg->logseverity;
+         sr_cfg->loglevel = 0 ;
+      } else {
+         sr_cfg->loglevel = atoi(argument);
+      }
+      set_loglevel(sr_cfg->loglevel);
       retval=(2);
 
   } else if ( !strcmp( option, "log" ) ) {
@@ -1141,8 +1147,9 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->last_matched=NULL;
   sr_cfg->log=0;
   sr_cfg->logfn=NULL;
-  sr_cfg->logrotate=5.0;
-  sr_cfg->logseverity=LOG_INFO;
+  sr_cfg->logrotate=5;
+  sr_cfg->logrotate_interval=24*60*60;
+  sr_cfg->loglevel=LOG_INFO;
   sr_cfg->masks=NULL;
   sr_cfg->match=NULL;
   sr_cfg->message_ttl=0.0;
@@ -1446,7 +1453,7 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
 
   if ( sr_cfg->log )
   {
-      log_setup( sr_cfg->logfn , sr_cfg->chmod_log, sr_cfg->debug?LOG_DEBUG:(sr_cfg->logseverity), sr_cfg->logrotate );
+      log_setup( sr_cfg->logfn , sr_cfg->chmod_log, sr_cfg->debug?LOG_DEBUG:(sr_cfg->loglevel), sr_cfg->logrotate, sr_cfg->logrotate_interval );
   }
 
   // pidfn statehost
@@ -1496,7 +1503,7 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer)
   if ( strcmp( sr_cfg->action, "sanity" ) ) 
   {
       log_msg( LOG_DEBUG, "sr_%s %s settings: action=%s config_name=%s log_level=%d follow_symlinks=%s realpath=%s\n",
-          sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_cfg->configname, log_level, sr_cfg->follow_symlinks?"yes":"no",  
+          sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_cfg->configname, sr_cfg->loglevel, sr_cfg->follow_symlinks?"yes":"no",
           sr_cfg->realpath?"yes":"no" );
       log_msg( LOG_DEBUG, "\tsleep=%g expire=%g heartbeat=%g sanity_log_dead=%g cache=%g\n",
           sr_cfg->sleep, sr_cfg->expire, sr_cfg->heartbeat, sr_cfg->sanity_log_dead, sr_cfg->cache );

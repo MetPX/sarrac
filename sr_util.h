@@ -10,9 +10,6 @@
 #include <time.h>
 #include <openssl/sha.h>
 
-// message > log_level will be printed.
-extern int log_level ;
-
 // log message severities.
 #define LOG_DEBUG     (5)
 #define LOG_INFO      (4)
@@ -37,9 +34,18 @@ void log_msg(const int prio, const char *format, ...);
 
 #endif
 
-void log_setup(const char *logfname, mode_t mode, int severity, float logrotation);
+void log_setup(const char *fn, mode_t mode, int level, int lr, int lri);
 // set up logging to the named file, suppressing messages of lower severity 
 // logrotation is a floating point number of seconds, indicating number of days to retain.
+
+void set_loglevel(int level);
+
+/* table to hold previous log file names for log rotation */
+struct logfn_tab_t {
+    char **fns; /* dynamically allocated, pointer buffer size known at rt */
+    int i;
+    int size;
+};
 
 void log_cleanup();
 
