@@ -529,6 +529,11 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb )
   int numblks;
   int status;
 
+  /* check utf8 compliance of path */
+  if(!is_utf8(pathspec)) {
+      log_msg(LOG_ERROR, "file path \"%s\" not utf8 encoded, ignoring sr_post call\n", pathspec);
+      return;
+  }
   strcpy( m.to_clusters, sr_c->cfg->to );
   strcpy( m.from_cluster, sr_c->cfg->post_broker->hostname );
   strcpy( m.source,  sr_c->cfg->source );

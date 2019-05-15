@@ -49,6 +49,8 @@ struct logfn_tab_t {
 
 void log_cleanup();
 
+int is_utf8(const char * string);
+
 void daemonize(int close_stdout);
 // executed to go from a management instance to a daemon working instance.
 
