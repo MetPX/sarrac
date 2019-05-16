@@ -104,6 +104,12 @@ void header_reset() {
 
 void amqp_header_add( char *tag, const char * value ) {
 
+  /* check utf8 compliance of tag and value for message headers */
+  if(!is_utf8(tag) || !is_utf8(value)) {
+      log_msg(LOG_ERROR, "amqp header (tag, value)<>(%s,%s) not utf8 encoded, ignoring header\n", tag, value);
+      return;
+  }
+
   char value2[AMQP_MAX_SS];
 
   if ( hdrcnt >= HDRMAX ) 
@@ -124,7 +130,7 @@ void amqp_header_add( char *tag, const char * value ) {
      headers[hdrcnt].value.value.bytes = amqp_cstring_bytes(value);
   }
   hdrcnt++;
-  //log_msg( LOG_DEBUG, "Adding header: %s=%s hdrcnt=%d\n", tag, value, hdrcnt );
+  log_msg( LOG_DEBUG, "Adding header: %s=%s hdrcnt=%d\n", tag, value, hdrcnt );
 }
 
 void set_url( char* m, char* spec ) 
