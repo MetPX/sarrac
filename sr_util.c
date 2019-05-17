@@ -121,17 +121,19 @@ void set_loglevel(int level)
 void log_cleanup()
 {
 #ifndef SR_DEBUG_LOGS
-    if (logfd != STDERR_FILENO)
+    /* (logfd != STDERR_FILENO) <> log_setup called previously */
+    if (logfd != STDERR_FILENO) {
         close(logfd);
-    logfd = STDERR_FILENO;
+        logfd = STDERR_FILENO;
 
-    if (logrotate > 0) {
-        for(ltab.i = 0; ltab.i < logrotate; ++ltab.i)
-            if (ltab.fns[ltab.i])
-                free(ltab.fns[ltab.i]);
-        free(ltab.fns);
-        ltab.i = 0;
-        ltab.size = 0;
+        if (logrotate > 0) {
+            for(ltab.i = 0; ltab.i < logrotate; ++ltab.i)
+                if (ltab.fns[ltab.i])
+                    free(ltab.fns[ltab.i]);
+            free(ltab.fns);
+            ltab.i = 0;
+            ltab.size = 0;
+        }
     }
 #endif
 }
