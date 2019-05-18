@@ -1,3 +1,10 @@
+sarrac (2.19.05b1ubuntu2) unstable; urgency=medium
+
+  * bugfix: issue#29 adding utf8 check to avoid posting corrupted messages.  (msaraga!)
+  * new:    issue#39 logging refactored to match python implementation (msaraga)
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Thu, 16 May 2019 21:23:09 -0400
+
 sarrac (2.19.03b5ubuntu1) unstable; urgency=medium
 
   * bugfix: issue #14 strip works for cpost, as per python. (from Michael!)
