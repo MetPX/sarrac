@@ -2,6 +2,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/xattr.h>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -360,6 +361,26 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
 
    memset( sumhash, 0, SR_SUMHASHLEN );
    sumhash[0]=algo;
+
+   /* xattr check for checksum caching optimization */
+   struct stat attr;
+   time_t      stat_mtime;
+   char        cache_mtime[SR_TIMESTRLEN];
+
+   stat(fn, &attr);
+   stat_mtime = attr.st_mtime;
+
+   memset(cache_mtime, 0, SR_TIMESTRLEN);
+   // are xattrs set?
+   if(getxattr(fn, "user.sr_mtime", cache_mtime, SR_TIMESTRLEN) > 0) {
+        // is the checksum valid? (i.e. is (cache_mtime >= stat_mtime)
+        if(sr_str2time(cache_mtime)->tv_sec >= stat_mtime) {
+            memset(sumstr, 0, SR_SUMSTRLEN);
+            getxattr(fn, "user.sr_sum", sumstr, SR_SUMSTRLEN);
+            return(sumstr);
+        }
+   }
+   /* end of xattr check */
 
    switch (algo) {
 
