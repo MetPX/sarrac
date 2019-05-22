@@ -514,7 +514,16 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
        fprintf( stderr, "sum algorithm %c unimplemented\n", algo );
        return(NULL);
    }
-   return(sr_hash2sumstr(sumhash));
+   sr_hash2sumstr(sumhash);
+
+   /* xattr set for checksum caching optimization */
+   // can we set xattrs? let's try and find out!
+   setxattr(fn, "user.sr_sum", sumstr, SR_SUMSTRLEN, 0);
+   setxattr(fn, "user.sr_mtime", sr_time2str(&attr.st_mtim), SR_TIMESTRLEN, 0);
+   // if the calls above fail, ignore and proceed
+   /* end of xattr set */
+
+   return(sumstr);
 }
 
 char nibble2hexchr( int i )
