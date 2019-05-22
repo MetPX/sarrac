@@ -524,8 +524,9 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
 
    /* xattr set for checksum caching optimization */
    // can we set xattrs? let's try and find out!
-   setxattr(fn, "user.sr_sum", sumstr, SR_SUMSTRLEN, 0);
-   setxattr(fn, "user.sr_mtime", sr_time2str(&attr.st_mtim), SR_TIMESTRLEN, 0);
+   setxattr(fn, "user.sr_sum", sumstr, strlen(sumstr), 0);
+   char *t2s = sr_time2str(&attr.st_mtim);
+   setxattr(fn, "user.sr_mtime", t2s, strlen(t2s), 0);
    // if the calls above fail, ignore and proceed
    /* end of xattr set */
 
