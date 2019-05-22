@@ -387,7 +387,6 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
    case '0' : 
        sprintf( sumstr, "%c,%03ld", algo, random()%1000 );
        return(sumstr);
-       break;
 
    case 'd' :
        MD5_Init(&md5ctx);
@@ -429,7 +428,6 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
        }
 
        MD5_Final(sumhash+1, &md5ctx);
-       return(sr_hash2sumstr(sumhash)); 
        break;
 
    case 'n' :
@@ -438,7 +436,6 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
        if (!just_the_name) just_the_name=fn;
        MD5_Update(&md5ctx, just_the_name, strlen(just_the_name) );
        MD5_Final(sumhash+1, &md5ctx);
-       return(sr_hash2sumstr(sumhash)); 
        break;
        
    case 'L' : // symlink case
@@ -446,7 +443,7 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
         SHA512_Init(&shactx);
         SHA512_Update(&shactx, linkstr, strlen(linkstr) );
         SHA512_Final(sumhash+1, &shactx);
-        return(sr_hash2sumstr(sumhash)); 
+        break;
 
    case 'R' : // null, or removal.
         just_the_name = rindex(fn,'/')+1;
@@ -454,7 +451,7 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
         SHA512_Init(&shactx);
         SHA512_Update(&shactx, just_the_name, strlen(just_the_name) );
         SHA512_Final(sumhash+1, &shactx);
-        return(sr_hash2sumstr(sumhash)); 
+        break;
 
    case 'p' :
        SHA512_Init(&shactx);
@@ -464,7 +461,7 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
        sprintf( buf , "%s%c,%lu,%lu,%lu,%lu", just_the_name, algo, block_size, block_count, block_rem, block_num );
        SHA512_Update(&shactx, buf, strlen(buf) );
        SHA512_Final(sumhash+1, &shactx);
-       return(sr_hash2sumstr(sumhash)); 
+       break;
 
    case 's' : 
        SHA512_Init(&shactx);
@@ -506,18 +503,18 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
              fd=0;
        }
        SHA512_Final(sumhash+1, &shactx);
-       return(sr_hash2sumstr(sumhash)); 
+       break;
 
    case 'z':
        sumhash[1]=algoz;
        sumhash[2]='\0';
-       return( sr_hash2sumstr(sumhash) );
+       break;
 
    default:
        fprintf( stderr, "sum algorithm %c unimplemented\n", algo );
        return(NULL);
    }
-
+   return(sr_hash2sumstr(sumhash));
 }
 
 char nibble2hexchr( int i )
