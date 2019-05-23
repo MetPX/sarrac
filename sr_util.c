@@ -373,11 +373,13 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
    memset(cache_mtime, 0, SR_TIMESTRLEN);
    // are xattrs set?
    if(getxattr(fn, "user.sr_mtime", cache_mtime, SR_TIMESTRLEN) > 0) {
-        // is the checksum valid? (i.e. is (cache_mtime >= stat_mtime)
+        // is the checksum valid? (i.e. is (cache_mtime >= stat_mtime)? )
         if(sr_str2time(cache_mtime)->tv_sec >= stat_mtime) {
             memset(sumstr, 0, SR_SUMSTRLEN);
             getxattr(fn, "user.sr_sum", sumstr, SR_SUMSTRLEN);
-            return(sumstr);
+            // is it the right checksum algorithm?
+            if(algo == sumstr[0])
+                return(sumstr);
         }
    }
    /* end of xattr check */
