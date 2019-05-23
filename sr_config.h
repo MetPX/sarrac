@@ -192,7 +192,7 @@ struct sr_config_t {
   struct sr_topic_t  *topics; /**< list of sub-topics to subscribe to.*/
   char                topic_prefix[AMQP_MAX_SS]; /**< the topic prefix to either subscribe or post to.*/
   struct sr_header_t *user_headers; /**< list of arbitrary user headers for extensions and upward compatibility.*/
-  
+  int                 xattr_cc; /**<boolean flag to determine whether or not xattr checksum caching should be used.*/
 };
 
 

@@ -328,8 +328,8 @@ int get_sumhashlen( char algo )
 
 
 char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, char *linkstr,
-          unsigned long block_size, unsigned long block_count, unsigned long block_rem, unsigned long block_num 
-     )
+          unsigned long block_size, unsigned long block_count, unsigned long block_rem, unsigned long block_num,
+          int xattr_cc)
  /* 
    return a correct sumstring (assume it is big enough)  as per sr_post(7)
    algo = 
@@ -372,7 +372,7 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
 
    memset(cache_mtime, 0, SR_TIMESTRLEN);
    // are xattrs set?
-   if(getxattr(fn, "user.sr_mtime", cache_mtime, SR_TIMESTRLEN) > 0) {
+   if(xattr_cc && (getxattr(fn, "user.sr_mtime", cache_mtime, SR_TIMESTRLEN) > 0)) {
         // is the checksum valid? (i.e. is (cache_mtime >= stat_mtime)? )
         if(sr_str2time(cache_mtime)->tv_sec >= stat_mtime) {
             memset(sumstr, 0, SR_SUMSTRLEN);
@@ -525,11 +525,13 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
    }
 
    /* xattr set for checksum caching optimization */
-   // can we set xattrs? let's try and find out!
-   setxattr(fn, "user.sr_sum", sumstr, strlen(sumstr), 0);
-   char *t2s = sr_time2str(&attr.st_mtim);
-   setxattr(fn, "user.sr_mtime", t2s, strlen(t2s), 0);
-   // if the calls above fail, ignore and proceed
+   if(xattr_cc) {
+       // can we set xattrs? let's try and find out!
+       setxattr(fn, "user.sr_sum", sumstr, strlen(sumstr), 0);
+       char *t2s = sr_time2str(&attr.st_mtim);
+       setxattr(fn, "user.sr_mtime", t2s, strlen(t2s), 0);
+       // if the calls above fail, ignore and proceed
+   }
    /* end of xattr set */
 
    return(sumstr);

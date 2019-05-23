@@ -1043,6 +1043,14 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       argument=NULL;
       retval=(2);
 
+  } else if ( !strcmp(option, "xattr_disable") || !strcmp(option, "xattr_disabled") || !strcmp(option, "xd") ) {
+      if(argument && (*argument != '-')) {
+          sr_cfg->xattr_cc = !(2&StringIsTrue(argument));
+          retval=(2);
+      } else {
+          /* do nothing, by default, xattr_cc is disabled */
+          retval=(1);
+      }
   } else {
       log_msg( LOG_WARNING, "info: %s option not implemented, ignored.\n", option );
   } 
@@ -1201,6 +1209,8 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
 
   sr_cfg->statehost='0';
   sr_cfg->statehostval=NULL;
+
+  sr_cfg->xattr_cc=0;
 
   sprintf( p, "%s/.config", getenv("HOME") );
   if (access(p, R_OK )) mkdir(p,0700);
