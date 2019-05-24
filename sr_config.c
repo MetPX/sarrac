@@ -1019,6 +1019,8 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       sr_cfg->sumalgo = argument[0];
       if ( sr_cfg->sumalgo == 'z' )
           sr_cfg->sumalgoz = argument[2];
+      if ( sr_cfg->sumalgo == 'a' )
+          sr_cfg->sum_preset = strdup(&argument[2]);
       retval=(2);
 
   } else if ( !strcmp( option, "to" ) ) {
@@ -1080,6 +1082,7 @@ void sr_config_free( struct sr_config_t *sr_cfg )
   if (sr_cfg->progname) free(sr_cfg->progname);
   if (sr_cfg->randid) free(sr_cfg->randid);
   if (sr_cfg->source) free(sr_cfg->source);
+  if (sr_cfg->sum_preset) free(sr_cfg->sum_preset);
   if (sr_cfg->to) free(sr_cfg->to);
   if (sr_cfg->post_base_url) free(sr_cfg->post_base_url);
 
@@ -1201,6 +1204,7 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->strip=0;
   sr_cfg->sumalgo='d';
   sr_cfg->sumalgoz='d';
+  sr_cfg->sum_preset=NULL;
   sr_cfg->to=NULL;
   sr_cfg->user_headers=NULL; 
   strcpy( sr_cfg->topic_prefix, "v02.post" );

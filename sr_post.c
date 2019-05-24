@@ -518,7 +518,8 @@ struct sr_message_t *sr_file2message_seq(struct sr_context *sr_c, const char *pa
       m->parts_num = seq;
 
       strcpy( m->sum, 
-              set_sumstr( m->sum[0], m->sum[2], pathspec, NULL, m->link, m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num, sr_c->cfg->xattr_cc )
+              set_sumstr( m->sum[0], m->sum[2], sr_c->cfg->sum_preset, pathspec, NULL,
+                          m->link, m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num, sr_c->cfg->xattr_cc )
             ); 
 
       if ( !(m->sum) ) 
