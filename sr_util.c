@@ -2,6 +2,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/xattr.h>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -327,8 +328,8 @@ int get_sumhashlen( char algo )
 
 
 char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, char *linkstr,
-          unsigned long block_size, unsigned long block_count, unsigned long block_rem, unsigned long block_num 
-     )
+          unsigned long block_size, unsigned long block_count, unsigned long block_rem, unsigned long block_num,
+          int xattr_cc)
  /* 
    return a correct sumstring (assume it is big enough)  as per sr_post(7)
    algo = 
@@ -361,11 +362,32 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
    memset( sumhash, 0, SR_SUMHASHLEN );
    sumhash[0]=algo;
 
+   /* xattr check for checksum caching optimization */
+   struct stat attr;
+   time_t      stat_mtime;
+   char        cache_mtime[SR_TIMESTRLEN];
+
+   stat(fn, &attr);
+   stat_mtime = attr.st_mtime;
+
+   memset(cache_mtime, 0, SR_TIMESTRLEN);
+   // are xattrs set?
+   if(xattr_cc && (getxattr(fn, "user.sr_mtime", cache_mtime, SR_TIMESTRLEN) > 0)) {
+        // is the checksum valid? (i.e. is (cache_mtime >= stat_mtime)? )
+        if(sr_str2time(cache_mtime)->tv_sec >= stat_mtime) {
+            memset(sumstr, 0, SR_SUMSTRLEN);
+            getxattr(fn, "user.sr_sum", sumstr, SR_SUMSTRLEN);
+            // is it the right checksum algorithm?
+            if(algo == sumstr[0])
+                return(sumstr);
+        }
+   }
+   /* end of xattr check */
+
    switch (algo) {
 
    case '0' : 
        sprintf( sumstr, "%c,%03ld", algo, random()%1000 );
-       return(sumstr);
        break;
 
    case 'd' :
@@ -408,7 +430,7 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
        }
 
        MD5_Final(sumhash+1, &md5ctx);
-       return(sr_hash2sumstr(sumhash)); 
+       sr_hash2sumstr(sumhash);
        break;
 
    case 'n' :
@@ -417,7 +439,7 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
        if (!just_the_name) just_the_name=fn;
        MD5_Update(&md5ctx, just_the_name, strlen(just_the_name) );
        MD5_Final(sumhash+1, &md5ctx);
-       return(sr_hash2sumstr(sumhash)); 
+       sr_hash2sumstr(sumhash);
        break;
        
    case 'L' : // symlink case
@@ -425,7 +447,8 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
         SHA512_Init(&shactx);
         SHA512_Update(&shactx, linkstr, strlen(linkstr) );
         SHA512_Final(sumhash+1, &shactx);
-        return(sr_hash2sumstr(sumhash)); 
+        sr_hash2sumstr(sumhash);
+        break;
 
    case 'R' : // null, or removal.
         just_the_name = rindex(fn,'/')+1;
@@ -433,7 +456,8 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
         SHA512_Init(&shactx);
         SHA512_Update(&shactx, just_the_name, strlen(just_the_name) );
         SHA512_Final(sumhash+1, &shactx);
-        return(sr_hash2sumstr(sumhash)); 
+        sr_hash2sumstr(sumhash);
+        break;
 
    case 'p' :
        SHA512_Init(&shactx);
@@ -443,7 +467,8 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
        sprintf( buf , "%s%c,%lu,%lu,%lu,%lu", just_the_name, algo, block_size, block_count, block_rem, block_num );
        SHA512_Update(&shactx, buf, strlen(buf) );
        SHA512_Final(sumhash+1, &shactx);
-       return(sr_hash2sumstr(sumhash)); 
+       sr_hash2sumstr(sumhash);
+       break;
 
    case 's' : 
        SHA512_Init(&shactx);
@@ -485,18 +510,31 @@ char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, ch
              fd=0;
        }
        SHA512_Final(sumhash+1, &shactx);
-       return(sr_hash2sumstr(sumhash)); 
+       sr_hash2sumstr(sumhash);
+       break;
 
    case 'z':
        sumhash[1]=algoz;
        sumhash[2]='\0';
-       return( sr_hash2sumstr(sumhash) );
+       sr_hash2sumstr(sumhash);
+       break;
 
    default:
        fprintf( stderr, "sum algorithm %c unimplemented\n", algo );
        return(NULL);
    }
 
+   /* xattr set for checksum caching optimization */
+   if(xattr_cc) {
+       // can we set xattrs? let's try and find out!
+       setxattr(fn, "user.sr_sum", sumstr, strlen(sumstr), 0);
+       char *t2s = sr_time2str(&attr.st_mtim);
+       setxattr(fn, "user.sr_mtime", t2s, strlen(t2s), 0);
+       // if the calls above fail, ignore and proceed
+   }
+   /* end of xattr set */
+
+   return(sumstr);
 }
 
 char nibble2hexchr( int i )
