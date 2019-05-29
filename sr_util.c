@@ -16,6 +16,7 @@
 #include <linux/limits.h>
 
 #include "sr_util.h"
+#include "sr_config.h"
 
 time_t  logbase;
 int     logfd = STDERR_FILENO;
@@ -567,7 +568,7 @@ int hexchr2nibble( char c )
 
 unsigned char *sr_sumstr2hash( const char *s )
 {
-    int i;
+    int i, len;
     if (!s) return(NULL);
     memset( sumhash, 0, SR_SUMHASHLEN );
     sumhash[0]=s[0];
@@ -577,8 +578,9 @@ unsigned char *sr_sumstr2hash( const char *s )
        sumhash[1] = s[2];
        return(sumhash);
     }
-    
-    for ( i=1; ( i < get_sumhashlen(s[0]) ) ; i++ )
+    len = (s[0] == 'a') ? strnlen(s, get_sumhashlen('a')) : get_sumhashlen(s[0]);
+
+    for ( i=1; i < len; i++ )
     {
         sumhash[i] = (unsigned char)((hexchr2nibble(s[i<<1]) << 4) + hexchr2nibble(s[(i<<1)+1]));
     }
@@ -588,7 +590,7 @@ unsigned char *sr_sumstr2hash( const char *s )
 
 char *sr_hash2sumstr( const unsigned char *h )
 {
-  int i;
+  int i, len;
   memset( sumstr, 0, SR_SUMSTRLEN );
   sumstr[0] = h[0];
   sumstr[1] = ',';
@@ -599,8 +601,9 @@ char *sr_hash2sumstr( const unsigned char *h )
       sumstr[3] = '\0';;
       return(sumstr); 
   }
+  len = (h[0] == 'a') ? strnlen((const char *) h, get_sumhashlen('a')) : get_sumhashlen(h[0]);
 
-  for(i=1; i < get_sumhashlen(h[0]); i++ )
+  for ( i=1; i < len; i++ )
   {
      sumstr[ i*2   ] = nibble2hexchr( h[i]>>4 );
      sumstr[ i*2+1 ] = nibble2hexchr( h[i] );
