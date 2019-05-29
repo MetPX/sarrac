@@ -309,13 +309,16 @@ unsigned char sumhash[SR_SUMHASHLEN];
 int get_sumhashlen( char algo )
 {
   switch(algo) {
+    case 'a' :
+        return(AMQP_MAX_SS-2);                     /* max header length minus 2 chars for algo char and comma */
+
     case 'd' : case 'n' : 
         return(MD5_DIGEST_LENGTH+1);
 
     case '0': 
         return(4+1);
 
-    case 'p' : case 's' : case 'L' : case 'R' : case 'a' :
+    case 'p' : case 's' : case 'L' : case 'R' :
         return(SHA512_DIGEST_LENGTH+1);
 
     case 'z' :
@@ -394,7 +397,7 @@ char *set_sumstr( char algo, char algoz, const char* sum_preset, const char* fn,
    case 'a' :
         sumstr[0] = algo;
         sumstr[1] = ',';
-        strcpy(&sumstr[2], sum_preset);
+        strncpy(&sumstr[2], sum_preset, get_sumhashlen('a'));
         break;
 
    case 'd' :
