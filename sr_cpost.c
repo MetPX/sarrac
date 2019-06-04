@@ -283,7 +283,6 @@ void do1file( struct sr_context *sr_c, char *fn )
 
          if ( !dir_stack_push( fn, w, sb.st_dev, sb.st_ino ) )
          {
-             close(inot_fd);
              log_msg( LOG_ERROR, "info: loop detected, skipping: %s\n", fn );
              return;
          } //else 
