@@ -307,7 +307,6 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 {
     amqp_rpc_reply_t reply;
     amqp_frame_t frame;
-    amqp_envelope_t envelope;
     int result;
     char buf[2*PATH_MAXNUL];
 
@@ -386,21 +385,11 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 
     amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
 
-    amqp_consume_message(sr_c->cfg->broker->conn, &envelope, NULL,  0);
-
-    reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);
-    if (reply.reply_type != AMQP_RESPONSE_NORMAL ) 
-    {
-         sr_amqp_reply_print(reply, "consume_message failed");
-         return(NULL);
-    }
-
     result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
     //log_msg( LOG_DEBUG, "Result %d\n", result);
     if (result < 0) 
     {
-       amqp_destroy_envelope(&envelope);
        amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
        return(NULL);
     }
@@ -409,7 +398,6 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 
     if (frame.frame_type != AMQP_FRAME_METHOD) 
     {
-       amqp_destroy_envelope(&envelope);
        amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
        return(NULL);
     }
@@ -418,7 +406,6 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 
     if (frame.payload.method.id != AMQP_BASIC_DELIVER_METHOD) 
     {
-       amqp_destroy_envelope(&envelope);
        amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
        return(NULL);
     }
@@ -535,7 +522,6 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
             );
      */
     }
-    amqp_destroy_envelope(&envelope);
   
     if (body_received != body_target) return(NULL);
           /* Can only happen when amqp_simple_wait_frame returns <= 0 */
