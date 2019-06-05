@@ -362,7 +362,7 @@ void srshim_realpost(const char *path)
   { //reject.
       log_msg( LOG_DEBUG, "mask: %p, mask->accepting=%d accept_unmatched=%d\n", 
             mask, mask->accepting, sr_cfg.accept_unmatched );
-      if (sr_cfg.log_reject) log_msg( LOG_INFO, "sr_%s rejecting 02: %s\n", sr_cfg.progname, fn );
+      if (sr_cfg.log_reject) log_msg( LOG_INFO, "sr_%s rejecting pattern: %s\n", sr_cfg.progname, fn );
       return;
   }
   log_msg( LOG_DEBUG, "accepted... %s now\n", fn );
