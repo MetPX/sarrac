@@ -132,6 +132,38 @@ int dir_stack_push( char *fn, int wd, dev_t dev, ino_t ino )
    }
 }
 
+/*
+ * remove dir_stack entry with path corresponding to fn, if there is one
+ * FIXME refactor dir_stack into generic sll
+ */
+void dir_stack_rm(char *fn)
+{
+    struct dir_stack *i = NULL;
+    struct dir_stack *j = NULL;
+
+    i = dir_stack_top;
+    if (!i) return;
+
+    if (!strcmp(i->path, fn)) {
+        j = i;
+        dir_stack_top = i->next;
+        goto dir_stack_rm_exit;
+    }
+
+    while(i->next && strcmp(i->next->path, fn))
+       i = i->next;
+    if (i) {
+        j = i->next;
+        i->next = i->next->next;
+    }
+
+dir_stack_rm_exit:
+    if (j) {
+        free(j->path);
+        free(j);
+    }
+}
+
 void dir_stack_free() 
 {
    struct dir_stack *s ;
@@ -283,7 +315,7 @@ void do1file( struct sr_context *sr_c, char *fn )
 
          if ( !dir_stack_push( fn, w, sb.st_dev, sb.st_ino ) )
          {
-             close(inot_fd);
+             if (sr_c->cfg->log_reject) log_msg( LOG_INFO, "rejecting loop 03: %s\n", fn );
              return;
          } //else 
            //log_msg( LOG_DEBUG, "pushed on stack: %s\n", fn );
@@ -370,6 +402,16 @@ void dir_stack_check4events( struct sr_context *sr_c )
             log_msg( LOG_DEBUG, "bytes read: %d, sz ev: %ld, event: %04x %s: len=%d, fn=%s\n",
                     ret, sizeof(struct inotify_event)+e->len, e->mask,
                     inotify_event_2string(e->mask), e->len, fn );
+
+            /*
+             * directory removal processing
+             * ... code requires serious refactoring, but this quick fix should do for now
+             */
+            if ((e->mask&IN_ISDIR) && (e->mask&IN_DELETE)) {
+                log_msg(LOG_DEBUG, "detected directory removal, removing from internal data structures");
+                dir_stack_rm(fn);
+                continue;
+            }
 
             /* rename processing
                rename arrives as two events, old name MOVE_FROM, new name MOVE_TO.
@@ -776,13 +818,13 @@ int main(int argc, char **argv)
     {
         inotify_event_mask=IN_DONT_FOLLOW; 
 
-        if (sr_cfg.events|SR_CREATE) // includes mkdir & symlink.
+        if (sr_cfg.events&SR_CREATE) // includes mkdir & symlink.
             inotify_event_mask |= IN_CREATE|IN_MOVED_FROM|IN_MOVED_TO;  
 
-        if (sr_cfg.events|SR_MODIFY) 
+        if (sr_cfg.events&SR_MODIFY)
             inotify_event_mask |= IN_CLOSE_WRITE|IN_MOVED_FROM|IN_MOVED_TO;
 
-        if (sr_cfg.events|SR_DELETE) 
+        if (sr_cfg.events&SR_DELETE)
             inotify_event_mask |= IN_DELETE;
   
         inot_fd = inotify_init1(IN_NONBLOCK|IN_CLOEXEC);
