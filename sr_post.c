@@ -559,7 +559,10 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb )
                status = sr_cache_check( sr_c->cfg->cachep, sr_c->cfg->cache_basis,
                    m.sum[0], (unsigned char*)(m.sum), m.path, sr_message_partstr(&m) );
                log_msg( LOG_DEBUG, "sr_post cache_check: %s\n", status?"not found":"already there, no post" );
-               if (!status) continue; // cache hit.
+               if (!status) { 
+                    if (sr_c->cfg->log_reject) log_msg( LOG_INFO, "rejecting cache hit: %s, %s\n", m.path, sr_message_partstr(&m) );
+                    continue; // cache hit.
+               }
            }
           sr_post_message( sr_c, &m );
       }
@@ -672,9 +675,9 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
   } else {
     mask = isMatchingPattern( sr_c->cfg, oldname );
   }
-  if ( (mask && !(mask->accepting)) || (!mask && !(sr_c->cfg->accept_unmatched)) ) 
-      log_msg( LOG_DEBUG, "rejecting: %s\n", oldname );
-  else {
+  if ( (mask && !(mask->accepting)) || (!mask && !(sr_c->cfg->accept_unmatched)) )  {
+      if (sr_c->cfg->log_reject) log_msg( LOG_INFO, "rejecting 00: %s\n", oldname );
+  } else {
        if ( !access(oldname, F_OK) && (S_ISREG(sb.st_mode) || S_ISLNK(sb.st_mode) ) ) {
             sr_post( sr_c,  oldname, &sb  );
        } else {
@@ -692,9 +695,9 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
   } else {
     mask = isMatchingPattern( sr_c->cfg, newname );
   }
-  if ( (mask && !(mask->accepting)) || (!mask && !(sr_c->cfg->accept_unmatched)) ) 
-      log_msg( LOG_DEBUG, "rejecting: %s\n", newname );
-  else 
+  if ( (mask && !(mask->accepting)) || (!mask && !(sr_c->cfg->accept_unmatched)) ) {
+      if (sr_c->cfg->log_reject) log_msg( LOG_INFO, "rejecting 01: %s\n", oldname );
+  } else 
       sr_post( sr_c,  newname, &sb );
 
   free(first_user_header.key);  

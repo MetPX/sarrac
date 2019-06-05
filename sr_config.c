@@ -878,6 +878,11 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char* option, char* arg, 
       sr_cfg->log = val&2;
       retval=(1+(val&1));
 
+  } else if ( !strcmp( option, "log_reject" ) ) {
+      val = StringIsTrue(argument);
+      sr_cfg->log_reject = val&2;
+      retval=(1+(val&1));
+
   } else if ( !strcmp( option, "message-ttl" ) || !strcmp( option, "msgttl" ) || !strcmp( option, "mttl") ) {
       if isalpha(*argument) {
           val = StringIsTrue(argument);
@@ -1154,6 +1159,7 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname )
   sr_cfg->instance=1;
   sr_cfg->last_matched=NULL;
   sr_cfg->log=0;
+  sr_cfg->log_reject=0;
   sr_cfg->logfn=NULL;
   sr_cfg->logrotate=5;
   sr_cfg->logrotate_interval=24*60*60;

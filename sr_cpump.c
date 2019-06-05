@@ -307,14 +307,17 @@ int main(int argc, char **argv)
       mask = isMatchingPattern( &sr_cfg, m->path);
       if ( (mask && !(mask->accepting)) || (!mask && !(sr_cfg.accept_unmatched)) )
       {
-          log_msg( LOG_DEBUG, "rejecting: %s\n", m->path );
+          if (sr_cfg.log_reject) log_msg( LOG_INFO, "rejecting 04: %s\n", m->path );
           continue; 
       }
       // check cache.
       if (sr_cfg.cachep)
       {
           ret = sr_cache_check( sr_cfg.cachep, sr_cfg.cache_basis, m->parts_s, (unsigned char*)m->sum, m->path, sr_message_partstr(m) );
-          if (!ret) continue; // cache hit.
+          if (!ret) {
+             if (sr_cfg.log_reject) log_msg( LOG_INFO, "rejecting cache hit 04: %s %s\n", m->path, m->parts_s );
+             continue; // cache hit.
+          }
       }
       // do_pump=NULL
  

@@ -225,7 +225,7 @@ void do1file( struct sr_context *sr_c, char *fn )
 
     if ( (mask && !(mask->accepting)) || (!mask && !(sr_c->cfg->accept_unmatched)) )
     {
-          log_msg( LOG_DEBUG, "rejecting: %s\n", fn );
+          if (sr_c->cfg->log_reject) log_msg( LOG_INFO, "rejecting 03: %s\n", fn );
           return;
     }
 
@@ -284,7 +284,6 @@ void do1file( struct sr_context *sr_c, char *fn )
          if ( !dir_stack_push( fn, w, sb.st_dev, sb.st_ino ) )
          {
              close(inot_fd);
-             log_msg( LOG_ERROR, "info: loop detected, skipping: %s\n", fn );
              return;
          } //else 
            //log_msg( LOG_DEBUG, "pushed on stack: %s\n", fn );
