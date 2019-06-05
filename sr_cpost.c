@@ -776,13 +776,13 @@ int main(int argc, char **argv)
     {
         inotify_event_mask=IN_DONT_FOLLOW; 
 
-        if (sr_cfg.events|SR_CREATE) // includes mkdir & symlink.
+        if (sr_cfg.events&SR_CREATE) // includes mkdir & symlink.
             inotify_event_mask |= IN_CREATE|IN_MOVED_FROM|IN_MOVED_TO;  
 
-        if (sr_cfg.events|SR_MODIFY) 
+        if (sr_cfg.events&SR_MODIFY)
             inotify_event_mask |= IN_CLOSE_WRITE|IN_MOVED_FROM|IN_MOVED_TO;
 
-        if (sr_cfg.events|SR_DELETE) 
+        if (sr_cfg.events&SR_DELETE)
             inotify_event_mask |= IN_DELETE;
   
         inot_fd = inotify_init1(IN_NONBLOCK|IN_CLOEXEC);
