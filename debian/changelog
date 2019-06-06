@@ -1,3 +1,14 @@
+sarrac (2.19.06b1) unstable; urgency=medium
+
+  * bugfix:  issue #35 avoid crashes/hangs when directory trees are removed. (Msaraga!)
+  * bugfix:  issue #38 consumer was skipping half of the messages queued.
+  * bugfix:  buffer overrun fix from Gregory Rappa.
+  * bugfix:  issue #41, core dump
+  * new:  issue #44 added checksum caching support.
+  * new:  issue #52 added log_reject to print log messages when rejecting messages.
+
+ -- Peter Silva <peter@blacklab>  Wed, 05 Jun 2019 23:07:37 -0400
+
 sarrac (2.19.05b1ubuntu2) unstable; urgency=medium
 
   * bugfix: issue#29 adding utf8 check to avoid posting corrupted messages.  (msaraga!)
