@@ -243,8 +243,7 @@ char *local_fqdn();
  * Return: The mask entry that matched, if any. (not a copy, do not play with it.)
  */
 
-struct sr_mask_t *isMatchingPattern(struct sr_config_t *sr_cfg,
-				    const char *chaine);
+struct sr_mask_t *isMatchingPattern(struct sr_config_t *sr_cfg, const char *chaine);
 
 /**
  * sr_config_find_one() - find the name configuration file name 
@@ -341,8 +340,7 @@ void sr_config_init(struct sr_config_t *sr_cfg, const char *progname);
  *
  * Return: 1 on success, 0 on failure.
  */
-int sr_config_read(struct sr_config_t *sr_cfg, char *filename, int abort,
-		   int master);
+int sr_config_read(struct sr_config_t *sr_cfg, char *filename, int abort, int master);
 
 /**
  * sr_config_finalize() - consolidate settings to prepare for use.

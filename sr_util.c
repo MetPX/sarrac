@@ -88,8 +88,7 @@ void log_msg(int prio, const char *format, ...)
 	/* logging */
 	dprintf(logfd, "%04d-%02d-%02d %02d:%02d:%02d,%03d [%s] ",
 		tc.tm_year + 1900, tc.tm_mon + 1, tc.tm_mday,
-		tc.tm_hour, tc.tm_min, tc.tm_sec, (int)(ts.tv_nsec / 1e6),
-		level);
+		tc.tm_hour, tc.tm_min, tc.tm_sec, (int)(ts.tv_nsec / 1e6), level);
 
 	va_start(ap, format);
 	vdprintf(logfd, format, ap);
@@ -166,14 +165,12 @@ void log_set_fnts()
 	if (!(lri % (24 * 60 * 60))) {
 		/* daily resolution */
 		strcpy(p, "%04d-%02d-%02d");
-		sprintf(logfn_ts, b, tc.tm_year + 1900, tc.tm_mon + 1,
-			tc.tm_mday);
+		sprintf(logfn_ts, b, tc.tm_year + 1900, tc.tm_mon + 1, tc.tm_mday);
 
 	} else if (!(lri % (60 * 60))) {
 		/* hourly resolution */
 		strcpy(p, "%04d-%02d-%02d_%02d");
-		sprintf(logfn_ts, b, tc.tm_year + 1900, tc.tm_mon + 1,
-			tc.tm_mday, tc.tm_hour);
+		sprintf(logfn_ts, b, tc.tm_year + 1900, tc.tm_mon + 1, tc.tm_mday, tc.tm_hour);
 
 	} else if (!(lri % (60))) {
 		/* minute resolution */
@@ -205,8 +202,7 @@ int is_utf8(const char *string)
 			    // use bytes[0] <= 0x7F to allow ASCII control characters
 			    bytes[0] == 0x09 ||
 			    bytes[0] == 0x0A ||
-			    bytes[0] == 0x0D ||
-			    (0x20 <= bytes[0] && bytes[0] <= 0x7E)
+			    bytes[0] == 0x0D || (0x20 <= bytes[0] && bytes[0] <= 0x7E)
 		    )
 		    ) {
 			bytes += 1;
@@ -281,9 +277,7 @@ void daemonize(int close_stdout)
 		exit(1);
 	}
 	if (pid > 0) {
-		fprintf(stderr,
-			"parent exiting normally, rest is upto the child pid: %d\n",
-			pid);
+		fprintf(stderr, "parent exiting normally, rest is upto the child pid: %d\n", pid);
 		exit(0);
 	}
 	// child processing.
@@ -296,8 +290,7 @@ void daemonize(int close_stdout)
 	}
 
 	if (logfd == 2) {
-		log_msg(LOG_CRITICAL,
-			"to run as daemon log option must be set.\n");
+		log_msg(LOG_CRITICAL, "to run as daemon log option must be set.\n");
 		exit(1);
 	}
 
@@ -375,10 +368,7 @@ char *set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	unsigned long start = block_size * block_num;
 	unsigned long end;
 
-	end =
-	    start +
-	    ((block_num <
-	      (block_count - (block_rem != 0))) ? block_size : block_rem);
+	end = start + ((block_num < (block_count - (block_rem != 0))) ? block_size : block_rem);
 
 	memset(sumhash, 0, SR_SUMHASHLEN);
 	sumhash[0] = algo;
@@ -393,9 +383,7 @@ char *set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	memset(cache_mtime, 0, SR_TIMESTRLEN);
 	// are xattrs set?
-	if (xattr_cc
-	    && (getxattr(fn, "user.sr_mtime", cache_mtime, SR_TIMESTRLEN) >
-		0)) {
+	if (xattr_cc && (getxattr(fn, "user.sr_mtime", cache_mtime, SR_TIMESTRLEN) > 0)) {
 		// is the checksum valid? (i.e. is (cache_mtime >= stat_mtime)? )
 		if (sr_str2time(cache_mtime)->tv_sec >= stat_mtime) {
 			memset(sumstr, 0, SR_SUMSTRLEN);
@@ -422,8 +410,7 @@ char *set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		if (!(fd > 0))
 			fd = open(fn, O_RDONLY);
 		if (fd < 0) {
-			fprintf(stderr,
-				"unable to read file for checksumming\n");
+			fprintf(stderr, "unable to read file for checksumming\n");
 			strcpy(sumstr + 3, "deadbeef0");
 			return (NULL);
 		}
@@ -431,16 +418,14 @@ char *set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		//fprintf( stderr, "checksumming start: %lu to %lu\n", start, end );
 		while (start < end) {
 			how_many_to_read =
-			    (SUMBUFSIZE <
-			     (end - start)) ? SUMBUFSIZE : (end - start);
+			    (SUMBUFSIZE < (end - start)) ? SUMBUFSIZE : (end - start);
 
 			bytes_read = read(fd, buf, how_many_to_read);
 			if (bytes_read > 0) {
 				MD5_Update(&md5ctx, buf, bytes_read);
 				start += bytes_read;
 			} else {
-				fprintf(stderr, "error reading %s for MD5\n",
-					fn);
+				fprintf(stderr, "error reading %s for MD5\n", fn);
 				close(fd);
 				fd = 0;
 				return (NULL);
@@ -506,16 +491,14 @@ char *set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		if (!(fd > 0))
 			fd = open(fn, O_RDONLY);
 		if (fd < 0) {
-			fprintf(stderr,
-				"unable to read file for SHA checksumming\n");
+			fprintf(stderr, "unable to read file for SHA checksumming\n");
 			return (NULL);
 		}
 		lseek(fd, start, SEEK_SET);
 		//fprintf( stderr, "DBG checksumming start: %lu to %lu\n", start, end );
 		while (start < end) {
 			how_many_to_read =
-			    (SUMBUFSIZE <
-			     (end - start)) ? SUMBUFSIZE : (end - start);
+			    (SUMBUFSIZE < (end - start)) ? SUMBUFSIZE : (end - start);
 
 			bytes_read = read(fd, buf, how_many_to_read);
 
@@ -526,8 +509,7 @@ char *set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 				SHA512_Update(&shactx, buf, bytes_read);
 				start += bytes_read;
 			} else {
-				fprintf(stderr, "error reading %s for SHA\n",
-					fn);
+				fprintf(stderr, "error reading %s for SHA\n", fn);
 				close(fd);
 				fd = 0;
 				return (NULL);
@@ -673,8 +655,7 @@ char *sr_time2str(struct timespec *tin)
 	gmtime_r(&when, &s);
 	/*                         YYYY  MM  DD  hh  mm  ss */
 	sprintf(time2str_result, "%04d%02d%02d%02d%02d%02d.%s",
-		s.tm_year + 1900, s.tm_mon + 1, s.tm_mday, s.tm_hour, s.tm_min,
-		s.tm_sec, nsstr);
+		s.tm_year + 1900, s.tm_mon + 1, s.tm_mday, s.tm_hour, s.tm_min, s.tm_sec, nsstr);
 	return (time2str_result);
 }
 

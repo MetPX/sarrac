@@ -28,63 +28,50 @@
 void usage()
 {
 	fprintf(stderr,
-		"usage: sr_cpump %s <options> <action> <configuration>\n\n",
-		__sarra_version__);
-	fprintf(stderr,
-		"\t<options> - sr_post compatible configuration file.\n");
+		"usage: sr_cpump %s <options> <action> <configuration>\n\n", __sarra_version__);
+	fprintf(stderr, "\t<options> - sr_post compatible configuration file.\n");
 	fprintf(stderr,
 		"\tbroker amqps://<user>@host - required - to lookup in ~/.config/sarra/credentials.\n");
 	fprintf(stderr, "\tdebug <on|off> - more verbose output.\n");
-	fprintf(stderr,
-		"\texchange <exchange> - required - name of exchange to bind to\n");
+	fprintf(stderr, "\texchange <exchange> - required - name of exchange to bind to\n");
 	fprintf(stderr, "\taccept/reject <regex> - to filter files to post.\n");
 	fprintf(stderr, "\tqueue <name> - queue to declare & use.\n");
 
 	fprintf(stderr,
 		"\tpost_exchange <exchange> name of exchange to publish to (default: xs_<brokerusername>.)\n");
-	fprintf(stderr,
-		"\tpost_exchange_split <num> number of output exchanges (default: 1.)\n");
-	fprintf(stderr,
-		"\theartbeat <on|off|integer> - clean cache interval.\n");
-	fprintf(stderr,
-		"\tsuppress_duplicates|sd|cache|caching <on|off|integer> (default: off)\n");
+	fprintf(stderr, "\tpost_exchange_split <num> number of output exchanges (default: 1.)\n");
+	fprintf(stderr, "\theartbeat <on|off|integer> - clean cache interval.\n");
+	fprintf(stderr, "\tsuppress_duplicates|sd|cache|caching <on|off|integer> (default: off)\n");
 	fprintf(stderr,
 		"\t\tsuppress duplicate receptions < *cache* seconds apart.  \"on\" means 15 minute caching (on=900).\n");
 	fprintf(stderr,
 		"\t\tsuppress duplicate announcements < *cache* seconds apart.  \"on\" means 15 minute caching (on=900).\n");
 	fprintf(stderr,
 		"\tsuppress_duplicates_basis|sdb|cache_basis|cb <data|name|path> (default: path)\n");
-	fprintf(stderr,
-		"\ttopic_prefix <string> - AMQP topic prefix (default: v02.post )\n");
+	fprintf(stderr, "\ttopic_prefix <string> - AMQP topic prefix (default: v02.post )\n");
 	fprintf(stderr,
 		"\tto <destination> - clusters pump network should forward to (default: broker).\n");
-	fprintf(stderr,
-		"\turl <url>[,<url>]... - retrieval base url in the posted files.\n");
+	fprintf(stderr, "\turl <url>[,<url>]... - retrieval base url in the posted files.\n");
 	fprintf(stderr,
 		"\n\t<action> = [start|stop|setup|cleanup|foreground] default: foreground\n");
-	fprintf(stderr,
-		"\t\tstart - start a daemon running (will detach) and write to log.\n");
+	fprintf(stderr, "\t\tstart - start a daemon running (will detach) and write to log.\n");
 	fprintf(stderr, "\t\thelp - view this usage.\n");
 	fprintf(stderr, "\t\tlist - list existing configurations.\n");
 	fprintf(stderr, "\t\tstop - stop a running daemon.\n");
 	fprintf(stderr,
 		"\t\tdeclare - declare broker resources (to be ready for subscribers to bind to.)\n");
-	fprintf(stderr,
-		"\t\tsetup - bind queues to resources, declaring if needed.)\n");
-	fprintf(stderr,
-		"\t\tcleanup - delete any declared broker resources.\n");
+	fprintf(stderr, "\t\tsetup - bind queues to resources, declaring if needed.)\n");
+	fprintf(stderr, "\t\tcleanup - delete any declared broker resources.\n");
 	fprintf(stderr,
 		"\t\tforeground - run as a foreground process logging to stderr (ideal for debugging.)\n");
 
 	fprintf(stderr,
 		"\nThis is a limited C implementation of sr_subscribe(1), see man page for details\n\n");
-	fprintf(stderr,
-		"\t\tcan only move messages (no downloading.), no plugin support.\n");
+	fprintf(stderr, "\t\tcan only move messages (no downloading.), no plugin support.\n");
 	exit(1);
 }
 
-int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_t *sr_cfg,
-		     int dolog)
+int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_t *sr_cfg, int dolog)
 {
 	DIR *dir;
 	int ret;
@@ -167,10 +154,7 @@ int main(int argc, char **argv)
 		if (argv[i][0] == '-')
 			consume = sr_config_parse_option(&sr_cfg, &(argv[i][(argv[i][1] == '-') ? 2 : 1]),	/* skip second hyphen if necessary */
 							 argv[i + 1],
-							 (argc >
-							  i + 2) ? argv[i +
-									2] :
-							 NULL, 1);
+							 (argc > i + 2) ? argv[i + 2] : NULL, 1);
 		else
 			break;
 		if (!consume)
@@ -244,8 +228,7 @@ int main(int argc, char **argv)
 
 	sr_c = sr_context_init_config(&sr_cfg, 0);
 	if (!sr_c) {
-		log_msg(LOG_ERROR,
-			"failed to build context from configuration\n");
+		log_msg(LOG_ERROR, "failed to build context from configuration\n");
 		return (1);
 	}
 	sr_c = sr_context_connect(sr_c);
@@ -282,8 +265,7 @@ int main(int argc, char **argv)
 
 	if (strcmp(sr_cfg.action, "foreground")) {
 		if (!sr_cfg.outlet) {
-			log_msg(LOG_CRITICAL,
-				"must specify output file when running as daemon.\n");
+			log_msg(LOG_CRITICAL, "must specify output file when running as daemon.\n");
 			return (1);
 		}
 		daemonize(0);
@@ -315,8 +297,7 @@ int main(int argc, char **argv)
 		if ((mask && !(mask->accepting))
 		    || (!mask && !(sr_cfg.accept_unmatched))) {
 			if (sr_cfg.log_reject)
-				log_msg(LOG_INFO, "rejecting pattern: %s\n",
-					m->path);
+				log_msg(LOG_INFO, "rejecting pattern: %s\n", m->path);
 			continue;
 		}
 		// check cache.

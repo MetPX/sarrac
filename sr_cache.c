@@ -210,9 +210,7 @@ int sr_cache_save(struct sr_cache_t *cachep, int to_stdout)
 		fclose(cachep->fp);
 		f = fopen(cachep->fn, "w");
 		if (!f) {
-			log_msg(LOG_ERROR,
-				"failed to open cache file to save: %s\n",
-				cachep->fn);
+			log_msg(LOG_ERROR, "failed to open cache file to save: %s\n", cachep->fn);
 			return (0);
 		}
 	}
@@ -221,8 +219,7 @@ int sr_cache_save(struct sr_cache_t *cachep, int to_stdout)
 			for (e = c->paths; e; e = e->next) {
 				fprintf(f, "%s %s %s %s\n",
 					sr_hash2sumstr(c->key),
-					sr_time2str(&(e->created)), e->path,
-					e->partstr);
+					sr_time2str(&(e->created)), e->path, e->partstr);
 				count++;
 			}
 		}
@@ -252,8 +249,7 @@ struct sr_cache_entry_t *sr_cache_load(const char *fn)
 
 	f = fopen(fn, "r");
 	if (!f) {
-		log_msg(LOG_DEBUG,
-			"ERROR: failed to open cache file to load: %s\n", fn);
+		log_msg(LOG_DEBUG, "ERROR: failed to open cache file to load: %s\n", fn);
 		return (NULL);
 	}
 	cache = NULL;
@@ -264,8 +260,7 @@ struct sr_cache_entry_t *sr_cache_load(const char *fn)
 
 		if (!sum) {
 			log_msg(LOG_ERROR,
-				"corrupt line %d in cache file %s: %s\n",
-				line_count, fn, buf);
+				"corrupt line %d in cache file %s: %s\n", line_count, fn, buf);
 			continue;
 		}
 
@@ -346,8 +341,7 @@ struct sr_cache_entry_t *sr_cache_load(const char *fn)
 		memset(p, 0, sizeof(struct sr_cache_entry_path_t));
 
 		memset(&(p->created), 0, sizeof(struct timespec));
-		memcpy(&(p->created), sr_str2time(timestr),
-		       sizeof(struct timespec));
+		memcpy(&(p->created), sr_str2time(timestr), sizeof(struct timespec));
 		p->path = strdup(path);
 		p->partstr = partstr ? strdup(partstr) : NULL;
 		p->next = c->paths;

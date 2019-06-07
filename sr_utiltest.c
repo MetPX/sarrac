@@ -64,8 +64,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "\n");
 
 		strcpy(osumstr, sr_hash2sumstr(original_hash));
-		memcpy(rt_hash, sr_sumstr2hash(osumstr),
-		       SHA512_DIGEST_LENGTH + 1);
+		memcpy(rt_hash, sr_sumstr2hash(osumstr), SHA512_DIGEST_LENGTH + 1);
 		strcpy(rtsumstr, sr_hash2sumstr(rt_hash));
 
 		fprintf(stderr, "     original hash is: +%s+ length: %ld\n",
@@ -74,8 +73,7 @@ int main(int argc, char *argv[])
 			rtsumstr, (long)strlen(rtsumstr));
 
 		if (!strcmp(osumstr, rtsumstr)) {
-			fprintf(stderr,
-				"OK: sum string <-> hash strings are the same.\n");
+			fprintf(stderr, "OK: sum string <-> hash strings are the same.\n");
 			success++;
 		} else {
 			fprintf(stderr,
@@ -84,8 +82,7 @@ int main(int argc, char *argv[])
 		testcnt++;
 
 		if (!memcmp(original_hash, rt_hash, SHA512_DIGEST_LENGTH + 1)) {
-			fprintf(stderr,
-				"OK: original and round-tripped hashes are the same.\n");
+			fprintf(stderr, "OK: original and round-tripped hashes are the same.\n");
 			success++;
 		} else {
 			fprintf(stderr,
@@ -93,8 +90,7 @@ int main(int argc, char *argv[])
 		}
 		testcnt++;
 
-		memcpy(original_hash, sr_sumstr2hash(rtsumstr),
-		       SHA512_DIGEST_LENGTH + 1);
+		memcpy(original_hash, sr_sumstr2hash(rtsumstr), SHA512_DIGEST_LENGTH + 1);
 	}
 	t = time(NULL);
 	log_msg(LOG_INFO, "              It is now: %s\n", ctime(&t));
@@ -111,8 +107,7 @@ int main(int argc, char *argv[])
 
 	memcpy(&tsrt, sr_str2time(timestring), sizeof(struct timespec));
 	log_msg(LOG_DEBUG, " round tripped, time is: %ld\n", tsrt.tv_sec);
-	log_msg(LOG_DEBUG, "          difference is: %ld\n",
-		tsrt.tv_sec - tsnow.tv_sec);
+	log_msg(LOG_DEBUG, "          difference is: %ld\n", tsrt.tv_sec - tsnow.tv_sec);
 	tscp = sr_time2str(&tsrt);
 	memcpy(timestring, tscp, strlen(tscp));
 
@@ -126,7 +121,6 @@ int main(int argc, char *argv[])
 
 	testcnt++;
 
-	printf("%s %d/%d tests passed\n",
-	       (success >= testcnt) ? "OK" : "FAILED", success, testcnt);
+	printf("%s %d/%d tests passed\n", (success >= testcnt) ? "OK" : "FAILED", success, testcnt);
 	exit(!(success >= testcnt));
 }

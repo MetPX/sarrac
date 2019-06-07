@@ -39,23 +39,20 @@ int main(int argc, char *const *argv)
 	}
 
 	if (sr_cfg.broker) {
-		printf("broker, scheme=%s\n",
-		       sr_cfg.broker->ssl ? "amqps" : "amqp");
+		printf("broker, scheme=%s\n", sr_cfg.broker->ssl ? "amqps" : "amqp");
 		printf("broker, userInfo=%s \n", sr_cfg.broker->user);
 		printf("broker, hostText=%s \n", sr_cfg.broker->hostname);
 		printf("broker, portText=%d \n", sr_cfg.broker->port);
 	}
 
 	if (sr_cfg.post_broker) {
-		printf("broker, scheme=%s\n",
-		       sr_cfg.post_broker->ssl ? "amqps" : "amqp");
+		printf("broker, scheme=%s\n", sr_cfg.post_broker->ssl ? "amqps" : "amqp");
 		printf("broker, userInfo=%s \n", sr_cfg.post_broker->user);
 		printf("broker, hostText=%s \n", sr_cfg.post_broker->hostname);
 		printf("broker, portText=%d \n", sr_cfg.post_broker->port);
 	}
 
-	printf("posting accept_unmatched=%s \n",
-	       sr_cfg.accept_unmatched ? "on" : "off");
+	printf("posting accept_unmatched=%s \n", sr_cfg.accept_unmatched ? "on" : "off");
 	printf("posting debug=%s \n", sr_cfg.debug ? "on" : "off");
 	printf("posting events= 0x%02x \n", sr_cfg.events);
 	printf("posting post_exchange=%s \n", sr_cfg.post_exchange);

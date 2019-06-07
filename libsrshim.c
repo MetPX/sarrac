@@ -83,8 +83,7 @@ void setup_pfo()
 			if (fdde->d_name[0] == '.')
 				continue;
 
-			fdpathlen =
-			    readlinkat(dirfd(fddir), fdde->d_name, fdpath, 500);
+			fdpathlen = readlinkat(dirfd(fddir), fdde->d_name, fdpath, 500);
 
 			if (fdpathlen < 0)
 				continue;
@@ -105,8 +104,7 @@ void setup_pfo()
 			if (last_pfo >= max_pfo) {
 				char **save_pfo = parent_files_open;
 				max_pfo *= 2;
-				parent_files_open =
-				    (char **)malloc(max_pfo * sizeof(char *));
+				parent_files_open = (char **)malloc(max_pfo * sizeof(char *));
 				for (int i = 0; i < last_pfo; i++)
 					parent_files_open[i] = save_pfo[i];
 				free(save_pfo);
@@ -170,15 +168,13 @@ int should_not_post(const char *fn)
 			if (interval < sr_cfg.shim_post_minterval) {
 				log_msg(LOG_DEBUG,
 					"suppress repeated post of %s (count=%d) (only: %g seconds ago, minterval is: %g)\n",
-					fn, remembered_count, interval,
-					sr_cfg.shim_post_minterval);
+					fn, remembered_count, interval, sr_cfg.shim_post_minterval);
 				(*remembered_filenames)[i].clean = 0;
 				return (1);
 			} else {
 				log_msg(LOG_DEBUG,
 					"shim_post_minterval (%g) exceeded (%g), repeat post of %s (count=%d) \n",
-					sr_cfg.shim_post_minterval, interval,
-					fn, remembered_count);
+					sr_cfg.shim_post_minterval, interval, fn, remembered_count);
 				(*remembered_filenames)[i].ts = ts;
 				(*remembered_filenames)[i].clean =
 				    !(sr_c->cfg->shim_defer_posting_to_exit);
@@ -189,31 +185,25 @@ int should_not_post(const char *fn)
 	/* lengthen list, if necessary */
 	if (remembered_count >= remembered_max) {
 		if (!remembered_filenames) {
-			remembered_filenames =
-			    malloc(1 * sizeof(struct filename_memory));
+			remembered_filenames = malloc(1 * sizeof(struct filename_memory));
 			remembered_max = 1;
 		} else {
-			struct filename_memory (*saved_post_filenames)[] =
-			    remembered_filenames;
+			struct filename_memory (*saved_post_filenames)[] = remembered_filenames;
 			remembered_max *= 2;
 			remembered_filenames =
-			    malloc(remembered_max *
-				   sizeof(struct filename_memory));
+			    malloc(remembered_max * sizeof(struct filename_memory));
 
 			for (int i = 0; i < remembered_count; i++)
-				(*remembered_filenames)[i] =
-				    (*saved_post_filenames)[i];
+				(*remembered_filenames)[i] = (*saved_post_filenames)[i];
 		}
 	}
 
 	/* add last item to the list */
-	(*remembered_filenames)[remembered_count].clean =
-	    !(sr_c->cfg->shim_defer_posting_to_exit);
+	(*remembered_filenames)[remembered_count].clean = !(sr_c->cfg->shim_defer_posting_to_exit);
 	(*remembered_filenames)[remembered_count].ts = ts;
 	(*remembered_filenames)[remembered_count++].name = strdup(fn);
 
-	log_msg(LOG_DEBUG, "remembering post of %s (count=%d) \n", fn,
-		remembered_count);
+	log_msg(LOG_DEBUG, "remembering post of %s (count=%d) \n", fn, remembered_count);
 	return (0);
 
 }
@@ -358,8 +348,7 @@ void srshim_realpost(const char *path)
 			"mask: %p, mask->accepting=%d accept_unmatched=%d\n",
 			mask, mask->accepting, sr_cfg.accept_unmatched);
 		if (sr_cfg.log_reject)
-			log_msg(LOG_INFO, "sr_%s rejecting pattern: %s\n",
-				sr_cfg.progname, fn);
+			log_msg(LOG_INFO, "sr_%s rejecting pattern: %s\n", sr_cfg.progname, fn);
 		return;
 	}
 	log_msg(LOG_DEBUG, "accepted... %s now\n", fn);
@@ -374,8 +363,7 @@ void srshim_realpost(const char *path)
 		return;
 
 	if (statres) {
-		log_msg(LOG_DEBUG, "should be really posting %s now sr_c=%p\n",
-			fn, sr_c);
+		log_msg(LOG_DEBUG, "should be really posting %s now sr_c=%p\n", fn, sr_c);
 		sr_post(sr_c, fn, NULL);
 		return;
 	}
@@ -410,8 +398,7 @@ int shimpost(const char *path, int status)
 			srshim_realpost(path);
 		} else {
 			cwd = get_current_dir_name();
-			real_path =
-			    (char *)malloc(strlen(cwd) + strlen(path) + 3);
+			real_path = (char *)malloc(strlen(cwd) + strlen(path) + 3);
 			//getwd(real_path);
 			strcpy(real_path, cwd);
 			strcat(real_path, "/");
@@ -471,8 +458,7 @@ int symlink(const char *target, const char *linkpath)
 	int status;
 
 	if (getenv("SR_SHIMDEBUG"))
-		fprintf(stderr, "SR_SHIMDEBUG symlink %s %s\n", target,
-			linkpath);
+		fprintf(stderr, "SR_SHIMDEBUG symlink %s %s\n", target, linkpath);
 	if (!symlink_init_done) {
 		setup_exit();
 		symlink_fn_ptr = (symlink_fn) dlsym(RTLD_NEXT, "symlink");
@@ -506,8 +492,7 @@ int unlinkat(int dirfd, const char *path, int flags)
 	char *real_return;
 
 	if (getenv("SR_SHIMDEBUG"))
-		fprintf(stderr, "SR_SHIMDEBUG unlinkat %s dirfd=%i\n", path,
-			dirfd);
+		fprintf(stderr, "SR_SHIMDEBUG unlinkat %s dirfd=%i\n", path, dirfd);
 	if (!unlinkat_init_done) {
 		setup_exit();
 		unlinkat_fn_ptr = (unlinkat_fn) dlsym(RTLD_NEXT, "unlinkat");
@@ -538,8 +523,7 @@ int unlinkat(int dirfd, const char *path, int flags)
 		return (status);
 
 	if (getenv("SR_SHIMDEBUG"))
-		fprintf(stderr, "SR_SHIMDEBUG unlinkat realpath %s\n",
-			real_path);
+		fprintf(stderr, "SR_SHIMDEBUG unlinkat realpath %s\n", real_path);
 
 	return (shimpost(real_path, status));
 }
@@ -564,8 +548,7 @@ int unlink(const char *path)
 		return (status);
 
 	if (getenv("SR_SHIMDEBUG"))
-		fprintf(stderr, "SR_SHIMDEBUG unlink 2 %s status=%d\n", path,
-			status);
+		fprintf(stderr, "SR_SHIMDEBUG unlink 2 %s status=%d\n", path, status);
 
 	if (status == -1)
 		return status;
@@ -591,8 +574,7 @@ typedef int (*renameat_fn) (int, const char *, int, const char *);
 static renameat_fn renameat_fn_ptr = NULL;
 
 static int renameat2_init_done = 0;
-typedef int (*renameat2_fn) (int, const char *, int, const char *,
-			     unsigned int);
+typedef int (*renameat2_fn) (int, const char *, int, const char *, unsigned int);
 static renameat2_fn renameat2_fn_ptr = NULL;
 
 int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
@@ -609,8 +591,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 	char *oreal_return;
 
 	if (getenv("SR_SHIMDEBUG"))
-		fprintf(stderr, "SR_SHIMDEBUG renameorlink %s %s\n", oldpath,
-			newpath);
+		fprintf(stderr, "SR_SHIMDEBUG renameorlink %s %s\n", oldpath, newpath);
 
 	if (!renameat2_init_done) {
 		setup_exit();
@@ -634,9 +615,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 
 	if (link) {
 		if (linkat_fn_ptr)
-			status =
-			    linkat_fn_ptr(olddirfd, oldpath, newdirfd, newpath,
-					  flags);
+			status = linkat_fn_ptr(olddirfd, oldpath, newdirfd, newpath, flags);
 		else if (link_fn_ptr && !flags)
 			status = link_fn_ptr(oldpath, newpath);
 		else {
@@ -645,13 +624,9 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		}
 	} else {
 		if (renameat2_fn_ptr)
-			status =
-			    renameat2_fn_ptr(olddirfd, oldpath, newdirfd,
-					     newpath, flags);
+			status = renameat2_fn_ptr(olddirfd, oldpath, newdirfd, newpath, flags);
 		else if (renameat_fn_ptr && !flags)
-			status =
-			    renameat_fn_ptr(olddirfd, oldpath, newdirfd,
-					    newpath);
+			status = renameat_fn_ptr(olddirfd, oldpath, newdirfd, newpath);
 		else {
 			log_msg(LOG_ERROR,
 				"SR_SHIMDEBUG renameorlink could not identify real entry point for renameat\n");
@@ -734,8 +709,7 @@ int dup2(int oldfd, int newfd)
 	int status;
 
 	if (getenv("SR_SHIMDEBUG"))
-		fprintf(stderr, "SR_SHIMDEBUG dup2 oldfd %d newfd %d\n", oldfd,
-			newfd);
+		fprintf(stderr, "SR_SHIMDEBUG dup2 oldfd %d newfd %d\n", oldfd, newfd);
 
 	if (!dup2_init_done) {
 		setup_exit();
@@ -789,8 +763,7 @@ int dup2(int oldfd, int newfd)
 		return status;
 
 	if (getenv("SR_SHIMDEBUG"))
-		fprintf(stderr, "SR_SHIMDEBUG dup2 posting %s status=%d\n",
-			real_path, status);
+		fprintf(stderr, "SR_SHIMDEBUG dup2 posting %s status=%d\n", real_path, status);
 
 	// because shimpost posts when:    if (!status)
 	// we use a tmpstatus and call shimpost with status=0
@@ -816,8 +789,7 @@ int dup3(int oldfd, int newfd, int flags)
 
 	if (getenv("SR_SHIMDEBUG"))
 		fprintf(stderr,
-			"SR_SHIMDEBUG dup3 oldfd %d newfd %d flags %d\n", oldfd,
-			newfd, flags);
+			"SR_SHIMDEBUG dup3 oldfd %d newfd %d flags %d\n", oldfd, newfd, flags);
 
 	if (!dup3_init_done) {
 		setup_exit();
@@ -871,8 +843,7 @@ int dup3(int oldfd, int newfd, int flags)
 		return status;
 
 	if (getenv("SR_SHIMDEBUG"))
-		fprintf(stderr, "SR_SHIMDEBUG dup3 posting %s %d\n", real_path,
-			status);
+		fprintf(stderr, "SR_SHIMDEBUG dup3 posting %s %d\n", real_path, status);
 
 	// because shimpost posts when:    if (!status)
 	// we use a tmpstatus and call shimpost with status=0
@@ -897,8 +868,7 @@ void exit_cleanup_posts()
 	struct dirent *fdde;
 
 	if (getenv("SR_SHIMDEBUG"))
-		fprintf(stderr, "SR_SHIMDEBUG exit_cleanup_posts, context=%p\n",
-			sr_c);
+		fprintf(stderr, "SR_SHIMDEBUG exit_cleanup_posts, context=%p\n", sr_c);
 
 	if (shim_disabled || !getenv("SR_POST_CONFIG"))
 		return;
@@ -943,9 +913,7 @@ void exit_cleanup_posts()
 			fsync(fd);	// ensure data is flushed to disk before post occurs.
 
 			if (getenv("SR_SHIMDEBUG"))
-				fprintf(stderr,
-					"SR_SHIMDEBUG exit posting %s\n",
-					real_path);
+				fprintf(stderr, "SR_SHIMDEBUG exit posting %s\n", real_path);
 
 			shimpost(real_path, 0);
 		}
@@ -953,8 +921,7 @@ void exit_cleanup_posts()
 	}
 
 	if (getenv("SR_SHIMDEBUG"))
-		fprintf(stderr,
-			"SR_SHIMDEBUG exit posting... deferred posting start.\n");
+		fprintf(stderr, "SR_SHIMDEBUG exit posting... deferred posting start.\n");
 
 	/* execute deferred/remembered posts, FIXME: embarrasing n**2 algo, should do better later */
 	for (int i = 0; i < remembered_count; i++) {
@@ -976,8 +943,7 @@ void exit_cleanup_posts()
 			if (S_ISLNK(sb.st_mode)) {
 				//if ( getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG exit reading link: %s\n", (*remembered_filenames)[i].name );
 				statres =
-				    readlink((*remembered_filenames)[i].name,
-					     real_path, PATH_MAX);
+				    readlink((*remembered_filenames)[i].name, real_path, PATH_MAX);
 				if (statres) {
 					real_path[statres] = '\0';
 					sr_post(sr_c, real_path, &sb);
@@ -1057,8 +1023,7 @@ int link(const char *target, const char *linkpath)
 	return (renameorlink(AT_FDCWD, target, AT_FDCWD, linkpath, 0, 1));
 }
 
-int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath,
-	   int flags)
+int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags)
 {
 	if (getenv("SR_SHIMDEBUG"))
 		fprintf(stderr,
@@ -1070,18 +1035,15 @@ int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath,
 int rename(const char *oldpath, const char *newpath)
 {
 	if (getenv("SR_SHIMDEBUG"))
-		fprintf(stderr, "SR_SHIMDEBUG rename %s %s\n", oldpath,
-			newpath);
+		fprintf(stderr, "SR_SHIMDEBUG rename %s %s\n", oldpath, newpath);
 
 	return (renameorlink(AT_FDCWD, oldpath, AT_FDCWD, newpath, 0, 0));
 }
 
-int renameat(int olddirfd, const char *oldpath, int newdirfd,
-	     const char *newpath)
+int renameat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath)
 {
 	if (getenv("SR_SHIMDEBUG"))
-		fprintf(stderr, "SR_SHIMDEBUG renameat %s %s\n", oldpath,
-			newpath);
+		fprintf(stderr, "SR_SHIMDEBUG renameat %s %s\n", oldpath, newpath);
 
 	return (renameorlink(olddirfd, oldpath, newdirfd, newpath, 0, 0));
 }
@@ -1090,8 +1052,7 @@ int renameat2(int olddirfd, const char *oldpath, int newdirfd,
 	      const char *newpath, unsigned int flags)
 {
 	if (getenv("SR_SHIMDEBUG"))
-		fprintf(stderr, "SR_SHIMDEBUG renameat2 %s %s\n", oldpath,
-			newpath);
+		fprintf(stderr, "SR_SHIMDEBUG renameat2 %s %s\n", oldpath, newpath);
 
 	return (renameorlink(olddirfd, oldpath, newdirfd, newpath, flags, 0));
 }
@@ -1138,8 +1099,7 @@ ssize_t sendfile(int out_fd, int in_fd, off_t * offset, size_t count)
 }
 
 static int copy_file_range_init_done = 0;
-typedef ssize_t(*copy_file_range_fn) (int, loff_t *, int, loff_t *, size_t,
-				      unsigned int);
+typedef ssize_t(*copy_file_range_fn) (int, loff_t *, int, loff_t *, size_t, unsigned int);
 static copy_file_range_fn copy_file_range_fn_ptr = NULL;
 
 ssize_t copy_file_range(int fd_in, loff_t * off_in, int fd_out,
@@ -1151,12 +1111,10 @@ ssize_t copy_file_range(int fd_in, loff_t * off_in, int fd_out,
 	char *real_return;
 
 	if (!copy_file_range_init_done) {
-		copy_file_range_fn_ptr =
-		    (copy_file_range_fn) dlsym(RTLD_NEXT, "copy_file_range");
+		copy_file_range_fn_ptr = (copy_file_range_fn) dlsym(RTLD_NEXT, "copy_file_range");
 		copy_file_range_init_done = 1;
 	}
-	status =
-	    copy_file_range_fn_ptr(fd_in, off_in, fd_out, off_out, len, flags);
+	status = copy_file_range_fn_ptr(fd_in, off_in, fd_out, off_out, len, flags);
 	if (shim_disabled)
 		return (status);
 
@@ -1164,8 +1122,7 @@ ssize_t copy_file_range(int fd_in, loff_t * off_in, int fd_out,
 	real_return = realpath(fdpath, real_path);
 
 	if (getenv("SR_SHIMDEBUG"))
-		fprintf(stderr, "SR_SHIMDEBUG copy_file_range to %s\n",
-			real_path);
+		fprintf(stderr, "SR_SHIMDEBUG copy_file_range to %s\n", real_path);
 
 	if (!real_return)
 		return (status);
@@ -1307,8 +1264,7 @@ int fclose(FILE * f)
 	}
 
 	if (getenv("SR_SHIMDEBUG"))
-		fprintf(stderr, "SR_SHIMDEBUG fclose %p %s status=%d\n", f,
-			real_path, status);
+		fprintf(stderr, "SR_SHIMDEBUG fclose %p %s status=%d\n", f, real_path, status);
 
 	return shimpost(real_path, status);
 }

@@ -73,7 +73,7 @@ install:
 	@cp *.h build/include/
 
 format:
-	@indent -linux *.c *.h
+	@indent -linux -l100 *.c *.h
 	@rm *.c~ *.h~
 
 clean:

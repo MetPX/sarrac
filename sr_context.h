@@ -64,8 +64,7 @@ void sr_amqp_reply_print(amqp_rpc_reply_t x, char const *context);
    context, is a descriptive string.
  */
 
-struct sr_context *sr_context_init_config(struct sr_config_t *sr_cfg,
-					  const int avoid_std_fds);
+struct sr_context *sr_context_init_config(struct sr_config_t *sr_cfg, const int avoid_std_fds);
 
 /* context_init sets up a context.
    returns connection to a broker based on given configuration.

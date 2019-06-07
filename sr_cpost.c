@@ -107,8 +107,7 @@ int dir_stack_push(char *fn, int wd, dev_t dev, ino_t ino)
 		t = (struct dir_stack *)(malloc(sizeof(struct dir_stack)));
 		if (!t) {
 			log_msg(LOG_ERROR,
-				"ERROR: failed to malloc adding to dir_stack for: %s\n",
-				fn);
+				"ERROR: failed to malloc adding to dir_stack for: %s\n", fn);
 			return (0);
 		}
 
@@ -278,8 +277,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 		if (sr_c->cfg->debug)
 			log_msg(LOG_DEBUG,
 				"debug: %s is a symbolic link. (follow=%s) posting\n",
-				fn,
-				(sr_c->cfg->follow_symlinks) ? "on" : "off");
+				fn, (sr_c->cfg->follow_symlinks) ? "on" : "off");
 
 		//if (ts_newer( sb.st_mtim, latest_min_mtim ))
 		sr_post(sr_c, fn, &sb);	// post the link itself.
@@ -317,8 +315,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 		if (!sr_c->cfg->force_polling) {
 			w = inotify_add_watch(inot_fd, fn, inotify_event_mask);
 			if (w < 0) {
-				log_msg(LOG_ERROR, "failed to add_watch: %s\n",
-					fn);
+				log_msg(LOG_ERROR, "failed to add_watch: %s\n", fn);
 				return;
 			}
 		} else
@@ -333,8 +330,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 
 		dir = opendir(fn);
 		if (!dir) {
-			log_msg(LOG_ERROR, "failed to open directory: %s\n",
-				fn);
+			log_msg(LOG_ERROR, "failed to open directory: %s\n", fn);
 			return;
 		}
 
@@ -392,17 +388,12 @@ void dir_stack_check4events(struct sr_context *sr_c)
 	/* FIXME: MISSING: initialize done_list? */
 
 	while ((ret = read(inot_fd, buff, sizeof buff)) > 0) {
-		for (p = buff;
-		     p < (buff + ret);
-		     p += sizeof(struct inotify_event) + e->len) {
+		for (p = buff; p < (buff + ret); p += sizeof(struct inotify_event) + e->len) {
 			e = (struct inotify_event *)p;
 
-			for (d = dir_stack_top; d && (e->wd != d->wd);
-			     d = d->next) ;
+			for (d = dir_stack_top; d && (e->wd != d->wd); d = d->next) ;
 			if (!d) {
-				log_msg(LOG_ERROR,
-					"cannot find path for event %s\n",
-					e->name);
+				log_msg(LOG_ERROR, "cannot find path for event %s\n", e->name);
 				continue;
 			}
 			sprintf(fn, "%s/%s", d->path, e->name);
@@ -410,8 +401,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 			log_msg(LOG_DEBUG,
 				"bytes read: %d, sz ev: %ld, event: %04x %s: len=%d, fn=%s\n",
 				ret, sizeof(struct inotify_event) + e->len,
-				e->mask, inotify_event_2string(e->mask), e->len,
-				fn);
+				e->mask, inotify_event_2string(e->mask), e->len, fn);
 
 			/*
 			 * directory removal processing
@@ -436,24 +426,20 @@ void dir_stack_check4events(struct sr_context *sr_c)
 				if (old_names) {
 					prevon = NULL;
 					for (on = old_names;
-					     (on && (on->cookie != e->cookie));
-					     on = on->next)
+					     (on && (on->cookie != e->cookie)); on = on->next)
 						prevon = on;
 					if (on) {
 						if (on->ofn) {
 							log_msg(LOG_DEBUG,
 								"ok invoking rename ofn=%s %s\n",
 								on->ofn, fn);
-							sr_post_rename(sr_c,
-								       on->ofn,
-								       fn);
+							sr_post_rename(sr_c, on->ofn, fn);
 							free(on->ofn);
 						} else {
 							log_msg(LOG_DEBUG,
 								"ok invoking rename %s nfn=%s\n",
 								fn, on->nfn);
-							sr_post_rename(sr_c, fn,
-								       on->nfn);
+							sr_post_rename(sr_c, fn, on->nfn);
 							free(on->nfn);
 						}
 						if (prevon)
@@ -491,28 +477,23 @@ void dir_stack_check4events(struct sr_context *sr_c)
 			HASH_FIND_STR(entries_done, fn, tmpe);
 
 			log_msg(LOG_DEBUG,
-				"looking in entries_done, for %s, result=%p\n",
-				fn, tmpe);
+				"looking in entries_done, for %s, result=%p\n", fn, tmpe);
 
 			if (!tmpe) {
-				new_entry =
-				    (struct hash_entry *)
+				new_entry = (struct hash_entry *)
 				    malloc(sizeof(struct hash_entry));
 				new_entry->fn = strdup(fn);
 				HASH_ADD_KEYPTR(hh, entries_done, new_entry->fn,
-						strlen(new_entry->fn),
-						new_entry);
+						strlen(new_entry->fn), new_entry);
 				log_msg(LOG_DEBUG,
 					"e->mask=%04x from:  %04x  to: %04x \n",
 					e->mask, IN_MOVED_FROM, IN_MOVED_TO);
 				if (!(e->mask & (IN_MOVED_FROM | IN_MOVED_TO))) {
-					log_msg(LOG_DEBUG, "do one file: %s\n",
-						fn);
+					log_msg(LOG_DEBUG, "do one file: %s\n", fn);
 					do1file(sr_c, fn);
 				}
 			} else {
-				log_msg(LOG_DEBUG,
-					"entries_done hit! ignoring:%s\n", fn);
+				log_msg(LOG_DEBUG, "entries_done hit! ignoring:%s\n", fn);
 			}
 		}
 	}
@@ -525,8 +506,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 	}
 }
 
-int sr_cpost_cleanup(struct sr_context *sr_c, struct sr_config_t *sr_cfg,
-		     int dolog)
+int sr_cpost_cleanup(struct sr_context *sr_c, struct sr_config_t *sr_cfg, int dolog)
 {
 	DIR *dir;
 	int ret;
@@ -550,8 +530,7 @@ int sr_cpost_cleanup(struct sr_context *sr_c, struct sr_config_t *sr_cfg,
 		sr_c->cfg->progname, sr_c->cfg->configname);
 
 	if (!sr_post_cleanup(sr_c)) {
-		log_msg(LOG_WARNING, "failed to delete exchange: %s\n",
-			sr_cfg->exchange);
+		log_msg(LOG_WARNING, "failed to delete exchange: %s\n", sr_cfg->exchange);
 	} else {
 		log_msg(LOG_INFO, "exchange: %s deleted\n", sr_cfg->exchange);
 	}
@@ -600,34 +579,25 @@ int sr_cpost_cleanup(struct sr_context *sr_c, struct sr_config_t *sr_cfg,
 
 void usage()
 {
-	fprintf(stderr, "usage: sr_cpost %s <options> <paths>\n\n",
-		__sarra_version__);
+	fprintf(stderr, "usage: sr_cpost %s <options> <paths>\n\n", __sarra_version__);
 	fprintf(stderr, "\taccept/reject <regex> - to filter files to post.\n");
-	fprintf(stderr,
-		"\taccept_unmatch <boolean> - if not matched, accept? (default: true).\n");
-	fprintf(stderr,
-		"\taction [start|stop|setup|cleanup|foreground] default: foreground\n");
-	fprintf(stderr,
-		"\t\tstart - start a daemon running (will detach) and write to log.\n");
+	fprintf(stderr, "\taccept_unmatch <boolean> - if not matched, accept? (default: true).\n");
+	fprintf(stderr, "\taction [start|stop|setup|cleanup|foreground] default: foreground\n");
+	fprintf(stderr, "\t\tstart - start a daemon running (will detach) and write to log.\n");
 	fprintf(stderr, "\t\thelp - view this usage.\n");
 	fprintf(stderr, "\t\tstop - stop a running daemon.\n");
 	fprintf(stderr, "\t\tlist - list configurations available.\n");
 	fprintf(stderr,
 		"\t\tdeclare - declare broker resources (to be ready for subscribers to bind to.)\n");
-	fprintf(stderr,
-		"\t\tsetup - bind queues to resources, declaring if needed.)\n");
-	fprintf(stderr,
-		"\t\tcleanup - delete any declared broker resources.\n");
+	fprintf(stderr, "\t\tsetup - bind queues to resources, declaring if needed.)\n");
+	fprintf(stderr, "\t\tcleanup - delete any declared broker resources.\n");
 	fprintf(stderr,
 		"\t\tforeground - run as a foreground process logging to stderr (ideal for debugging.)\n");
 	fprintf(stderr,
 		"\tbroker amqps://<user>@host - required - to lookup in ~/.config/sarra/credentials. MANDATORY\n");
-	fprintf(stderr,
-		"\tchmod_log <mode> - permissions to set on log files (default: 0600)\n");
-	fprintf(stderr,
-		"\tconfig|c <name> - Configuration file (to store options) MANDATORY\n");
-	fprintf(stderr,
-		"\tdebug <on|off> - more verbose output. (default: off) \n");
+	fprintf(stderr, "\tchmod_log <mode> - permissions to set on log files (default: 0600)\n");
+	fprintf(stderr, "\tconfig|c <name> - Configuration file (to store options) MANDATORY\n");
+	fprintf(stderr, "\tdebug <on|off> - more verbose output. (default: off) \n");
 	fprintf(stderr,
 		"\tdelete <on|off> - Assume Directories empty themselves. (default: off) \n");
 	fprintf(stderr,
@@ -638,8 +608,7 @@ void usage()
 		"\tevents <list> - types of file events to post (default: create,modify,link,delete )\n");
 	fprintf(stderr,
 		"\t\tcreate - file creation (generally empty files are not interesting.)\n");
-	fprintf(stderr,
-		"\t\tmodify - when files being written are closed (most interesting.)\n");
+	fprintf(stderr, "\t\tmodify - when files being written are closed (most interesting.)\n");
 	fprintf(stderr, "\t\tdelete - when files removed. \n");
 	fprintf(stderr,
 		"\t\tlink - when files are linked or symbolically linked removed (converted to symlink). \n");
@@ -655,8 +624,7 @@ void usage()
 		"\t\tExample: when using distributed cluster files systems with multiple writing nodes, like GPFS & lustre (or run on all nodes.)\n");
 	fprintf(stderr,
 		"\theader <key>=<value> - post an arbitrary key=value attribute with file. OPTIONAL\n");
-	fprintf(stderr,
-		"\theartbeat <on|off|integer> - clean cache interval.\n");
+	fprintf(stderr, "\theartbeat <on|off|integer> - clean cache interval.\n");
 	fprintf(stderr,
 		"\tloglevel <integer> - print >= n:\n\t\t1-DEBUG, 2-info, 3-Warn, 4-ERROR, 5-CRITICAL.\n");
 	fprintf(stderr,
@@ -673,22 +641,18 @@ void usage()
 		"\tpost_base_url <url>[,<url>]... - retrieval base url in the posted files.\n");
 	fprintf(stderr,
 		"\t\t(a comma separated list of urls will result in alternation among multiple file postings.)\n");
-	fprintf(stderr,
-		"\trealpath <boolean> - resolve paths before posting (default: off)\n");
-	fprintf(stderr,
-		"\tsum <algo> - how to set fingerprint for posts: (default: s)\n");
+	fprintf(stderr, "\trealpath <boolean> - resolve paths before posting (default: off)\n");
+	fprintf(stderr, "\tsum <algo> - how to set fingerprint for posts: (default: s)\n");
 	fprintf(stderr, "\t\td-MD5 sum of entire file.\n");
 	fprintf(stderr, "\t\tn-MD5 sum of file name.\n");
 	fprintf(stderr, "\t\ts-SHA512 sum of entire file.\n");
 	fprintf(stderr, "\t\tN-SHA512 sum of file name.\n");
 	fprintf(stderr,
 		"\tsleep <integer> - watch paths every *sleep* seconds (rather than once) (default: 0 (== off)).\n");
-	fprintf(stderr,
-		"\tsuppress_duplicates|sd|cache|caching <on|off|integer> (default: off)\n");
+	fprintf(stderr, "\tsuppress_duplicates|sd|cache|caching <on|off|integer> (default: off)\n");
 	fprintf(stderr,
 		"\t\tsuppress duplicate announcements < *cache* seconds apart.  \"on\" means 15 minute caching (on=900).\n");
-	fprintf(stderr,
-		"\ttopic_prefix <string> - AMQP topic prefix (default: v02.post )\n");
+	fprintf(stderr, "\ttopic_prefix <string> - AMQP topic prefix (default: v02.post )\n");
 	fprintf(stderr,
 		"\tto <destination> - clusters pump network should forward to (default: broker).\n");
 	fprintf(stderr,
@@ -719,10 +683,7 @@ int main(int argc, char **argv)
 		if (argv[i][0] == '-')
 			consume = sr_config_parse_option(&sr_cfg, &(argv[i][(argv[i][1] == '-') ? 2 : 1]),	/* skip second hyphen if necessary */
 							 argv[i + 1],
-							 (argc >
-							  i + 2) ? argv[i +
-									2] :
-							 NULL, 1);
+							 (argc > i + 2) ? argv[i + 2] : NULL, 1);
 		else
 			break;
 		if (consume < 0)
@@ -786,8 +747,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!sr_config_finalize(&sr_cfg, 0)) {
-		log_msg(LOG_ERROR,
-			"something missing, failed to finalize config\n");
+		log_msg(LOG_ERROR, "something missing, failed to finalize config\n");
 		sr_config_free(&sr_cfg);
 		return (1);
 	}
@@ -805,8 +765,7 @@ int main(int argc, char **argv)
 	}
 
 	if ((sr_cfg.sleep <= 0.0) &&
-	    ((!strcmp(sr_cfg.action, "start")) ||
-	     (!strcmp(sr_cfg.action, "restart")))) {
+	    ((!strcmp(sr_cfg.action, "start")) || (!strcmp(sr_cfg.action, "restart")))) {
 		log_msg(LOG_WARNING,
 			"start|restart with sleep <= 0 does nothing. exiting normally\n");
 		return (0);
@@ -866,8 +825,7 @@ int main(int argc, char **argv)
 	}
 
 	log_msg(LOG_INFO, "%s %s config: %s, pid: %d, starting\n",
-		sr_cfg.progname, __sarra_version__, sr_cfg.configname,
-		sr_cfg.pid);
+		sr_cfg.progname, __sarra_version__, sr_cfg.configname, sr_cfg.pid);
 
 	pass = 0;		// when using inotify, have to walk the tree to set the watches initially.
 	//latest_min_mtim.tv_sec = 0;
@@ -876,29 +834,24 @@ int main(int argc, char **argv)
 		inotify_event_mask = IN_DONT_FOLLOW;
 
 		if (sr_cfg.events & SR_CREATE)	// includes mkdir & symlink.
-			inotify_event_mask |=
-			    IN_CREATE | IN_MOVED_FROM | IN_MOVED_TO;
+			inotify_event_mask |= IN_CREATE | IN_MOVED_FROM | IN_MOVED_TO;
 
 		if (sr_cfg.events & SR_MODIFY)
-			inotify_event_mask |=
-			    IN_CLOSE_WRITE | IN_MOVED_FROM | IN_MOVED_TO;
+			inotify_event_mask |= IN_CLOSE_WRITE | IN_MOVED_FROM | IN_MOVED_TO;
 
 		if (sr_cfg.events & SR_DELETE)
 			inotify_event_mask |= IN_DELETE;
 
 		inot_fd = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
 		if (inot_fd < 0)
-			log_msg(LOG_ERROR, "inot init failed: error: %d\n",
-				errno);
+			log_msg(LOG_ERROR, "inot init failed: error: %d\n", errno);
 	}
 
 	while (1) {
 
 		if (sr_cfg.force_polling || !pass) {
-			log_msg(LOG_DEBUG, "starting polling loop pass: %d\n",
-				pass);
-			for (struct sr_path_t * i = sr_cfg.paths; i;
-			     i = i->next) {
+			log_msg(LOG_DEBUG, "starting polling loop pass: %d\n", pass);
+			for (struct sr_path_t * i = sr_cfg.paths; i; i = i->next) {
 				first_call = 1;
 				do1file(sr_c, i->path);
 			}
@@ -922,8 +875,7 @@ int main(int argc, char **argv)
 
 		if (elapsed < sr_cfg.sleep) {
 			tsleep.tv_sec = (long)(sr_cfg.sleep - elapsed);
-			tsleep.tv_nsec =
-			    (long)((sr_cfg.sleep - elapsed) - tsleep.tv_sec);
+			tsleep.tv_nsec = (long)((sr_cfg.sleep - elapsed) - tsleep.tv_sec);
 			//log_msg( LOG_DEBUG, "debug: watch sleeping for %g seconds. \n", (sr_cfg.sleep-elapsed));
 			nanosleep(&tsleep, NULL);
 		} else
@@ -936,8 +888,7 @@ int main(int argc, char **argv)
 
 	if (sr_cfg.pipe) {
 		if (sr_cfg.sleep > 0.0) {
-			log_msg(LOG_ERROR,
-				"sleep conflicts with pipe. pipe ignored.\n");
+			log_msg(LOG_ERROR, "sleep conflicts with pipe. pipe ignored.\n");
 		} else
 			while (fgets(inbuff, PATH_MAX, stdin) > 0) {
 				inbuff[strlen(inbuff) - 1] = '\0';

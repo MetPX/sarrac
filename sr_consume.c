@@ -118,8 +118,7 @@ int sr_consume_setup(struct sr_context *sr_c)
 	amqp_queue_declare(sr_c->cfg->broker->conn,
 			   1,
 			   amqp_cstring_bytes(sr_c->cfg->queuename),
-			   passive,
-			   sr_c->cfg->durable, exclusive, auto_delete, table);
+			   passive, sr_c->cfg->durable, exclusive, auto_delete, table);
 	/* FIXME how to parse r for error? */
 
 	reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);
@@ -134,13 +133,11 @@ int sr_consume_setup(struct sr_context *sr_c)
 	if (!sr_c->cfg->topics) {
 		sr_add_topic(sr_c->cfg, "#");
 	}
-	log_msg(LOG_DEBUG, "topics: %p, string=+%p+\n", sr_c->cfg->topics,
-		sr_c->cfg->topics);
+	log_msg(LOG_DEBUG, "topics: %p, string=+%p+\n", sr_c->cfg->topics, sr_c->cfg->topics);
 
 	for (t = sr_c->cfg->topics; t; t = t->next) {
 		log_msg(LOG_INFO, "queue %s bound with topic %s to %s\n",
-			sr_c->cfg->queuename, t->topic,
-			sr_broker_uri(sr_c->cfg->broker));
+			sr_c->cfg->queuename, t->topic, sr_broker_uri(sr_c->cfg->broker));
 		amqp_queue_bind(sr_c->cfg->broker->conn, 1,
 				amqp_cstring_bytes(sr_c->cfg->queuename),
 				amqp_cstring_bytes(sr_c->cfg->broker->exchange),
@@ -161,8 +158,7 @@ char *sr_message_partstr(struct sr_message_t *m)
 
 	if ((m->sum[0] != 'R') && (m->sum[0] != 'L'))
 		sprintf(smallbuf, "%c,%ld,%ld,%ld,%ld", m->parts_s,
-			m->parts_blksz, m->parts_blkcount, m->parts_rem,
-			m->parts_num);
+			m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num);
 	else
 		memset(smallbuf, '\0', 255);
 
@@ -225,22 +221,19 @@ char *sr_message_2log(struct sr_message_t *m)
 {
 	static char b[10240];	// FIXME!  need more than 10K for a log message? check?
 
-	sprintf(b, "%s %s %s topic=%s", m->datestamp, m->url, m->path,
-		m->routing_key);
+	sprintf(b, "%s %s %s topic=%s", m->datestamp, m->url, m->path, m->routing_key);
 	sprintf(strchr(b, '\0'), " sum=%s source=%s", m->sum, m->source);
 	sprintf(strchr(b, '\0'), " to_clusters=%s from_cluster=%s",
 		m->to_clusters, m->from_cluster);
 
 	if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
-		sprintf(strchr(b, '\0'), " mtime=%s atime=%s", m->mtime,
-			m->atime);
+		sprintf(strchr(b, '\0'), " mtime=%s atime=%s", m->mtime, m->atime);
 
 		if (m->mode)
 			sprintf(strchr(b, '\0'), " mode=%04o", m->mode);
 
 		sprintf(strchr(b, '\0'), " parts=%c,%ld,%ld,%ld,%ld",
-			m->parts_s, m->parts_blksz, m->parts_blkcount,
-			m->parts_rem, m->parts_num);
+			m->parts_s, m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num);
 	}
 
 	if (m->sum[0] == 'L') {
@@ -268,8 +261,7 @@ void sr_message_2json(struct sr_message_t *m)
 	json_dump_strheader("mtime", m->mtime);
 	printf(", ");
 	printf("\"parts\": \"%c,%ld,%ld,%ld,%ld\"",
-	       m->parts_s, m->parts_blksz, m->parts_blkcount, m->parts_rem,
-	       m->parts_num);
+	       m->parts_s, m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num);
 	printf(", ");
 	json_dump_strheader("from_cluster", m->from_cluster);
 	json_dump_strheader("source", m->source);
@@ -346,15 +338,13 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 	 */
 	if (!sr_c->cfg->broker->started) {
 
-		amqp_basic_qos(sr_c->cfg->broker->conn, 1, 0,
-			       (uint16_t) (sr_c->cfg->prefetch), 0);
+		amqp_basic_qos(sr_c->cfg->broker->conn, 1, 0, (uint16_t) (sr_c->cfg->prefetch), 0);
 		reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);
 		if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
 			sr_amqp_reply_print(reply, "basic_consume failed");
 			return (NULL);
 		}
-		sprintf(consumer_tag, "host_%s_pid_%d", local_fqdn(),
-			sr_c->cfg->pid);
+		sprintf(consumer_tag, "host_%s_pid_%d", local_fqdn(), sr_c->cfg->pid);
 
 		amqp_basic_consume(sr_c->cfg->broker->conn, 1,
 				   amqp_cstring_bytes(sr_c->cfg->queuename),
@@ -406,10 +396,8 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 	   (int) d->routing_key.len, (char *) d->routing_key.bytes);
 	 */
 
-	sprintf(msg.exchange, "%.*s", (int)d->exchange.len,
-		(char *)d->exchange.bytes);
-	sprintf(msg.routing_key, "%.*s", (int)d->routing_key.len,
-		(char *)d->routing_key.bytes);
+	sprintf(msg.exchange, "%.*s", (int)d->exchange.len, (char *)d->exchange.bytes);
+	sprintf(msg.routing_key, "%.*s", (int)d->routing_key.len, (char *)d->routing_key.bytes);
 
 	is_report = (!strncmp(d->routing_key.bytes, "v02.report", 10));
 
@@ -432,10 +420,8 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 				(char *)p->headers.entries[i].key.bytes);
 
 			sprintf(value, "%.*s",
-				(int)p->headers.entries[i].value.value.bytes.
-				len,
-				(char *)p->headers.entries[i].value.value.bytes.
-				bytes);
+				(int)p->headers.entries[i].value.value.bytes.len,
+				(char *)p->headers.entries[i].value.value.bytes.bytes);
 
 			assign_field(tag, value);
 
@@ -455,8 +441,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 	body_received = 0;
 
 	while (body_received < body_target) {
-		result =
-		    amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
+		result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
 		if (result < 0)
 			return (NULL);

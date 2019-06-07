@@ -49,9 +49,7 @@ int main(int argc, char *argv[])
 
 	unlink("sr_cache_save.test");
 	cache = sr_cache_open("sr_cache_save.test");
-	ret =
-	    sr_cache_check(cache, "path", 's', sha512hash("hoho"), "hoho",
-			   "1,1,0,0");
+	ret = sr_cache_check(cache, "path", 's', sha512hash("hoho"), "hoho", "1,1,0,0");
 	if (ret > 0) {
 		fprintf(stdout, "OK: added hoho to the cache\n");
 		success_count++;
@@ -64,9 +62,7 @@ int main(int argc, char *argv[])
 	sts.tv_nsec = 501000000;
 	nanosleep(&sts, NULL);
 
-	ret =
-	    sr_cache_check(cache, "path", 's', sha512hash("haha"), "haha",
-			   "1,1,0,0");
+	ret = sr_cache_check(cache, "path", 's', sha512hash("haha"), "haha", "1,1,0,0");
 	if (ret > 0) {
 		fprintf(stdout, "OK: added haha to the cache\n");
 		success_count++;
@@ -76,26 +72,19 @@ int main(int argc, char *argv[])
 	test_count++;
 	nanosleep(&sts, NULL);
 
-	ret =
-	    sr_cache_check(cache, "path", 's', sha512hash("hoho"), "hoho",
-			   "1,1,0,0");
+	ret = sr_cache_check(cache, "path", 's', sha512hash("hoho"), "hoho", "1,1,0,0");
 	if (ret > 0)
-		fprintf(stdout,
-			"ERROR: added hoho to the cache a second time\n");
+		fprintf(stdout, "ERROR: added hoho to the cache a second time\n");
 	else if (ret == 0) {
-		fprintf(stdout,
-			"OK: refused to add hoho to the cache a second time\n");
+		fprintf(stdout, "OK: refused to add hoho to the cache a second time\n");
 		success_count++;
 	}
 	test_count++;
 	nanosleep(&sts, NULL);
 
-	ret =
-	    sr_cache_check(cache, "path", 's', sha512hash("hoho"), "haha2",
-			   "1,1,0,0");
+	ret = sr_cache_check(cache, "path", 's', sha512hash("hoho"), "haha2", "1,1,0,0");
 	if (ret > 0) {
-		fprintf(stdout,
-			"OK: added haha to the cache with same sum as hoho\n");
+		fprintf(stdout, "OK: added haha to the cache with same sum as hoho\n");
 		success_count++;
 		population++;
 	} else if (ret == 0) {
@@ -105,12 +94,9 @@ int main(int argc, char *argv[])
 	test_count++;
 	nanosleep(&sts, NULL);
 
-	ret =
-	    sr_cache_check(cache, "path", 'd', md5hash("lala"), "lolo/lala",
-			   "1,1,0,0");
+	ret = sr_cache_check(cache, "path", 'd', md5hash("lala"), "lolo/lala", "1,1,0,0");
 	if (ret > 0) {
-		fprintf(stdout,
-			"OK: added lolo to the cache with same an md5 sum\n");
+		fprintf(stdout, "OK: added lolo to the cache with same an md5 sum\n");
 		success_count++;
 		population++;
 	} else if (ret == 0) {
@@ -120,26 +106,19 @@ int main(int argc, char *argv[])
 	test_count++;
 	nanosleep(&sts, NULL);
 
-	ret =
-	    sr_cache_check(cache, "path", 'd', md5hash("lala"), "lolo/lala",
-			   "1,1,0,0");
+	ret = sr_cache_check(cache, "path", 'd', md5hash("lala"), "lolo/lala", "1,1,0,0");
 	if (ret > 0)
-		fprintf(stdout,
-			"ERROR: added lala to the cache a second time\n");
+		fprintf(stdout, "ERROR: added lala to the cache a second time\n");
 	else if (ret == 0) {
-		fprintf(stdout,
-			"OK: refused to add lala to the cache a second time\n");
+		fprintf(stdout, "OK: refused to add lala to the cache a second time\n");
 		success_count++;
 	}
 	test_count++;
 	nanosleep(&sts, NULL);
 
-	ret =
-	    sr_cache_check(cache, "path", 'd', md5hash("lala"), "lolo/lily",
-			   "1,1,0,0");
+	ret = sr_cache_check(cache, "path", 'd', md5hash("lala"), "lolo/lily", "1,1,0,0");
 	if (ret > 0) {
-		fprintf(stdout,
-			"OK: added lily to the cache with same sum as lolo\n");
+		fprintf(stdout, "OK: added lily to the cache with same sum as lolo\n");
 		success_count++;
 		population++;
 	} else if (ret == 0) {
@@ -151,8 +130,7 @@ int main(int argc, char *argv[])
 
 	ret = sr_cache_save(cache, 1);
 	if (ret == population) {
-		fprintf(stdout,
-			"OK before saving, good number of cache entry paths.\n");
+		fprintf(stdout, "OK before saving, good number of cache entry paths.\n");
 		success_count++;
 	} else {
 		fprintf(stdout,
@@ -176,11 +154,9 @@ int main(int argc, char *argv[])
 	   ret = sr_cache_save( cache, 1 );
 	 */
 
-	fprintf(stdout, "after load: cache=%p count=%d\n", cache,
-		HASH_COUNT(cache->data));
+	fprintf(stdout, "after load: cache=%p count=%d\n", cache, HASH_COUNT(cache->data));
 	if (HASH_COUNT(cache->data) == 3) {
-		fprintf(stdout,
-			"OK restored by cache_load: 3 cache entries were expected.\n");
+		fprintf(stdout, "OK restored by cache_load: 3 cache entries were expected.\n");
 		success_count++;
 	} else {
 		fprintf(stdout,
@@ -193,8 +169,7 @@ int main(int argc, char *argv[])
 	ret = sr_cache_save(cache, 1);
 	if (ret == population) {
 		fprintf(stdout,
-			"OK restored by cache_load: number of cache entry paths: %d.\n",
-			ret);
+			"OK restored by cache_load: number of cache entry paths: %d.\n", ret);
 		success_count++;
 	} else {
 		fprintf(stdout,
@@ -232,13 +207,11 @@ int main(int argc, char *argv[])
 			HASH_COUNT(cache->data));
 	}
 	sr_cache_clean(cache, age);
-	fprintf(stdout, "OK cleaned empty cache: %d \n",
-		HASH_COUNT(cache->data));
+	fprintf(stdout, "OK cleaned empty cache: %d \n", HASH_COUNT(cache->data));
 	success_count++;
 	test_count++;
 	sr_cache_save(cache, 1);
-	fprintf(stdout, "OK, dumped empty cache: %d \n",
-		HASH_COUNT(cache->data));
+	fprintf(stdout, "OK, dumped empty cache: %d \n", HASH_COUNT(cache->data));
 	success_count++;
 	test_count++;
 

@@ -47,8 +47,7 @@ void sr_post(struct sr_context *sr_c, const char *fn, struct stat *sb);
 
  */
 
-void sr_post_rename(struct sr_context *sr_c, const char *oldname,
-		    const char *newname);
+void sr_post_rename(struct sr_context *sr_c, const char *oldname, const char *newname);
 /* 
    post rename results in a post for removal of the old name, and creation of the new name.
 
