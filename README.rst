@@ -17,6 +17,8 @@ Detailed use case:
 
   https://github.com/MetPX/sarracenia/blob/master/doc/mirroring_use_case.rst
 
+.. Contents::
+
 
 Installation
 ------------
@@ -246,8 +248,10 @@ Release Process
 
 To note changes:
   - Compile once with -DSR_DEBUG_LOGS to verify that no msg_log calls have errors (compiler will report)
-  - run some ./test scripts.
   - build package (without -DSR_DEBUG_LOGS) and install.
+  - run some ./test scripts.
+  - make trust_but_verify
+    examine results, which include a valgrind run.
   - Run through a flow test.
   - dch, and add your points.
   - when ready to release, edit UNRELEASED to an appropriate status, usually unstable.
