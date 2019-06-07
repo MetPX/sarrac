@@ -6,7 +6,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-
 #include <time.h>
 #include <openssl/sha.h>
 
@@ -42,9 +41,9 @@ void set_loglevel(int level);
 
 /* table to hold previous log file names for log rotation */
 struct logfn_tab_t {
-    char **fns; /* dynamically allocated, pointer buffer size known at rt */
-    int i;
-    int size;
+	char **fns;		/* dynamically allocated, pointer buffer size known at rt */
+	int i;
+	int size;
 };
 
 void log_cleanup();
@@ -55,7 +54,7 @@ void log_cleanup();
  *             https://legalict.com/2016/01/07/what-is-the-license-status-of-stackoverflow-code-snippets/
  */
 
-int is_utf8(const char * string);
+int is_utf8(const char *string);
 
 void daemonize(int close_stdout);
 // executed to go from a management instance to a daemon working instance.
@@ -67,7 +66,6 @@ void daemonize(int close_stdout);
 
 // SUMSTR is the printable-string representation of the hash, each digit decodes to two characters for hexadecimal digits.
 #define SR_SUMSTRLEN  (2 * SHA512_DIGEST_LENGTH + 3 )
-
 
  /**
    return a correct sumstring (assume it is big enough)  as per sr_post(7)
@@ -86,21 +84,21 @@ void daemonize(int close_stdout);
 
   */
 
-int get_sumhashlen( char algo );
+int get_sumhashlen(char algo);
  /**
  return the length of the hash buffer (which includes the 1 char prefix for the type.
   */
 
-char *set_sumstr( char algo, char algoz, const char* fn, const char* partstr, char *linkstr,
-          unsigned long block_size, unsigned long block_count, unsigned long block_rem, unsigned long block_num,
-          int xattr_cc);
+char *set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
+		 char *linkstr, unsigned long block_size,
+		 unsigned long block_count, unsigned long block_rem,
+		 unsigned long block_num, int xattr_cc);
 
-unsigned char *sr_sumstr2hash( const char *s );
+unsigned char *sr_sumstr2hash(const char *s);
 
-char *sr_hash2sumstr( const unsigned char *h );
+char *sr_hash2sumstr(const unsigned char *h);
 
-char *sr_time2str( struct timespec *tin );
-struct timespec *sr_str2time( char *s ); 
-
+char *sr_time2str(struct timespec *tin);
+struct timespec *sr_str2time(char *s);
 
 #endif

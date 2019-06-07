@@ -31,10 +31,9 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m);
 /* 
    post the given message using the established context.
    (posts over an existing connection.)
-*/ 
+*/
 
-
-void sr_post(struct sr_context *sr_c, const char *fn, struct stat *sb); 
+void sr_post(struct sr_context *sr_c, const char *fn, struct stat *sb);
 /* 
    post the given file name using the established context.
    (posts over an existing connection.)
@@ -48,20 +47,21 @@ void sr_post(struct sr_context *sr_c, const char *fn, struct stat *sb);
 
  */
 
-void sr_post_rename(struct sr_context *sr_c, const char *oldname, const char *newname);
+void sr_post_rename(struct sr_context *sr_c, const char *oldname,
+		    const char *newname);
 /* 
    post rename results in a post for removal of the old name, and creation of the new name.
 
  */
 
-int sr_post_init( struct sr_context *sr_c );
+int sr_post_init(struct sr_context *sr_c);
  /*
-   At beginning of posting session, initialize (involves declaring an exchange.)
+    At beginning of posting session, initialize (involves declaring an exchange.)
   */
 
-int sr_post_cleanup( struct sr_context *sr_c );
+int sr_post_cleanup(struct sr_context *sr_c);
  /*
-   Clean up broker resources declared by post_init (deletes an exchange.)
+    Clean up broker resources declared by post_init (deletes an exchange.)
   */
 
 #endif
