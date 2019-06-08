@@ -43,7 +43,6 @@ status:
 #include <amqp.h>
 #include <amqp_framing.h>
 
-
 #include "sr_util.h"
 #include "sr_event.h"
 
@@ -62,8 +61,10 @@ status:
  */
 
 struct sr_path_t {
-   char path[PATH_MAX]; /**< the path itself. */
-   struct sr_path_t *next; /**< link to the next item in the singly linked list. */
+	char path[PATH_MAX];
+			/**< the path itself. */
+	struct sr_path_t *next;
+			   /**< link to the next item in the singly linked list. */
 };
 
 /**
@@ -71,8 +72,10 @@ struct sr_path_t {
  */
 
 struct sr_topic_t {
-  char topic[AMQP_MAX_SS]; /**< the topic itself. */
-  struct sr_topic_t *next; /**< link to the next item in the singly linked list. */
+	char topic[AMQP_MAX_SS];
+			   /**< the topic itself. */
+	struct sr_topic_t *next;
+			   /**< link to the next item in the singly linked list. */
 };
 
 /**
@@ -80,9 +83,12 @@ struct sr_topic_t {
  */
 
 struct sr_header_t {
-  char *key; /**< the key string */
-  char *value; /**< the value string */
-  struct sr_header_t *next; /**< link to the next item in the singly linked list. */
+	char *key;
+	     /**< the key string */
+	char *value;
+	       /**< the value string */
+	struct sr_header_t *next;
+			    /**< link to the next item in the singly linked list. */
 };
 
 /**
@@ -90,11 +96,15 @@ struct sr_header_t {
  */
 
 struct sr_mask_t {
-  char* clause;      /**< the original regexp string */
-  char* directory;   /**<  the directory in effect when the clause is applied */
-  regex_t regexp;    /**<  The compiled representation of the clause. */
-  int   accepting;   /**<  boolean:  reject(0) / accept(1)  the direction to apply the clause */
-  struct sr_mask_t *next; /**< link to the next item in the singly linked list. */
+	char *clause;/**< the original regexp string */
+	char *directory;
+		     /**<  the directory in effect when the clause is applied */
+	regex_t regexp;
+		     /**<  The compiled representation of the clause. */
+	int accepting;
+		     /**<  boolean:  reject(0) / accept(1)  the direction to apply the clause */
+	struct sr_mask_t *next;
+			  /**< link to the next item in the singly linked list. */
 };
 
 /**
@@ -102,18 +112,30 @@ struct sr_mask_t {
  */
 
 struct sr_broker_t {
-  int ssl; /**< whether the connection includes encryption (TLS at this point) */
-  char *user; /**< user name to authenticate to the broker */
-  char *password; /**< password to authenticate to the broker. */
-  char *hostname; /**< broker host name. */
-  int   port; /**< broker port number ( 1-65535 ) */
-  char *exchange; /**< name of the exchange to publish to on the broker. */
-  int   exchange_split; /**< number of exchanges to split publishes among. */
-  uint64_t last_delivery_tag; /**< some AMQP thing... no idea. */
-  amqp_socket_t *socket; /**< part of an established connection to a broker */
-  amqp_connection_state_t conn; /**< part of an established connection to a broker */
-  int started; /**< boolean whether the connection has been established or not. */
-  struct sr_broker_t *next; /**< link to the next item in the singly linked list. */
+	int ssl;
+	   /**< whether the connection includes encryption (TLS at this point) */
+	char *user;
+	      /**< user name to authenticate to the broker */
+	char *password;
+		  /**< password to authenticate to the broker. */
+	char *hostname;
+		  /**< broker host name. */
+	int port;
+	      /**< broker port number ( 1-65535 ) */
+	char *exchange;
+		  /**< name of the exchange to publish to on the broker. */
+	int exchange_split;
+			/**< number of exchanges to split publishes among. */
+	uint64_t last_delivery_tag;
+			      /**< some AMQP thing... no idea. */
+	amqp_socket_t *socket;
+			 /**< part of an established connection to a broker */
+	amqp_connection_state_t conn;
+				/**< part of an established connection to a broker */
+	int started;
+	       /**< boolean whether the connection has been established or not. */
+	struct sr_broker_t *next;
+			    /**< link to the next item in the singly linked list. */
 };
 
 /**
@@ -123,79 +145,86 @@ struct sr_broker_t {
  */
 
 struct sr_config_t {
-  int                 accept_unmatched; /**< if no masks match, reject(0), or accept(1) the file.*/
-  char*               action; /**< the action to perform: start, stop, status, add, remove, foreground, enable, disable, etc...*/
-  long unsigned       blocksize; /**< blocksize: 
+	int accept_unmatched;		/**< if no masks match, reject(0), or accept(1) the file.*/
+	char *action;	      /**< the action to perform: start, stop, status, add, remove, foreground, enable, disable, etc...*/
+	long unsigned blocksize; /**< blocksize: 
           the size of blocks 0 (guess), 
                              1 ( send entire file in one block ),  
                              else a literal blocksize
           used for partitioning of large files.*/
-  struct sr_broker_t *broker; /**< broker: the rabbitmq AMQP broker to connect to.*/
-  float               cache; /**< cache: the expiry age, in seconds of entries in the recent files cache.*/
-  struct sr_cache_t  *cachep; /**< the recent files cache.*/
-  char               *cache_basis; /**< 'file' | 'path' | 'none' -> modifies which cache entries are comparable.*/
-  mode_t              chmod_log; /**< permission mode bits to use for the log files.*/
-  char               *configname; /**< the configuration being run (name of the main configuration file.)*/
-  int                 debug; /**< turn on debug output.*/
-  int                 delete; /**< flag to mark that files downloaded should be deleted (unimplemented)*/
-  char               *directory; /**< the current directory setting (used when building masks)*/
-  int                 durable; /**< flag to pass to broker to set corresponding Queue property*/
-  sr_event_t          events; /**< set of events to produce/monitor (create/delete, etc...)*/
-  char                *exchange; /**< the exchange to subscribe to.*/
-  char                *exchange_suffix; /**< something to append to the exchange.*/
-  float               expire; /**< a time (in seconds) passed to the broker as queue lifetime.*/
-  int                 follow_symlinks; /**< flag to indicate whether one should visit the destination of symlinks.*/
-  int                 force_polling; /**< flag to switch watch algorithms , either brute polling or Inotify*/
-  float               heartbeat; /**< interval, in seconds between periodic processing events.*/
-  int                 help;  /**< flag to trigger printing help message.*/
-  int                 instance; /**< the instance number of the current process within a component's configuration.*/
-  char               *last_matched; /**< the value of the last matched mask. */
-  char               *list;     /**< method to generate initial input list:  file or queue*/
-  int                 log;      /**< Use a log file, rather than standard files.*/
-  int                 log_reject;  /**< normally rejections are silent, when set, make INFO message. */
-  char               *logfn;      /**< Use this log file, rather than standard files.*/
-  int                 logrotate;  /**< number of log files to keep around.*/
-  int                 logrotate_interval; /**< number of seconds between log rotations.*/
-  int                 loglevel; /**< severity of messages to log (regardless of where.)*/
-  struct sr_mask_t   *masks; /**< the list of masks to compare file names to.*/
-  struct sr_mask_t   *match; /**< the current matched mask */
-  float              message_ttl; /**< a time (in seconds) passed to the broker as message lifetime.*/
-  char               *outlet; /**< post|json|url - default post. choice of output format.*/
-  int                 pid; /**< what is the current process identifier.*/
-  char               *pidfile; /**< the name of the state file containing the pid.*/
-  int                 prefetch; /**< how many messages to request from a broker at once.*/
-  char               *progname; /**< the name of the program (component) being run.*/
-  struct sr_path_t   *paths; /**< the list of configurations or files given on the command line.*/
-  int                 pipe;  /**< pipe mode, read file names from standard input*/
-  char               *post_base_dir; /**< the local directory at the root of the url tree.*/
-  char               *post_base_url; /**< the url that corresponds to the base directory.*/
-  struct sr_broker_t *post_broker; /**< the broker to post to.*/
-  char               *post_exchange; /**< the exchange to post to on the post broker.*/
-  int                 post_exchange_split; /**< the count of  a team of similar exchanges.*/
-  char               *post_exchange_suffix; /**< appended to an exchange name.*/
-  char               *queuename; /**< the name of the queue for a consumer.*/
-  char               *randid; /**< a random id, typically used in queue name generation.*/
-  int                 realpath; /**< flag to indicate whether realpath should be applied before posting.*/
-  int                 realpath_filter; /**< flag to say use the realpath for matching, but publish the original.*/
-  int                 recursive; /**< always set to on now, walk entire tree (FIXME, remove option?)*/
-  float               sanity_log_dead; /**< how many seconds old should a log be before the component is presumed dead.*/
-  int                 shim_defer_posting_to_exit; /**< flag to have the shim library only post on process exit.*/
-  float               shim_post_minterval; /**< interval in seconds, the most often one will post the same file.*/
-  int                 shim_skip_parent_open_files; /**< flag, do not post files which are still open in ppid.*/
-  float               sleep; /**< number of seconds to sleep between polls/processing loops.*/
-  char                statehost;  /**< flagish thing: '0','s','f' meaning no, short fqdn*/
-  char               *statehostval;  /**< actual hostname resulting from statehost.*/
-  int                 strip; /**< number of path elements to strip from posted path  */
-  char                sumalgo; /**< checksum algorithm to use.*/
-  char                sumalgoz; /**< if algo is z what is the real checksum algorithm to apply.*/
-  char               *source; /**< indicates the cluster of origin of a post.*/
-  char               *to; /**< indicates destination cluster(s) for a post.*/
-  struct sr_topic_t  *topics; /**< list of sub-topics to subscribe to.*/
-  char                topic_prefix[AMQP_MAX_SS]; /**< the topic prefix to either subscribe or post to.*/
-  struct sr_header_t *user_headers; /**< list of arbitrary user headers for extensions and upward compatibility.*/
-  int                 xattr_cc; /**<boolean flag to determine whether or not xattr checksum caching should be used.*/
+	struct sr_broker_t *broker;
+			      /**< broker: the rabbitmq AMQP broker to connect to.*/
+	float cache;	     /**< cache: the expiry age, in seconds of entries in the recent files cache.*/
+	struct sr_cache_t *cachep;
+			      /**< the recent files cache.*/
+	char *cache_basis;	   /**< 'file' | 'path' | 'none' -> modifies which cache entries are comparable.*/
+	mode_t chmod_log;	 /**< permission mode bits to use for the log files.*/
+	char *configname;	  /**< the configuration being run (name of the main configuration file.)*/
+	int debug;	     /**< turn on debug output.*/
+	int delete;	      /**< flag to mark that files downloaded should be deleted (unimplemented)*/
+	char *directory;	 /**< the current directory setting (used when building masks)*/
+	int durable;	       /**< flag to pass to broker to set corresponding Queue property*/
+	sr_event_t events;    /**< set of events to produce/monitor (create/delete, etc...)*/
+	char *exchange;		 /**< the exchange to subscribe to.*/
+	char *exchange_suffix;		/**< something to append to the exchange.*/
+	float expire;	      /**< a time (in seconds) passed to the broker as queue lifetime.*/
+	int follow_symlinks;	       /**< flag to indicate whether one should visit the destination of symlinks.*/
+	int force_polling;	     /**< flag to switch watch algorithms , either brute polling or Inotify*/
+	float heartbeat;	 /**< interval, in seconds between periodic processing events.*/
+	int help;	     /**< flag to trigger printing help message.*/
+	int instance;		/**< the instance number of the current process within a component's configuration.*/
+	char *last_matched;	    /**< the value of the last matched mask. */
+	char *list;		/**< method to generate initial input list:  file or queue*/
+	int log;		/**< Use a log file, rather than standard files.*/
+	int log_reject;		   /**< normally rejections are silent, when set, make INFO message. */
+	char *logfn;		  /**< Use this log file, rather than standard files.*/
+	int logrotate;		  /**< number of log files to keep around.*/
+	int logrotate_interval;		  /**< number of seconds between log rotations.*/
+	int loglevel;		/**< severity of messages to log (regardless of where.)*/
+	struct sr_mask_t *masks;
+			     /**< the list of masks to compare file names to.*/
+	struct sr_mask_t *match;
+			     /**< the current matched mask */
+	float message_ttl;	  /**< a time (in seconds) passed to the broker as message lifetime.*/
+	char *outlet;	      /**< post|json|url - default post. choice of output format.*/
+	int pid;	   /**< what is the current process identifier.*/
+	char *pidfile;	       /**< the name of the state file containing the pid.*/
+	int prefetch;		/**< how many messages to request from a broker at once.*/
+	char *progname;		/**< the name of the program (component) being run.*/
+	struct sr_path_t *paths;
+			     /**< the list of configurations or files given on the command line.*/
+	int pipe;	     /**< pipe mode, read file names from standard input*/
+	char *post_base_dir;	     /**< the local directory at the root of the url tree.*/
+	char *post_base_url;	     /**< the url that corresponds to the base directory.*/
+	struct sr_broker_t *post_broker;
+				   /**< the broker to post to.*/
+	char *post_exchange;	     /**< the exchange to post to on the post broker.*/
+	int post_exchange_split;	   /**< the count of  a team of similar exchanges.*/
+	char *post_exchange_suffix;	    /**< appended to an exchange name.*/
+	char *queuename;	 /**< the name of the queue for a consumer.*/
+	char *randid;	      /**< a random id, typically used in queue name generation.*/
+	int realpath;		/**< flag to indicate whether realpath should be applied before posting.*/
+	int realpath_filter;	       /**< flag to say use the realpath for matching, but publish the original.*/
+	int recursive;		 /**< always set to on now, walk entire tree (FIXME, remove option?)*/
+	float sanity_log_dead;	       /**< how many seconds old should a log be before the component is presumed dead.*/
+	int shim_defer_posting_to_exit;		  /**< flag to have the shim library only post on process exit.*/
+	float shim_post_minterval;	   /**< interval in seconds, the most often one will post the same file.*/
+	int shim_skip_parent_open_files;	   /**< flag, do not post files which are still open in ppid.*/
+	float sleep;	     /**< number of seconds to sleep between polls/processing loops.*/
+	char statehost;		  /**< flagish thing: '0','s','f' meaning no, short fqdn*/
+	char *statehostval;	     /**< actual hostname resulting from statehost.*/
+	int strip;	     /**< number of path elements to strip from posted path  */
+	char sumalgo;	       /**< checksum algorithm to use.*/
+	char sumalgoz;		/**< if algo is z what is the real checksum algorithm to apply.*/
+	char *source;	      /**< indicates the cluster of origin of a post.*/
+	char *to;	  /**< indicates destination cluster(s) for a post.*/
+	struct sr_topic_t *topics;
+			      /**< list of sub-topics to subscribe to.*/
+	char topic_prefix[AMQP_MAX_SS];		 /**< the topic prefix to either subscribe or post to.*/
+	struct sr_header_t *user_headers;
+				    /**< list of arbitrary user headers for extensions and upward compatibility.*/
+	int xattr_cc;		/**<boolean flag to determine whether or not xattr checksum caching should be used.*/
 };
-
 
 /**
  * local_fqdn() - return fully qualified domain name
@@ -214,7 +243,7 @@ char *local_fqdn();
  * Return: The mask entry that matched, if any. (not a copy, do not play with it.)
  */
 
-struct sr_mask_t *isMatchingPattern( struct sr_config_t *sr_cfg, const char* chaine );
+struct sr_mask_t *isMatchingPattern(struct sr_config_t *sr_cfg, const char *chaine);
 
 /**
  * sr_config_find_one() - find the name configuration file name 
@@ -226,9 +255,7 @@ struct sr_mask_t *isMatchingPattern( struct sr_config_t *sr_cfg, const char* cha
  *
  * Return: pointer to a static char buffer with a path name to the corresponding configuration file.
  */
-char* sr_config_find_one( struct sr_config_t *sr_cfg, const char *original_one );
-
-
+char *sr_config_find_one(struct sr_config_t *sr_cfg, const char *original_one);
 
  /** 
   * sr_config_parse_option() - update sr_cfg with an option setting, and it's arguments.
@@ -245,8 +272,8 @@ char* sr_config_find_one( struct sr_config_t *sr_cfg, const char *original_one )
   *
   */
 
-int sr_config_parse_option( struct sr_config_t *sr_cfg, char *option, char* argument, char* arg2, int master );
-
+int sr_config_parse_option(struct sr_config_t *sr_cfg, char *option,
+			   char *argument, char *arg2, int master);
 
 /**
  * sr_add_path() - interpret switch (no leading -) arguments (either setting action, or path entry)
@@ -260,8 +287,7 @@ int sr_config_parse_option( struct sr_config_t *sr_cfg, char *option, char* argu
  * Return: modification of sr_cfg with paths added, as well as action set.
  */
 
-void sr_add_path( struct sr_config_t *sr_cfg, const char* path );
-
+void sr_add_path(struct sr_config_t *sr_cfg, const char *path);
 
 /**
  * sr_add_topic() - add to the list of topics in an sr_cfg
@@ -274,8 +300,7 @@ void sr_add_path( struct sr_config_t *sr_cfg, const char* path );
  * Return: the sr_cfg with the added (sub)topics.
  */
 
-void sr_add_topic( struct sr_config_t *sr_cfg, const char* sub );
-
+void sr_add_topic(struct sr_config_t *sr_cfg, const char *sub);
 
 /**
  * sr_broker_uri - given an sr_broker_t, return a url string.
@@ -283,11 +308,9 @@ void sr_add_topic( struct sr_config_t *sr_cfg, const char* sub );
  *
  * Return: a static buffer containing the URL corresponding to the broker.
  */
-char *sr_broker_uri( struct sr_broker_t *b );
+char *sr_broker_uri(struct sr_broker_t *b);
 
-
-
-void sr_config_free( struct sr_config_t *sr_cfg );
+void sr_config_free(struct sr_config_t *sr_cfg);
 
 /**
  * sr_config_init()  - Initialize an sr_config structure (setting defaults)
@@ -299,8 +322,7 @@ void sr_config_free( struct sr_config_t *sr_cfg );
  *
  * Return: void (side effect: an initialized sr_cfg.)
  */
-void sr_config_init( struct sr_config_t *sr_cfg, const char *progname); 
-
+void sr_config_init(struct sr_config_t *sr_cfg, const char *progname);
 
 /** 
  * sr_config_read() - read an sr configuration file, initialize the struct sr_config_t 
@@ -318,8 +340,7 @@ void sr_config_init( struct sr_config_t *sr_cfg, const char *progname);
  *
  * Return: 1 on success, 0 on failure.
  */
-int sr_config_read( struct sr_config_t *sr_cfg, char *filename, int abort, int master );
-
+int sr_config_read(struct sr_config_t *sr_cfg, char *filename, int abort, int master);
 
 /**
  * sr_config_finalize() - consolidate settings to prepare for use.
@@ -333,7 +354,7 @@ int sr_config_read( struct sr_config_t *sr_cfg, char *filename, int abort, int m
  *
  *  Return: 1 on success, 0 on failure.
   */
-int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer );
+int sr_config_finalize(struct sr_config_t *sr_cfg, const int is_consumer);
 
 /**
  * sr_config_activate()  - turn into a really running instance (that can modify state files). 
@@ -344,8 +365,7 @@ int sr_config_finalize( struct sr_config_t *sr_cfg, const int is_consumer );
  *
  * Return: 0  on success , failure otherwise.
  */
-int sr_config_activate( struct sr_config_t *sr_cfg );
-
+int sr_config_activate(struct sr_config_t *sr_cfg);
 
 /**
  * sr_config_startstop()  - process common actions: start|stop|status 
@@ -363,7 +383,7 @@ int sr_config_activate( struct sr_config_t *sr_cfg );
  *    return config_is_running?0:-1
  *
  */
-int sr_config_startstop( struct sr_config_t *sr_cfg);
+int sr_config_startstop(struct sr_config_t *sr_cfg);
 
 /**
  * sr_config_add()  - perform add action.
@@ -373,7 +393,7 @@ int sr_config_startstop( struct sr_config_t *sr_cfg);
  *
  * Return: void.
  */
-void sr_config_add( struct sr_config_t *sr_cfg );
+void sr_config_add(struct sr_config_t *sr_cfg);
 
 /**
  * sr_config_disable()  - disable an active configuration.
@@ -383,7 +403,7 @@ void sr_config_add( struct sr_config_t *sr_cfg );
  *
  * Return: void.
  */
-void sr_config_disable( struct sr_config_t *sr_cfg );
+void sr_config_disable(struct sr_config_t *sr_cfg);
 
 /**
  * sr_config_edit()  - launch a text editor of the configuration file.
@@ -391,7 +411,7 @@ void sr_config_disable( struct sr_config_t *sr_cfg );
  *
  * Return: void.
  */
-void sr_config_edit( struct sr_config_t *sr_cfg );
+void sr_config_edit(struct sr_config_t *sr_cfg);
 
 /**
  * sr_config_enable()  - make a disable configuration available again.
@@ -401,7 +421,7 @@ void sr_config_edit( struct sr_config_t *sr_cfg );
  *
  * Return: void.
  */
-void sr_config_enable( struct sr_config_t *sr_cfg );
+void sr_config_enable(struct sr_config_t *sr_cfg);
 
 /**
  * sr_config_log()  - launch a tail -f type process on the log.
@@ -409,7 +429,7 @@ void sr_config_enable( struct sr_config_t *sr_cfg );
  *
  * Return: void.
  */
-void sr_config_log( struct sr_config_t *sr_cfg );
+void sr_config_log(struct sr_config_t *sr_cfg);
 
 /**
  * sr_config_remove()  - remove a configuration.
@@ -419,8 +439,7 @@ void sr_config_log( struct sr_config_t *sr_cfg );
  *
  * Return: void.
  */
-void sr_config_remove( struct sr_config_t *sr_cfg );
-
+void sr_config_remove(struct sr_config_t *sr_cfg);
 
 /**
  * sr_config_list() - list the available configurations for the given progname
@@ -428,6 +447,6 @@ void sr_config_remove( struct sr_config_t *sr_cfg );
  *
  * Return: print out list of existing configurations.
  */
-void sr_config_list( struct sr_config_t *sr_cfg );
+void sr_config_list(struct sr_config_t *sr_cfg);
 
 #endif

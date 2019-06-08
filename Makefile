@@ -72,6 +72,10 @@ install:
 	@mv sr_cpump build/bin
 	@cp *.h build/include/
 
+format:
+	@indent -linux -l100 *.c *.h
+	@rm *.c~ *.h~
+
 clean:
 	@rm -f *.o *.so *.so.* sr_cpost sr_configtest sr_utiltest sr_cpump sr_cachetest sr_cache_save.test
 	@rm -rf build sr_version.h
