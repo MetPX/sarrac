@@ -159,15 +159,11 @@ Limitations of the C implementation
  - This library is a single process oriented, the *instances* setting 
    is ignored.
 
- - The queue settings established by a consumer are not the same as those
-   of the python implementation, so queues cannot be shared between the two.
-
  - The shim library is very Linux specific. Porting to other operating systems
    will be a significant re-write.
 
- - The C is infected by python taste... 4 character indent, with spaces, all
-   the time.
-
+ - The C implementation uses the libc(7) regular expression routines, which 
+   
 
 Build Dependencies
 ------------------
