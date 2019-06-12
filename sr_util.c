@@ -69,9 +69,11 @@ void log_msg(int prio, const char *format, ...)
 	    && ((ts.tv_sec - logbase) > logrotate_interval)) {
 		logbase = ts.tv_sec;
 
-		close(logfd);
 		log_set_fnts();
-		logfd = open(logfn_ts, O_WRONLY | O_CREAT | O_APPEND, logmode);
+		close(logfd);
+		rename(logfn, logfn_ts);
+
+		logfd = open(logfn, O_WRONLY | O_CREAT | O_APPEND, logmode);
 
 		/* delete outdated logs */
 		if (logrotate > 0) {
@@ -109,8 +111,7 @@ void log_setup(const char *fn, mode_t mode, int level, int lr, int lri)
 	localtime_r(&ts.tv_sec, &tc);
 	logbase = ts.tv_sec;
 
-	log_set_fnts();
-	logfd = open(logfn_ts, O_WRONLY | O_CREAT | O_APPEND, logmode);
+	logfd = open(logfn, O_WRONLY | O_CREAT | O_APPEND, logmode);
 
 	if (logrotate > 0) {
 		ltab.fns = (char **)malloc(sizeof(char *) * logrotate);
@@ -118,9 +119,6 @@ void log_setup(const char *fn, mode_t mode, int level, int lr, int lri)
 			ltab.fns[ltab.i] = NULL;
 		ltab.i = 0;
 		ltab.size = logrotate;
-
-		ltab.fns[ltab.i] = strdup(logfn_ts);
-		ltab.i = (ltab.i + 1) % ltab.size;
 	}
 #endif
 }
