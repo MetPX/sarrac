@@ -1,3 +1,13 @@
+sarrac (2.19.06b2) unstable; urgency=medium
+
+  * bugfix: issue #59 - cpost doesn't notice mkdirs in watched trees. 
+  * bugfix: issue #58 - log file names made consistent with python
+  * bugfix: issue #57 - cpost tries to post files with invalid names.
+  * bugfix: issue #35 - stops publishing.. the #57 and #69 fixes fix this.
+  * cosmetic: issue #47 reformatted source to respect kernel C style guide.
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Thu, 13 Jun 2019 00:54:46 -0400
+
 sarrac (2.19.06b1) unstable; urgency=medium
 
   * bugfix:  issue #35 avoid crashes/hangs when directory trees are removed. (Msaraga!)
@@ -7,7 +17,7 @@ sarrac (2.19.06b1) unstable; urgency=medium
   * new:  issue #44 added checksum caching support.
   * new:  issue #52 added log_reject to print log messages when rejecting messages.
 
- -- Peter Silva <peter@blacklab>  Wed, 05 Jun 2019 23:07:37 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Wed, 05 Jun 2019 23:07:37 -0400
 
 sarrac (2.19.05b1ubuntu2) unstable; urgency=medium
 
