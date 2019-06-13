@@ -413,12 +413,18 @@ void dir_stack_check4events(struct sr_context *sr_c)
 			 * directory removal processing
 			 * ... code requires serious refactoring, but this quick fix should do for now
 			 */
-			if ((e->mask & IN_ISDIR) && (e->mask & IN_DELETE)) {
-				log_msg(LOG_DEBUG,
-					"detected directory removal, removing from internal data structures");
-				dir_stack_rm(fn);
-				continue;
-			}
+			if (e->mask & IN_ISDIR)  {
+                if (e->mask & IN_DELETE) {
+   				    log_msg(LOG_DEBUG,
+				    	"detected directory removal, removing from internal data structures");
+    				dir_stack_rm(fn);
+    				continue;
+                } else if ( e->mask & IN_CREATE ) {
+					do1file(sr_c, fn);
+                }
+			} else if ( (e->mask & IN_CREATE) && ! (sr_c->cfg->events & SR_CREATE) ) {
+                continue; // should skip non-dir create events.
+            }
 
 			/* rename processing
 			   rename arrives as two events, old name MOVE_FROM, new name MOVE_TO.
@@ -837,9 +843,11 @@ int main(int argc, char **argv)
 	//latest_min_mtim.tv_sec = 0;
 	//latest_min_mtim.tv_nsec = 0;
 	if (!sr_cfg.force_polling) {
-		inotify_event_mask = IN_DONT_FOLLOW;
 
-		if (sr_cfg.events & SR_CREATE)	// includes mkdir & symlink.
+        // IN_CREATE must be included always in order to add directories to inotfd when created.
+		inotify_event_mask = IN_DONT_FOLLOW| IN_CREATE;
+
+		if (sr_cfg.events & SR_CREATE)	
 			inotify_event_mask |= IN_CREATE | IN_MOVED_FROM | IN_MOVED_TO;
 
 		if (sr_cfg.events & SR_MODIFY)
