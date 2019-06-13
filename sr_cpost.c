@@ -152,7 +152,7 @@ void dir_stack_rm(char *fn)
 		i = i->next;
 	if (i) {
 		j = i->next;
-		i->next = i->next->next;
+		if (i->next) i->next = i->next->next;
 	}
 
  dir_stack_rm_exit:
@@ -187,6 +187,8 @@ char *inotify_event_2string(uint32_t mask)
 		strcpy(evstr, "rename");
 	else if (mask & IN_DELETE)
 		strcpy(evstr, "delete");
+	else if (mask & IN_IGNORED)
+		strcpy(evstr, "ignored");
 	else
 		sprintf(evstr, "dunno: %04x!", mask);
 	if (mask & IN_ISDIR)
@@ -403,6 +405,10 @@ void dir_stack_check4events(struct sr_context *sr_c)
 				ret, sizeof(struct inotify_event) + e->len,
 				e->mask, inotify_event_2string(e->mask), e->len, fn);
 
+			if ((e->mask & IN_IGNORED)) {
+				log_msg(LOG_DEBUG,"ignoring IGNORE event\n" );
+				continue;
+			}
 			/*
 			 * directory removal processing
 			 * ... code requires serious refactoring, but this quick fix should do for now
