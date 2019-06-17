@@ -283,6 +283,10 @@ int main(int argc, char **argv)
 
 	while (1) {
 
+                if ( sr_cfg.vip && ( has_vip(sr_cfg.vip) < 1) ) {
+			sleep(5);
+			continue;
+                }
 		// inlet: from queue, json, tree.
 		m = sr_consume(sr_c);
 

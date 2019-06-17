@@ -14,6 +14,11 @@
 #include <stdarg.h>
 #include <linux/limits.h>
 
+/* following three are for has_vip */
+#include <sys/socket.h>
+#include <ifaddrs.h>
+#include <netdb.h>
+
 #include "sr_util.h"
 
 time_t logbase;
@@ -259,6 +264,57 @@ int is_utf8(const char *string)
 }
 
 /* end of code from stack exchange */
+
+/* ok, has_vip is inspired by stack exchange, but changed beyond all recognition.
+
+   returns 1 if this host has the indicated virtual internet protocol (vip) address.
+   returns 0 if this host doesn't have it.
+   returns -1 on error.
+
+   supports ipv6, and string can be either a hostname or a numeric one.
+ */
+
+int has_vip(char const *vip) {
+  struct ifaddrs *ifaddr, *ifa;
+  char host[NI_MAXHOST];
+  char addr[NI_MAXHOST];
+  int family;
+
+  if (getifaddrs(&ifaddr) == -1) {
+    perror("getifaddrs");
+    return -1;
+  }
+
+  for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+
+    if (ifa->ifa_addr == NULL) continue;
+
+    family = ifa->ifa_addr->sa_family;
+    if ( ( family != AF_INET ) && ( family != AF_INET6 ) ) continue;
+
+    if ( family == AF_INET ) {
+      getnameinfo( ifa->ifa_addr, sizeof(struct sockaddr_in), host,
+          NI_MAXHOST, NULL, 0, 0);
+      getnameinfo( ifa->ifa_addr, sizeof(struct sockaddr_in), addr,
+          NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+    } else {
+      getnameinfo( ifa->ifa_addr, sizeof(struct sockaddr_in6), host,
+          NI_MAXHOST, NULL, 0, 0);
+      getnameinfo( ifa->ifa_addr, sizeof(struct sockaddr_in6), addr,
+          NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+    }
+
+    log_msg(LOG_DEBUG, "interface %s host=%s addr=%s\n", ifa->ifa_name, host, addr );
+    if ( vip && ( !strcmp( host, vip ) || !strcmp( addr, vip) ) ) {
+       log_msg( LOG_DEBUG, "MATCH!\n" );
+       return 1;
+    }
+  }
+
+  freeifaddrs(ifaddr);
+  return 0;
+}
+
 
 void daemonize(int close_stdout)
 /* 

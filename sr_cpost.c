@@ -863,6 +863,10 @@ int main(int argc, char **argv)
 
 	while (1) {
 
+		if ( ((sr_cfg.sleep > 0.0) && sr_cfg.vip ) && ( has_vip(sr_cfg.vip) < 1 )) {
+     			sleep(5);
+			continue;
+                }
 		if (sr_cfg.force_polling || !pass) {
 			log_msg(LOG_DEBUG, "starting polling loop pass: %d\n", pass);
 			for (struct sr_path_t * i = sr_cfg.paths; i; i = i->next) {

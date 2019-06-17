@@ -1099,6 +1099,13 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char *option, char *arg,
 		argument = NULL;
 		retval = (2);
 
+	} else if (!strcmp(option, "vip")) {
+		if (sr_cfg->vip)
+			free(sr_cfg->vip);
+		sr_cfg->vip = argument;
+		argument = NULL;
+		retval = (2);
+
 	} else if (!strcmp(option, "xattr_disable")
 		   || !strcmp(option, "xattr_disabled")
 		   || !strcmp(option, "xd")) {
@@ -1165,6 +1172,8 @@ void sr_config_free(struct sr_config_t *sr_cfg)
 	if (sr_cfg->post_broker)
 		broker_free(sr_cfg->post_broker);
 	sr_cfg->post_broker = NULL;
+	if (sr_cfg->vip)
+		free(sr_cfg->vip);
 
 	while (sr_cfg->masks) {
 		e = sr_cfg->masks;
