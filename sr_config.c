@@ -1299,6 +1299,7 @@ void sr_config_init(struct sr_config_t *sr_cfg, const char *progname)
 	sr_cfg->statehost = '0';
 	sr_cfg->statehostval = NULL;
 
+	sr_cfg->vip = NULL;
 	sr_cfg->xattr_cc = 0;
 
 	sprintf(p, "%s/.config", getenv("HOME"));

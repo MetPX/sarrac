@@ -304,13 +304,14 @@ int has_vip(char const *vip) {
           NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
     }
 
-    log_msg(LOG_DEBUG, "interface %s host=%s addr=%s\n", ifa->ifa_name, host, addr );
+    log_msg(LOG_DEBUG, "has_vip: checking interface %s host=%s addr=%s\n", ifa->ifa_name, host, addr );
     if ( vip && ( !strcmp( host, vip ) || !strcmp( addr, vip) ) ) {
-       log_msg( LOG_DEBUG, "MATCH!\n" );
+       log_msg( LOG_DEBUG, "has_vip: Matched!\n" );
        return 1;
     }
   }
 
+  log_msg(LOG_DEBUG, "has_vip: we don't have the vip\n" );
   freeifaddrs(ifaddr);
   return 0;
 }
