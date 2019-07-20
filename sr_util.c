@@ -360,6 +360,70 @@ void daemonize(int close_stdout)
 	log_msg(LOG_DEBUG, "child daemonizing complete.\n");
 }
 
+/* v03 conversion code for base64 
+ */
+
+char b64rep( char i ) 
+{
+   if ( i > 64 ) fprintf( stderr, "errror in representation: %i should not be input to b64encode from hex\n", i );
+   if ( i == 63 ) return( '/' );
+   if ( i == 62 ) return( '+' );
+   if ( i >= 52 ) return( i + '0' - 52 );
+   if ( i >= 26 ) return( i + 'a' - 26 );
+   return( i + 'A' );
+}
+
+char h2b( char i ) {
+  if ( i > 'f' ) fprintf( stderr, "errror in representation: %i should not be input to h2b from hex\n", i );
+  if (i >= 'a' ) return ( i - 'a' + 10 );
+
+  if ( i > 'F' ) fprintf( stderr, "errror in representation: %i should not be input to h2b from hex\n", i );
+  if (i >= 'A' ) return ( i - 'A' + 10 );
+
+  if ( i > '9' ) fprintf( stderr, "errror in representation: %i should not be input to h2b from hex\n", i );
+  return( i - '0' );
+
+}
+
+char *hex2base64( char *hstr ) 
+{
+  static char buf[1024];
+  int hxlen;
+  unsigned int h,b ;
+  char pad[2];
+
+  hxlen = strlen(hstr);
+  b=0;
+  for ( h = 0 ; h < hxlen-2 ; h+=3 ) {
+
+      //FIXME: need line feed after every 76 chars...
+     if (!((b-1)%77) && b)
+        buf[b++]='\n';
+
+     pad[0] = (h2b(hstr[h]) << 2) | ( h2b(hstr[h+1])>>2 ) ;
+     pad[1] = ((h2b(hstr[h+1])&0x03) << 4) | ( h2b(hstr[h+2]) ) ;
+     buf[b++] = b64rep(pad[0]);
+     buf[b++] = b64rep(pad[1]);
+  }
+  if (( hxlen - h ) >= 2 ) {
+     pad[0] = (h2b(hstr[h]) << 2) | ( h2b(hstr[h+1])>>2 ) ;
+     buf[b++] = b64rep(pad[0]);
+     pad[1] = ((h2b(hstr[h+1])&0x03) << 4) ;
+     buf[b++] = b64rep(pad[1]);
+  } else if (( hxlen - h ) == 1 ) {
+     pad[0] = (h2b(hstr[h]) << 2) ;
+     buf[b++] = b64rep(pad[0]);
+  }
+  while (h < hxlen) {
+     buf[b++] = '=';
+     h++;
+  }
+  buf[b]='\0';
+  
+  return( buf ); 
+}
+
+
 /* size of buffer used to read the file content in calculating checksums.
  */
 #define SUMBUFSIZE (4096*1024)

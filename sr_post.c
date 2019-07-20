@@ -209,19 +209,19 @@ char *v03integrity( struct sr_message_t *m )
            sprintf( istr, " \"method\" : \"arbitrary\", \"value\" : \"%s\" ", &(m->sum[2]) );
            break;
        case 'd' : 
-           sprintf( istr, " \"method\" : \"md5\", \"value\" : \"%s\" ", hex_to_b64str( &(m->sum[2]), strlen(&(m->sum[2]))) );
+           sprintf( istr, " \"method\" : \"md5\", \"value\" : \"%s\" ", hex2base64( &(m->sum[2]) ) );
            break;
        case 'n' :
-           sprintf( istr, " \"method\" : \"md5name\", \"value\" : \"%s\" ", hex_to_b64str( &(m->sum[2]), strlen(&(m->sum[2]))) );
+           sprintf( istr, " \"method\" : \"md5name\", \"value\" : \"%s\" ", hex2base64( &(m->sum[2]) ) );
            break;
        case 's' :
-           sprintf( istr, " \"method\" : \"sha512\", \"value\" : \"%s\" ", hex_to_b64str( &(m->sum[2]), strlen(&(m->sum[2]))) );
+           sprintf( istr, " \"method\" : \"sha512\", \"value\" : \"%s\" ", hex2base64( &(m->sum[2]) ) );
            break;
        case 'L' : 
-           sprintf( istr, " \"method\" : \"link\", \"value\" : \"%s\" ", hex_to_b64str( &(m->sum[2]), strlen(&(m->sum[2]))) );
+           sprintf( istr, " \"method\" : \"link\", \"value\" : \"%s\" ", hex2base64( &(m->sum[2]) ) );
            break;
        case 'R' : 
-           sprintf( istr, " \"method\" : \"remove\", \"value\" : \"%s\" ", hex_to_b64str( &(m->sum[2]), strlen(&(m->sum[2]))) );
+           sprintf( istr, " \"method\" : \"remove\", \"value\" : \"%s\" ", hex2base64( &(m->sum[2]) ) );
            break;
        case 'z' : 
            // FIXME: wrong, method requires translation.
