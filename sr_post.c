@@ -191,10 +191,54 @@ unsigned long int set_blocksize(long int bssetting, size_t fsz)
 
 }
 
+char *hex_to_b64str( char *hextr, int hexstrlen ) {
+
+  return( "not implemented" );
+}
+
+
+char *v03integrity( struct sr_message_t *m ) 
+{
+   static char istr[1024]; 
+
+   switch (m->sum[0]) {
+       case '0' : 
+           sprintf( istr, " \"method\" : \"random\", \"value\" : \"%s\" ", &(m->sum[2]) );
+           break;
+       case 'a' : 
+           sprintf( istr, " \"method\" : \"arbitrary\", \"value\" : \"%s\" ", &(m->sum[2]) );
+           break;
+       case 'd' : 
+           sprintf( istr, " \"method\" : \"md5\", \"value\" : \"%s\" ", hex_to_b64str( &(m->sum[2]), strlen(&(m->sum[2]))) );
+           break;
+       case 'n' :
+           sprintf( istr, " \"method\" : \"md5name\", \"value\" : \"%s\" ", hex_to_b64str( &(m->sum[2]), strlen(&(m->sum[2]))) );
+           break;
+       case 's' :
+           sprintf( istr, " \"method\" : \"sha512\", \"value\" : \"%s\" ", hex_to_b64str( &(m->sum[2]), strlen(&(m->sum[2]))) );
+           break;
+       case 'L' : 
+           sprintf( istr, " \"method\" : \"link\", \"value\" : \"%s\" ", hex_to_b64str( &(m->sum[2]), strlen(&(m->sum[2]))) );
+           break;
+       case 'R' : 
+           sprintf( istr, " \"method\" : \"remove\", \"value\" : \"%s\" ", hex_to_b64str( &(m->sum[2]), strlen(&(m->sum[2]))) );
+           break;
+       case 'z' : 
+           // FIXME: wrong, method requires translation.
+           sprintf( istr, " \"method\" : \"cod\", \"value\" : \"%s-not implemented!\" ", &(m->sum[2]) );
+           break;
+       default : 
+           sprintf( istr, " \"method\" : \"%c\", \"value\" : \"%s\" ", m->sum[0], &(m->sum[2]) );
+           break;
+   }
+   return(istr);
+
+}
+
 void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
 {
 	char fn[PATH_MAXNUL];
-	char message_body[1024];
+	char message_body[1024*1024];
 	char smallbuf[256];
 	char thisexchange[256];
 	char *c, *d;
@@ -233,70 +277,168 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
 	}
 	//  resume posting
 	while (1) {
-		strcpy(message_body, m->datestamp);
-		strcat(message_body, " ");
-		strcat(message_body, m->url);
-		strcat(message_body, " ");
-		strcat(message_body, fn);
-		strcat(message_body, " \n");
+         if ( !strncmp("v02.", sr_c->cfg->topic_prefix, 4 ) ) {
+    		strcpy(message_body, m->datestamp);
+    		strcat(message_body, " ");
+    		strcat(message_body, m->url);
+    		strcat(message_body, " ");
+    		strcat(message_body, fn);
+    		strcat(message_body, " \n");
 
-		header_reset();
+    		header_reset();
 
-		if (sr_c->cfg->strip > 0)
-			amqp_header_add("rename", m->rename);
+    		if (sr_c->cfg->strip > 0)
+    			amqp_header_add("rename", m->rename);
 
-		if (m->from_cluster && m->from_cluster[0])
-			amqp_header_add("from_cluster", m->from_cluster);
+    		if (m->from_cluster && m->from_cluster[0])
+    			amqp_header_add("from_cluster", m->from_cluster);
 
-		if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
-			amqp_header_add("parts", sr_message_partstr(m));
+    		if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
+    			amqp_header_add("parts", sr_message_partstr(m));
 
-			if (m->atime && m->atime[0])
-				amqp_header_add("atime", m->atime);
+    			if (m->atime && m->atime[0])
+    				amqp_header_add("atime", m->atime);
 
-			if (m->mode > 0) {
-				sprintf(smallbuf, "%04o", m->mode);
-				amqp_header_add("mode", smallbuf);
-			}
+    			if (m->mode > 0) {
+    				sprintf(smallbuf, "%04o", m->mode);
+    				amqp_header_add("mode", smallbuf);
+    			}
 
-			if (m->mtime && m->mtime[0])
-				amqp_header_add("mtime", m->mtime);
-		}
+    			if (m->mtime && m->mtime[0])
+    				amqp_header_add("mtime", m->mtime);
+    		}
 
-		if (m->sum[0] == 'L') {
-			amqp_header_add("link", m->link);
-		}
+    		if (m->sum[0] == 'L') {
+    			amqp_header_add("link", m->link);
+    		}
 
-		amqp_header_add("sum", m->sum);
+    		amqp_header_add("sum", m->sum);
+    
+    		if (m->to_clusters && m->to_clusters[0])
+    			amqp_header_add("to_clusters", m->to_clusters);
 
-		if (m->to_clusters && m->to_clusters[0])
-			amqp_header_add("to_clusters", m->to_clusters);
+    		for (uh = m->user_headers; uh; uh = uh->next)
+    			amqp_header_add(uh->key, uh->value);
 
-		for (uh = m->user_headers; uh; uh = uh->next)
-			amqp_header_add(uh->key, uh->value);
+    		table.num_entries = hdrcnt;
+    		table.entries = headers;
 
-		table.num_entries = hdrcnt;
-		table.entries = headers;
+    		props._flags =
+    		    AMQP_BASIC_HEADERS_FLAG| AMQP_BASIC_CONTENT_TYPE_FLAG | 
+                AMQP_BASIC_DELIVERY_MODE_FLAG;
+		    props.content_type = amqp_cstring_bytes("text/plain");
+		    props.delivery_mode = 2;	/* persistent delivery mode */
+            props.headers = table;
 
-		props._flags =
-		    AMQP_BASIC_HEADERS_FLAG | AMQP_BASIC_CONTENT_TYPE_FLAG |
-		    AMQP_BASIC_DELIVERY_MODE_FLAG;
-		props.content_type = amqp_cstring_bytes("text/plain");
-		props.delivery_mode = 2;	/* persistent delivery mode */
-		props.headers = table;
+		    strcpy(thisexchange, sr_c->cfg->post_broker->exchange);
 
-		strcpy(thisexchange, sr_c->cfg->post_broker->exchange);
-
-		if (sr_c->cfg->post_broker->exchange_split > 0) {
-			sprintf(strchr(thisexchange, '\0'), "%02d",
-				m->sum[get_sumhashlen(m->sum[0]) -
-				       1] % sr_c->cfg->post_broker->exchange_split);
-		}
-		status =
-		    amqp_basic_publish(sr_c->cfg->post_broker->conn, 1,
+		    if (sr_c->cfg->post_broker->exchange_split > 0) {
+		    	sprintf(strchr(thisexchange, '\0'), "%02d",
+		    		m->sum[get_sumhashlen(m->sum[0]) -
+		    		       1] % sr_c->cfg->post_broker->exchange_split);
+		    }
+		    status =
+		        amqp_basic_publish(sr_c->cfg->post_broker->conn, 1,
 				       amqp_cstring_bytes(thisexchange),
 				       amqp_cstring_bytes(m->routing_key), 0, 0,
 				       &props, amqp_cstring_bytes(message_body));
+        } else { /* v03 */
+            strcpy( message_body, "{" );
+            c = message_body+1;
+            status = sprintf( c, "\n\t\"pubTime\" : \"%s\"", m->datestamp );
+            c += status ; 
+            status = sprintf( c, ",\n\t\"baseUrl\" : \"%s\"", m->url );
+            c += status ; 
+            status = sprintf( c, ",\n\t\"relPath\" : \"%s\"", m->path );
+            c += status ; 
+
+    		if (sr_c->cfg->strip > 0) {
+                status = sprintf( c, ",\n\t\"rename\" : \"%s\"", m->rename );
+                c += status ; 
+            }
+
+    		if (m->from_cluster && m->from_cluster[0]) {
+                status = sprintf( c, ",\n\t\"from_cluster\" : \"%s\"", m->from_cluster );
+                c += status ; 
+            }
+
+    		if (m->to_clusters) {
+                status = sprintf( c, ",\n\t\"to_clusters\" : \"%s\"", m->to_clusters );
+                c += status ; 
+            }
+            if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
+                if ( m->parts_s != '1' ) {
+                    status = sprintf( c, ",\n\t\"blocks\" : { ");
+                    c += status ; 
+                    status = sprintf( c, "\"method\" : \"%s\", ", (m->parts_s=='i')?"inplace":"partitioned"  );
+                    c += status ; 
+                    status = sprintf( c, "\"size\" : \"%ld\", ", m->parts_blksz  );
+                    c += status ; 
+                    status = sprintf( c, "\"count\" : \"%ld\", ", m->parts_blkcount  );
+                    c += status ; 
+                    status = sprintf( c, "\"remainder\" : \"%ld\", ", m->parts_rem  );
+                    c += status ; 
+                    status = sprintf( c, "\"number\" : \"%ld\" }", m->parts_num  );
+                    c += status ; 
+                    //m->parts_s
+                    //m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num
+                    //amqp_header_add("parts", sr_message_partstr(m));
+                } else {
+                    status = sprintf( c, ",\n\t\"size\" : \"%ld\"", m->parts_blksz  );
+                    c += status ; 
+                }
+                if (m->atime && m->atime[0]) {
+                    status = sprintf( c, ",\n\t\"atime\" : \"%s\"", m->atime );
+                    c += status ; 
+                }
+
+                if (m->mode > 0) {
+                    status = sprintf( c, ",\n\t\"mode\" : \"%04o\"", m->mode );
+                    c += status ; 
+                }
+
+                if (m->mtime && m->mtime[0]) {
+                    status = sprintf( c, ",\n\t\"mtime\" : \"%s\"", m->mtime );
+                    c += status ; 
+                }
+            }
+
+    		//amqp_header_add("sum", m->sum);
+            status = sprintf( c, ",\n\t\"integrity\" : { %s } ", v03integrity(m) );
+            c += status ; 
+            
+
+            if (m->sum[0] == 'L') {
+                status = sprintf( c, ",\n\t\"link\" : \"%s\"", m->link );
+                c += status ; 
+            }
+
+    		for (uh = m->user_headers; uh; uh = uh->next)
+                status = sprintf( c, ",\n\t\"%s\" : \"%s\"", uh->key, uh->value );
+                c += status ; 
+
+            strcat( message_body, "\n}\n" );
+            log_msg( LOG_INFO, "v03 not implemented. body=%s\n", message_body );
+            //return;
+
+    		props._flags =
+    		    AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
+		    props.content_type = amqp_cstring_bytes("text/plain");
+		    props.delivery_mode = 2;	/* persistent delivery mode */
+
+		    strcpy(thisexchange, sr_c->cfg->post_broker->exchange);
+
+		    if (sr_c->cfg->post_broker->exchange_split > 0) {
+		    	sprintf(strchr(thisexchange, '\0'), "%02d",
+		    		m->sum[get_sumhashlen(m->sum[0]) -
+		    		       1] % sr_c->cfg->post_broker->exchange_split);
+		    }
+		    status =
+		        amqp_basic_publish(sr_c->cfg->post_broker->conn, 1,
+				       amqp_cstring_bytes(thisexchange),
+				       amqp_cstring_bytes(m->routing_key), 0, 0,
+				       &props, amqp_cstring_bytes(message_body));
+        }
 
 		if (status < 0) {
 			log_msg(LOG_ERROR,
