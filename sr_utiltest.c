@@ -134,6 +134,7 @@ int main(int argc, char *argv[])
     {
         log_msg( LOG_ERROR, "hex to base64 conversion expected: %s\n", expected );
     } else {
+		fprintf(stderr, "OK: as expected!\n");
 		success++;
     }
 	testcnt++;
@@ -146,6 +147,7 @@ int main(int argc, char *argv[])
     {
         log_msg( LOG_ERROR, "hex to base64 conversion expected: %s\n", expected );
     } else {
+		fprintf(stderr, "OK: as expected!\n");
 		success++;
     }
 	testcnt++;
@@ -159,6 +161,7 @@ int main(int argc, char *argv[])
     {
         log_msg( LOG_ERROR, "hex to base64 conversion expected: %s\n", expected );
     } else {
+		fprintf(stderr, "OK: as expected!\n");
 		success++;
     }
 

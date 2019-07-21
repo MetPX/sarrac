@@ -196,41 +196,33 @@ char *hex_to_b64str( char *hextr, int hexstrlen ) {
   return( "not implemented" );
 }
 
+const char *sum2integrity( char sum )
+{
+   switch (sum) {
+       case '0': return( "random" );
+       case 'a': return( "arbitrary" );
+       case 'd': return( "md5" );
+       case 'n': return( "md5name" );
+       case 's': return( "sha512" );
+       case 'L': return( "link" );
+       case 'R': return( "remove" );
+       case 'z': return( "cod" );
+       default: return( "unknown" );
+   }
+
+}
 
 char *v03integrity( struct sr_message_t *m ) 
 {
    static char istr[1024]; 
+   const char *value;
 
    switch (m->sum[0]) {
-       case '0' : 
-           sprintf( istr, " \"method\" : \"random\", \"value\" : \"%s\" ", &(m->sum[2]) );
-           break;
-       case 'a' : 
-           sprintf( istr, " \"method\" : \"arbitrary\", \"value\" : \"%s\" ", &(m->sum[2]) );
-           break;
-       case 'd' : 
-           sprintf( istr, " \"method\" : \"md5\", \"value\" : \"%s\" ", hex2base64( &(m->sum[2]) ) );
-           break;
-       case 'n' :
-           sprintf( istr, " \"method\" : \"md5name\", \"value\" : \"%s\" ", hex2base64( &(m->sum[2]) ) );
-           break;
-       case 's' :
-           sprintf( istr, " \"method\" : \"sha512\", \"value\" : \"%s\" ", hex2base64( &(m->sum[2]) ) );
-           break;
-       case 'L' : 
-           sprintf( istr, " \"method\" : \"link\", \"value\" : \"%s\" ", hex2base64( &(m->sum[2]) ) );
-           break;
-       case 'R' : 
-           sprintf( istr, " \"method\" : \"remove\", \"value\" : \"%s\" ", hex2base64( &(m->sum[2]) ) );
-           break;
-       case 'z' : 
-           // FIXME: wrong, method requires translation.
-           sprintf( istr, " \"method\" : \"cod\", \"value\" : \"%s-not implemented!\" ", &(m->sum[2]) );
-           break;
-       default : 
-           sprintf( istr, " \"method\" : \"%c\", \"value\" : \"%s\" ", m->sum[0], &(m->sum[2]) );
-           break;
+       case 'd' : case 'n' : case 's' : case 'L' : case 'R' : value = hex2base64( &(m->sum[2]) ); break;
+       case 'z' : value = sum2integrity(m->sum[2]); break;
+       case '0' : case 'a' : default : value = &(m->sum[2]); break;
    }
+   sprintf( istr, " \"method\" : \"%s\", \"value\" : \"%s\" ", sum2integrity( m->sum[0] ), value );
    return(istr);
 
 }
@@ -418,7 +410,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
                 c += status ; 
 
             strcat( message_body, "\n}\n" );
-            log_msg( LOG_INFO, "v03 not implemented. body=%s\n", message_body );
+            //log_msg( LOG_INFO, "v03 body=%s\n", message_body );
             //return;
 
     		props._flags =
