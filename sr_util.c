@@ -396,9 +396,17 @@ char *hex2base64( char *hstr )
   b=0;
   for ( h = 0 ; h < hxlen-2 ; h+=3 ) {
 
-     //line feed after every 76 chars...
+     //base64 encoding requires line feed after every 76 chars...
+/*
      if (!((b-1)%77)) 
          buf[b++]='\n';
+ */
+//   but Sarracenia expects fake line feed...
+     if ( (b>10) && !((b%78)) ) 
+     { 
+         buf[b++]='\\';
+         buf[b++]='n';
+     }
 
      pad[0] = (h2b(hstr[h]) << 2) | ( h2b(hstr[h+1])>>2 ) ;
      pad[1] = ((h2b(hstr[h+1])&0x03) << 4) | ( h2b(hstr[h+2]) ) ;

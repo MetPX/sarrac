@@ -244,6 +244,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
 	char message_body[1024*1024];
 	char smallbuf[256];
 	char thisexchange[256];
+    char sep[8];
 	char *c, *d;
 	amqp_table_t table;
 	amqp_basic_properties_t props;
@@ -303,7 +304,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
     				amqp_header_add("atime", m->atime);
 
     			if (m->mode > 0) {
-    				sprintf(smallbuf, "%04o", m->mode);
+    				sprintf(smallbuf, "%03o", m->mode);
     				amqp_header_add("mode", smallbuf);
     			}
 
@@ -327,8 +328,10 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
     		table.entries = headers;
 
     		props._flags =
+                AMQP_BASIC_CONTENT_ENCODING_FLAG|
     		    AMQP_BASIC_HEADERS_FLAG| AMQP_BASIC_CONTENT_TYPE_FLAG | 
                 AMQP_BASIC_DELIVERY_MODE_FLAG;
+		    props.content_encoding = amqp_cstring_bytes("utf-8");
 		    props.content_type = amqp_cstring_bytes("text/plain");
 		    props.delivery_mode = 2;	/* persistent delivery mode */
             props.headers = table;
@@ -348,30 +351,32 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
         } else { /* v03 */
             strcpy( message_body, "{" );
             c = message_body+1;
-            status = sprintf( c, "\n\t\"pubTime\" : \"%s\"", v03time( m->datestamp ) );
+            strncpy( sep, "\n\t", 8 );
+            strncpy( sep, " ", 8 );
+            status = sprintf( c, "%s\"pubTime\" : \"%s\"", sep, v03time( m->datestamp ) );
             c += status ; 
-            status = sprintf( c, ",\n\t\"baseUrl\" : \"%s\"", m->url );
+            status = sprintf( c, ",%s\"baseUrl\" : \"%s\"", sep, m->url );
             c += status ; 
-            status = sprintf( c, ",\n\t\"relPath\" : \"%s\"", m->path );
+            status = sprintf( c, ",%s\"relPath\" : \"%s\"", sep, m->path );
             c += status ; 
 
     		if (sr_c->cfg->strip > 0) {
-                status = sprintf( c, ",\n\t\"rename\" : \"%s\"", m->rename );
+                status = sprintf( c, ",%s\"rename\" : \"%s\"", sep, m->rename );
                 c += status ; 
             }
 
     		if (m->from_cluster && m->from_cluster[0]) {
-                status = sprintf( c, ",\n\t\"from_cluster\" : \"%s\"", m->from_cluster );
+                status = sprintf( c, ",%s\"from_cluster\" : \"%s\"", sep, m->from_cluster );
                 c += status ; 
             }
 
     		if (m->to_clusters) {
-                status = sprintf( c, ",\n\t\"to_clusters\" : \"%s\"", m->to_clusters );
+                status = sprintf( c, ",%s\"to_clusters\" : \"%s\"", sep, m->to_clusters );
                 c += status ; 
             }
             if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
                 if ( m->parts_s != '1' ) {
-                    status = sprintf( c, ",\n\t\"blocks\" : { ");
+                    status = sprintf( c, ",%s\"blocks\" : { ", sep);
                     c += status ; 
                     status = sprintf( c, "\"method\" : \"%s\", ", (m->parts_s=='i')?"inplace":"partitioned"  );
                     c += status ; 
@@ -387,45 +392,46 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
                     //m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num
                     //amqp_header_add("parts", sr_message_partstr(m));
                 } else {
-                    status = sprintf( c, ",\n\t\"size\" : \"%ld\"", m->parts_blksz  );
+                    status = sprintf( c, ",%s\"size\" : \"%ld\"", sep, m->parts_blksz  );
                     c += status ; 
                 }
                 if (m->atime && m->atime[0]) {
-                    status = sprintf( c, ",\n\t\"atime\" : \"%s\"", v03time( m->atime ) );
+                    status = sprintf( c, ",%s\"atime\" : \"%s\"", sep, v03time( m->atime ) );
                     c += status ; 
                 }
 
                 if (m->mode > 0) {
-                    status = sprintf( c, ",\n\t\"mode\" : \"%04o\"", m->mode );
+                    status = sprintf( c, ",%s\"mode\" : \"%03o\"", sep, m->mode );
                     c += status ; 
                 }
 
                 if (m->mtime && m->mtime[0]) {
-                    status = sprintf( c, ",\n\t\"mtime\" : \"%s\"", v03time( m->mtime ) );
+                    status = sprintf( c, ",%s\"mtime\" : \"%s\"", sep, v03time( m->mtime ) );
                     c += status ; 
                 }
             }
 
     		//amqp_header_add("sum", m->sum);
-            status = sprintf( c, ",\n\t\"integrity\" : { %s } ", v03integrity(m) );
+            status = sprintf( c, ",%s\"integrity\" : { %s } ", sep, v03integrity(m) );
             c += status ; 
             
 
             if (m->sum[0] == 'L') {
-                status = sprintf( c, ",\n\t\"link\" : \"%s\"", m->link );
+                status = sprintf( c, ",%s\"link\" : \"%s\"", sep, m->link );
                 c += status ; 
             }
 
     		for (uh = m->user_headers; uh; uh = uh->next)
-                status = sprintf( c, ",\n\t\"%s\" : \"%s\"", uh->key, uh->value );
+                status = sprintf( c, ",%s\"%s\" : \"%s\"", sep, uh->key, uh->value );
                 c += status ; 
 
-            strcat( message_body, "\n}\n" );
+            sprintf( c, "\n}\n" );
+            c += status ; 
             log_msg( LOG_DEBUG, "v03 body=%s\n", message_body );
             //return;
 
-    		props._flags =
-    		    AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
+    		props._flags = AMQP_BASIC_CONTENT_ENCODING_FLAG| AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
+		    props.content_encoding = amqp_cstring_bytes("utf-8");
 		    props.content_type = amqp_cstring_bytes("text/plain");
 		    props.delivery_mode = 2;	/* persistent delivery mode */
 

@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
     strcpy( input, "dcc2806747cc0046f4dcd7ac93411bde896fd089edf3420e0e5d1fe0b6b876b403dfdcf7221b6dd520298bd2de4c4e74bdd0cd76c10d69ca44ebc724dedda7b1" );
     output = hex2base64( input );
     printf( "    input: %s\n   output: %s\n", input, output );
-    strcpy( expected, "3MKAZ0fMAEb03Nesk0Eb3olv0Int80IODl0f4La4drQD39z3Ihtt1SApi9LeTE50vdDNdsENacpE68\nck3t2nsQ==" );
+    strcpy( expected, "3MKAZ0fMAEb03Nesk0Eb3olv0Int80IODl0f4La4drQD39z3Ihtt1SApi9LeTE50vdDNdsENacpE68\\nck3t2nsQ==" );
     if ( strcmp( output, expected )  )
     {
         log_msg( LOG_ERROR, "hex to base64 conversion expected: %s\n", expected );
