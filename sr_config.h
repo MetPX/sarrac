@@ -220,7 +220,8 @@ struct sr_config_t {
 	char *to;	  /**< indicates destination cluster(s) for a post.*/
 	struct sr_topic_t *topics;
 			      /**< list of sub-topics to subscribe to.*/
-	char topic_prefix[AMQP_MAX_SS];		 /**< the topic prefix to either subscribe or post to.*/
+	char topic_prefix[AMQP_MAX_SS];		 /**< the topic prefix to subscribe to.*/
+	char post_topic_prefix[AMQP_MAX_SS];   /**< the topic prefix to post to.*/
 	struct sr_header_t *user_headers;
 				    /**< list of arbitrary user headers for extensions and upward compatibility.*/
 	char *vip;	  /**< virtual ip address ... only act, if host has this address.*/

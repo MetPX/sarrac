@@ -822,6 +822,10 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char *option, char *arg,
 		argument = NULL;
 		retval = 2;
 
+    } else if (!strcmp(option, "post_topic_prefix") || !strcmp(option, "ptp" ) ) {
+        strcpy( sr_cfg->post_topic_prefix, argument );
+        retval = 2;
+
 	} else if (!strcmp(option, "durable")) {
 		val = StringIsTrue(argument);
 		sr_cfg->durable = val & 2;
@@ -1293,6 +1297,7 @@ void sr_config_init(struct sr_config_t *sr_cfg, const char *progname)
 	sr_cfg->to = NULL;
 	sr_cfg->user_headers = NULL;
 	strcpy(sr_cfg->topic_prefix, "v02.post");
+	strcpy(sr_cfg->post_topic_prefix, "v03.post");
 	sr_cfg->topics = NULL;
 	sr_cfg->post_base_url = NULL;
 

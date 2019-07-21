@@ -227,6 +227,17 @@ char *v03integrity( struct sr_message_t *m )
 
 }
 
+char *v03time( char *v02time )
+{
+   static char buf[128];
+
+   strncpy( buf, v02time, 8 );
+   buf[8]='T';
+   buf[9]='\0';
+   strcat( buf, v02time+8 );
+   return(buf);
+}
+
 void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
 {
 	char fn[PATH_MAXNUL];
@@ -269,7 +280,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
 	}
 	//  resume posting
 	while (1) {
-         if ( !strncmp("v02.", sr_c->cfg->topic_prefix, 4 ) ) {
+         if ( !strncmp("v02.", sr_c->cfg->post_topic_prefix, 4 ) ) {
     		strcpy(message_body, m->datestamp);
     		strcat(message_body, " ");
     		strcat(message_body, m->url);
@@ -337,7 +348,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
         } else { /* v03 */
             strcpy( message_body, "{" );
             c = message_body+1;
-            status = sprintf( c, "\n\t\"pubTime\" : \"%s\"", m->datestamp );
+            status = sprintf( c, "\n\t\"pubTime\" : \"%s\"", v03time( m->datestamp ) );
             c += status ; 
             status = sprintf( c, ",\n\t\"baseUrl\" : \"%s\"", m->url );
             c += status ; 
@@ -380,7 +391,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
                     c += status ; 
                 }
                 if (m->atime && m->atime[0]) {
-                    status = sprintf( c, ",\n\t\"atime\" : \"%s\"", m->atime );
+                    status = sprintf( c, ",\n\t\"atime\" : \"%s\"", v03time( m->atime ) );
                     c += status ; 
                 }
 
@@ -390,7 +401,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
                 }
 
                 if (m->mtime && m->mtime[0]) {
-                    status = sprintf( c, ",\n\t\"mtime\" : \"%s\"", m->mtime );
+                    status = sprintf( c, ",\n\t\"mtime\" : \"%s\"", v03time( m->mtime ) );
                     c += status ; 
                 }
             }
@@ -410,7 +421,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
                 c += status ; 
 
             strcat( message_body, "\n}\n" );
-            //log_msg( LOG_INFO, "v03 body=%s\n", message_body );
+            log_msg( LOG_DEBUG, "v03 body=%s\n", message_body );
             //return;
 
     		props._flags =
@@ -563,7 +574,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		free(d);
 	}
 	// use tmprk variable to fix  255 AMQP_SS_LEN limit
-	strcpy(tmprk, sr_c->cfg->topic_prefix);
+	strcpy(tmprk, sr_c->cfg->post_topic_prefix);
 	strcat(tmprk, ".");
 	strcat(tmprk, m->path + (*(m->path) == '/'));
 
