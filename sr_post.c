@@ -238,6 +238,27 @@ char *v03time( char *v02time )
    return(buf);
 }
 
+/*
+ * return cc string with tag value pair appended in JSON ( "tag" : "value" )
+ * separator is hard-coded here (beginning of sprintf.)
+ * FIXME: dumps core whenever this is used... something to fix.
+ */
+char *v03amqp_header_add( char* c, const char* tag, const char *value ) 
+{
+   int status;
+
+   /* check utf8 compliance of tag and value for message headers */
+   if (!is_utf8(tag) || !is_utf8(value)) {
+	   log_msg(LOG_ERROR,
+		   "amqp header (tag, value)<>(%s,%s) not utf8 encoded, ignoring header\n",
+           tag, value);
+   } else {
+      status = sprintf( c, ", \"%s\" : \"%s\"", tag, value );
+      c += status ; 
+   }
+   return(c);
+}
+
 void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
 {
 	char fn[PATH_MAXNUL];
@@ -328,9 +349,8 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
     		table.entries = headers;
 
     		props._flags =
-                AMQP_BASIC_CONTENT_ENCODING_FLAG|
-    		    AMQP_BASIC_HEADERS_FLAG| AMQP_BASIC_CONTENT_TYPE_FLAG | 
-                AMQP_BASIC_DELIVERY_MODE_FLAG;
+                AMQP_BASIC_CONTENT_ENCODING_FLAG | AMQP_BASIC_HEADERS_FLAG |
+                AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG ;
 		    props.content_encoding = amqp_cstring_bytes("utf-8");
 		    props.content_type = amqp_cstring_bytes("text/plain");
 		    props.delivery_mode = 2;	/* persistent delivery mode */
@@ -349,15 +369,32 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
 				       amqp_cstring_bytes(m->routing_key), 0, 0,
 				       &props, amqp_cstring_bytes(message_body));
         } else { /* v03 */
+
+            // convert routing key, if necessary.
+            // FIXME: a generic conversion replacing topic_prefix by post_topic_prefix
+            //        would be much better, but this >99% answer is good enough for now.
+            if ( m->routing_key[2] != '3' )
+                m->routing_key[2] = '3' ;
+
             strcpy( message_body, "{" );
             c = message_body+1;
+
             strncpy( sep, "\n\t", 8 );
             strncpy( sep, " ", 8 );
+
             status = sprintf( c, "%s\"pubTime\" : \"%s\"", sep, v03time( m->datestamp ) );
             c += status ; 
             status = sprintf( c, ",%s\"baseUrl\" : \"%s\"", sep, m->url );
             c += status ; 
+
+            //FIXME: after the first one, all of them start with comma, so could
+            //       use the v03amqp_header_add routine, but it dumps core...
+            //c = v03amqp_header_add( c, "baseUrl", m->url );
+
             status = sprintf( c, ",%s\"relPath\" : \"%s\"", sep, m->path );
+            c += status ; 
+
+            status = sprintf( c, ",%s\"integrity\" : { %s }", sep, v03integrity(m) );
             c += status ; 
 
     		if (sr_c->cfg->strip > 0) {
@@ -388,9 +425,6 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
                     c += status ; 
                     status = sprintf( c, "\"number\" : \"%ld\" }", m->parts_num  );
                     c += status ; 
-                    //m->parts_s
-                    //m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num
-                    //amqp_header_add("parts", sr_message_partstr(m));
                 } else {
                     status = sprintf( c, ",%s\"size\" : \"%ld\"", sep, m->parts_blksz  );
                     c += status ; 
@@ -411,26 +445,24 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
                 }
             }
 
-    		//amqp_header_add("sum", m->sum);
-            status = sprintf( c, ",%s\"integrity\" : { %s } ", sep, v03integrity(m) );
-            c += status ; 
-            
-
             if (m->sum[0] == 'L') {
                 status = sprintf( c, ",%s\"link\" : \"%s\"", sep, m->link );
                 c += status ; 
             }
 
-    		for (uh = m->user_headers; uh; uh = uh->next)
+    		for (uh = m->user_headers; uh; uh = uh->next) {
                 status = sprintf( c, ",%s\"%s\" : \"%s\"", sep, uh->key, uh->value );
                 c += status ; 
+            }
 
-            sprintf( c, "\n}\n" );
+            sprintf( c, "%s}  \n", sep );
             c += status ; 
-            log_msg( LOG_DEBUG, "v03 body=%s\n", message_body );
-            //return;
+            //strcat( message_body, " } \n" );
 
-    		props._flags = AMQP_BASIC_CONTENT_ENCODING_FLAG| AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
+            log_msg( LOG_DEBUG, "v03 body=%s\n", message_body );
+
+    		props._flags = AMQP_BASIC_CONTENT_ENCODING_FLAG | 
+                AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
 		    props.content_encoding = amqp_cstring_bytes("utf-8");
 		    props.content_type = amqp_cstring_bytes("text/plain");
 		    props.delivery_mode = 2;	/* persistent delivery mode */
@@ -590,7 +622,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	strcpy(m->routing_key, tmprk);
 
 	lasti = 0;
-	for (int i = strlen(sr_c->cfg->topic_prefix); i < strlen(m->routing_key); i++) {
+	for (int i = strlen(sr_c->cfg->post_topic_prefix); i < strlen(m->routing_key); i++) {
 		if (m->routing_key[i] == '/') {
 			if (lasti > 0) {
 				m->routing_key[lasti] = '.';

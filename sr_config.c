@@ -1297,7 +1297,7 @@ void sr_config_init(struct sr_config_t *sr_cfg, const char *progname)
 	sr_cfg->to = NULL;
 	sr_cfg->user_headers = NULL;
 	strcpy(sr_cfg->topic_prefix, "v02.post");
-	strcpy(sr_cfg->post_topic_prefix, "v03.post");
+	strcpy(sr_cfg->post_topic_prefix, "v02.post");
 	sr_cfg->topics = NULL;
 	sr_cfg->post_base_url = NULL;
 
@@ -1620,9 +1620,9 @@ int sr_config_finalize(struct sr_config_t *sr_cfg, const int is_consumer)
 			sr_cfg->message_ttl, sr_cfg->post_exchange,
 			sr_cfg->post_exchange_split, sr_cfg->post_exchange_suffix);
 		log_msg(LOG_DEBUG,
-			"\tsource=%s to=%s post_base_url=%s topic_prefix=%s pid=%d\n",
+			"\tsource=%s to=%s post_base_url=%s topic_prefix=%s post_topic_prefix=%s, pid=%d\n",
 			sr_cfg->source, sr_cfg->to, sr_cfg->post_base_url,
-			sr_cfg->topic_prefix, sr_cfg->pid);
+			sr_cfg->topic_prefix, sr_cfg->post_topic_prefix, sr_cfg->pid);
 	}
 	// FIXME: Missing: topics, user_headers, 
 	if (!strcmp(sr_cfg->progname, "post")
