@@ -220,37 +220,118 @@ void v03assign_field(const char *key, json_object *jso_v)
     of the static msg struct.
   */
 {
-    static char value[15];
     static char unsupported[15];
 	struct sr_header_t *h;
     size_t tlen;
+    json_object *subvalue;
 
-    strcpy(value,"1,58550,1,0,0");
     strcpy(unsupported,"unsupported");
 
-	//log_msg( LOG_DEBUG, "parsing: \"%s\" : \"%s\"\n", key, value );
 	if (!strcmp(key, "atime")) {
+        if (!json_object_is_type(jso_v,json_type_string)) {
+	       log_msg( LOG_ERROR, "malformed json: atime is not a string: %d\n", json_object_get_type(subvalue) );
+           return;
+        }
 		strcpy(msg.atime, json_object_get_string(jso_v));
-        tlen=strlen(msg.atime) - 8 ;
+        tlen=strlen(msg.atime);
+        if ( tlen < 16 ) {
+	       log_msg( LOG_ERROR, "malformed json: atime should be string: %s\n", msg.atime );
+           return;
+        }
+        tlen -= 8 ;
         memmove( &msg.atime[8], &msg.atime[9], tlen ); //eliminate "T".
 	} else if (!strcmp(key, "blocks")) {
-       //FIXME
-	   log_msg( LOG_DEBUG, "v03 partitioned file blocking unimplemented\n" );
+
+       json_object_object_get_ex(jso_v, "method", &subvalue );
+       if (!strcmp(json_object_get_string(subvalue),"inplace")) {
+           msg.parts_s='i';
+       } else {
+           msg.parts_s='p';
+       }
+       json_object_object_get_ex(jso_v, "size", &subvalue );
+       if (json_object_is_type(subvalue,json_type_string)) {
+		   msg.parts_blksz = atol(json_object_get_string(subvalue));
+       } else if (json_object_is_type(subvalue,json_type_int)) {
+		   msg.parts_blksz = json_object_get_int64(subvalue);
+       } else {
+	       log_msg( LOG_ERROR, "malformed json: blocks/size should be an int, but is: %d\n", json_object_get_type(subvalue) );
+       } 
+       json_object_object_get_ex(jso_v, "remainder", &subvalue );
+       if (json_object_is_type(subvalue,json_type_string)) {
+		   msg.parts_rem = atol(json_object_get_string(subvalue));
+       } else if (json_object_is_type(subvalue,json_type_int)) {
+		   msg.parts_rem = json_object_get_int64(subvalue);
+       } else {
+	       log_msg( LOG_ERROR, "malformed json: blocks/remainder should be an int, but is: %d\n", json_object_get_type(subvalue) );
+       } 
+      
+       json_object_object_get_ex(jso_v, "number", &subvalue );
+       if (json_object_is_type(subvalue,json_type_string)) {
+		   msg.parts_num = atol(json_object_get_string(subvalue));
+       } else if (json_object_is_type(subvalue,json_type_int)) {
+		   msg.parts_num = json_object_get_int64(subvalue);
+       } else {
+	       log_msg( LOG_ERROR, "malformed json: blocks/number should be an int, but is: %d\n", json_object_get_type(subvalue) );
+       } 
+      
+       json_object_object_get_ex(jso_v, "count", &subvalue );
+       if (json_object_is_type(subvalue,json_type_string)) {
+		   msg.parts_blkcount = atol(json_object_get_string(subvalue));
+       } else if (json_object_is_type(subvalue,json_type_int)) {
+		   msg.parts_blkcount = json_object_get_int64(subvalue);
+       } else {
+	       log_msg( LOG_ERROR, "malformed json: blocks/count should be an int, but is: %d\n", json_object_get_type(subvalue) );
+       } 
+
 	} else if (!strcmp(key, "from_cluster")) {
+        if (!json_object_is_type(jso_v,json_type_string)) {
+	       log_msg( LOG_ERROR, "malformed json: from_cluster should be string: %d\n", json_object_get_type(jso_v) );
+           return;
+        }
 		strcpy(msg.from_cluster, json_object_get_string(jso_v));
 	} else if (!strcmp(key, "mode")) {
+        if (!json_object_is_type(jso_v,json_type_string)) {
+	       log_msg( LOG_ERROR, "malformed json: mode should be string: %d\n", json_object_get_type(jso_v) );
+           return;
+        }
 		msg.mode = strtoul(json_object_get_string(jso_v), NULL, 8);
 	} else if (!strcmp(key, "mtime")) {
+        if (!json_object_is_type(jso_v,json_type_string)) {
+	       log_msg( LOG_ERROR, "malformed message: mtime value is not a string: %d\n", json_object_get_type(jso_v) );
+           return;
+        }
 		strcpy(msg.mtime, json_object_get_string(jso_v));
-        tlen=strlen(msg.mtime) - 8 ;
+        tlen=strlen(msg.mtime);
+        if ( tlen < 16 ) {
+	       log_msg( LOG_ERROR, "malformed json: mtime should be string: %s\n", msg.mtime );
+           return;
+        }
+        tlen -= 8 ;
         memmove( &msg.mtime[8], &msg.mtime[9], tlen ); //eliminate "T".
 	} else if (!strcmp(key, "baseUrl")) {
+        if (!json_object_is_type(jso_v,json_type_string)) {
+	       log_msg( LOG_ERROR, "malformed json: baseUrl should be string: %d\n", json_object_get_type(jso_v) );
+           return;
+        }
         strcpy( msg.url, json_object_get_string(jso_v) );
 	} else if (!strcmp(key, "relPath")) {
+        if (!json_object_is_type(jso_v,json_type_string)) {
+	       log_msg( LOG_ERROR, "malformed json: relPath should be string: %d\n", json_object_get_type(jso_v) );
+           return;
+        }
         strcpy( msg.path, json_object_get_string(jso_v) );
 	} else if (!strcmp(key, "pubTime")) {
+        if (!json_object_is_type(jso_v,json_type_string)) {
+	       log_msg( LOG_ERROR, "malformed json: pubTime not a string: %d\n", json_object_get_type(jso_v) );
+           return;
+        }
         strcpy( msg.datestamp, json_object_get_string(jso_v) );
-        tlen=strlen(msg.datestamp) - 8 ;
+        tlen=strlen(msg.datestamp);
+        if ( tlen < 16 ) {
+	       log_msg( LOG_ERROR, "malformed json: pubTime value too short: %s\n", msg.datestamp );
+           return;
+        }
+        tlen -= 8 ;
         memmove( &msg.datestamp[8], &msg.datestamp[9], tlen ); //eliminate "T".
 	} else if (!strcmp(key, "integrity")) {
        //FIXME
@@ -263,12 +344,22 @@ void v03assign_field(const char *key, json_object *jso_v)
 		msg.parts_rem = 0;
 		msg.parts_num = 0;
 	} else if (!strcmp(key, "relPath")) {
+        if (!json_object_is_type(jso_v,json_type_string)) {
+	       log_msg( LOG_ERROR, "malformed json: relPath value should be string: %d\n", json_object_get_type(jso_v) );
+           return;
+        }
 		strcpy(msg.path,  json_object_get_string(jso_v));
 	} else if (!strcmp(key, "source")) {
+        if (!json_object_is_type(jso_v,json_type_string)) {
+	       log_msg( LOG_ERROR, "malformed json: source value should be string: %d\n", json_object_get_type(jso_v) );
+           return;
+        }
 		strcpy(msg.source,  json_object_get_string(jso_v));
-	} else if (!strcmp(key, "sum")) {
-		strcpy(msg.sum,  json_object_get_string(jso_v));
 	} else if (!strcmp(key, "to_clusters")) {
+        if (!json_object_is_type(jso_v,json_type_string)) {
+	       log_msg( LOG_ERROR, "malformed json: to_clusters should be string: %d\n", json_object_get_type(jso_v) );
+           return;
+        }
 		strcpy(msg.to_clusters,  json_object_get_string(jso_v));
 	} else {
 		h = (struct sr_header_t *)malloc(sizeof(struct sr_header_t));
@@ -560,14 +651,23 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 
     		}
         } else { // v03
-            json_object *jo;
+            json_object *jo = NULL;
 
             jo = json_tokener_parse( buf );
 
+            if (jo == NULL) {
+			    log_msg( LOG_ERROR, "failed to parse message body: %s", buf);
+                return(NULL);
+            } else {
+			    log_msg( LOG_DEBUG, "successfully parsed message body: %s", buf);
+            }
             json_object_object_foreach( jo, k, jso_kv ) {
                 v03assign_field(k, jso_kv);
             }
             json_object_put(jo); //attempting to free everything?
+            jo=NULL;
+
+            //crutch for now...
             strcpy(msg.sum,"s,2e3007bb5d35a5f794c9a5936be82dea18a5871b5688c2ad167c333aba621fdf6e377af2bfe86e60280fa594b639a46cd56a45a9fa06360d597fa4fd0de1733b");
 
 

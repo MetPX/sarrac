@@ -404,7 +404,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
                 if ( m->parts_s != '1' ) {
                     status = sprintf( c, 
                       ",%s\"blocks\" : { \"method\": \"%s\", \"size\" : "
-                      "\"%0ld\", \"count\", \"%ld\", \"remainder\": \"%ld\", "
+                      "\"%0ld\", \"count\": \"%ld\", \"remainder\": \"%ld\", "
                       "\"number\" : \"%ld\" }",
                       sep, (m->parts_s=='i')?"inplace":"partitioned", 
                       m->parts_blksz, m->parts_blkcount, m->parts_rem, 
