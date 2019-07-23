@@ -214,6 +214,75 @@ void assign_field(const char *key, char *value)
 	}
 }
 
+
+void v03assign_field(const char *key, json_object *jso_v)
+ /* Assign the value of the field given by key to the corresponding member
+    of the static msg struct.
+  */
+{
+    static char value[15];
+    static char unsupported[15];
+	struct sr_header_t *h;
+    size_t tlen;
+
+    strcpy(value,"1,58550,1,0,0");
+    strcpy(unsupported,"unsupported");
+
+	//log_msg( LOG_DEBUG, "parsing: \"%s\" : \"%s\"\n", key, value );
+	if (!strcmp(key, "atime")) {
+		strcpy(msg.atime, json_object_get_string(jso_v));
+        tlen=strlen(msg.atime) - 8 ;
+        memmove( &msg.atime[8], &msg.atime[9], tlen ); //eliminate "T".
+	} else if (!strcmp(key, "blocks")) {
+       //FIXME
+	   log_msg( LOG_DEBUG, "v03 partitioned file blocking unimplemented\n" );
+	} else if (!strcmp(key, "from_cluster")) {
+		strcpy(msg.from_cluster, json_object_get_string(jso_v));
+	} else if (!strcmp(key, "mode")) {
+		msg.mode = strtoul(json_object_get_string(jso_v), NULL, 8);
+	} else if (!strcmp(key, "mtime")) {
+		strcpy(msg.mtime, json_object_get_string(jso_v));
+        tlen=strlen(msg.mtime) - 8 ;
+        memmove( &msg.mtime[8], &msg.mtime[9], tlen ); //eliminate "T".
+	} else if (!strcmp(key, "baseUrl")) {
+        strcpy( msg.url, json_object_get_string(jso_v) );
+	} else if (!strcmp(key, "relPath")) {
+        strcpy( msg.path, json_object_get_string(jso_v) );
+	} else if (!strcmp(key, "pubTime")) {
+        strcpy( msg.datestamp, json_object_get_string(jso_v) );
+        tlen=strlen(msg.datestamp) - 8 ;
+        memmove( &msg.datestamp[8], &msg.datestamp[9], tlen ); //eliminate "T".
+	} else if (!strcmp(key, "integrity")) {
+       //FIXME
+	   log_msg( LOG_DEBUG, "v03 integrity unimplemented\n" );
+	} else if (!strcmp(key, "size")) {
+		//FIXME: no error checking, invalid parts header will cause a bobo.
+		msg.parts_s = '1';
+		msg.parts_blksz = atol(json_object_get_string(jso_v));
+		msg.parts_blkcount = 1;
+		msg.parts_rem = 0;
+		msg.parts_num = 0;
+	} else if (!strcmp(key, "relPath")) {
+		strcpy(msg.path,  json_object_get_string(jso_v));
+	} else if (!strcmp(key, "source")) {
+		strcpy(msg.source,  json_object_get_string(jso_v));
+	} else if (!strcmp(key, "sum")) {
+		strcpy(msg.sum,  json_object_get_string(jso_v));
+	} else if (!strcmp(key, "to_clusters")) {
+		strcpy(msg.to_clusters,  json_object_get_string(jso_v));
+	} else {
+		h = (struct sr_header_t *)malloc(sizeof(struct sr_header_t));
+		h->key = strdup(key);
+        if (json_object_is_type(jso_v,json_type_string)) {
+		     h->value = strdup(json_object_get_string(jso_v));
+        } else {
+             h->value = strdup(unsupported) ;
+        }
+		h->next = msg.user_headers;
+		msg.user_headers = h;
+	}
+}
+
 void json_dump_strheader(char *tag, char *value)
 {
 	printf("\"%s\": \"%s\"", tag, value);
@@ -491,30 +560,16 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 
     		}
         } else { // v03
-            json_object *jo, *jso_field, *jso_v;
-            size_t i, jo_len;
-            const char *v;
+            json_object *jo;
 
             jo = json_tokener_parse( buf );
-            
 
-            json_object_object_get_ex(jo, "baseUrl", &jso_v );
-            strcpy( msg.url, json_object_get_string(jso_v) );
-
-            json_object_object_get_ex(jo, "relPath", &jso_v );
-            strcpy( msg.path, json_object_get_string(jso_v) );
-
-            json_object_object_get_ex(jo, "pubTime", &jso_v );
-            v= json_object_get_string(jso_v) ;
-            strcpy( msg.datestamp, v );
-            memmove( &msg.datestamp[8], &msg.datestamp[9], strlen(v) - 8 ); //eliminate "T".
-
-            /* jo_len = json_object_array_length(jo);
-            for ( i = 0; i < jo_len ; i++ ) {
-                 jso_field = json_object_array_get_idx(jo,i);
-                 
+            json_object_object_foreach( jo, k, jso_kv ) {
+                v03assign_field(k, jso_kv);
             }
-            */
+            json_object_put(jo); //attempting to free everything?
+            strcpy(msg.sum,"s,2e3007bb5d35a5f794c9a5936be82dea18a5871b5688c2ad167c333aba621fdf6e377af2bfe86e60280fa594b639a46cd56a45a9fa06360d597fa4fd0de1733b");
+
 
         }
 		//fprintf( stdout, " }\n");
