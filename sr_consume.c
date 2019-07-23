@@ -43,6 +43,8 @@
 #include <amqp.h>
 #include <amqp_framing.h>
 
+#include <json-c/json.h>
+
 #include "sr_config.h"
 #include "sr_consume.h"
 
@@ -457,35 +459,64 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 		strncpy(buf, (char *)frame.payload.body_fragment.bytes,
 			(int)frame.payload.body_fragment.len);
 		buf[frame.payload.body_fragment.len] = '\0';
-		tok = strtok(buf, " ");
-		//fprintf( stdout, "\t\"datestamp\" : \"%s\",\n", tok);
-		strcpy(msg.datestamp, tok);
-		tok = strtok(NULL, " ");
-		//fprintf( stdout, "\t\"url\" : \"%s\", \n", tok);
-		strcpy(msg.url, tok);
-		tok = strtok(NULL, " ");
-		//fprintf( stdout, "\t\"path\" : \"%s\", \n", tok);
-		strcpy(msg.path, tok);
-		if (is_report) {
-			tok = strtok(NULL, " ");
-			//fprintf( stdout, "\t\"statuscode\" : \"%s\", \n", tok);
-			msg.statuscode = atoi(tok);
-			tok = strtok(NULL, " ");
-			//fprintf( stdout, "\t\"consumingurl\" : \"%s\", \n", tok);
-			strcpy(msg.consumingurl, tok);
-			tok = strtok(NULL, " ");
-			//fprintf( stdout, "\t\"consuminguser\" : \"%s\", \n", tok);
-			strcpy(msg.consuminguser, tok);
-			tok = strtok(NULL, " ");
-			//fprintf( stdout, "\t\"duration\" : \"%s\", \n", tok);
-			msg.duration = (float)(atof(tok));
-		} else {
-			msg.statuscode = 0;
-			msg.consumingurl[0] = '\0';
-			msg.consuminguser[0] = '\0';
-			msg.duration = 0.0;
 
-		}
+        if ( buf[0] != '{' ) { // v02.
+   		    tok = strtok(buf, " ");
+    		//fprintf( stdout, "\t\"datestamp\" : \"%s\",\n", tok);
+    		strcpy(msg.datestamp, tok);
+    		tok = strtok(NULL, " ");
+    		//fprintf( stdout, "\t\"url\" : \"%s\", \n", tok);
+    		strcpy(msg.url, tok);
+    		tok = strtok(NULL, " ");
+    		//fprintf( stdout, "\t\"path\" : \"%s\", \n", tok);
+    		strcpy(msg.path, tok);
+    		if (is_report) {
+    			tok = strtok(NULL, " ");
+    			//fprintf( stdout, "\t\"statuscode\" : \"%s\", \n", tok);
+    			msg.statuscode = atoi(tok);
+    			tok = strtok(NULL, " ");
+    			//fprintf( stdout, "\t\"consumingurl\" : \"%s\", \n", tok);
+    			strcpy(msg.consumingurl, tok);
+    			tok = strtok(NULL, " ");
+    			//fprintf( stdout, "\t\"consuminguser\" : \"%s\", \n", tok);
+    			strcpy(msg.consuminguser, tok);
+    			tok = strtok(NULL, " ");
+    			//fprintf( stdout, "\t\"duration\" : \"%s\", \n", tok);
+    			msg.duration = (float)(atof(tok));
+    		} else {
+    			msg.statuscode = 0;
+    			msg.consumingurl[0] = '\0';
+    			msg.consuminguser[0] = '\0';
+    			msg.duration = 0.0;
+
+    		}
+        } else { // v03
+            json_object *jo, *jso_field, *jso_v;
+            size_t i, jo_len;
+            const char *v;
+
+            jo = json_tokener_parse( buf );
+            
+
+            json_object_object_get_ex(jo, "baseUrl", &jso_v );
+            strcpy( msg.url, json_object_get_string(jso_v) );
+
+            json_object_object_get_ex(jo, "relPath", &jso_v );
+            strcpy( msg.path, json_object_get_string(jso_v) );
+
+            json_object_object_get_ex(jo, "pubTime", &jso_v );
+            v= json_object_get_string(jso_v) ;
+            strcpy( msg.datestamp, v );
+            memmove( &msg.datestamp[8], &msg.datestamp[9], strlen(v) - 8 ); //eliminate "T".
+
+            /* jo_len = json_object_array_length(jo);
+            for ( i = 0; i < jo_len ; i++ ) {
+                 jso_field = json_object_array_get_idx(jo,i);
+                 
+            }
+            */
+
+        }
 		//fprintf( stdout, " }\n");
 		/*
 		   fprintf( stdout, "\t\"body\" : \"%.*s\"\n }\n",
