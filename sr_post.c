@@ -243,7 +243,7 @@ char *v03time( char *v02time )
  * separator is hard-coded here (beginning of sprintf.)
  * FIXME: dumps core whenever this is used... something to fix.
  */
-char *v03amqp_header_add( char* c, const char* tag, const char *value ) 
+void v03amqp_header_add( char** c, const char* tag, const char *value ) 
 {
    int status;
 
@@ -253,10 +253,9 @@ char *v03amqp_header_add( char* c, const char* tag, const char *value )
 		   "amqp header (tag, value)<>(%s,%s) not utf8 encoded, ignoring header\n",
            tag, value);
    } else {
-      status = sprintf( c, ", \"%s\" : \"%s\"", tag, value );
-      c += status ; 
+      status = sprintf( *c, ", \"%s\" : \"%s\"", tag, value );
+      (*c) += status ; 
    }
-   return(c);
 }
 
 void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
@@ -384,80 +383,61 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
 
             status = sprintf( c, "%s\"pubTime\" : \"%s\"", sep, v03time( m->datestamp ) );
             c += status ; 
-            status = sprintf( c, ",%s\"baseUrl\" : \"%s\"", sep, m->url );
-            c += status ; 
 
-            //FIXME: after the first one, all of them start with comma, so could
-            //       use the v03amqp_header_add routine, but it dumps core...
-            //c = v03amqp_header_add( c, "baseUrl", m->url );
+            v03amqp_header_add( &c, "baseUrl", m->url );
 
-            status = sprintf( c, ",%s\"relPath\" : \"%s\"", sep, m->path );
-            c += status ; 
+            v03amqp_header_add( &c, "relPath", m->path );
 
             status = sprintf( c, ",%s\"integrity\" : { %s }", sep, v03integrity(m) );
             c += status ; 
 
-    		if (sr_c->cfg->strip > 0) {
-                status = sprintf( c, ",%s\"rename\" : \"%s\"", sep, m->rename );
-                c += status ; 
-            }
+    		if (sr_c->cfg->strip > 0) 
+                 v03amqp_header_add( &c, "rename", m->rename );
 
-    		if (m->from_cluster && m->from_cluster[0]) {
-                status = sprintf( c, ",%s\"from_cluster\" : \"%s\"", sep, m->from_cluster );
-                c += status ; 
-            }
+    		if (m->from_cluster && m->from_cluster[0]) 
+                 v03amqp_header_add( &c, "from_cluster", m->from_cluster );
 
-    		if (m->to_clusters) {
-                status = sprintf( c, ",%s\"to_clusters\" : \"%s\"", sep, m->to_clusters );
-                c += status ; 
-            }
+    		if (m->to_clusters) 
+                v03amqp_header_add( &c, "to_clusters", m->to_clusters );
+
             if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
                 if ( m->parts_s != '1' ) {
-                    status = sprintf( c, ",%s\"blocks\" : { ", sep);
-                    c += status ; 
-                    status = sprintf( c, "\"method\" : \"%s\", ", (m->parts_s=='i')?"inplace":"partitioned"  );
-                    c += status ; 
-                    status = sprintf( c, "\"size\" : \"%ld\", ", m->parts_blksz  );
-                    c += status ; 
-                    status = sprintf( c, "\"count\" : \"%ld\", ", m->parts_blkcount  );
-                    c += status ; 
-                    status = sprintf( c, "\"remainder\" : \"%ld\", ", m->parts_rem  );
-                    c += status ; 
-                    status = sprintf( c, "\"number\" : \"%ld\" }", m->parts_num  );
+                    status = sprintf( c, 
+                      ",%s\"blocks\" : { \"method\": \"%s\", \"size\" : "
+                      "\"%0ld\", \"count\", \"%ld\", \"remainder\": \"%ld\", "
+                      "\"number\" : \"%ld\" }",
+                      sep, (m->parts_s=='i')?"inplace":"partitioned", 
+                      m->parts_blksz, m->parts_blkcount, m->parts_rem, 
+                      m->parts_num  );
                     c += status ; 
                 } else {
-                    status = sprintf( c, ",%s\"size\" : \"%ld\"", sep, m->parts_blksz  );
-                    c += status ; 
+                    sprintf( smallbuf, "%ld", m->parts_blksz );
+                    v03amqp_header_add( &c, "size", smallbuf );
                 }
+
                 if (m->atime && m->atime[0]) {
-                    status = sprintf( c, ",%s\"atime\" : \"%s\"", sep, v03time( m->atime ) );
-                    c += status ; 
+                    v03amqp_header_add( &c, "atime", v03time( m->atime ) );
                 }
 
                 if (m->mode > 0) {
-                    status = sprintf( c, ",%s\"mode\" : \"%03o\"", sep, m->mode );
-                    c += status ; 
+                    sprintf( smallbuf, "%03o", m->mode );
+                    v03amqp_header_add( &c, "mode", smallbuf );
                 }
 
-                if (m->mtime && m->mtime[0]) {
-                    status = sprintf( c, ",%s\"mtime\" : \"%s\"", sep, v03time( m->mtime ) );
-                    c += status ; 
-                }
+                if (m->mtime && m->mtime[0]) 
+                    v03amqp_header_add( &c, "mtime", v03time( m->mtime ) );
             }
 
-            if (m->sum[0] == 'L') {
-                status = sprintf( c, ",%s\"link\" : \"%s\"", sep, m->link );
-                c += status ; 
+            if (m->sum[0] == 'L')  {
+                v03amqp_header_add( &c, "link", m->link );
             }
 
     		for (uh = m->user_headers; uh; uh = uh->next) {
-                status = sprintf( c, ",%s\"%s\" : \"%s\"", sep, uh->key, uh->value );
-                c += status ; 
+                v03amqp_header_add( &c, uh->key, uh->value );
             }
 
             sprintf( c, "%s}  \n", sep );
             c += status ; 
-            //strcat( message_body, " } \n" );
 
             log_msg( LOG_DEBUG, "v03 body=%s\n", message_body );
 
