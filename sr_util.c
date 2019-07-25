@@ -432,6 +432,59 @@ char *hex2base64( char *hstr )
 }
 
 
+char raw2hex( char i ) {
+   if ( i > 15 )  fprintf( stderr, "error in represenation. hex range only 0-15: %d\n", i );
+   if ( i < 10 )  return (i+'0');
+   return( i+'a'-10 );
+}
+
+char b642raw( char i )
+{
+   if ( i > 'z' ) fprintf( stderr, "error in representation: %d invalid \n", i );
+   if ( i >= 'a' ) return( i - 'a' + 26 );
+   if ( i >= 'A' ) return( i - 'A' );
+   if ( i == '=' ) return(  0 ); // padding.
+   if ( i >= '0' ) return( i - '0' + 52 );
+   if ( i == '/' ) return( 63 );
+   if ( i == '+' ) return( 62 );
+
+   fprintf( stderr, "invalid character in base64 representation: %d\n", i );
+   return( 0 );
+}
+
+char *base642hex( char *bstr )
+{
+  static char buf[1024];
+  int hxlen, b64len;
+  int hxi, b64i;
+  int h,b ;
+
+  b64len = strlen(bstr);
+  h=0;
+  for ( b = 0 ; b < b64len ; b+=2 ) {
+
+     if ( (bstr[b] == '\\' ) && ( bstr[b+1] == 'n' ) )  {
+        b+=2;
+     }
+     while (isspace(bstr[b])) {
+         b++;
+     }
+     if ( bstr[b] == '=' ) {
+         h--;
+         break;
+     }
+
+     buf[h++] = raw2hex( b642raw(bstr[b]) >>2  );
+     buf[h++] = raw2hex( ((b642raw(bstr[b]) & 0x03) << 2 ) | b642raw(bstr[b+1])>>4 );
+     buf[h++] = raw2hex( b642raw(bstr[b+1]) & 0x0f );
+  }
+  buf[h]='\0';
+  return(buf);
+}
+
+
+
+
 /* size of buffer used to read the file content in calculating checksums.
  */
 #define SUMBUFSIZE (4096*1024)
