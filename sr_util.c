@@ -13,6 +13,7 @@
 #include <sys/time.h>
 #include <stdarg.h>
 #include <linux/limits.h>
+#include <ctype.h>
 
 /* following three are for has_vip */
 #include <sys/socket.h>
@@ -385,7 +386,7 @@ char h2b( char i ) {
 
 }
 
-char *hex2base64( char *hstr ) 
+char *hex2base64( const char *hstr ) 
 {
   static char buf[1024];
   int hxlen;
@@ -452,11 +453,10 @@ char b642raw( char i )
    return( 0 );
 }
 
-char *base642hex( char *bstr )
+char *base642hex( const char *bstr )
 {
   static char buf[1024];
-  int hxlen, b64len;
-  int hxi, b64i;
+  int b64len;
   int h,b ;
 
   b64len = strlen(bstr);

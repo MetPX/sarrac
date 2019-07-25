@@ -334,8 +334,38 @@ void v03assign_field(const char *key, json_object *jso_v)
         tlen -= 8 ;
         memmove( &msg.datestamp[8], &msg.datestamp[9], tlen ); //eliminate "T".
 	} else if (!strcmp(key, "integrity")) {
+
        //FIXME
-	   log_msg( LOG_DEBUG, "v03 integrity unimplemented\n" );
+       if( json_object_get_type(jso_v) != json_type_object ) {
+	       log_msg( LOG_ERROR, "malformed json: intrity should be an object: %d\n", json_object_get_type(jso_v) );
+           return;
+       }
+       json_object_object_get_ex(jso_v, "method", &subvalue);
+       const char *v3m = json_object_get_string(subvalue);
+       char s;
+       s='u';
+       if ( !strcmp( v3m, "random" ) ) s='0';
+       if ( !strcmp( v3m, "arbitrary" ) ) s='a';
+       if ( !strcmp( v3m, "md5" ) ) s='d';
+       if ( !strcmp( v3m, "md5name" ) ) s='n';
+       if ( !strcmp( v3m, "sha512name" ) ) s='p';
+       if ( !strcmp( v3m, "sha512" ))  s='s';
+       if ( !strcmp( v3m, "link" ) ) s='L';
+       if ( !strcmp( v3m, "remove" ) ) s='R';
+       if ( !strcmp( v3m, "cod" ) ) s='z';
+       if ( s == 'u' ) {
+	       log_msg( LOG_ERROR, "unknown checksum specified: %s\n", v3m );
+           return;
+       }
+       json_object_object_get_ex(jso_v, "value", &subvalue);
+       const char *v = json_object_get_string(subvalue);
+       
+       if ( ! strchr("0az",s) ) {
+            v = base642hex(v);
+       }
+       sprintf( msg.sum, "%c,%s", s, v );
+       return;   
+
 	} else if (!strcmp(key, "size")) {
 		//FIXME: no error checking, invalid parts header will cause a bobo.
 		msg.parts_s = '1';
@@ -666,10 +696,6 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
             }
             json_object_put(jo); //attempting to free everything?
             jo=NULL;
-
-            //crutch for now...
-            strcpy(msg.sum,"s,2e3007bb5d35a5f794c9a5936be82dea18a5871b5688c2ad167c333aba621fdf6e377af2bfe86e60280fa594b639a46cd56a45a9fa06360d597fa4fd0de1733b");
-
 
         }
 		//fprintf( stdout, " }\n");

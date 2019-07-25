@@ -203,6 +203,7 @@ const char *sum2integrity( char sum )
        case 'a': return( "arbitrary" );
        case 'd': return( "md5" );
        case 'n': return( "md5name" );
+       case 'p': return( "sha512name" );
        case 's': return( "sha512" );
        case 'L': return( "link" );
        case 'R': return( "remove" );
