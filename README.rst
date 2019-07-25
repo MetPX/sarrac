@@ -183,6 +183,7 @@ run dependencies::
 
   librabbitmq4 - AMQP client library written in C
   libssl - OpenSSL client library.
+  libjson-c3 - JSON manupulation library (for v03 parsing)
 
 On RPM-based distributions::
   
@@ -205,7 +206,7 @@ calling a version of the regular expresison routines included in a binary
 (ksh93 in this case) instead of the ones in libc that were expected.
 without this option being set, the shim library will compile and user
 Korn Shell regular expression grammar instead of the libc/posix ones.
-This could be confusing in practice.
+This is confusing in practice.
 
 Set the option::
    
