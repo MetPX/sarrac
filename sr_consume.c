@@ -456,7 +456,9 @@ void sr_message_2json(struct sr_message_t *m)
 	       m->parts_s, m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num);
 	printf(", ");
 	json_dump_strheader("from_cluster", m->from_cluster);
+	printf(", ");
 	json_dump_strheader("source", m->source);
+	printf(", ");
 	json_dump_strheader("sum", m->sum);
 	printf(", ");
 	json_dump_strheader("to_clusters", m->to_clusters);
