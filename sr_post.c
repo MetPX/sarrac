@@ -898,6 +898,8 @@ int sr_post_cleanup(struct sr_context *sr_c)
 	char exchange[256];
 	amqp_rpc_reply_t reply;
 
+    if (! sr_c->cfg->post_broker ) return(1);
+
 	if (sr_c->cfg->post_broker->exchange_split) {
 		for (int i = 0; i < sr_c->cfg->post_broker->exchange_split; i++) {
 			sprintf(exchange, "%s%02d", sr_c->cfg->post_broker->exchange, i);

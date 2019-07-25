@@ -224,7 +224,6 @@ int main(int argc, char **argv)
 	if (ret < 1) {
 		exit(abs(ret));
 	}
-	fprintf(stderr, "still running\n");
 
 	sr_c = sr_context_init_config(&sr_cfg, 0);
 	if (!sr_c) {
