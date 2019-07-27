@@ -1,14 +1,15 @@
-sarrac (2.19.07b2ubuntu2) UNRELEASED; urgency=medium
+sarrac (2.19.07b2) unstable; urgency=medium
 
   * added dependencies on libjson-c, and libjson-c-dev (build)
   * added v03 (JSON message body) reception.
   * fixed a core dump on cpump cleanup when no post_broker set.
   * got rid of confusing and spurious 'is still running message'.
   * noticed a missing comma in json output (not v03 related.)
+  * added option to omit libjson (documented in Makefile) to avoid dependency. 
 
  -- Peter Silva <peter@blacklab>  Thu, 25 Jul 2019 20:48:36 -0400
 
-sarrac (2.19.07b1ubuntu1) unstable; urgency=medium
+sarrac (2.19.07b1) unstable; urgency=medium
 
   * bugfix #39, add v03 posting (only, cannot parse)
 

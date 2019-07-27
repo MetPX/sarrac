@@ -178,6 +178,7 @@ this::
 
 librabbitmq-dev - AMQP client library written in C - Dev Files
 libssl-dev  - OpenSSL client library (used for hash algorithms.)
+libjson-c-dev - json-c header files.
 
 run dependencies::
 
@@ -188,7 +189,14 @@ run dependencies::
 On RPM-based distributions::
   
   librabbitmq-devel
+  json-c-devel
 
+This JSON library changed API multiple times in it's history. Sarrac development
+platform is ubuntu 18.04, where the libjson-c3 library is provided.  Older linux
+versions may have incompatible library versions and may not build or run correctly.
+The Makefile includes the -DHAVE_JSONC option in CFLAGS.  Removing this option
+disables v03 message parsing, but makes it possible to build on such systems.
+v03 posting will still work (dependency only required to receive messages.)
 
 BUILD OPTIONS
 -------------
