@@ -43,7 +43,11 @@
 #include <amqp.h>
 #include <amqp_framing.h>
 
+#ifdef HAVE_JSONC
+
 #include <json-c/json.h>
+
+#endif
 
 #include "sr_config.h"
 #include "sr_consume.h"
@@ -214,6 +218,7 @@ void assign_field(const char *key, char *value)
 	}
 }
 
+#ifdef HAVE_JSONC
 
 void v03assign_field(const char *key, json_object *jso_v)
  /* Assign the value of the field given by key to the corresponding member
@@ -403,6 +408,8 @@ void v03assign_field(const char *key, json_object *jso_v)
 		msg.user_headers = h;
 	}
 }
+
+#endif
 
 void json_dump_strheader(char *tag, char *value)
 {
@@ -682,7 +689,11 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
     			msg.duration = 0.0;
 
     		}
+
+
         } else { // v03
+
+#ifdef JSONC
             json_object *jo = NULL;
 
             jo = json_tokener_parse( buf );
@@ -698,6 +709,9 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
             }
             json_object_put(jo); //attempting to free everything?
             jo=NULL;
+#else
+            log_msg( LOG_WARNING, "v03 parsing not compiled in, recompile with libjson-c support\n" );
+#endif
 
         }
 		//fprintf( stdout, " }\n");
@@ -707,6 +721,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 		   (char *)frame.payload.body_fragment.bytes 
 		   );
 		 */
+
 	}
 
 	if (body_received != body_target)
