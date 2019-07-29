@@ -693,7 +693,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 
         } else { // v03
 
-#ifdef JSONC
+#ifdef HAVE_JSONC
             json_object *jo = NULL;
 
             jo = json_tokener_parse( buf );
