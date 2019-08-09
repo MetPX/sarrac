@@ -398,6 +398,9 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
     		if (m->from_cluster && m->from_cluster[0]) 
                  v03amqp_header_add( &c, "from_cluster", m->from_cluster );
 
+    		if (m->source) 
+                v03amqp_header_add( &c, "source", m->source );
+
     		if (m->to_clusters) 
                 v03amqp_header_add( &c, "to_clusters", m->to_clusters );
 
