@@ -450,6 +450,8 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
 		    props.content_encoding = amqp_cstring_bytes("utf-8");
 		    props.content_type = amqp_cstring_bytes("text/plain");
 		    props.delivery_mode = 2;	/* persistent delivery mode */
+    		table.num_entries = 0;
+    		table.entries = 0;
 
 		    strcpy(thisexchange, sr_c->cfg->post_broker->exchange);
 
