@@ -27,6 +27,9 @@
 
 #include "sr_context.h"
 
+#define SR_MAXIMUM_MESSAGE_LENGTH (32*1024)
+
+
 struct sr_message_t {
 	char atime[SR_TIMESTRLEN];
 	char datestamp[SR_TIMESTRLEN];

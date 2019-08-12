@@ -442,8 +442,10 @@ char *sr_message_2log(struct sr_message_t *m)
 	if (m->rename[0])
 		sprintf(strchr(b, '\0'), " rename=%s", m->rename);
 
-	for (struct sr_header_t * h = m->user_headers; h; h = h->next)
+	for (struct sr_header_t * h = m->user_headers; h; h = h->next) 
+    {
 		sprintf(strchr(b, '\0'), " %s=%s", h->key, h->value);
+    }
 	return (b);
 }
 
@@ -492,7 +494,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 	amqp_rpc_reply_t reply;
 	amqp_frame_t frame;
 	int result;
-	char buf[2 * PATH_MAXNUL];
+	static char buf[ SR_MAXIMUM_MESSAGE_LENGTH ]; 
 
 	amqp_basic_deliver_t *d;
 	amqp_basic_properties_t *p;
@@ -567,7 +569,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 
 	result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
-	//log_msg( LOG_DEBUG, "Result %d\n", result);
+	//log_msg( LOG_DEBUG, "wait_frame result: %d\n", result);
 	if (result < 0) {
 		amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
 		return (NULL);
@@ -588,7 +590,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 	d = (amqp_basic_deliver_t *) frame.payload.method.decoded;
 
 	log_msg(LOG_DEBUG, "consumer_tag: %s, delivery_tag: %ld\n",
-		(char *)d->consumer_tag.bytes, d->delivery_tag);
+    		(char *)d->consumer_tag.bytes, d->delivery_tag);
 
 	sr_c->cfg->broker->last_delivery_tag = d->delivery_tag;
 	/*
@@ -604,8 +606,10 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 
 	result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
-	if (result < 0)
-		return (NULL);
+	if (result < 0) {
+		log_msg(LOG_ERROR, "error receiving frame!");
+		abort();
+    }
 
 	if (frame.frame_type != AMQP_FRAME_HEADER) {
 		log_msg(LOG_ERROR, "Expected header!");
@@ -615,7 +619,13 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 	p = (amqp_basic_properties_t *) frame.payload.properties.decoded;
 
 	for (int i = 0; i < p->headers.num_entries; i++) {
-		if (p->headers.entries[i].value.kind == AMQP_FIELD_KIND_UTF8) {
+
+        // FIXME: bug where num_entries==2, and entries=2 instead of a pointer.... very odd.
+        //        We have no idea why this shows up, this is just a work-around, around the problem.
+        if ( (unsigned long)(p->headers.entries) < 1024 )  {
+			log_msg(LOG_ERROR, "corrupted message, num_entries > 0 (%ld), but entries close to NULL (%ld).\n", p->headers.num_entries, p->headers.entries );
+            abort();
+        } else if (p->headers.entries[i].value.kind == AMQP_FIELD_KIND_UTF8) {
 			sprintf(tag, "%.*s",
 				(int)p->headers.entries[i].key.len,
 				(char *)p->headers.entries[i].key.bytes);
@@ -634,8 +644,9 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 			   (char *) p->headers.entries[i].value.value.bytes.bytes
 			   );
 			 */
-		} else
-			log_msg(LOG_ERROR, "header not UTF8\n");
+		} else {
+			log_msg(LOG_WARNING, "skipping non UTF8 header: kind:%d\n", p->headers.entries[i].value.kind );
+        }
 	}
 
 	body_target = frame.payload.properties.body_size;
@@ -652,14 +663,23 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 			abort();
 		}
 
+		strncpy( &(buf[body_received]), (char *)frame.payload.body_fragment.bytes,
+			(int)frame.payload.body_fragment.len );
+
 		body_received += frame.payload.body_fragment.len;
 		//assert(body_received <= body_target);
 
-		strncpy(buf, (char *)frame.payload.body_fragment.bytes,
-			(int)frame.payload.body_fragment.len);
-		buf[frame.payload.body_fragment.len] = '\0';
+		buf[body_received] = '\0';
+    }
 
-        if ( buf[0] != '{' ) { // v02.
+	if (body_received != body_target) {
+	    log_msg(LOG_ERROR, "incomplete message, recieved: %d bytes, expected: %d bytes\n",  body_received, body_target );
+		return (NULL);
+    }
+	/* Can only happen when amqp_simple_wait_frame returns <= 0 */
+	/* We break here to close the connection */
+
+    if ( buf[0] != '{' ) { // v02.
    		    tok = strtok(buf, " ");
     		//fprintf( stdout, "\t\"datestamp\" : \"%s\",\n", tok);
     		strcpy(msg.datestamp, tok);
@@ -691,7 +711,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
     		}
 
 
-        } else { // v03
+    } else { // v03
 
 #ifdef HAVE_JSONC
             json_object *jo = NULL;
@@ -713,20 +733,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
             log_msg( LOG_WARNING, "v03 parsing not compiled in, recompile with libjson-c support\n" );
 #endif
 
-        }
-		//fprintf( stdout, " }\n");
-		/*
-		   fprintf( stdout, "\t\"body\" : \"%.*s\"\n }\n",
-		   (int) frame.payload.body_fragment.len, 
-		   (char *)frame.payload.body_fragment.bytes 
-		   );
-		 */
+    }
 
-	}
-
-	if (body_received != body_target)
-		return (NULL);
-	/* Can only happen when amqp_simple_wait_frame returns <= 0 */
-	/* We break here to close the connection */
 	return (&msg);
 }
