@@ -309,10 +309,10 @@ int main(int argc, char **argv)
 			    sr_cache_check(sr_cfg.cachep, sr_cfg.cache_basis,
 					   m->parts_s, (unsigned char *)m->sum,
 					   m->path, sr_message_partstr(m));
-			if (!ret) {
-				if (sr_cfg.log_reject)
-					log_msg(LOG_INFO,
-						"rejecting duplicate: %s %s\n",
+			if (((ret == 0) && ( sr_cfg.log_reject )) || (ret < 0)) {
+				log_msg( ((ret < 0)?LOG_WARNING:LOG_INFO),
+						"%s : %s %s\n", 
+                        (ret < 0) ? "cache problem":"rejecting duplicate", 
 						m->path, sr_message_partstr(m));
 				continue;	// cache hit.
 			}

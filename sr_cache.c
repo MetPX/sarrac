@@ -42,6 +42,7 @@ int sr_cache_check(struct sr_cache_t *cachep, char *cache_basis, char algo,
     0 - present, so not added, but timestamp updated, so it doesn't age out so quickly.
     1 - was not present, so added to cache.
     -1 - key too long, could not be inserted anyways, so not present.
+    -2 - partstr missing, could not be inserted anyways, so not checked.
   */
 {
 	if (!strcmp(cache_basis, "name")) {
@@ -52,6 +53,9 @@ int sr_cache_check(struct sr_cache_t *cachep, char *cache_basis, char algo,
 		path = strdup("data");
 	}
 
+    if ( (!partstr) || (strlen(partstr) == 0) ) {
+       return(-2);
+    }
 	struct sr_cache_entry_t *c = NULL;
 	struct sr_cache_entry_path_t *p;
 	unsigned char keyhash[SR_SUMHASHLEN];
