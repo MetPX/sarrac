@@ -163,7 +163,7 @@ Limitations of the C implementation
    will be a significant re-write.
 
  - The C implementation uses the libc(7) regular expression routines, which 
-   
+   are a little more limited than python ones.
 
 Build Dependencies
 ------------------
@@ -271,4 +271,35 @@ To note changes:
 Proposed Coding Style Guidelines
 --------------------------------
 
-`Linux Kernel C Guidelines <https://www.kernel.org/doc/html/v4.10/process/coding-style.html>`_
+Generally, we used `Linux Kernel C Guidelines <https://www.kernel.org/doc/html/v4.10/process/coding-style.html>`_
+
+but with one pythonic affectation:  You know Rule 1? about the tabs with 8 characters?  This code base is normally
+indented like python instead, use four spaces, and not tabs.
+
+Also, in terms of documenting code, when adding new things one should add comments
+keeping in minde compatbility with `doxygen <http://www.doxygen.nl/manual/docblocks.html>`_ 
+Examples::
+
+  /**
+   *  descriptive comment above a struct or function declaration.
+   */ 
+
+  /**
+   * sr_config_find_one() - find the name configuration file name 
+   * \param sr_cfg:       The configuration to be updated with the configuration found.
+   * \param original_one: The name provided by the user.
+   *
+   * Return pointer to the matching mask if there is one, NULL otherwise.
+   * The pointer to char will hold the absolute path of the config file corresponding to original_one
+   *
+   * Return: pointer to a static char buffer with a path name to the corresponding configuration file.
+   */
+
+  char foo; /**< description of foo class member */
+
+
+The code has a mix of comments is not entirely doxygen friendly just yet.  Feel free
+to improve.  Other than that... the kernel C guidelines are the rule.
+
+FIXME: We ran a code reformatter on it once... should probably repeat from time to time, would be 
+useful to document which one was used.   I believe it undoes for the pythonic exception.
