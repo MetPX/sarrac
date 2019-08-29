@@ -725,7 +725,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 	}
 
 	if (body_received != body_target) {
-        log_msg( LOG_WARNING, "Corrupt message received, expected: %d bytes, got %d, ignoring\n",
+        log_msg( LOG_WARNING, "Corrupt message received, expected: %ld bytes, got %ld, ignoring\n",
             body_target, body_received );
 		return (NULL);
     }
