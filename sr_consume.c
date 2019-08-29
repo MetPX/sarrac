@@ -492,7 +492,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 	amqp_rpc_reply_t reply;
 	amqp_frame_t frame;
 	int result;
-	char buf[2 * PATH_MAXNUL];
+	static char buf[SR_SARRAC_MAXIMUM_MESSAGE_LEN];
 
 	amqp_basic_deliver_t *d;
 	amqp_basic_properties_t *p;
@@ -641,6 +641,11 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 	body_target = frame.payload.properties.body_size;
 	body_received = 0;
 
+    if (body_target >= SR_SARRAC_MAXIMUM_MESSAGE_LEN) {
+			log_msg(LOG_CRITICAL, "Message too big! received: (%ld bytes) max: %ld",
+                 body_target, SR_SARRAC_MAXIMUM_MESSAGE_LEN );
+			abort();
+    }
 	while (body_received < body_target) {
 		result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
@@ -648,7 +653,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 			return (NULL);
 
 		if (frame.frame_type != AMQP_FRAME_BODY) {
-			log_msg(LOG_ERROR, "Expected body!");
+			log_msg(LOG_CRITICAL, "Expected body!");
 			abort();
 		}
 
@@ -710,7 +715,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
             json_object_put(jo); //attempting to free everything?
             jo=NULL;
 #else
-            log_msg( LOG_WARNING, "v03 parsing not compiled in, recompile with libjson-c support\n" );
+            log_msg( LOG_ERROR, "v03 parsing not compiled in, recompile with libjson-c support\n" );
 #endif
 
         }
