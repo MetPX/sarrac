@@ -694,7 +694,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 		buf[body_received] = '\0';
     }
 
-	if (body_received != body_target) {
+    if (body_received != body_target) {
 	    log_msg(LOG_ERROR, "incomplete message, recieved: %lu bytes, expected: %lu bytes\n",  body_received, body_target );
 		return (NULL);
     } else {
@@ -760,14 +760,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 
     }
 
-	}
-
-	if (body_received != body_target) {
-        log_msg( LOG_WARNING, "Corrupt message received, expected: %ld bytes, got %ld, ignoring\n",
-            body_target, body_received );
-		return (NULL);
-    }
-	/* Can only happen when amqp_simple_wait_frame returns <= 0 */
-	/* We break here to close the connection */
-	return (&msg);
+    /* Can only happen when amqp_simple_wait_frame returns <= 0 */
+    /* We break here to close the connection */
+    return (&msg);
 }
