@@ -333,7 +333,7 @@ void daemonize(int close_stdout)
 		exit(1);
 	}
 	if (pid > 0) {
-		fprintf(stderr, "parent exiting normally, rest is upto the child pid: %d\n", pid);
+		fprintf(stderr, "parent exiting normally, started child with pid: %d\n", pid);
 		exit(0);
 	}
 	// child processing.

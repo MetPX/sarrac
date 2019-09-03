@@ -1,7 +1,10 @@
-sarrac (2.19.08b1) UNRELEASED; urgency=medium
+sarrac (2.19.08b1) unstable; urgency=medium
 
   * fix: v03 decoding was disabled in last release. 
-  * 
+  * fix: cache check was broken.
+  * fix: added source field to v02->v03 conversion.
+  * increased max message size from 2K to 1MB to allow v03 embedding.
+  * note: v03 embedding not yet supported.
 
  -- Peter Silva <peter@bsqt.homeip.net>  Thu, 08 Aug 2019 23:12:27 -0400
 

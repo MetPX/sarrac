@@ -25,10 +25,17 @@
 
 #define SR_CONSUME_H 1
 
+/* 
+  picking a maximum message size to create a static buffer.
+  There is no maximum defined for Sarracenia. Maximum message size varies
+  by broker implementation, so using extraordinarily large messages is risky.
+  in v03 there is content embedding to satisfy WMO ET-CTS, so the messages
+  can be bigger. probably not a good idea in practice.
+
+ */
+#define SR_SARRAC_MAXIMUM_MESSAGE_LEN (1024*1024)
+
 #include "sr_context.h"
-
-#define SR_MAXIMUM_MESSAGE_LENGTH (32*1024)
-
 
 struct sr_message_t {
 	char atime[SR_TIMESTRLEN];
