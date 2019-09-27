@@ -1,35 +1,39 @@
-.PHONY: all core test lib install clean format check
+.PHONY: all app lib test install clean format check
 
 CC		= gcc
+CLIBS		= -lrabbitmq -lcrypto
 CFLAGS		= -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE
 INCLUDES	= -Iinclude/
-LIBS		= -lrabbitmq -lcrypto
 
 HEADERS		:= $(wildcard include/*.h)
 
-CORE_SOURCES	:= $(wildcard src/core/*.c)
+APP_SDIR	:= src/app
+LIB_SDIR	:= src/lib
+APP_SOURCES	:= $(wildcard src/app/*.c)
 LIB_SOURCES	:= $(wildcard src/lib/*.c)
 
-CORE_OBJECTS	:= $(CORE_SOURCES:src/core/%.c=obj/core/%.o)
+APP_ODIR	:= obj/app
+LIB_ODIR	:= obj/lib
+APP_OBJECTS	:= $(APP_SOURCES:src/app/%.c=obj/app/%.o)
 LIB_OBJECTS	:= $(LIB_SOURCES:src/lib/%.c=obj/lib/%.o) 
 
 # build all components
-all: lib core
+all: lib app
 	@rm -rf obj/
 
-# build core
-core: lib bin/sr_cpost bin/sr_cpump
+# build app
+app: lib bin/sr_cpost bin/sr_cpump
 
-bin/sr_cpost: $(HEADERS) bin/libsarra.so obj/core/sr_cpost.o
+bin/sr_cpost: $(HEADERS) bin/libsarra.so $(APP_ODIR)/sr_cpost.o
 	@mkdir -p bin/
-	$(CC) $(CFLAGS) obj/core/sr_cpost.o bin/libsarra.so -o $@ $(LIBS)
+	$(CC) $(CFLAGS) $(APP_ODIR)/sr_cpost.o bin/libsarra.so -o $@ $(CLIBS)
 
-bin/sr_cpump: $(HEADERS) bin/libsarra.so obj/core/sr_cpump.o
+bin/sr_cpump: $(HEADERS) bin/libsarra.so $(APP_ODIR)/sr_cpump.o
 	@mkdir -p bin/
-	$(CC) $(CFLAGS) obj/core/sr_cpump.o bin/libsarra.so -o $@ $(LIBS)
+	$(CC) $(CFLAGS) $(APP_ODIR)/sr_cpump.o bin/libsarra.so -o $@ $(CLIBS)
 
-obj/core/%.o: src/core/%.c
-	@mkdir -p obj/core/
+$(APP_ODIR)/%.o: $(APP_SDIR)/%.c
+	@mkdir -p $(APP_ODIR)
 	$(CC) -c $(CFLAGS) $(INCLUDES) $< -o $@ 
 
 # build libs
@@ -37,14 +41,14 @@ lib: bin/libsarra.so bin/libsrshim.so
 
 bin/libsarra.so: $(HEADERS) $(LIB_OBJECTS)
 	@mkdir -p bin/
-	$(CC) $(CFLAGS) -shared $(LIB_OBJECTS) -o $@ $(LIBS)
+	$(CC) $(CFLAGS) -shared $(LIB_OBJECTS) -o $@ $(CLIBS)
 
-bin/libsrshim.so: $(HEADERS) bin/libsarra.so obj/lib/libsrshim.o
+bin/libsrshim.so: $(HEADERS) bin/libsarra.so $(LIB_ODIR)/libsrshim.o
 	@mkdir -p bin/
-	$(CC) $(CFLAGS) -shared obj/lib/libsrshim.o bin/libsarra.so -o $@ $(LIBS)
+	$(CC) $(CFLAGS) -shared $(LIB_ODIR)/libsrshim.o bin/libsarra.so -o $@ $(CLIBS)
 
-obj/lib/%.o: src/lib/%.c
-	@mkdir -p obj/lib/
+$(LIB_ODIR)/%.o: $(LIB_SDIR)/%.c
+	@mkdir -p $(LIB_ODIR)
 	$(CC) -c $(CFLAGS) $(INCLUDES) $< -o $@ 
 	
 # build tests
