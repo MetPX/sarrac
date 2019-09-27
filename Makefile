@@ -42,6 +42,7 @@ $(APP_ODIR)/%.o: $(APP_SDIR)/%.c
 
 # build libs
 lib: bin/libsarra.so bin/libsrshim.so
+	@mv bin/libsrshim.so bin/libsrshim.so.$(SO_VXX)
 	@mv bin/libsarra.so bin/libsarra.so.$(SO_VXX)
 	@ln -rs bin/libsarra.so.$(SO_VXX) bin/libsarra.so
 	@ln -rs bin/libsarra.so.$(SO_VXX) bin/libsarra.so.$(SO_V)
