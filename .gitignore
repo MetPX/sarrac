@@ -1,11 +1,7 @@
 *.o
 *.gcno
-*.so.*
 *.swp
 *.tmp
-build
+obj
+bin
 sr_version.h
-sr_cachetest
-sr_cache_save.test
-sr_configtest
-sr_utiltest
