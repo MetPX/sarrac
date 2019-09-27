@@ -1,10 +1,14 @@
 .PHONY: all app lib test install clean format check
 
+### COMPILATION FLAGS ###
 CC		= gcc
 CLIBS		= -lrabbitmq -lcrypto
 CFLAGS		= -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE
 INCLUDES	= -Iinclude/
 
+### FILES & PARAMETERS ##
+SO_V		:= 1
+SO_VXX		:= 1.0.0
 HEADERS		:= $(wildcard include/*.h)
 
 APP_SDIR	:= src/app
@@ -21,7 +25,7 @@ LIB_OBJECTS	:= $(LIB_SOURCES:src/lib/%.c=obj/lib/%.o)
 all: lib app
 	@rm -rf obj/
 
-# build app
+# build apps
 app: lib bin/sr_cpost bin/sr_cpump
 
 bin/sr_cpost: $(HEADERS) bin/libsarra.so $(APP_ODIR)/sr_cpost.o
@@ -38,6 +42,9 @@ $(APP_ODIR)/%.o: $(APP_SDIR)/%.c
 
 # build libs
 lib: bin/libsarra.so bin/libsrshim.so
+	@mv bin/libsarra.so bin/libsarra.so.$(SO_VXX)
+	@ln -rs bin/libsarra.so.$(SO_VXX) bin/libsarra.so
+	@ln -rs bin/libsarra.so.$(SO_VXX) bin/libsarra.so.$(SO_V)
 
 bin/libsarra.so: $(HEADERS) $(LIB_OBJECTS)
 	@mkdir -p bin/
