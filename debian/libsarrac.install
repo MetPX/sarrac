@@ -1,1 +1,1 @@
-build/lib/libsarr*.so.*  usr/lib/
+bin/libsarr*.so.*  usr/lib/

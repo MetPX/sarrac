@@ -6,7 +6,7 @@ Depends: librabbitmq4 ( >= 0.8 ), libssl, libjson-c
 Standards-Version: 3.9.6
 Section: libs
 Homepage: https://github.com/MetPX
-Vcs-Git: https//github.com/MetPX/sarrac
+Vcs-Git: https://github.com/MetPX/sarrac
 
 Package: libsarrac-dev
 Section: libdevel
