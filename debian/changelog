@@ -1,3 +1,10 @@
+sarrac (2.19.10b1) unstable; urgency=medium
+
+  * fix: dependencies should be on metpx-sarracenia, without python3- being mentioned. 
+  * fix: usage string, removed reference to *parts*, only *blocksize*
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 01 Oct 2019 09:21:54 -0400
+
 sarrac (2.19.08b1) unstable; urgency=medium
 
   * fix: v03 decoding was disabled in last release. 

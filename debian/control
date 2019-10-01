@@ -12,30 +12,30 @@ Package: libsarrac-dev
 Section: libdevel
 Architecture: all
 Depends: sarrac (= ${binary:Version}), ${misc:Depends} 
-Recommends: python3-metpx-sarracenia (>= 2.18.04 )
+Recommends: metpx-sarracenia (>= 2.18.04 )
 Description: C-Implementation of a Sarracenia Client
  API library could be used to integrate sarra posting into C applications.
  See http://github.com/MetPX/ for more information.
- Documentation is in the python3-metpx-sarracenia package.
+ Documentation is in the metpx-sarracenia package.
 
 Package: libsarrac
 Section: libs
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: python3-metpx-sarracenia (>= 2.18.04 )
+Recommends: metpx-sarracenia (>= 2.18.04 )
 Description: C-Implementation of a Sarracenia Client
  API library that builds against librabbitmq
  includes sarracenia posting and consuming implementations.
  See http://github.com/MetPX/ for more information.
- Documentation is in the python3-metpx-sarracenia package.
+ Documentation is in the metpx-sarracenia package.
 
 Package: sarrac
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: python3-metpx-sarracenia (>= 2.18.04 )
+Recommends: metpx-sarracenia (>= 2.18.04 )
 Description: C-Implementation of a Sarracenia Client
- sr_cpost, implementation of sr_post (see python3-metpx-sarracenia)
- sr_cpump, implementation of sr_shovel (see python3-metpx-sarracenia)
+ sr_cpost, implementation of sr_post (see metpx-sarracenia)
+ sr_cpump, implementation of sr_shovel (see metpx-sarracenia)
  libsrshim.so, shim library to be able to post without modifying user code.
  See http://github.com/MetPX/ for more information.
- Documentation is in the python3-metpx-sarracenia package.
+ Documentation is in the metpx-sarracenia package.

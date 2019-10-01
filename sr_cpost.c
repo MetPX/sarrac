@@ -640,7 +640,7 @@ void usage()
 	fprintf(stderr,
 		"\tloglevel <integer> - print >= n:\n\t\t1-DEBUG, 2-info, 3-Warn, 4-ERROR, 5-CRITICAL.\n");
 	fprintf(stderr,
-		"\tparts|blocksize <integer> - partition strategy (size of chunks): (default: 1) \n");
+		"\tblocksize <integer> - partition strategy (size of chunks): (default: 1) \n");
 	fprintf(stderr, "\t\t1- always send files in one chunk, \n");
 	fprintf(stderr, "\t\t0-guess chunk size\n");
 	fprintf(stderr,
