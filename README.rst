@@ -139,16 +139,14 @@ Partial implementation of Doxygen docs.
 to view::
 
   sudo apt install doxygen
-  sudo apt install doxygen-gui
   sudo apt install graphviz
-  doxywizard
+  doxygen
 
-and run, and it will create browseable html/ subdirectory
-with some documentation.  Unfortunately only a few files
-out of the total have been properly annoted. 
- 
-
-
+and run, and it will create the browseable docs/html/ subdirectory
+with some documentation. Although only a few files out of the total
+have been properly annoted so far, doxygen is configured to extract
+as much information from the code as possible. (We have some pretty
+call/caller graphs now!)
 
 Limitations of the C implementation
 -----------------------------------
