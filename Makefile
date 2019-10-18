@@ -1,10 +1,12 @@
 .PHONY: all app lib test install clean format check
 
 ### COMPILATION FLAGS ###
-CC		= gcc
-CLIBS		= -lrabbitmq -lcrypto
-CFLAGS		= -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE
-INCLUDES	= -Iinclude/
+CC		:= gcc
+CLIBS		:= -lrabbitmq -lcrypto
+CFLAGS		:= -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE
+INCLUDES	:= -Iinclude/
+
+LIBSARRA_LINK	:= -lsarra -Wl,-rpath,$(CURDIR)/bin -L$(CURDIR)/bin
 
 ### FILES & PARAMETERS ##
 SR_VERSION	:= $(shell head -1 debian/changelog | cut -d'(' -f2 | cut -d')' -f1)
@@ -25,7 +27,6 @@ LIB_OBJECTS	:= $(LIB_SOURCES:src/lib/%.c=obj/lib/%.o)
 LIBSARRA	:= bin/libsarra.so
 LIBSARRA_SO_V	:= $(LIBSARRA).$(SO_V)
 LIBSARRA_SO_VXX	:= $(LIBSARRA).$(SO_VXX)
-LIBSARRA_LINK	:= -lsarra -Wl,-rpath,$(CURDIR)/bin -L$(CURDIR)/bin
 
 LIBSHIM		:= bin/libsrshim.so
 LIBSHIM_SO_V	:= $(LIBSHIM).$(SO_V)
