@@ -32,23 +32,23 @@ LIBSHIM_SO_V	:= $(LIBSHIM).$(SO_V)
 LIBSHIM_SO_VXX	:= $(LIBSHIM).$(SO_VXX)
 
 # build all components
-all: sr_version.h lib app
+all: include/sr_version.h lib app
 	@echo "...xD"
 
 # version management
-sr_version.h: debian/changelog
-	@echo "#define __sarra_version__ \"$(SR_VERSION)\"" > include/$@
+include/sr_version.h: debian/changelog
+	@echo "#define __sarra_version__ \"$(SR_VERSION)\"" > $@
 
 # build apps
 app: lib bin/sr_cpost bin/sr_cpump
 
-bin/sr_cpost: $(LIBSARRA_SO_VXX) $(APP_ODIR)/sr_cpost.o
+bin/sr_cpost: $(APP_ODIR)/sr_cpost.o $(LIBSARRA_SO_VXX)
 	@mkdir -p bin/
-	$(CC) $(CFLAGS) $(APP_ODIR)/sr_cpost.o -o $@ $(LIBSARRA_LINK) $(CLIBS)
+	$(CC) $(CFLAGS) $< -o $@ $(LIBSARRA_LINK) $(CLIBS)
 
-bin/sr_cpump: $(LIBSARRA_SO_VXX) $(APP_ODIR)/sr_cpump.o
+bin/sr_cpump: $(APP_ODIR)/sr_cpump.o $(LIBSARRA_SO_VXX)
 	@mkdir -p bin/
-	$(CC) $(CFLAGS) $(APP_ODIR)/sr_cpump.o -o $@ $(LIBSARRA_LINK) $(CLIBS)
+	$(CC) $(CFLAGS) $< -o $@ $(LIBSARRA_LINK) $(CLIBS)
 
 $(APP_ODIR)/%.o: $(APP_SDIR)/%.c $(HEADERS)
 	@mkdir -p $(APP_ODIR)
@@ -63,9 +63,9 @@ $(LIBSARRA_SO_VXX): $(LIB_OBJECTS)
 	@ln -frs $(LIBSARRA_SO_VXX) $(LIBSARRA)
 	@ln -frs $(LIBSARRA_SO_VXX) $(LIBSARRA_SO_V)
 
-$(LIBSHIM_SO_VXX): $(LIBSARRA_SO_VXX) $(LIB_ODIR)/libsrshim.o
+$(LIBSHIM_SO_VXX): $(LIB_ODIR)/libsrshim.o $(LIBSARRA_SO_VXX)
 	@mkdir -p bin/
-	$(CC) $(CFLAGS) -shared -Wl,-soname,$(LIBSHIM_SO_V) $(LIB_ODIR)/libsrshim.o $(LIBSARRA_SO_VXX) -o $@ -ldl $(CLIBS)
+	$(CC) $(CFLAGS) -shared -Wl,-soname,$(LIBSHIM_SO_V) $^ -o $@ -ldl $(CLIBS)
 
 $(LIB_ODIR)/%.o: $(LIB_SDIR)/%.c $(HEADERS)
 	@mkdir -p $(LIB_ODIR)
