@@ -1,11 +1,4 @@
-
 /*
- This file is part of MetPX-Sarrac.
- The sarracenia suite is Free and is proudly provided by the Government of Canada
- Copyright (C) Her Majesty The Queen in Right of Canada, Environment Canada, 2017-2019
-
- author: Peter Silva
-
 status: 
   Purpose is to have something that parses the sarracenia configuration files in C.
 

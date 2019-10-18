@@ -1,4 +1,3 @@
-
 #include <string.h>
 
 #include "sr_event.h"

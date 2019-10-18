@@ -1,4 +1,3 @@
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/xattr.h>

@@ -1,4 +1,3 @@
-
 #ifndef SR_CREDENTIALS_H
 #define SR_CREDENTIALS_H 1
 

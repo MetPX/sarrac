@@ -1,11 +1,4 @@
-/* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
-
 /*
- * Usage info after license block.
- *
- * This code is by Peter Silva copyright (c) 2017 part of MetPX.
- * copyright is to the Government of Canada. code is GPLv2
- *
  * based on a amqp_sendstring from rabbitmq-c package
  */
 

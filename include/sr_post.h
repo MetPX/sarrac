@@ -1,14 +1,7 @@
-/* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
-
 #ifndef SR_POST_H
 #define SR_POST_H 1
 
 /*
- * Usage info after license block.
- *
- * This code is by Peter Silva copyright (c) 2017 part of MetPX.
- * copyright is to the Government of Canada. code is GPL.
- *
  * based on a amqp_sendstring from rabbitmq-c package
  * the original license is below:
  */

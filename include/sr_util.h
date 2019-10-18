@@ -1,4 +1,3 @@
-
 #ifndef SR_UTIL_H
 #define SR_UTIL_H
 
