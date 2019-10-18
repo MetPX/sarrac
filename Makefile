@@ -7,6 +7,7 @@ CFLAGS		= -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE
 INCLUDES	= -Iinclude/
 
 ### FILES & PARAMETERS ##
+SR_VERSION	:= $(shell head -1 debian/changelog | cut -d'(' -f2 | cut -d')' -f1)
 SO_V		:= 1
 SO_VXX		:= $(SO_V).0.0
 HEADERS		:= $(wildcard include/*.h)
@@ -31,8 +32,12 @@ LIBSHIM_SO_V	:= $(LIBSHIM).$(SO_V)
 LIBSHIM_SO_VXX	:= $(LIBSHIM).$(SO_VXX)
 
 # build all components
-all: lib app
+all: sr_version.h lib app
 	@echo "...xD"
+
+# version management
+sr_version.h: debian/changelog
+	@echo "#define __sarra_version__ \"$(SR_VERSION)\"" > include/$@
 
 # build apps
 app: lib bin/sr_cpost bin/sr_cpump
@@ -74,6 +79,7 @@ install:
 
 # remove bin/ and obj/
 clean:
+	@rm -f include/sr_version.h
 	@rm -rf bin/ obj/
 
 # set code format
