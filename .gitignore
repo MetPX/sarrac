@@ -1,5 +1,3 @@
-*.o
-*.gcno
 *.swp
 *.tmp
 obj
