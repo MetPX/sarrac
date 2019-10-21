@@ -85,13 +85,13 @@ lib: $(LIBSARRA_SO_VXX) $(LIBSHIM_SO_VXX)
 
 $(LIBSARRA_SO_VXX): $(LIB_OBJECTS)
 	@mkdir -p bin/
-	$(CC) $(CFLAGS) -shared -Wl,-soname,$(LIBSARRA_SO_V) $(LIB_OBJECTS) -o $@ -ldl $(CLIBS)
-	@ln -frs $(LIBSARRA_SO_VXX) $(LIBSARRA)
-	@ln -frs $(LIBSARRA_SO_VXX) $(LIBSARRA_SO_V)
+	$(CC) $(CFLAGS) -shared -Wl,-soname,$(shell basename $(LIBSARRA_SO_V)) $(LIB_OBJECTS) -o $@ -ldl $(CLIBS)
+	@ln -rs $(LIBSARRA_SO_VXX) $(LIBSARRA)
+	@ln -rs $(LIBSARRA_SO_VXX) $(LIBSARRA_SO_V)
 
 $(LIBSHIM_SO_VXX): $(LIB_ODIR)/libsrshim.o $(LIBSARRA_SO_VXX)
 	@mkdir -p bin/
-	$(CC) $(CFLAGS) -shared -Wl,-soname,$(LIBSHIM_SO_V) $^ -o $@ -ldl $(CLIBS)
+	$(CC) $(CFLAGS) -shared -Wl,-soname,$(shell basename $(LIBSHIM_SO_V)) $^ -o $@ -ldl $(CLIBS)
 
 $(LIB_ODIR)/%.o: $(LIB_SDIR)/%.c $(HEADERS)
 	@mkdir -p $(LIB_ODIR)
