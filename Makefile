@@ -1,17 +1,11 @@
 .PHONY: all app lib test install clean format check
 
-### COMPILATION FLAGS ###
-CC		:= gcc
-CLIBS		:= -lrabbitmq -lcrypto
-CFLAGS		:= -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE
-INCLUDES	:= -Iinclude/
+### FILES & PARAMETERS ###
 
-LIBSARRA_LINK	:= -lsarra -Wl,-rpath,$(CURDIR)/bin -L$(CURDIR)/bin
-
-### FILES & PARAMETERS ##
 SR_VERSION	:= $(shell head -1 debian/changelog | cut -d'(' -f2 | cut -d')' -f1)
 SO_V		:= 1
 SO_VXX		:= $(SO_V).0.0
+LIBC_SO		:= $(shell ldd /bin/sh | grep libc.so | cut -d' ' -f3)
 HEADERS		:= $(wildcard include/*.h)
 
 APP_SDIR	:= src/app
@@ -31,6 +25,37 @@ LIBSARRA_SO_VXX	:= $(LIBSARRA).$(SO_VXX)
 LIBSHIM		:= bin/libsrshim.so
 LIBSHIM_SO_V	:= $(LIBSHIM).$(SO_V)
 LIBSHIM_SO_VXX	:= $(LIBSHIM).$(SO_VXX)
+
+### COMPILATION FLAGS ###
+
+# Notes
+# - to redirect all logging to stdout, add -DSR_DEBUG_LOGS to CFLAGS
+# - if libjson-c is unavailable, remove -ljson-c from CLIBS and -DHAVE_JSONC from CFLAGS
+# - - in this case, you can no longer accept v03 messages, but you can still post them
+
+
+# if rabbitmq library is provided by SSM package, RABBITMQC_HOME is required
+ifdef RABBITMQC_HOME
+LIBRABBIT_DIR	:= $(RABBITMQC_HOME)/lib
+LIBRABBIT_INC	:= $(RABBITMQC_HOME)/include
+LIBRABBIT_LINK	:= -I$(LIBRABBIT_INC) -Wl,-rpath,$(LIBRABBIT_DIR) -L$(LIBRABBIT_DIR)
+endif
+
+# if rabbitmq library is only built (not installed) then set RABBIT_BUILD
+ifdef RABBIT_BUILD
+LIBRABBIT_DIR	:= $(RABBITMQC_HOME)/build/librabbitmq
+LIBRABBIT_INC	:= $(RABBITMQC_HOME)/librabbitmq
+LIBRABBIT_LINK	:= -I$(LIBRABBIT_INC) -Wl,-rpath,$(LIBRABBIT_DIR) -L$(LIBRABBIT_DIR)
+endif
+
+CC		:= gcc
+CFLAGS		:= -DHAVE_JSONC -DFORCE_LIBC_REGEX=\"$(LIBC_SO)\" -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE
+INCLUDES	:= -Iinclude/
+
+CLIBS		:= -ljson-c -lrabbitmq $(LIBRABBIT_LINK) -lcrypto -lc
+LIBSARRA_LINK	:= -lsarra -Wl,-rpath,$(CURDIR)/bin -L$(CURDIR)/bin
+
+### BUILD TARGETS ###
 
 # build all components
 all: include/sr_version.h lib app
@@ -88,5 +113,7 @@ format:
 	@indent -linux -l100 *.c *.h
 	@rm *.c~ *.h~
 
+### TEST TARGETS ###
+
 # run test suite
-check:
+check: all
