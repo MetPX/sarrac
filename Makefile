@@ -2,29 +2,29 @@
 
 ### FILES & PARAMETERS ###
 
-SR_VERSION	:= $(shell head -1 debian/changelog | cut -d'(' -f2 | cut -d')' -f1)
-SO_V		:= 1
-SO_VXX		:= $(SO_V).0.0
-LIBC_SO		:= $(shell ldd /bin/sh | grep libc.so | cut -d' ' -f3)
-HEADERS		:= $(wildcard include/*.h)
+SR_VERSION      := $(shell head -1 debian/changelog | cut -d'(' -f2 | cut -d')' -f1)
+SO_V            := 1
+SO_VXX          := $(SO_V).0.0
+LIBC_SO         := $(shell ldd /bin/sh | grep libc.so | cut -d' ' -f3)
+HEADERS         := $(wildcard include/*.h)
 
-APP_SDIR	:= src/app
-LIB_SDIR	:= src/lib
-APP_SOURCES	:= $(wildcard src/app/*.c)
-LIB_SOURCES	:= $(wildcard src/lib/*.c)
+APP_SDIR        := src/app
+LIB_SDIR        := src/lib
+APP_SOURCES     := $(wildcard src/app/*.c)
+LIB_SOURCES     := $(wildcard src/lib/*.c)
 
-APP_ODIR	:= obj/app
-LIB_ODIR	:= obj/lib
-APP_OBJECTS	:= $(APP_SOURCES:src/app/%.c=obj/app/%.o)
-LIB_OBJECTS	:= $(LIB_SOURCES:src/lib/%.c=obj/lib/%.o) 
+APP_ODIR        := obj/app
+LIB_ODIR        := obj/lib
+APP_OBJECTS     := $(APP_SOURCES:src/app/%.c=obj/app/%.o)
+LIB_OBJECTS     := $(LIB_SOURCES:src/lib/%.c=obj/lib/%.o)
 
-LIBSARRA	:= bin/libsarra.so
-LIBSARRA_SO_V	:= $(LIBSARRA).$(SO_V)
-LIBSARRA_SO_VXX	:= $(LIBSARRA).$(SO_VXX)
+LIBSARRA        := bin/libsarra.so
+LIBSARRA_SO_V   := $(LIBSARRA).$(SO_V)
+LIBSARRA_SO_VXX := $(LIBSARRA).$(SO_VXX)
 
-LIBSHIM		:= bin/libsrshim.so
-LIBSHIM_SO_V	:= $(LIBSHIM).$(SO_V)
-LIBSHIM_SO_VXX	:= $(LIBSHIM).$(SO_VXX)
+LIBSHIM         := bin/libsrshim.so
+LIBSHIM_SO_V    := $(LIBSHIM).$(SO_V)
+LIBSHIM_SO_VXX  := $(LIBSHIM).$(SO_VXX)
 
 ### COMPILATION FLAGS ###
 
@@ -36,24 +36,24 @@ LIBSHIM_SO_VXX	:= $(LIBSHIM).$(SO_VXX)
 
 # if rabbitmq library is provided by SSM package, RABBITMQC_HOME is required
 ifdef RABBITMQC_HOME
-LIBRABBIT_DIR	:= $(RABBITMQC_HOME)/lib
-LIBRABBIT_INC	:= $(RABBITMQC_HOME)/include
-LIBRABBIT_LINK	:= -I$(LIBRABBIT_INC) -Wl,-rpath,$(LIBRABBIT_DIR) -L$(LIBRABBIT_DIR)
+LIBRABBIT_DIR   := $(RABBITMQC_HOME)/lib
+LIBRABBIT_INC   := $(RABBITMQC_HOME)/include
+LIBRABBIT_LINK  := -I$(LIBRABBIT_INC) -Wl,-rpath,$(LIBRABBIT_DIR) -L$(LIBRABBIT_DIR)
 endif
 
 # if rabbitmq library is only built (not installed) then set RABBIT_BUILD
 ifdef RABBIT_BUILD
-LIBRABBIT_DIR	:= $(RABBITMQC_HOME)/build/librabbitmq
-LIBRABBIT_INC	:= $(RABBITMQC_HOME)/librabbitmq
-LIBRABBIT_LINK	:= -I$(LIBRABBIT_INC) -Wl,-rpath,$(LIBRABBIT_DIR) -L$(LIBRABBIT_DIR)
+LIBRABBIT_DIR   := $(RABBITMQC_HOME)/build/librabbitmq
+LIBRABBIT_INC   := $(RABBITMQC_HOME)/librabbitmq
+LIBRABBIT_LINK  := -I$(LIBRABBIT_INC) -Wl,-rpath,$(LIBRABBIT_DIR) -L$(LIBRABBIT_DIR)
 endif
 
-CC		:= gcc
-CFLAGS		:= -DHAVE_JSONC -DFORCE_LIBC_REGEX=\"$(LIBC_SO)\" -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE
-INCLUDES	:= -Iinclude/
+CC              := gcc
+CFLAGS          := -DHAVE_JSONC -DFORCE_LIBC_REGEX=\"$(LIBC_SO)\" -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE
+INCLUDES        := -Iinclude/
 
-CLIBS		:= -ljson-c -lrabbitmq $(LIBRABBIT_LINK) -lcrypto -lc
-LIBSARRA_LINK	:= -lsarra -Wl,-rpath,$(CURDIR)/bin -L$(CURDIR)/bin
+CLIBS           := -ljson-c -lrabbitmq $(LIBRABBIT_LINK) -lcrypto -lc
+LIBSARRA_LINK   := -lsarra -Wl,-rpath,$(CURDIR)/bin -L$(CURDIR)/bin
 
 ### BUILD TARGETS ###
 
