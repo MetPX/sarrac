@@ -102,11 +102,17 @@ test:
 
 # install application on system
 install:
+	@mkdir -p build/ build/bin/ build/lib/ build/include/
+	@mv bin/*.so* build/lib/
+	@mv bin/sr_cpost build/bin/
+	@mv bin/sr_cpump build/bin/
+	@cp include/*.h build/include/
+	@rm -rf bin/ obj/
 
 # remove bin/ and obj/
 clean:
 	@rm -f include/sr_version.h
-	@rm -rf bin/ obj/
+	@rm -rf bin/ obj/ build/
 
 # set code format
 format:

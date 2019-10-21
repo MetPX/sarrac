@@ -4,4 +4,5 @@
 *.tmp
 obj
 bin
+build
 sr_version.h
