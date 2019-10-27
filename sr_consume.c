@@ -670,7 +670,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 	body_received = 0;
 
     if (body_target >= SR_SARRAC_MAXIMUM_MESSAGE_LEN) {
-			log_msg(LOG_CRITICAL, "Message too big! received: (%ld bytes) max: %ld",
+			log_msg(LOG_CRITICAL, "Message too big! received: (%ld bytes) max: %d",
                  body_target, SR_SARRAC_MAXIMUM_MESSAGE_LEN );
 			abort();
     }

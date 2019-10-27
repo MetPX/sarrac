@@ -47,15 +47,10 @@ int exit_cleanup_posts_setup = 0;
 
 static struct sr_config_t sr_cfg;
 
-/*
- I had a problem that, in some cases, exit_cleanup processing does not seem to happen.
- tried adding atexit to guarantee that exit_cleanup processing will run.
- didn't change anything, so commented it out for now
- */
 void setup_exit()
 {
 	if (!exit_cleanup_posts_setup) {
-		//atexit(exit_cleanup_posts);
+		atexit(exit_cleanup_posts);
 		exit_cleanup_posts_setup = 1;
 	}
 }
@@ -999,6 +994,7 @@ void exit(int status)
    in some process traces, saw that exit wasn't being called, only exit_group.
    added this, but it didn't solve the problem, so removing for now...
 
+ */
 void exit_group(int status)
 {
     static exit_fn exit_group_fn_ptr = NULL;
@@ -1014,7 +1010,6 @@ void exit_group(int status)
     // do it for real.
     exit_group_fn_ptr(status);
 }
- */
 
 int link(const char *target, const char *linkpath)
 {
@@ -1069,6 +1064,7 @@ ssize_t sendfile(int out_fd, int in_fd, off_t * offset, size_t count)
 	char *real_return;
 
 	if (!sendfile_init_done) {
+		setup_exit();
 		sendfile_fn_ptr = (sendfile_fn) dlsym(RTLD_NEXT, "sendfile");
 		sendfile_init_done = 1;
 	}
@@ -1111,6 +1107,7 @@ ssize_t copy_file_range(int fd_in, loff_t * off_in, int fd_out,
 	char *real_return;
 
 	if (!copy_file_range_init_done) {
+		setup_exit();
 		copy_file_range_fn_ptr = (copy_file_range_fn) dlsym(RTLD_NEXT, "copy_file_range");
 		copy_file_range_init_done = 1;
 	}
@@ -1147,6 +1144,7 @@ int close(int fd)
 	int status;
 
 	if (!close_init_done) {
+		setup_exit();
 		close_fn_ptr = (close_fn) dlsym(RTLD_NEXT, "close");
 		close_init_done = 1;
 		if (getenv("SR_POST_READS"))
@@ -1197,7 +1195,6 @@ int close(int fd)
 
 	return shimpost(real_path, status);
 }
-
 static int fclose_init_done = 0;
 typedef int (*fclose_fn) (FILE *);
 static fclose_fn fclose_fn_ptr = fclose;
@@ -1213,6 +1210,7 @@ int fclose(FILE * f)
 	int status;
 
 	if (!fclose_init_done) {
+		setup_exit();
 		fclose_fn_ptr = (fclose_fn) dlsym(RTLD_NEXT, "fclose");
 		fclose_init_done = 1;
 		if (getenv("SR_POST_READS"))
@@ -1265,6 +1263,83 @@ int fclose(FILE * f)
 
 	if (getenv("SR_SHIMDEBUG"))
 		fprintf(stderr, "SR_SHIMDEBUG fclose %p %s status=%d\n", f, real_path, status);
+
+	return shimpost(real_path, status);
+}
+
+/*
+added this routine, in case it was needed... the reason it isn't in use is that it will cause
+severe overhead... hoping to just stick with close calls.
+ */
+
+static int fflush_init_done = 0;
+typedef int (*fflush_fn) (FILE *);
+static fflush_fn fflush_fn_ptr = fflush;
+
+int fflush(FILE * f)
+{
+
+	int fd;
+	int fdstat;
+	char fdpath[32];
+	char real_path[PATH_MAX + 1];
+	char *real_return;
+	int status;
+
+	if (!fflush_init_done) {
+		setup_exit();
+		fflush_fn_ptr = (fflush_fn) dlsym(RTLD_NEXT, "fflush");
+		fflush_init_done = 1;
+		if (getenv("SR_POST_READS"))
+			srshim_initialize("shim");
+        setup_exit();
+	}
+	if (shim_disabled)
+		return fflush_fn_ptr(f);
+
+   
+	fd = fileno(f);
+	if (fd == -1) {
+		clerror(fd);
+		return fflush_fn_ptr(f);
+	}
+
+	fdstat = fcntl(fd, F_GETFL);
+
+	if ( getenv("SR_SHIMDEBUG") ) fprintf( stderr, "SR_SHIMDEBUG fflush %p stat=%d starting\n", f, fdstat );
+
+	if (fdstat == -1) {
+		if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG fflush NO POST not valid fd !\n" );
+		errno = 0;
+		return fflush_fn_ptr(f);
+	}
+
+	if ((fdstat & O_ACCMODE) == O_RDONLY) {
+		if (getenv("SR_SHIMDEBUG")) fprintf( stderr, "SR_SHIMDEBUG fflush NO POST read-only. \n" );
+		errno = 0;
+		return fflush_fn_ptr(f);
+	}
+
+	snprintf(fdpath, 32, "/proc/self/fd/%d", fd);
+	real_return = realpath(fdpath, real_path);
+	status = fflush_fn_ptr(f);
+	clerror(status);
+
+	if (!real_return)
+		return (status);
+
+	if (!strncmp(real_path, "/dev/", 5)) {
+		clerror(status);
+		return (status);
+	}
+
+	if (!strncmp(real_path, "/proc/", 6)) {
+		clerror(status);
+		return (status);
+	}
+
+	if (getenv("SR_SHIMDEBUG"))
+		fprintf(stderr, "SR_SHIMDEBUG fflush %p %s status=%d\n", f, real_path, status);
 
 	return shimpost(real_path, status);
 }
