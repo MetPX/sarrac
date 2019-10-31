@@ -1269,9 +1269,8 @@ int fclose(FILE * f)
 
 /*
 added this routine, in case it was needed... the reason it isn't in use is that it will cause
-severe overhead... hoping to just stick with close calls.
+overhead... hoping to just stick with close calls.
  */
-
 static int fflush_init_done = 0;
 typedef int (*fflush_fn) (FILE *);
 static fflush_fn fflush_fn_ptr = fflush;
@@ -1287,7 +1286,6 @@ int fflush(FILE * f)
 	int status;
 
 	if (!fflush_init_done) {
-		setup_exit();
 		fflush_fn_ptr = (fflush_fn) dlsym(RTLD_NEXT, "fflush");
 		fflush_init_done = 1;
 		if (getenv("SR_POST_READS"))
@@ -1343,3 +1341,30 @@ int fflush(FILE * f)
 
 	return shimpost(real_path, status);
 }
+
+
+
+static int fopen_init_done = 0;
+typedef FILE* (*fopen_fn) (const char* pathname, const char *mode);
+static fopen_fn fopen_fn_ptr = fopen;
+
+FILE* fopen(const char *pathname, const char *mode)
+/*
+  fopen will never trigger any posts, currently, it only serves to prime for (setup_exit())
+
+ */
+{
+	if (!fopen_init_done) {
+		fopen_fn_ptr = (fopen_fn) dlsym(RTLD_NEXT, "fopen");
+		fopen_init_done = 1;
+		if (getenv("SR_POST_READS"))
+			srshim_initialize("shim");
+        setup_exit();
+	}
+	if (getenv("SR_SHIMDEBUG"))
+		fprintf(stderr, "SR_SHIMDEBUG fopen %s %s\n", pathname, mode);
+
+	return( fopen_fn_ptr(pathname,mode) );
+}
+
+
