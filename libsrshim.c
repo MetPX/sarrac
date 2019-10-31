@@ -47,15 +47,10 @@ int exit_cleanup_posts_setup = 0;
 
 static struct sr_config_t sr_cfg;
 
-/*
- I had a problem that, in some cases, exit_cleanup processing does not seem to happen.
- tried adding atexit to guarantee that exit_cleanup processing will run.
- didn't change anything, so commented it out for now
- */
 void setup_exit()
 {
 	if (!exit_cleanup_posts_setup) {
-		//atexit(exit_cleanup_posts);
+		atexit(exit_cleanup_posts);
 		exit_cleanup_posts_setup = 1;
 	}
 }
@@ -999,6 +994,7 @@ void exit(int status)
    in some process traces, saw that exit wasn't being called, only exit_group.
    added this, but it didn't solve the problem, so removing for now...
 
+ */
 void exit_group(int status)
 {
     static exit_fn exit_group_fn_ptr = NULL;
@@ -1014,7 +1010,6 @@ void exit_group(int status)
     // do it for real.
     exit_group_fn_ptr(status);
 }
- */
 
 int link(const char *target, const char *linkpath)
 {
@@ -1069,6 +1064,7 @@ ssize_t sendfile(int out_fd, int in_fd, off_t * offset, size_t count)
 	char *real_return;
 
 	if (!sendfile_init_done) {
+		setup_exit();
 		sendfile_fn_ptr = (sendfile_fn) dlsym(RTLD_NEXT, "sendfile");
 		sendfile_init_done = 1;
 	}
@@ -1111,6 +1107,7 @@ ssize_t copy_file_range(int fd_in, loff_t * off_in, int fd_out,
 	char *real_return;
 
 	if (!copy_file_range_init_done) {
+		setup_exit();
 		copy_file_range_fn_ptr = (copy_file_range_fn) dlsym(RTLD_NEXT, "copy_file_range");
 		copy_file_range_init_done = 1;
 	}
@@ -1147,6 +1144,7 @@ int close(int fd)
 	int status;
 
 	if (!close_init_done) {
+		setup_exit();
 		close_fn_ptr = (close_fn) dlsym(RTLD_NEXT, "close");
 		close_init_done = 1;
 		if (getenv("SR_POST_READS"))
@@ -1197,7 +1195,6 @@ int close(int fd)
 
 	return shimpost(real_path, status);
 }
-
 static int fclose_init_done = 0;
 typedef int (*fclose_fn) (FILE *);
 static fclose_fn fclose_fn_ptr = fclose;
@@ -1213,6 +1210,7 @@ int fclose(FILE * f)
 	int status;
 
 	if (!fclose_init_done) {
+		setup_exit();
 		fclose_fn_ptr = (fclose_fn) dlsym(RTLD_NEXT, "fclose");
 		fclose_init_done = 1;
 		if (getenv("SR_POST_READS"))
@@ -1268,3 +1266,29 @@ int fclose(FILE * f)
 
 	return shimpost(real_path, status);
 }
+
+
+static int fopen_init_done = 0;
+typedef FILE* (*fopen_fn) (const char* pathname, const char *mode);
+static fopen_fn fopen_fn_ptr = fopen;
+
+FILE* fopen(const char *pathname, const char *mode)
+/*
+  fopen will never trigger any posts, currently, it only serves to prime for (setup_exit())
+
+ */
+{
+	if (!fopen_init_done) {
+		fopen_fn_ptr = (fopen_fn) dlsym(RTLD_NEXT, "fopen");
+		fopen_init_done = 1;
+		if (getenv("SR_POST_READS"))
+			srshim_initialize("shim");
+        setup_exit();
+	}
+	if (getenv("SR_SHIMDEBUG"))
+		fprintf(stderr, "SR_SHIMDEBUG fopen %s %s\n", pathname, mode);
+
+	return( fopen_fn_ptr(pathname,mode) );
+}
+
+
