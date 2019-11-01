@@ -1,3 +1,11 @@
+sarrac (2.19.11b1) unstable; urgency=medium
+
+  * fix: #68 wgrib2 will not post (via libsrshim.)
+  * fix: #67 post_exchange_suffix was not working.
+  * new: printing hostname in options. 
+
+ -- Peter Silva <peter@blacklab>  Thu, 31 Oct 2019 22:04:30 -0400
+
 sarrac (2.19.10b1) unstable; urgency=medium
 
   * fix: dependencies should be on metpx-sarracenia, without python3- being mentioned. 
