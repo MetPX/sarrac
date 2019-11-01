@@ -988,6 +988,11 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char *option, char *arg,
 		sr_cfg->post_exchange_split = atoi(argument);
 		retval = (2);
 
+	} else if (!strcmp(option, "post_exchange_suffix")) {
+		sr_cfg->post_exchange_suffix = argument;
+		argument = NULL;
+		retval = (2);
+
 	} else if (!strcmp(option, "prefetch")) {
 		sr_cfg->prefetch = atoi(argument);
 		retval = (2);
