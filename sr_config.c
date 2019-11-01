@@ -762,7 +762,8 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char *option, char *arg,
 		   || !strcmp(option, "cb")) {
 		if (!strcmp(argument, "data") || !strcmp(argument, "name")
 		    || !strcmp(argument, "path")) {
-			sr_cfg->cache_basis = strdup(argument);
+			sr_cfg->cache_basis = argument;
+            argument=NULL;
 		} else {
 			log_msg(LOG_ERROR,
 				"unknown basis for duplicate suppression: %s (...using default: %s)\n",
