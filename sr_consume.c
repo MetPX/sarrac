@@ -98,7 +98,7 @@ int sr_consume_setup(struct sr_context *sr_c)
 	props._flags = AMQP_BASIC_CONTENT_TYPE_FLAG;
 	props.content_type = amqp_cstring_bytes("text/plain");
 	if (sr_c->cfg->expire > 0) {
-		table_entries[tecnt].key = amqp_cstring_bytes("x-expiry");
+		table_entries[tecnt].key = amqp_cstring_bytes("x-expires");
 		table_entries[tecnt].value.kind = AMQP_FIELD_KIND_I64;
 		table_entries[tecnt].value.value.i64 = (sr_c->cfg->expire * 1000);	// AMQP says milliseconds.
 		tecnt++;
