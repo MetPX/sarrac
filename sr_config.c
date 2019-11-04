@@ -762,7 +762,8 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char *option, char *arg,
 		   || !strcmp(option, "cb")) {
 		if (!strcmp(argument, "data") || !strcmp(argument, "name")
 		    || !strcmp(argument, "path")) {
-			sr_cfg->cache_basis = strdup(argument);
+			sr_cfg->cache_basis = argument;
+            argument=NULL;
 		} else {
 			log_msg(LOG_ERROR,
 				"unknown basis for duplicate suppression: %s (...using default: %s)\n",
@@ -986,6 +987,11 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char *option, char *arg,
 	} else if (!strcmp(option, "post_exchange_split")
 		   || !strcmp(option, "pxs")) {
 		sr_cfg->post_exchange_split = atoi(argument);
+		retval = (2);
+
+	} else if (!strcmp(option, "post_exchange_suffix")) {
+		sr_cfg->post_exchange_suffix = argument;
+		argument = NULL;
 		retval = (2);
 
 	} else if (!strcmp(option, "prefetch")) {
@@ -1601,8 +1607,8 @@ int sr_config_finalize(struct sr_config_t *sr_cfg, const int is_consumer)
 	// Since we check how old the log is, we ust not write to the log during startup in sanity mode.
 	if (strcmp(sr_cfg->action, "sanity")) {
 		log_msg(LOG_DEBUG,
-			"sr_%s %s settings: action=%s config_name=%s log_level=%d follow_symlinks=%s realpath=%s\n",
-			sr_cfg->progname, __sarra_version__, sr_cfg->action,
+			"sr_%s %s settings: action=%s hostname=%s config_name=%s log_level=%d follow_symlinks=%s realpath=%s\n",
+			sr_cfg->progname, __sarra_version__, local_fqdn(), sr_cfg->action,
 			sr_cfg->configname, sr_cfg->loglevel,
 			sr_cfg->follow_symlinks ? "yes" : "no", sr_cfg->realpath ? "yes" : "no");
 		log_msg(LOG_DEBUG,
