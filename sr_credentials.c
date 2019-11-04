@@ -55,11 +55,15 @@ char *sr_credentials_fetch(char *s)
 			return (result);
 		}
 
-		if ((start[i] == ':') && (s[i] == '@')) {
+		if (((start[i] == ':') && (s[i] == '@')) || (!strchr(s, '@'))) {
 			smatching = i;
 			//fprintf( stderr, "skipping password..\n" );
 			while (start[i] != '@')
 				i++;
+
+			// we can't compare @ when we don't have a username in the config uri
+			if (!strchr(s, '@'))
+				++i;
 
 			//fprintf( stderr, "rest of url, start[i]=%c, s[smatching]=%c\n", 
 			//        start[i], s[smatching] );
