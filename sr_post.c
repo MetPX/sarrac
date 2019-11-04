@@ -228,6 +228,11 @@ char *v03integrity( struct sr_message_t *m )
 
 }
 
+char *v03content( struct sr_message_t *m )
+{
+	return "\"encoding\" : \"_encoding_\", \"value\" : \"_value_\"";
+}
+
 char *v03time( char *v02time )
 {
    static char buf[128];
@@ -391,6 +396,9 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
 
             status = sprintf( c, ",%s\"integrity\" : { %s }", sep, v03integrity(m) );
             c += status ; 
+
+            status = sprintf( c, ", \"content\" : { %s }", v03content(m) );
+            c += status;
 
     		if (sr_c->cfg->strip > 0) 
                  v03amqp_header_add( &c, "rename", m->rename );
