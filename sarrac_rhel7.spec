@@ -21,8 +21,8 @@ Version:        2.19.11b1
 Release:        0
 Summary:        C implementation of Sarracenia (partial)
 License:        GPL-2.0
-Source:         .
-BuildRequires:  gcc make openssl-devel librabbitmq-devel
+Source:         %{_sourcedir}/sarrac.tar.gz
+BuildRequires:  gcc make openssl-devel json-c-devel librabbitmq-devel
 Requires:	openssl json-c librabbitmq
 BuildArch:      noarch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -30,7 +30,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 %description
 
 %prep
-%setup -q
+%setup -q -n sarrac
 
 %build
 make %{?_smp_mflags}
