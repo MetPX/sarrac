@@ -1,4 +1,3 @@
-
 # 
 # if rabbitmq library is provided by SSM package, RABBITMQC_HOME is required. 
 # 
@@ -89,10 +88,13 @@ install:
 		cp *.h build/include/; \
 	fi;
 
-rpmsuse:
+rpm_suse15:
 	rpmbuild --build-in-place -bb sarrac_suse15.spec 
 
-rpmrhel:
+rpm_rhel7:
+	rpmdev-setuptree
+	echo "%_unpackaged_files_terminate_build      0" > ~/.rpmmacros
+	echo "%_binaries_in_noarch_packages_terminate_build   0" >> ~/.rpmmacros
 	tar -czvf /tmp/sarrac.tar.gz ../sarrac
 	cp -p /tmp/sarrac.tar.gz `rpm --eval "%{_sourcedir}"`
 	rpmbuild -bb sarrac_rhel7.spec
