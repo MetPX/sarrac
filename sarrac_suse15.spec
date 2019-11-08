@@ -23,7 +23,7 @@ Summary:        C implementation of Sarracenia (partial)
 License:        GPL-2.0
 Source:         .
 BuildRequires:  gcc make libopenssl-devel libjson-c-devel librabbitmq-devel
-Requires:       libopenssl libjson-c librabbitmq4
+Requires:       openssl libjson-c3 librabbitmq4
 BuildArch:      noarch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
