@@ -93,7 +93,9 @@ rpmsuse:
 	rpmbuild --build-in-place -bb sarrac_suse15.spec 
 
 rpmrhel:
-	rpmbuild --build-in-place -bb sarrac_rhel7.spec 
+	tar -czvf /tmp/sarrac.tar.gz ../sarrac
+	cp -p /tmp/sarrac.tar.gz `rpm --eval "%{_sourcedir}"`
+	rpmbuild -bb sarrac_rhel7.spec
 
 format:
 	@indent -linux -l100 *.c *.h
