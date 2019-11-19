@@ -190,13 +190,13 @@ void log_set_fnts()
 	}
 }
 
-/* is_utf8     routine to confirm that a field is utf8 encoded, taken verbatim from:
+/* sr_is_utf8     routine to confirm that a field is utf8 encoded, taken verbatim from:
  *             https://stackoverflow.com/questions/1031645/how-to-detect-utf-8-in-plain-c 
  *             considered CC-BY-SA.  Is this a sufficient attribution?
  *             https://legalict.com/2016/01/07/what-is-the-license-status-of-stackoverflow-code-snippets/
  */
 
-int is_utf8(const char *string)
+int sr_is_utf8(const char *string)
 {
 	if (!string)
 		return 0;
