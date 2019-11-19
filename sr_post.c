@@ -104,7 +104,7 @@ void amqp_header_add(char *tag, const char *value)
 {
 
 	/* check utf8 compliance of tag and value for message headers */
-	if (!is_utf8(tag) || !is_utf8(value)) {
+	if (!sr_is_utf8(tag) || !sr_is_utf8(value)) {
 		log_msg(LOG_ERROR,
 			"amqp header (tag, value)<>(%s,%s) not utf8 encoded, ignoring header\n",
 			tag, value);
@@ -249,7 +249,7 @@ void v03amqp_header_add( char** c, const char* tag, const char *value )
    int status;
 
    /* check utf8 compliance of tag and value for message headers */
-   if (!is_utf8(tag) || !is_utf8(value)) {
+   if (!sr_is_utf8(tag) || !sr_is_utf8(value)) {
 	   log_msg(LOG_ERROR,
 		   "amqp header (tag, value)<>(%s,%s) not utf8 encoded, ignoring header\n",
            tag, value);
@@ -719,7 +719,7 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 	int status;
 
 	/* check utf8 compliance of path */
-	if (!is_utf8(pathspec)) {
+	if (!sr_is_utf8(pathspec)) {
 		log_msg(LOG_ERROR,
 			"file path \"%s\" not utf8 encoded, ignoring sr_post call\n", pathspec);
 		return;
