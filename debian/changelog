@@ -1,3 +1,10 @@
+sarrac (2.19.11b2) unstable; urgency=medium
+
+  * fix: #76  crash with libsrshim and sed command.
+  * new: rpm spec files for Suse and Redhat
+
+ -- Peter Silva <peter@idefix>  Tue, 19 Nov 2019 15:39:56 -0500
+
 sarrac (2.19.11b1) unstable; urgency=medium
 
   * fix: #68 wgrib2 will not post (via libsrshim.)
