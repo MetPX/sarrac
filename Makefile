@@ -75,9 +75,9 @@ install:
 	@mv sr_cpost build/bin
 	@mv sr_cpump build/bin
 	@cp *.h build/include/
-	@if [ $(echo "$(DESTDIR)" | grep "rpmbuild") ]; \
+	@if [ $$(echo "$(DESTDIR)" | grep "rpmbuild") ]; \
 	then \
-		mkdir -p $(DESTDIR); \
+		mkdir -p $(DESTDIR)/usr; \
 		cp -r build/lib $(DESTDIR)/usr/lib64; \
 		cp -r build/bin $(DESTDIR)/usr/bin; \
 		cp -r build/include $(DESTDIR)/usr/include; \
