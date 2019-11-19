@@ -68,24 +68,19 @@ all: sr_version.h $(SARRA_OBJECT)
 sr_version.h: debian/changelog
 	echo "#define __sarra_version__ \"`head -1 debian/changelog| sed 's/.*(//' | sed 's/).*//'`\"" >sr_version.h
 
-DESTDIR=build
-
 install:
-	if [ "$(DESTDIR)" != "build" ]; \
+	@mkdir -p build build/bin build/lib build/include
+	@mv *.so build/lib
+	@mv *.so.* build/lib
+	@mv sr_cpost build/bin
+	@mv sr_cpump build/bin
+	@cp *.h build/include/
+	@if [ $(echo "$(DESTDIR)" | grep "rpmbuild") ]; \
 	then \
-		mkdir -p $(DESTDIR) $(DESTDIR)/usr/bin $(DESTDIR)/usr/lib64 $(DESTDIR)/usr/include; \
-		mv *.so $(DESTDIR)/usr/lib64; \
-		mv *.so.* $(DESTDIR)/usr/lib64; \
-		mv sr_cpost $(DESTDIR)/usr/bin; \
-		mv sr_cpump $(DESTDIR)/usr/bin; \
-		cp *.h $(DESTDIR)/usr/include/; \
-	else \
-		mkdir build build/bin build/lib build/include; \
-		mv *.so build/lib; \
-		mv *.so.* build/lib; \
-		mv sr_cpost build/bin; \
-		mv sr_cpump build/bin; \
-		cp *.h build/include/; \
+		mkdir -p $(DESTDIR); \
+		cp -r build/lib $(DESTDIR)/usr/lib64; \
+		cp -r build/bin $(DESTDIR)/usr/bin; \
+		cp -r build/include $(DESTDIR)/usr/include; \
 	fi;
 
 rpm_suse15:
