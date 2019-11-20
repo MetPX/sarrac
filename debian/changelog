@@ -2,6 +2,7 @@ sarrac (2.19.11b2) unstable; urgency=medium
 
   * fix: #76  crash with libsrshim and sed command.
   * new: rpm spec files for Suse and Redhat
+  * fix: #78 x-expires mispelled, queues never expired.
 
  -- Peter Silva <peter@idefix>  Tue, 19 Nov 2019 15:39:56 -0500
 
