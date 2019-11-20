@@ -1,5 +1,3 @@
-
-
 # 
 # if rabbitmq library is provided by SSM package, RABBITMQC_HOME is required. 
 # 
@@ -71,19 +69,37 @@ sr_version.h: debian/changelog
 	echo "#define __sarra_version__ \"`head -1 debian/changelog| sed 's/.*(//' | sed 's/).*//'`\"" >sr_version.h
 
 install:
-	@mkdir build build/bin build/lib build/include
+	@mkdir -p build build/bin build/lib build/include
 	@mv *.so build/lib
 	@mv *.so.* build/lib
 	@mv sr_cpost build/bin
 	@mv sr_cpump build/bin
 	@cp *.h build/include/
+	@if [ $$(echo "$(DESTDIR)" | grep "rpmbuild") ]; \
+	then \
+		mkdir -p $(DESTDIR)/usr; \
+		cp -r build/lib $(DESTDIR)/usr/lib64; \
+		cp -r build/bin $(DESTDIR)/usr/bin; \
+		cp -r build/include $(DESTDIR)/usr/include; \
+	fi;
+
+rpm_suse15:
+	rpmbuild --build-in-place -bb sarrac_suse15.spec 
+
+rpm_rhel7:
+	rpmdev-setuptree
+	echo "%_unpackaged_files_terminate_build      0" > ~/.rpmmacros
+	echo "%_binaries_in_noarch_packages_terminate_build   0" >> ~/.rpmmacros
+	tar -czvf /tmp/sarrac.tar.gz ../sarrac
+	cp -p /tmp/sarrac.tar.gz `rpm --eval "%{_sourcedir}"`
+	rpmbuild -bb sarrac_rhel7.spec
 
 format:
 	@indent -linux -l100 *.c *.h
 	@rm *.c~ *.h~
 
 clean:
-	@rm -f *.o *.so *.so.* sr_cpost sr_configtest sr_utiltest sr_cpump sr_cachetest sr_cache_save.test
+	@rm -f *.o *.gcno *.so *.so.* sr_cpost sr_configtest sr_utiltest sr_cpump sr_cachetest sr_cache_save.test
 	@rm -rf build sr_version.h
 
 trust_but_verify: all

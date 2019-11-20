@@ -270,6 +270,26 @@ To note changes:
   - go to Launchpad, and import source `here <https://code.launchpad.net/~ssc-hpc-chp-spc/metpx-sarrac/+git/master>`_.
   - go to launchpad, find the recipe and Request Build `here <https://code.launchpad.net/~ssc-hpc-chp-spc/+recipe/metpx-sarrac>`_.
 
+
+Building RPMS
+-------------
+
+on Suse::
+
+  zypper addrepo https://download.opensuse.org/repositories/network:messaging:amqp/openSUSE_Leap_15.1/network:messaging:amqp.repo
+  zypper refresh
+  zypper install librabbitmq4 librabbitmq-devel
+  zypper install libopenssl-devel libjson-c-devel
+  make rpm_suse15
+
+on Redhat/Centos::
+
+  make rpm_rhel7
+
+
+( notes from: https://github.com/MetPX/sarrac/issues/73 )
+
+
 Proposed Coding Style Guidelines
 --------------------------------
 
