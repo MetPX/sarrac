@@ -1,1 +1,2 @@
 build/include/*  usr/include/
+build/lib/libsarr*.so  usr/lib/
