@@ -46,7 +46,7 @@ struct logfn_tab_s {
 	int size;
 };
 
-void log_cleanup();
+void sr_log_cleanup();
 
 /* sr_is_utf8     routine to confirm that a field is utf8 encoded, taken verbatim from:
  *             https://stackoverflow.com/questions/1031645/how-to-detect-utf-8-in-plain-c 

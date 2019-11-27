@@ -1211,7 +1211,7 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 	}
 
 	sr_credentials_cleanup();
-	log_cleanup();
+	sr_log_cleanup();
 	free(sr_cfg->logfn);
 
 	sr_cache_close(sr_cfg->cachep);
