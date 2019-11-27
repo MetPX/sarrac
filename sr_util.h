@@ -71,15 +71,15 @@ void daemonize(int close_stdout);
 // executed to go from a management instance to a daemon working instance.
 
 
-/* hex2base64 returns the base64 encoded string converted from a hex-encoded input 
+/* sr_hex2base64 returns the base64 encoded string converted from a hex-encoded input 
    This is used to produce v03 integrity fields.
 
    no dynamic allocation is done, space is allocated in a static buffer, so use immediately, not thread safe.
 
  */
-char *hex2base64( const char *hstr );
+char *sr_hex2base64( const char *hstr );
 
-/* sr_base642hex returns a hex-coded string given a base64 one (reverse of hex2base64) */
+/* sr_base642hex returns a hex-coded string given a base64 one (reverse of sr_hex2base64) */
 char *sr_base642hex( const char *bstr );
 
 #define SR_TIMESTRLEN (26)

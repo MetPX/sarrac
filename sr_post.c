@@ -219,7 +219,7 @@ static char *v03integrity( struct sr_message_s *m )
    const char *value;
 
    switch (m->sum[0]) {
-       case 'd' : case 'n' : case 's' : case 'L' : case 'R' : value = hex2base64( &(m->sum[2]) ); break;
+       case 'd' : case 'n' : case 's' : case 'L' : case 'R' : value = sr_hex2base64( &(m->sum[2]) ); break;
        case 'z' : value = sum2integrity(m->sum[2]); break;
        case '0' : case 'a' : default : value = &(m->sum[2]); break;
    }
