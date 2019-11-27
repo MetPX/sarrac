@@ -171,7 +171,7 @@ char *sr_message_partstr(struct sr_message_s *m)
 	return (smallbuf);
 }
 
-void assign_field(const char *key, char *value)
+static void assign_field(const char *key, char *value)
  /* Assign the value of the field given by key to the corresponding member
     of the static msg struct.
   */
@@ -220,7 +220,7 @@ void assign_field(const char *key, char *value)
 
 #ifdef HAVE_JSONC
 
-void v03assign_field(const char *key, json_object *jso_v)
+static void v03assign_field(const char *key, json_object *jso_v)
  /* Assign the value of the field given by key to the corresponding member
     of the static msg struct.
   */
@@ -411,7 +411,7 @@ void v03assign_field(const char *key, json_object *jso_v)
 
 #endif
 
-void json_dump_strheader(char *tag, char *value)
+static void json_dump_strheader(char *tag, char *value)
 {
 	printf("\"%s\": \"%s\"", tag, value);
 }
