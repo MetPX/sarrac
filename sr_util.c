@@ -518,7 +518,7 @@ int get_sumhashlen(char algo)
 	}
 }
 
-char *set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
+char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		 char *linkstr, unsigned long block_size,
 		 unsigned long block_count, unsigned long block_rem,
 		 unsigned long block_num, int xattr_cc)

@@ -698,7 +698,7 @@ struct sr_message_s *sr_file2message_seq(struct sr_context *sr_c,
 	m->parts_num = seq;
 
 	strcpy(m->sum,
-	       set_sumstr(m->sum[0], m->sum[2], pathspec, NULL, m->link,
+	       sr_set_sumstr(m->sum[0], m->sum[2], pathspec, NULL, m->link,
 			  m->parts_blksz, m->parts_blkcount, m->parts_rem,
 			  m->parts_num, sr_c->cfg->xattr_cc)
 	    );
