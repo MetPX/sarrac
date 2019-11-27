@@ -3,7 +3,7 @@
 
 #include "sr_event.h"
 
-void str2event(char *evstr, sr_event_s * evbm)
+static void str2event(char *evstr, sr_event_s * evbm)
 {
 	if (!strcmp(evstr, "modify"))
 		(*evbm) |= SR_MODIFY;
