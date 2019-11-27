@@ -34,7 +34,7 @@ void hash_print(unsigned char *hash)
 
 }
 
-int sr_cache_check(struct sr_cache_t *cachep, char *cache_basis, char algo,
+int sr_cache_check(struct sr_cache_s *cachep, char *cache_basis, char algo,
 		   unsigned char *ekey, char *path, char *partstr)
  /* 
     insert new item if it isn't in the cache.
@@ -56,8 +56,8 @@ int sr_cache_check(struct sr_cache_t *cachep, char *cache_basis, char algo,
     if ( (!partstr) || (strlen(partstr) == 0) ) {
        return(-2);
     }
-	struct sr_cache_entry_t *c = NULL;
-	struct sr_cache_entry_path_t *p;
+	struct sr_cache_entry_s *c = NULL;
+	struct sr_cache_entry_path_s *p;
 	unsigned char keyhash[SR_SUMHASHLEN];
 
 	memset(keyhash, 0, SR_SUMHASHLEN);
@@ -67,9 +67,9 @@ int sr_cache_check(struct sr_cache_t *cachep, char *cache_basis, char algo,
 	HASH_FIND(hh, cachep->data, keyhash, SR_CACHEKEYSZ, c);
 
 	if (!c) {
-		c = (struct sr_cache_entry_t *)
-		    malloc(sizeof(struct sr_cache_entry_t));
-		memset(c, 0, sizeof(struct sr_cache_entry_t));
+		c = (struct sr_cache_entry_s *)
+		    malloc(sizeof(struct sr_cache_entry_s));
+		memset(c, 0, sizeof(struct sr_cache_entry_s));
 
 		memcpy(c->key, keyhash, SR_CACHEKEYSZ);
 		c->paths = NULL;
@@ -86,9 +86,9 @@ int sr_cache_check(struct sr_cache_t *cachep, char *cache_basis, char algo,
 	}
 
 	/* not found, so add path to cache entry */
-	p = (struct sr_cache_entry_path_t *)
-	    malloc(sizeof(struct sr_cache_entry_path_t));
-	memset(p, 0, sizeof(struct sr_cache_entry_path_t));
+	p = (struct sr_cache_entry_path_s *)
+	    malloc(sizeof(struct sr_cache_entry_path_s));
+	memset(p, 0, sizeof(struct sr_cache_entry_path_s));
 
 	clock_gettime(CLOCK_REALTIME, &(p->created));
 	p->path = strdup(path);
@@ -101,13 +101,13 @@ int sr_cache_check(struct sr_cache_t *cachep, char *cache_basis, char algo,
 	return (1);
 }
 
-void sr_cache_clean(struct sr_cache_t *cachep, float max_age)
+void sr_cache_clean(struct sr_cache_s *cachep, float max_age)
  /* 
     remove entries in the cache not looked up in more than max_age seconds. 
   */
 {
-	struct sr_cache_entry_t *c, *tmpc;
-	struct sr_cache_entry_path_t *e, *prev, *del;
+	struct sr_cache_entry_s *c, *tmpc;
+	struct sr_cache_entry_path_s *e, *prev, *del;
 	struct timespec since;
 	signed long int diff;
 	int npaths;
@@ -175,13 +175,13 @@ void sr_cache_clean(struct sr_cache_t *cachep, float max_age)
 	}
 }
 
-void sr_cache_free(struct sr_cache_t *cachep)
+void sr_cache_free(struct sr_cache_s *cachep)
  /* 
     remove all entries in the cache  (cleanup to discard.)
   */
 {
-	struct sr_cache_entry_t *c, *tmpc;
-	struct sr_cache_entry_path_t *e, *del;
+	struct sr_cache_entry_s *c, *tmpc;
+	struct sr_cache_entry_path_s *e, *del;
 
 	HASH_ITER(hh, cachep->data, c, tmpc) {
 		HASH_DEL(cachep->data, c);
@@ -197,14 +197,14 @@ void sr_cache_free(struct sr_cache_t *cachep)
 	}
 }
 
-int sr_cache_save(struct sr_cache_t *cachep, int to_stdout)
+int sr_cache_save(struct sr_cache_s *cachep, int to_stdout)
  /* 
     write entries in the cache to disk.
     returns a count of paths written to disk.
   */
 {
-	struct sr_cache_entry_t *c, *tmpc;
-	struct sr_cache_entry_path_t *e;
+	struct sr_cache_entry_s *c, *tmpc;
+	struct sr_cache_entry_path_s *e;
 	FILE *f;
 	int count = 0;
 
@@ -239,13 +239,13 @@ int sr_cache_save(struct sr_cache_t *cachep, int to_stdout)
 
 static char buf[load_buflen];
 
-struct sr_cache_entry_t *sr_cache_load(const char *fn)
+struct sr_cache_entry_s *sr_cache_load(const char *fn)
  /* 
     create an sr_cache based on the content of the named file.     
   */
 {
-	struct sr_cache_entry_t *c, *cache;
-	struct sr_cache_entry_path_t *p;
+	struct sr_cache_entry_s *c, *cache;
+	struct sr_cache_entry_path_s *p;
 	char *sum, *timestr, *path, *partstr;
 	unsigned char key_val[SR_CACHEKEYSZ];
 	FILE *f;
@@ -307,15 +307,15 @@ struct sr_cache_entry_t *sr_cache_load(const char *fn)
 		HASH_FIND(hh, cache, key_val, SR_CACHEKEYSZ, c);
 
 		if (!c) {
-			c = (struct sr_cache_entry_t *)
-			    malloc(sizeof(struct sr_cache_entry_t));
+			c = (struct sr_cache_entry_s *)
+			    malloc(sizeof(struct sr_cache_entry_s));
 			if (!c) {
 				log_msg(LOG_ERROR,
 					"out of memory reading cache file: %s, stopping at line: %s\n",
 					fn, buf);
 				return (cache);
 			}
-			memset(c, 0, sizeof(struct sr_cache_entry_t));
+			memset(c, 0, sizeof(struct sr_cache_entry_s));
 
 			memcpy(c->key, key_val, SR_CACHEKEYSZ);
 
@@ -334,15 +334,15 @@ struct sr_cache_entry_t *sr_cache_load(const char *fn)
 			continue;
 		}
 		/* add path to cache entry */
-		p = (struct sr_cache_entry_path_t *)
-		    malloc(sizeof(struct sr_cache_entry_path_t));
+		p = (struct sr_cache_entry_path_s *)
+		    malloc(sizeof(struct sr_cache_entry_path_s));
 		if (!p) {
 			log_msg(LOG_ERROR,
 				"out of memory 2, reading cache file: %s, stopping at line: %s\n",
 				fn, buf);
 			return (cache);
 		}
-		memset(p, 0, sizeof(struct sr_cache_entry_path_t));
+		memset(p, 0, sizeof(struct sr_cache_entry_path_s));
 
 		memset(&(p->created), 0, sizeof(struct timespec));
 		memcpy(&(p->created), sr_str2time(timestr), sizeof(struct timespec));
@@ -356,12 +356,12 @@ struct sr_cache_entry_t *sr_cache_load(const char *fn)
 	return (cache);
 }
 
-struct sr_cache_t *sr_cache_open(const char *fn)
+struct sr_cache_s *sr_cache_open(const char *fn)
 {
-	struct sr_cache_t *c;
+	struct sr_cache_s *c;
 
-	c = (struct sr_cache_t *)malloc(sizeof(struct sr_cache_t));
-	memset(c, 0, sizeof(struct sr_cache_t));
+	c = (struct sr_cache_s *)malloc(sizeof(struct sr_cache_s));
+	memset(c, 0, sizeof(struct sr_cache_s));
 	c->data = sr_cache_load(fn);
 	c->fn = strdup(fn);
 	c->fp = fopen(fn, "a");
@@ -375,7 +375,7 @@ struct sr_cache_t *sr_cache_open(const char *fn)
 	return (c);
 }
 
-void sr_cache_close(struct sr_cache_t *c)
+void sr_cache_close(struct sr_cache_s *c)
 {
 	if (!c)
 		return;

@@ -105,7 +105,7 @@ void sr_amqp_reply_print(amqp_rpc_reply_t x, char const *context)
 	}
 }
 
-struct sr_broker_t *sr_broker_connect(struct sr_broker_t *broker)
+struct sr_broker_s *sr_broker_connect(struct sr_broker_s *broker)
 {
 
 	/* set up a connection given a context.
@@ -262,7 +262,7 @@ struct timespec time_of_last_run()
 	return (tstart);
 }
 
-struct sr_context *sr_context_init_config(struct sr_config_t *sr_cfg, int must_avoid_std_fds)
+struct sr_context *sr_context_init_config(struct sr_config_s *sr_cfg, int must_avoid_std_fds)
 {
 
 	struct sr_context *sr_c;
@@ -307,7 +307,7 @@ struct sr_context *sr_context_init_config(struct sr_config_t *sr_cfg, int must_a
 
 }
 
-void sr_broker_close(struct sr_broker_t *broker)
+void sr_broker_close(struct sr_broker_s *broker)
 {
 
 	amqp_rpc_reply_t reply;

@@ -50,7 +50,7 @@ struct sr_context {
 	amqp_socket_t *socket;
 	amqp_connection_state_t conn;
 	int port;
-	struct sr_config_t *cfg;
+	struct sr_config_s *cfg;
 };
 
 void sr_amqp_error_print(int x, char const *context);
@@ -64,7 +64,7 @@ void sr_amqp_reply_print(amqp_rpc_reply_t x, char const *context);
    context, is a descriptive string.
  */
 
-struct sr_context *sr_context_init_config(struct sr_config_t *sr_cfg, const int avoid_std_fds);
+struct sr_context *sr_context_init_config(struct sr_config_s *sr_cfg, const int avoid_std_fds);
 
 /* context_init sets up a context.
    returns connection to a broker based on given configuration.

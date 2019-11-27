@@ -54,10 +54,10 @@
  *
  * Return: modification of sr_cfg with paths added, as well as action set.
  */
-void sr_add_path(struct sr_config_t *sr_cfg, const char *option)
+void sr_add_path(struct sr_config_s *sr_cfg, const char *option)
 {
-	struct sr_path_t *p;
-	struct sr_path_t *n;
+	struct sr_path_s *p;
+	struct sr_path_s *n;
 
 	if (!strcmp(option, "add")
 	    || !strcmp(option, "cleanup")
@@ -83,7 +83,7 @@ void sr_add_path(struct sr_config_t *sr_cfg, const char *option)
 		sr_cfg->action = strdup(option);
 		return;
 	}
-	p = (struct sr_path_t *)malloc(sizeof(struct sr_path_t));
+	p = (struct sr_path_s *)malloc(sizeof(struct sr_path_s));
 	if (p == NULL) {
 		log_msg(LOG_ERROR, "malloc of path failed!\n");
 		return;
@@ -115,12 +115,12 @@ void sr_add_path(struct sr_config_t *sr_cfg, const char *option)
  * Return: the sr_cfg with the added (sub)topics.
  */
 
-void sr_add_topic(struct sr_config_t *sr_cfg, const char *sub)
+void sr_add_topic(struct sr_config_s *sr_cfg, const char *sub)
 {
-	struct sr_topic_t *t;
-	struct sr_topic_t *n;
+	struct sr_topic_s *t;
+	struct sr_topic_s *n;
 
-	t = (struct sr_topic_t *)malloc(sizeof(struct sr_topic_t));
+	t = (struct sr_topic_s *)malloc(sizeof(struct sr_topic_s));
 	if (t == NULL) {
 		log_msg(LOG_ERROR, "malloc of topic failed!\n");
 		return;
@@ -152,9 +152,9 @@ static regexec_fn regexec_fn_ptr = NULL;
 
 #endif
 
-struct sr_mask_t *isMatchingPattern(struct sr_config_t *sr_cfg, const char *chaine)
+struct sr_mask_s *isMatchingPattern(struct sr_config_s *sr_cfg, const char *chaine)
 {
-	struct sr_mask_t *entry;
+	struct sr_mask_s *entry;
 
 	if (sr_cfg->last_matched && !strcmp(sr_cfg->last_matched, chaine))
 		return (sr_cfg->match);
@@ -191,17 +191,17 @@ struct sr_mask_t *isMatchingPattern(struct sr_config_t *sr_cfg, const char *chai
 	return (entry);
 }
 
-void add_mask(struct sr_config_t *sr_cfg, char *directory, char *option, int accept)
+void add_mask(struct sr_config_s *sr_cfg, char *directory, char *option, int accept)
 {
-	struct sr_mask_t *new_entry;
-	struct sr_mask_t *next_entry;
+	struct sr_mask_s *new_entry;
+	struct sr_mask_s *next_entry;
 	int status;
 	void *handle;
 
 	//if ( (sr_cfg) && sr_cfg->debug )
 	//    fprintf( stderr, "adding mask: %s %s\n", accept?"accept":"reject", option );
 
-	new_entry = (struct sr_mask_t *)malloc(sizeof(struct sr_mask_t));
+	new_entry = (struct sr_mask_s *)malloc(sizeof(struct sr_mask_s));
 	new_entry->next = NULL;
 	new_entry->directory = (directory ? strdup(directory) : NULL);
 	new_entry->accepting = accept;
@@ -243,13 +243,13 @@ void add_mask(struct sr_config_t *sr_cfg, char *directory, char *option, int acc
 #define NULTERM(x)  if (x != NULL) *x = '\0' ;
 
 /**
- * sr_broker_uri - given an sr_broker_t, return a url string.
+ * sr_broker_uri - given an sr_broker_s, return a url string.
  * @arg1: b - the broker structure to build the string from.
  *
  * Returns: a static buffer containing the URL corresponding to the broker.
  */
 
-char *sr_broker_uri(struct sr_broker_t *b)
+char *sr_broker_uri(struct sr_broker_s *b)
 {
 	static char buf[PATH_MAX];
 	buf[0] = '\0';
@@ -273,29 +273,29 @@ char *sr_broker_uri(struct sr_broker_t *b)
 }
 
 /**
- * broker_uri_parse() - given a URL string, return an sr_broker_t struct.
+ * broker_uri_parse() - given a URL string, return an sr_broker_s struct.
  * @arg1: src - the url string to parse.
  *
  * interpret a broker url (e.g. amqp://hoho@localhost ) and to allocate
  * and initialize an sr_brokert_t struct.
  *
- * Return: an initialized allocated sr_broker_t struct.
+ * Return: an initialized allocated sr_broker_s struct.
  */
 
-struct sr_broker_t *broker_uri_parse(char *src)
+struct sr_broker_s *broker_uri_parse(char *src)
 {
 	/* copy src string to buf, adding nuls to separate path elements. 
 	   so each string is nul-treminated.
 	 */
 
-	struct sr_broker_t *b;
+	struct sr_broker_s *b;
 	char buf[PATH_MAX];
 	char *c, *d, *save;
 
 	if (!src)
 		return (NULL);
 
-	b = (struct sr_broker_t *)malloc(sizeof(struct sr_broker_t));
+	b = (struct sr_broker_s *)malloc(sizeof(struct sr_broker_s));
 	strcpy(buf, src);
 
 	b->ssl = (buf[4] == 's');
@@ -354,7 +354,7 @@ struct sr_broker_t *broker_uri_parse(char *src)
  *
  * Return: void
  */
-void broker_free(struct sr_broker_t *b)
+void broker_free(struct sr_broker_s *b)
 {
 	if (!b)
 		return;
@@ -369,14 +369,14 @@ void broker_free(struct sr_broker_t *b)
 	free(b);
 }
 
-struct sr_header_t *sr_headers_copy(struct sr_header_t *o)
+struct sr_header_s *sr_headers_copy(struct sr_header_s *o)
 /* return a linked list of headers that is a deep copy
    of the original.
  */
 {
-	struct sr_header_t *n = NULL, *c = NULL, *i = NULL;
+	struct sr_header_s *n = NULL, *c = NULL, *i = NULL;
 	for (c = o; c; c = c->next) {
-		i = (struct sr_header_t *)malloc(sizeof(struct sr_header_t));
+		i = (struct sr_header_s *)malloc(sizeof(struct sr_header_s));
 		i->key = strdup(o->key);
 		i->value = strdup(o->value);
 		i->next = n;
@@ -385,11 +385,11 @@ struct sr_header_t *sr_headers_copy(struct sr_header_t *o)
 	return (n);
 }
 
-void sr_headers_free(struct sr_header_t *o)
+void sr_headers_free(struct sr_header_s *o)
 /* empty out a list of headers.
  */
 {
-	struct sr_header_t *c = NULL, *i = NULL;
+	struct sr_header_s *c = NULL, *i = NULL;
 
 	c = o;
 	while (c) {
@@ -402,7 +402,7 @@ void sr_headers_free(struct sr_header_t *o)
 	return;
 }
 
-int sr_add_decl(struct sr_config_t *cfg, char *what, char *s)
+int sr_add_decl(struct sr_config_s *cfg, char *what, char *s)
   /*
      interpret a declare option.
 
@@ -436,20 +436,20 @@ int sr_add_decl(struct sr_config_t *cfg, char *what, char *s)
 
 }
 
-int sr_add_header(struct sr_config_t *cfg, char *s)
+int sr_add_header(struct sr_config_s *cfg, char *s)
   /*
      Add a (user defined) header to the list of existing ones. 
      see StrinIsTrue for explanation of bitmask return values.
    */
 {
 	char *eq;
-	struct sr_header_t *new_header;
+	struct sr_header_s *new_header;
 
 	eq = strchr(s, '=');
 	if (!eq) {
 		return (0);
 	}
-	new_header = (struct sr_header_t *)malloc(sizeof(struct sr_header_t));
+	new_header = (struct sr_header_s *)malloc(sizeof(struct sr_header_s));
 
 	if (!new_header) {
 		return (1);
@@ -589,7 +589,7 @@ float seconds_from_duration_str(char *s)
 	return ((float)(atof(s) * factor));
 }
 
-char *subarg(struct sr_config_t *sr_cfg, char *arg)
+char *subarg(struct sr_config_s *sr_cfg, char *arg)
 /* 
    do variable substitution in arguments to options.  There are some pre-defined ones, 
    if not found, punt to getenv.
@@ -669,7 +669,7 @@ char token_line[TOKMAX];
 
 // OPTIS - Option Is ... the option string matches x.
 
-int sr_config_parse_option(struct sr_config_t *sr_cfg, char *option, char *arg,
+int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 			   char *arg2, int master)
 /*
    
@@ -1137,9 +1137,9 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char *option, char *arg,
 	return (retval);
 }
 
-void sr_config_free(struct sr_config_t *sr_cfg)
+void sr_config_free(struct sr_config_s *sr_cfg)
 {
-	struct sr_mask_t *e;
+	struct sr_mask_s *e;
 
 	if (sr_cfg->action)
 		free(sr_cfg->action);
@@ -1194,7 +1194,7 @@ void sr_config_free(struct sr_config_t *sr_cfg)
 		free(e);
 	}
 	while (sr_cfg->user_headers) {
-		struct sr_header_t *tmph;
+		struct sr_header_s *tmph;
 		tmph = sr_cfg->user_headers;
 		free(tmph->key);
 		free(tmph->value);
@@ -1202,9 +1202,9 @@ void sr_config_free(struct sr_config_t *sr_cfg)
 		free(tmph);
 	}
 
-	struct sr_path_t *p = sr_cfg->paths;
+	struct sr_path_s *p = sr_cfg->paths;
 	while (p) {
-		struct sr_path_t *tmpp;
+		struct sr_path_s *tmpp;
 		tmpp = p;
 		p = p->next;
 		free(tmpp);
@@ -1221,7 +1221,7 @@ void sr_config_free(struct sr_config_t *sr_cfg)
 
 }
 
-void sr_config_init(struct sr_config_t *sr_cfg, const char *progname)
+void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 {
 	char *c;
 	char p[256];
@@ -1334,7 +1334,7 @@ void sr_config_init(struct sr_config_t *sr_cfg, const char *progname)
 
 }
 
-int sr_config_read(struct sr_config_t *sr_cfg, char *filename, int abort, int master)
+int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int master)
 /* 
   search for the given configuration 
   return 1 if it was found and read int, 0 otherwise.
@@ -1446,7 +1446,7 @@ int sr_config_read(struct sr_config_t *sr_cfg, char *filename, int abort, int ma
 	return (1);
 }
 
-int sr_config_finalize(struct sr_config_t *sr_cfg, const int is_consumer)
+int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 /*
  Do all processing that can only happen once the entire set of settings has been read.
  Infer defaults, etc...
@@ -1731,7 +1731,7 @@ int sr_config_finalize(struct sr_config_t *sr_cfg, const int is_consumer)
 	return (1);
 }
 
-struct sr_config_t *thecfg = NULL;
+struct sr_config_s *thecfg = NULL;
 
 void stop_handler(int sig)
 {
@@ -1748,7 +1748,7 @@ void stop_handler(int sig)
 	raise(sig);
 }
 
-int sr_config_activate(struct sr_config_t *sr_cfg)
+int sr_config_activate(struct sr_config_s *sr_cfg)
 /* 
    now a really running instance.
 
@@ -1783,7 +1783,7 @@ int sr_config_activate(struct sr_config_t *sr_cfg)
 	return (0);
 }
 
-int sr_config_startstop(struct sr_config_t *sr_cfg)
+int sr_config_startstop(struct sr_config_s *sr_cfg)
 /*
    process common actions: start|stop|status 
 
@@ -1967,7 +1967,7 @@ void cp(const char *s, const char *d)
 
 }
 
-char *sr_config_find_one(struct sr_config_t *sr_cfg, const char *original_one)
+char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one)
 {
 	static char oldp[256];
 	char one[256];
@@ -2035,7 +2035,7 @@ char *sr_config_find_one(struct sr_config_t *sr_cfg, const char *original_one)
 	return (NULL);
 }
 
-int sr_config_add_one(struct sr_config_t *sr_cfg, const char *original_one)
+int sr_config_add_one(struct sr_config_s *sr_cfg, const char *original_one)
 {
 	char oldp[256];
 	char newp[256];
@@ -2137,15 +2137,15 @@ int sr_config_add_one(struct sr_config_t *sr_cfg, const char *original_one)
 	return (1);
 }
 
-void sr_config_add(struct sr_config_t *sr_cfg)
+void sr_config_add(struct sr_config_s *sr_cfg)
 {
 	if (sr_cfg->configname)
 		sr_config_add_one(sr_cfg, sr_cfg->configname);
-	for (struct sr_path_t * path = sr_cfg->paths; path; path = path->next)
+	for (struct sr_path_s * path = sr_cfg->paths; path; path = path->next)
 		sr_config_add_one(sr_cfg, path->path);
 }
 
-void sr_config_edit(struct sr_config_t *sr_cfg)
+void sr_config_edit(struct sr_config_s *sr_cfg)
 {
 	char *one;
 	char *editor;
@@ -2159,7 +2159,7 @@ void sr_config_edit(struct sr_config_t *sr_cfg)
 	execlp(editor, editor, one, NULL);
 }
 
-void sr_config_log(struct sr_config_t *sr_cfg)
+void sr_config_log(struct sr_config_s *sr_cfg)
 {
 	char p[256];
 
@@ -2175,7 +2175,7 @@ void sr_config_log(struct sr_config_t *sr_cfg)
 	execlp("/usr/bin/tail", "tail", "-f", p, NULL);
 }
 
-void sr_config_remove(struct sr_config_t *sr_cfg)
+void sr_config_remove(struct sr_config_s *sr_cfg)
 {
 	char *one;
 
@@ -2184,14 +2184,14 @@ void sr_config_remove(struct sr_config_t *sr_cfg)
 		if (one)
 			unlink(one);
 	}
-	for (struct sr_path_t * path = sr_cfg->paths; path; path = path->next) {
+	for (struct sr_path_s * path = sr_cfg->paths; path; path = path->next) {
 		one = sr_config_find_one(sr_cfg, path->path);
 		if (one)
 			unlink(one);
 	}
 }
 
-void sr_config_disable(struct sr_config_t *sr_cfg)
+void sr_config_disable(struct sr_config_s *sr_cfg)
 {
 	char *one;
 	char newp[256];
@@ -2205,7 +2205,7 @@ void sr_config_disable(struct sr_config_t *sr_cfg)
 			rename(one, newp);
 		}
 	}
-	for (struct sr_path_t * path = sr_cfg->paths; path; path = path->next) {
+	for (struct sr_path_s * path = sr_cfg->paths; path; path = path->next) {
 		one = sr_config_find_one(sr_cfg, path->path);
 		if (one) {
 			if (!strcmp(&(one[strlen(one) - 4]), ".off")) {
@@ -2218,7 +2218,7 @@ void sr_config_disable(struct sr_config_t *sr_cfg)
 	}
 }
 
-void sr_config_enable(struct sr_config_t *sr_cfg)
+void sr_config_enable(struct sr_config_s *sr_cfg)
 {
 	char *one;
 	char newp[256];
@@ -2232,7 +2232,7 @@ void sr_config_enable(struct sr_config_t *sr_cfg)
 			rename(one, newp);
 		}
 	}
-	for (struct sr_path_t * path = sr_cfg->paths; path; path = path->next) {
+	for (struct sr_path_s * path = sr_cfg->paths; path; path = path->next) {
 		one = sr_config_find_one(sr_cfg, path->path);
 		fprintf(stderr, "disable, one=%s\n", one);
 		if (one) {
@@ -2245,7 +2245,7 @@ void sr_config_enable(struct sr_config_t *sr_cfg)
 	}
 }
 
-void sr_config_list(struct sr_config_t *sr_cfg)
+void sr_config_list(struct sr_config_s *sr_cfg)
 {
 	char p[1024];
 	DIR *cld;

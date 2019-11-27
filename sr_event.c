@@ -3,7 +3,7 @@
 
 #include "sr_event.h"
 
-void str2event(char *evstr, sr_event_t * evbm)
+void str2event(char *evstr, sr_event_s * evbm)
 {
 	if (!strcmp(evstr, "modify"))
 		(*evbm) |= SR_MODIFY;
@@ -15,10 +15,10 @@ void str2event(char *evstr, sr_event_t * evbm)
 		(*evbm) |= SR_CREATE;
 }
 
-sr_event_t parse_events(char *el)
+sr_event_s parse_events(char *el)
 {
 	char *es;
-	sr_event_t e;
+	sr_event_s e;
 
 	e = 0;
 	es = strtok(el, ",");

@@ -34,7 +34,7 @@ int logrotate_interval = 24 * 60 * 60;
 struct timespec ts;
 struct tm tc;			/* ie Time_Calendar */
 
-struct logfn_tab_t ltab;
+struct logfn_tab_s ltab;
 
 void log_set_fnts();
 
