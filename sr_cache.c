@@ -29,7 +29,7 @@
 /* DEBUG
 void hash_print(unsigned char *hash)
 {
-	for (int i = 0; i < get_sumhashlen(hash[0]); i++)
+	for (int i = 0; i < sr_get_sumhashlen(hash[0]); i++)
 		fprintf(stderr, "%02x", hash[i]);
 	fprintf(stderr, "\n");
 
@@ -64,7 +64,7 @@ int sr_cache_check(struct sr_cache_s *cachep, char *cache_basis, char algo,
 
 	memset(keyhash, 0, SR_SUMHASHLEN);
 
-	memcpy(keyhash, (unsigned char *)ekey, get_sumhashlen(ekey[0]));
+	memcpy(keyhash, (unsigned char *)ekey, sr_get_sumhashlen(ekey[0]));
 
 	HASH_FIND(hh, cachep->data, keyhash, SR_CACHEKEYSZ, c);
 

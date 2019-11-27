@@ -107,7 +107,7 @@ char *sr_base642hex( const char *bstr );
 
   */
 
-int get_sumhashlen(char algo);
+int sr_get_sumhashlen(char algo);
  /**
  return the length of the hash buffer (which includes the 1 char prefix for the type.
   */

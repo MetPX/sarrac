@@ -360,7 +360,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 
 		    if (sr_c->cfg->post_broker->exchange_split > 0) {
 		    	sprintf(strchr(thisexchange, '\0'), "%02d",
-		    		m->sum[get_sumhashlen(m->sum[0]) -
+		    		m->sum[sr_get_sumhashlen(m->sum[0]) -
 		    		       1] % sr_c->cfg->post_broker->exchange_split);
 		    }
 		    status =
@@ -457,7 +457,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 
 		    if (sr_c->cfg->post_broker->exchange_split > 0) {
 		    	sprintf(strchr(thisexchange, '\0'), "%02d",
-		    		m->sum[get_sumhashlen(m->sum[0]) -
+		    		m->sum[sr_get_sumhashlen(m->sum[0]) -
 		    		       1] % sr_c->cfg->post_broker->exchange_split);
 		    }
 		    status =
