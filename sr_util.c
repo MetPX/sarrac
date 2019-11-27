@@ -453,7 +453,7 @@ static char b642raw( char i )
    return( 0 );
 }
 
-char *base642hex( const char *bstr )
+char *sr_base642hex( const char *bstr )
 {
   static char buf[1024];
   int b64len;

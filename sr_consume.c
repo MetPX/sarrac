@@ -366,7 +366,7 @@ static void v03assign_field(const char *key, json_object *jso_v)
        const char *v = json_object_get_string(subvalue);
        
        if ( ! strchr("0az",s) ) {
-            v = base642hex(v);
+            v = sr_base642hex(v);
        }
        sprintf( msg.sum, "%c,%s", s, v );
        return;   
