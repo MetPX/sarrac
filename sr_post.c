@@ -85,11 +85,11 @@ FIXME: posting partitioned parts Not yet implemented.
  */
 #define HDRMAX (255)
 
-amqp_table_entry_t headers[HDRMAX];
+static amqp_table_entry_t headers[HDRMAX];
 
-int hdrcnt = 0;
+static int hdrcnt = 0;
 
-void header_reset()
+static void header_reset()
 {
 	hdrcnt--;
 	for (; (hdrcnt >= 0); hdrcnt--) {
@@ -100,7 +100,7 @@ void header_reset()
 	hdrcnt = 0;
 }
 
-void amqp_header_add(char *tag, const char *value)
+static void amqp_header_add(char *tag, const char *value)
 {
 
 	/* check utf8 compliance of tag and value for message headers */
@@ -134,7 +134,7 @@ void amqp_header_add(char *tag, const char *value)
 	//log_msg( LOG_DEBUG, "Adding header: %s=%s hdrcnt=%d\n", tag, value, hdrcnt );
 }
 
-void set_url(char *m, char *spec)
+static void set_url(char *m, char *spec)
   /* Pick a URL from the spec (round-robin) copy it to the given buffer
    */
 {
@@ -164,7 +164,7 @@ void set_url(char *m, char *spec)
 	}
 }
 
-unsigned long int set_blocksize(long int bssetting, size_t fsz)
+static unsigned long int set_blocksize(long int bssetting, size_t fsz)
 {
 	unsigned long int tfactor = (50 * 1024 * 1024);
 
@@ -191,12 +191,12 @@ unsigned long int set_blocksize(long int bssetting, size_t fsz)
 
 }
 
-char *hex_to_b64str( char *hextr, int hexstrlen ) {
+static char *hex_to_b64str( char *hextr, int hexstrlen ) {
 
   return( "not implemented" );
 }
 
-const char *sum2integrity( char sum )
+static const char *sum2integrity( char sum )
 {
    switch (sum) {
        case '0': return( "random" );
@@ -213,7 +213,7 @@ const char *sum2integrity( char sum )
 
 }
 
-char *v03integrity( struct sr_message_s *m ) 
+static char *v03integrity( struct sr_message_s *m ) 
 {
    static char istr[1024]; 
    const char *value;
@@ -228,7 +228,7 @@ char *v03integrity( struct sr_message_s *m )
 
 }
 
-char *v03time( char *v02time )
+static char *v03time( char *v02time )
 {
    static char buf[128];
 
@@ -244,7 +244,7 @@ char *v03time( char *v02time )
  * separator is hard-coded here (beginning of sprintf.)
  * FIXME: dumps core whenever this is used... something to fix.
  */
-void v03amqp_header_add( char** c, const char* tag, const char *value ) 
+static void v03amqp_header_add( char** c, const char* tag, const char *value ) 
 {
    int status;
 
