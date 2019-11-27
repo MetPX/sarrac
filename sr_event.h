@@ -9,6 +9,6 @@ typedef unsigned char sr_event_s;
 #define SR_LINK   ((sr_event_s)(0x04))
 #define SR_DELETE ((sr_event_s)(0x08))
 
-sr_event_s parse_events(char *);
+sr_event_s sr_parse_events(char *);
 
 #endif

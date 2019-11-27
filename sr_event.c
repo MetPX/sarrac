@@ -15,7 +15,7 @@ static void str2event(char *evstr, sr_event_s * evbm)
 		(*evbm) |= SR_CREATE;
 }
 
-sr_event_s parse_events(char *el)
+sr_event_s sr_parse_events(char *el)
 {
 	char *es;
 	sr_event_s e;
