@@ -22,21 +22,21 @@
 
 #include "sr_util.h"
 
-time_t logbase;
-int logfd = STDERR_FILENO;
-char logfn[PATH_MAX];
-char logfn_ts[PATH_MAX];
-int loglevel = LOG_INFO;
-int logmode = 0600;
-int logrotate = 5;
-int logrotate_interval = 24 * 60 * 60;
+static time_t logbase;
+static int logfd = STDERR_FILENO;
+static char logfn[PATH_MAX];
+static char logfn_ts[PATH_MAX];
+static int loglevel = LOG_INFO;
+static int logmode = 0600;
+static int logrotate = 5;
+static int logrotate_interval = 24 * 60 * 60;
 
-struct timespec ts;
-struct tm tc;			/* ie Time_Calendar */
+static struct timespec ts;
+static struct tm tc;
 
-struct logfn_tab_s ltab;
+static struct logfn_tab_s ltab;
 
-void log_set_fnts();
+static void log_set_fnts();
 
 #ifndef SR_DEBUG_LOGS
 void log_msg(int prio, const char *format, ...)
@@ -155,7 +155,7 @@ void log_cleanup()
 #endif
 }
 
-void log_set_fnts()
+static void log_set_fnts()
 {
 	char *p;
 	char b[PATH_MAX];
@@ -364,7 +364,7 @@ void daemonize(int close_stdout)
 /* v03 conversion code for base64 
  */
 
-char b64rep( char i ) 
+static char b64rep( char i ) 
 {
    if ( i > 64 ) fprintf( stderr, "errror in representation: %i should not be input to b64encode from hex\n", i );
    if ( i == 63 ) return( '/' );
@@ -374,7 +374,7 @@ char b64rep( char i )
    return( i + 'A' );
 }
 
-char h2b( char i ) {
+static char h2b( char i ) {
   if ( i > 'f' ) fprintf( stderr, "errror in representation: %i should not be input to h2b from hex\n", i );
   if (i >= 'a' ) return ( i - 'a' + 10 );
 
@@ -433,13 +433,13 @@ char *hex2base64( const char *hstr )
 }
 
 
-char raw2hex( char i ) {
+static char raw2hex( char i ) {
    if ( i > 15 )  fprintf( stderr, "error in represenation. hex range only 0-15: %d\n", i );
    if ( i < 10 )  return (i+'0');
    return( i+'a'-10 );
 }
 
-char b642raw( char i )
+static char b642raw( char i )
 {
    if ( i > 'z' ) fprintf( stderr, "error in representation: %d invalid \n", i );
    if ( i >= 'a' ) return( i - 'a' + 26 );
@@ -490,9 +490,9 @@ char *base642hex( const char *bstr )
 #define SUMBUFSIZE (4096*1024)
 
 // SHA512 being the longest digest...
-char sumstr[SR_SUMSTRLEN];
+static char sumstr[SR_SUMSTRLEN];
 
-unsigned char sumhash[SR_SUMHASHLEN];
+static unsigned char sumhash[SR_SUMHASHLEN];
 
 int get_sumhashlen(char algo)
 {
@@ -730,13 +730,13 @@ char *set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	return (sumstr);
 }
 
-char nibble2hexchr(int i)
+static char nibble2hexchr(int i)
 {
 	unsigned char c = (unsigned char)(i & 0xf);
 	return ((char)((c < 10) ? (c + '0') : (c - 10 + 'a')));
 }
 
-int hexchr2nibble(char c)
+static int hexchr2nibble(char c)
  /* return ordinal value of digit assuming a character set that has a-f sequential in both lower and upper case.
     kind of based on ASCII, because numbers are assumed to be lower in collation than upper and lower case letters.
   */
@@ -839,7 +839,7 @@ char *sr_time2str(struct timespec *tin)
 	return (time2str_result);
 }
 
-int ipow(int base, int exp)
+static int ipow(int base, int exp)
 /* all hail stack overflow: 
    https://stackoverflow.com/questions/101439/the-most-efficient-way-to-implement-an-integer-based-power-function-powint-int
  */
@@ -854,8 +854,6 @@ int ipow(int base, int exp)
 
 	return result;
 }
-
-struct timespec ts;
 
 struct timespec *sr_str2time(char *s)
   /* inverse of above: convert SR_TIMESTRLEN character string into a timespec.
