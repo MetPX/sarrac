@@ -52,7 +52,7 @@
 #include "sr_config.h"
 #include "sr_consume.h"
 
-static struct sr_message_t msg;
+static struct sr_message_s msg;
 
 int sr_consume_cleanup(struct sr_context *sr_c)
 {
@@ -87,7 +87,7 @@ int sr_consume_setup(struct sr_context *sr_c)
 	amqp_boolean_t passive = 0;
 	amqp_boolean_t exclusive = 0;
 	amqp_boolean_t auto_delete = 0;
-	struct sr_topic_t *t;
+	struct sr_topic_s *t;
 	amqp_basic_properties_t props;
 	amqp_table_t table;
 	amqp_table_entry_t table_entries[2];
@@ -158,7 +158,7 @@ int sr_consume_setup(struct sr_context *sr_c)
 	return (1);
 }
 
-char *sr_message_partstr(struct sr_message_t *m)
+char *sr_message_partstr(struct sr_message_s *m)
 {
 	static char smallbuf[255];
 
@@ -177,7 +177,7 @@ void assign_field(const char *key, char *value)
   */
 {
 	char *s;
-	struct sr_header_t *h;
+	struct sr_header_s *h;
 
 	//log_msg( LOG_DEBUG, "parsing: \"%s\" : \"%s\"\n", key, value );
 	if (!strcmp(key, "atime")) {
@@ -210,7 +210,7 @@ void assign_field(const char *key, char *value)
 	} else if (!strcmp(key, "url")) {
 		strcpy(msg.url, value);
 	} else {
-		h = (struct sr_header_t *)malloc(sizeof(struct sr_header_t));
+		h = (struct sr_header_s *)malloc(sizeof(struct sr_header_s));
 		h->key = strdup(key);
 		h->value = strdup(value);
 		h->next = msg.user_headers;
@@ -226,7 +226,7 @@ void v03assign_field(const char *key, json_object *jso_v)
   */
 {
     static char unsupported[15];
-	struct sr_header_t *h;
+	struct sr_header_s *h;
     size_t tlen;
     json_object *subvalue;
 
@@ -397,7 +397,7 @@ void v03assign_field(const char *key, json_object *jso_v)
         }
 		strcpy(msg.to_clusters,  json_object_get_string(jso_v));
 	} else {
-		h = (struct sr_header_t *)malloc(sizeof(struct sr_header_t));
+		h = (struct sr_header_s *)malloc(sizeof(struct sr_header_s));
 		h->key = strdup(key);
         if (json_object_is_type(jso_v,json_type_string)) {
 		     h->value = strdup(json_object_get_string(jso_v));
@@ -416,7 +416,7 @@ void json_dump_strheader(char *tag, char *value)
 	printf("\"%s\": \"%s\"", tag, value);
 }
 
-char *sr_message_2log(struct sr_message_t *m)
+char *sr_message_2log(struct sr_message_s *m)
 {
 	static char b[10240];	// FIXME!  need more than 10K for a log message? check?
 
@@ -442,16 +442,16 @@ char *sr_message_2log(struct sr_message_t *m)
 	if (m->rename[0])
 		sprintf(strchr(b, '\0'), " rename=%s", m->rename);
 
-	for (struct sr_header_t * h = m->user_headers; h; h = h->next) 
+	for (struct sr_header_s * h = m->user_headers; h; h = h->next) 
     {
 		sprintf(strchr(b, '\0'), " %s=%s", h->key, h->value);
     }
 	return (b);
 }
 
-void sr_message_2json(struct sr_message_t *m)
+void sr_message_2json(struct sr_message_s *m)
 {
-	struct sr_header_t *h;
+	struct sr_header_s *h;
 
 	printf("[");
 	printf(" \"%s\", { ", m->routing_key);
@@ -480,12 +480,12 @@ void sr_message_2json(struct sr_message_t *m)
 	printf("]\n");
 }
 
-void sr_message_2url(struct sr_message_t *m)
+void sr_message_2url(struct sr_message_s *m)
 {
 	printf("%s/%s\n", m->url, m->path);
 }
 
-struct sr_message_t *sr_consume(struct sr_context *sr_c)
+struct sr_message_s *sr_consume(struct sr_context *sr_c)
  /*
     blocking read messages from queue. 
 
@@ -504,7 +504,7 @@ struct sr_message_t *sr_consume(struct sr_context *sr_c)
 	size_t body_received;
 	char tag[AMQP_MAX_SS];
 	char value[AMQP_MAX_SS];
-	struct sr_header_t *tmph;
+	struct sr_header_s *tmph;
 
 	while (msg.user_headers) {
 		tmph = msg.user_headers;

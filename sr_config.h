@@ -57,45 +57,45 @@ status:
 #include "sr_cache.h"
 
 /**
- * struct sr_path_t - Non option arguments (paths, either of config files, or files to be posted.)
+ * struct sr_path_s - Non option arguments (paths, either of config files, or files to be posted.)
  */
 
-struct sr_path_t {
+struct sr_path_s {
 	char path[PATH_MAX];
 			/**< the path itself. */
-	struct sr_path_t *next;
+	struct sr_path_s *next;
 			   /**< link to the next item in the singly linked list. */
 };
 
 /**
- * struct sr_topic_t - topic arguments.
+ * struct sr_topic_s - topic arguments.
  */
 
-struct sr_topic_t {
+struct sr_topic_s {
 	char topic[AMQP_MAX_SS];
 			   /**< the topic itself. */
-	struct sr_topic_t *next;
+	struct sr_topic_s *next;
 			   /**< link to the next item in the singly linked list. */
 };
 
 /**
- * struct sr_header_t -  store headers: a list of key-value string pairs.
+ * struct sr_header_s -  store headers: a list of key-value string pairs.
  */
 
-struct sr_header_t {
+struct sr_header_s {
 	char *key;
 	     /**< the key string */
 	char *value;
 	       /**< the value string */
-	struct sr_header_t *next;
+	struct sr_header_s *next;
 			    /**< link to the next item in the singly linked list. */
 };
 
 /**
- * struct sr_mask_t -  store a list of accept/reject file filter masks: 
+ * struct sr_mask_s -  store a list of accept/reject file filter masks: 
  */
 
-struct sr_mask_t {
+struct sr_mask_s {
 	char *clause;/**< the original regexp string */
 	char *directory;
 		     /**<  the directory in effect when the clause is applied */
@@ -103,15 +103,15 @@ struct sr_mask_t {
 		     /**<  The compiled representation of the clause. */
 	int accepting;
 		     /**<  boolean:  reject(0) / accept(1)  the direction to apply the clause */
-	struct sr_mask_t *next;
+	struct sr_mask_s *next;
 			  /**< link to the next item in the singly linked list. */
 };
 
 /**
- * struct sr_broker_t -  store a list of brokers
+ * struct sr_broker_s -  store a list of brokers
  */
 
-struct sr_broker_t {
+struct sr_broker_s {
 	int ssl;
 	   /**< whether the connection includes encryption (TLS at this point) */
 	char *user;
@@ -134,17 +134,17 @@ struct sr_broker_t {
 				/**< part of an established connection to a broker */
 	int started;
 	       /**< boolean whether the connection has been established or not. */
-	struct sr_broker_t *next;
+	struct sr_broker_s *next;
 			    /**< link to the next item in the singly linked list. */
 };
 
 /**
- * struct sr_config_t - the master config struct hold an entire one.
+ * struct sr_config_s - the master config struct hold an entire one.
  *
  * Contains the entire configuration for a component.
  */
 
-struct sr_config_t {
+struct sr_config_s {
 	int accept_unmatched;		/**< if no masks match, reject(0), or accept(1) the file.*/
 	char *action;	      /**< the action to perform: start, stop, status, add, remove, foreground, enable, disable, etc...*/
 	long unsigned blocksize; /**< blocksize: 
@@ -152,10 +152,10 @@ struct sr_config_t {
                              1 ( send entire file in one block ),  
                              else a literal blocksize
           used for partitioning of large files.*/
-	struct sr_broker_t *broker;
+	struct sr_broker_s *broker;
 			      /**< broker: the rabbitmq AMQP broker to connect to.*/
 	float cache;	     /**< cache: the expiry age, in seconds of entries in the recent files cache.*/
-	struct sr_cache_t *cachep;
+	struct sr_cache_s *cachep;
 			      /**< the recent files cache.*/
 	char *cache_basis;	   /**< 'file' | 'path' | 'none' -> modifies which cache entries are comparable.*/
 	mode_t chmod_log;	 /**< permission mode bits to use for the log files.*/
@@ -164,7 +164,7 @@ struct sr_config_t {
 	int delete;	      /**< flag to mark that files downloaded should be deleted (unimplemented)*/
 	char *directory;	 /**< the current directory setting (used when building masks)*/
 	int durable;	       /**< flag to pass to broker to set corresponding Queue property*/
-	sr_event_t events;    /**< set of events to produce/monitor (create/delete, etc...)*/
+	sr_event_s events;    /**< set of events to produce/monitor (create/delete, etc...)*/
 	char *exchange;		 /**< the exchange to subscribe to.*/
 	char *exchange_suffix;		/**< something to append to the exchange.*/
 	float expire;	      /**< a time (in seconds) passed to the broker as queue lifetime.*/
@@ -181,9 +181,9 @@ struct sr_config_t {
 	int logrotate;		  /**< number of log files to keep around.*/
 	int logrotate_interval;		  /**< number of seconds between log rotations.*/
 	int loglevel;		/**< severity of messages to log (regardless of where.)*/
-	struct sr_mask_t *masks;
+	struct sr_mask_s *masks;
 			     /**< the list of masks to compare file names to.*/
-	struct sr_mask_t *match;
+	struct sr_mask_s *match;
 			     /**< the current matched mask */
 	float message_ttl;	  /**< a time (in seconds) passed to the broker as message lifetime.*/
 	char *outlet;	      /**< post|json|url - default post. choice of output format.*/
@@ -191,12 +191,12 @@ struct sr_config_t {
 	char *pidfile;	       /**< the name of the state file containing the pid.*/
 	int prefetch;		/**< how many messages to request from a broker at once.*/
 	char *progname;		/**< the name of the program (component) being run.*/
-	struct sr_path_t *paths;
+	struct sr_path_s *paths;
 			     /**< the list of configurations or files given on the command line.*/
 	int pipe;	     /**< pipe mode, read file names from standard input*/
 	char *post_base_dir;	     /**< the local directory at the root of the url tree.*/
 	char *post_base_url;	     /**< the url that corresponds to the base directory.*/
-	struct sr_broker_t *post_broker;
+	struct sr_broker_s *post_broker;
 				   /**< the broker to post to.*/
 	char *post_exchange;	     /**< the exchange to post to on the post broker.*/
 	int post_exchange_split;	   /**< the count of  a team of similar exchanges.*/
@@ -218,11 +218,11 @@ struct sr_config_t {
 	char sumalgoz;		/**< if algo is z what is the real checksum algorithm to apply.*/
 	char *source;	      /**< indicates the cluster of origin of a post.*/
 	char *to;	  /**< indicates destination cluster(s) for a post.*/
-	struct sr_topic_t *topics;
+	struct sr_topic_s *topics;
 			      /**< list of sub-topics to subscribe to.*/
 	char topic_prefix[AMQP_MAX_SS];		 /**< the topic prefix to subscribe to.*/
 	char post_topic_prefix[AMQP_MAX_SS];   /**< the topic prefix to post to.*/
-	struct sr_header_t *user_headers;
+	struct sr_header_s *user_headers;
 				    /**< list of arbitrary user headers for extensions and upward compatibility.*/
 	char *vip;	  /**< virtual ip address ... only act, if host has this address.*/
 	int xattr_cc;		/**<boolean flag to determine whether or not xattr checksum caching should be used.*/
@@ -245,7 +245,7 @@ char *local_fqdn();
  * Return: The mask entry that matched, if any. (not a copy, do not play with it.)
  */
 
-struct sr_mask_t *isMatchingPattern(struct sr_config_t *sr_cfg, const char *chaine);
+struct sr_mask_s *isMatchingPattern(struct sr_config_s *sr_cfg, const char *chaine);
 
 /**
  * sr_config_find_one() - find the name configuration file name 
@@ -257,7 +257,7 @@ struct sr_mask_t *isMatchingPattern(struct sr_config_t *sr_cfg, const char *chai
  *
  * Return: pointer to a static char buffer with a path name to the corresponding configuration file.
  */
-char *sr_config_find_one(struct sr_config_t *sr_cfg, const char *original_one);
+char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one);
 
  /** 
   * sr_config_parse_option() - update sr_cfg with an option setting, and it's arguments.
@@ -274,7 +274,7 @@ char *sr_config_find_one(struct sr_config_t *sr_cfg, const char *original_one);
   *
   */
 
-int sr_config_parse_option(struct sr_config_t *sr_cfg, char *option,
+int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option,
 			   char *argument, char *arg2, int master);
 
 /**
@@ -289,7 +289,7 @@ int sr_config_parse_option(struct sr_config_t *sr_cfg, char *option,
  * Return: modification of sr_cfg with paths added, as well as action set.
  */
 
-void sr_add_path(struct sr_config_t *sr_cfg, const char *path);
+void sr_add_path(struct sr_config_s *sr_cfg, const char *path);
 
 /**
  * sr_add_topic() - add to the list of topics in an sr_cfg
@@ -302,17 +302,17 @@ void sr_add_path(struct sr_config_t *sr_cfg, const char *path);
  * Return: the sr_cfg with the added (sub)topics.
  */
 
-void sr_add_topic(struct sr_config_t *sr_cfg, const char *sub);
+void sr_add_topic(struct sr_config_s *sr_cfg, const char *sub);
 
 /**
- * sr_broker_uri - given an sr_broker_t, return a url string.
+ * sr_broker_uri - given an sr_broker_s, return a url string.
  * \param b: - the broker structure to build the string from.
  *
  * Return: a static buffer containing the URL corresponding to the broker.
  */
-char *sr_broker_uri(struct sr_broker_t *b);
+char *sr_broker_uri(struct sr_broker_s *b);
 
-void sr_config_free(struct sr_config_t *sr_cfg);
+void sr_config_free(struct sr_config_s *sr_cfg);
 
 /**
  * sr_config_init()  - Initialize an sr_config structure (setting defaults)
@@ -324,10 +324,10 @@ void sr_config_free(struct sr_config_t *sr_cfg);
  *
  * Return: void (side effect: an initialized sr_cfg.)
  */
-void sr_config_init(struct sr_config_t *sr_cfg, const char *progname);
+void sr_config_init(struct sr_config_s *sr_cfg, const char *progname);
 
 /** 
- * sr_config_read() - read an sr configuration file, initialize the struct sr_config_t 
+ * sr_config_read() - read an sr configuration file, initialize the struct sr_config_s 
  * \param sr_cfg: The configuration to be modified with the additional topic.
  * \param filename: the name of the configuration file to read.
  * \param abort:  flag, do we abort if there is a problem with the file?
@@ -342,7 +342,7 @@ void sr_config_init(struct sr_config_t *sr_cfg, const char *progname);
  *
  * Return: 1 on success, 0 on failure.
  */
-int sr_config_read(struct sr_config_t *sr_cfg, char *filename, int abort, int master);
+int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int master);
 
 /**
  * sr_config_finalize() - consolidate settings to prepare for use.
@@ -356,7 +356,7 @@ int sr_config_read(struct sr_config_t *sr_cfg, char *filename, int abort, int ma
  *
  *  Return: 1 on success, 0 on failure.
   */
-int sr_config_finalize(struct sr_config_t *sr_cfg, const int is_consumer);
+int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer);
 
 /**
  * sr_config_activate()  - turn into a really running instance (that can modify state files). 
@@ -367,7 +367,7 @@ int sr_config_finalize(struct sr_config_t *sr_cfg, const int is_consumer);
  *
  * Return: 0  on success , failure otherwise.
  */
-int sr_config_activate(struct sr_config_t *sr_cfg);
+int sr_config_activate(struct sr_config_s *sr_cfg);
 
 /**
  * sr_config_startstop()  - process common actions: start|stop|status 
@@ -385,7 +385,7 @@ int sr_config_activate(struct sr_config_t *sr_cfg);
  *    return config_is_running?0:-1
  *
  */
-int sr_config_startstop(struct sr_config_t *sr_cfg);
+int sr_config_startstop(struct sr_config_s *sr_cfg);
 
 /**
  * sr_config_add()  - perform add action.
@@ -395,7 +395,7 @@ int sr_config_startstop(struct sr_config_t *sr_cfg);
  *
  * Return: void.
  */
-void sr_config_add(struct sr_config_t *sr_cfg);
+void sr_config_add(struct sr_config_s *sr_cfg);
 
 /**
  * sr_config_disable()  - disable an active configuration.
@@ -405,7 +405,7 @@ void sr_config_add(struct sr_config_t *sr_cfg);
  *
  * Return: void.
  */
-void sr_config_disable(struct sr_config_t *sr_cfg);
+void sr_config_disable(struct sr_config_s *sr_cfg);
 
 /**
  * sr_config_edit()  - launch a text editor of the configuration file.
@@ -413,7 +413,7 @@ void sr_config_disable(struct sr_config_t *sr_cfg);
  *
  * Return: void.
  */
-void sr_config_edit(struct sr_config_t *sr_cfg);
+void sr_config_edit(struct sr_config_s *sr_cfg);
 
 /**
  * sr_config_enable()  - make a disable configuration available again.
@@ -423,7 +423,7 @@ void sr_config_edit(struct sr_config_t *sr_cfg);
  *
  * Return: void.
  */
-void sr_config_enable(struct sr_config_t *sr_cfg);
+void sr_config_enable(struct sr_config_s *sr_cfg);
 
 /**
  * sr_config_log()  - launch a tail -f type process on the log.
@@ -431,7 +431,7 @@ void sr_config_enable(struct sr_config_t *sr_cfg);
  *
  * Return: void.
  */
-void sr_config_log(struct sr_config_t *sr_cfg);
+void sr_config_log(struct sr_config_s *sr_cfg);
 
 /**
  * sr_config_remove()  - remove a configuration.
@@ -441,7 +441,7 @@ void sr_config_log(struct sr_config_t *sr_cfg);
  *
  * Return: void.
  */
-void sr_config_remove(struct sr_config_t *sr_cfg);
+void sr_config_remove(struct sr_config_s *sr_cfg);
 
 /**
  * sr_config_list() - list the available configurations for the given progname
@@ -449,6 +449,6 @@ void sr_config_remove(struct sr_config_t *sr_cfg);
  *
  * Return: print out list of existing configurations.
  */
-void sr_config_list(struct sr_config_t *sr_cfg);
+void sr_config_list(struct sr_config_s *sr_cfg);
 
 #endif

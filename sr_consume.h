@@ -37,7 +37,7 @@
 
 #include "sr_context.h"
 
-struct sr_message_t {
+struct sr_message_s {
 	char atime[SR_TIMESTRLEN];
 	char datestamp[SR_TIMESTRLEN];
 	char exchange[AMQP_MAX_SS];
@@ -58,7 +58,7 @@ struct sr_message_t {
 	char sum[SR_SUMSTRLEN];
 	char to_clusters[AMQP_MAX_SS];
 	char url[PATH_MAXNUL];
-	struct sr_header_t *user_headers;
+	struct sr_header_s *user_headers;
 
 	// sr_report(7) fields.
 	float duration;
@@ -68,7 +68,7 @@ struct sr_message_t {
 
 };
 
-//extern struct sr_message_t msg;
+//extern struct sr_message_s msg;
 
 int sr_consume_setup(struct sr_context *sr_c);
 /* 
@@ -80,27 +80,27 @@ int sr_consume_cleanup(struct sr_context *sr_c);
    delete queue declared by setup.
  */
 
-char *sr_message_partstr(struct sr_message_t *m);
+char *sr_message_partstr(struct sr_message_s *m);
 /*
   return the parts string for an sr_message given the message structure.
  */
 
-char *sr_message_2log(struct sr_message_t *m);
+char *sr_message_2log(struct sr_message_s *m);
 /* 
    make a string in the format for log messages. 
  */
 
-void sr_message_2json(struct sr_message_t *m);
+void sr_message_2json(struct sr_message_s *m);
 /* 
    print a message to stdout, the entire thing, in json save/restore format.
  */
 
-void sr_message_2url(struct sr_message_t *m);
+void sr_message_2url(struct sr_message_s *m);
 /* 
    print a message to stdout, just the pathname to stdout.
 
  */
 
-struct sr_message_t *sr_consume(struct sr_context *sr_c);
+struct sr_message_s *sr_consume(struct sr_context *sr_c);
 
 #endif

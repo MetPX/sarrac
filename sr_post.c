@@ -213,7 +213,7 @@ const char *sum2integrity( char sum )
 
 }
 
-char *v03integrity( struct sr_message_t *m ) 
+char *v03integrity( struct sr_message_s *m ) 
 {
    static char istr[1024]; 
    const char *value;
@@ -259,7 +259,7 @@ void v03amqp_header_add( char** c, const char* tag, const char *value )
    }
 }
 
-void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
+void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 {
 	char fn[PATH_MAXNUL];
 	char message_body[1024*1024];
@@ -272,7 +272,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
 	amqp_tx_commit_ok_t *commit_status;
 	amqp_rpc_reply_t reply;
 	signed int status;
-	struct sr_header_t *uh;
+	struct sr_header_s *uh;
 	time_t to_sleep = 1;
 
 	// MG white space in filename
@@ -500,7 +500,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m)
 }
 
 int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
-			  struct stat *sb, struct sr_message_t *m)
+			  struct stat *sb, struct sr_message_s *m)
 /*
   reading a file, initialize the message that corresponds to it. Return the number of messages to post entire file.
  */
@@ -688,8 +688,8 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	return (m->parts_blkcount);
 }
 
-struct sr_message_t *sr_file2message_seq(struct sr_context *sr_c,
-					 const char *pathspec, int seq, struct sr_message_t *m)
+struct sr_message_s *sr_file2message_seq(struct sr_context *sr_c,
+					 const char *pathspec, int seq, struct sr_message_s *m)
 /*
   Given a message from a "started" file, the prototype message, and a sequence number ( sequence is number of blocks of partsze )
   return the adjusted prototype message.  (requires reading part of the file to checksum it.)
@@ -714,7 +714,7 @@ struct sr_message_t *sr_file2message_seq(struct sr_context *sr_c,
 
 void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 {
-	static struct sr_message_t m;
+	static struct sr_message_s m;
 	int numblks;
 	int status;
 
@@ -805,8 +805,8 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
  */
 {
 	struct stat sb;
-	struct sr_header_t first_user_header;
-	struct sr_mask_t *mask;
+	struct sr_header_s first_user_header;
+	struct sr_mask_s *mask;
 	char *s;
 	char oldname[PATH_MAX];
 	char oldreal[PATH_MAX];

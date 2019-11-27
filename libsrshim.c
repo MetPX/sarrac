@@ -45,7 +45,7 @@
 void exit_cleanup_posts();
 int exit_cleanup_posts_setup = 0;
 
-static struct sr_config_t sr_cfg;
+static struct sr_config_s sr_cfg;
 
 void setup_exit()
 {
@@ -283,7 +283,7 @@ void srshim_realpost(const char *path)
 
  */
 {
-	struct sr_mask_t *mask;
+	struct sr_mask_s *mask;
 	struct stat sb;
 	int statres;
 	char *s;

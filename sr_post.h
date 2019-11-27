@@ -27,7 +27,7 @@
 #include "sr_context.h"
 #include "sr_consume.h"
 
-void sr_post_message(struct sr_context *sr_c, struct sr_message_t *m);
+void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m);
 /* 
    post the given message using the established context.
    (posts over an existing connection.)

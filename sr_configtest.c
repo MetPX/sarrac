@@ -21,7 +21,7 @@ int main(int argc, char *const *argv)
 {
 
 	int ret;
-	struct sr_config_t sr_cfg;
+	struct sr_config_s sr_cfg;
 
 	printf("reading: %s\n", argv[1]);
 

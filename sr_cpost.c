@@ -224,7 +224,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 	int w;
 	struct dirent *e;
 	struct stat sb;
-	struct sr_mask_t *mask;
+	struct sr_mask_s *mask;
 	char ep[PATH_MAXNUL];
 	char fnreal[PATH_MAXNUL];
 	char tmpname[PATH_MAXNUL];
@@ -518,7 +518,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 	}
 }
 
-int sr_cpost_cleanup(struct sr_context *sr_c, struct sr_config_t *sr_cfg, int dolog)
+int sr_cpost_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int dolog)
 {
 	DIR *dir;
 	int ret;
@@ -679,7 +679,7 @@ void usage()
 int main(int argc, char **argv)
 {
 	struct sr_context *sr_c;
-	struct sr_config_t sr_cfg;
+	struct sr_config_s sr_cfg;
 	char inbuff[PATH_MAXNUL];
 	int consume, i, pass;
 	int ret;
@@ -869,7 +869,7 @@ int main(int argc, char **argv)
         }
 		if (sr_cfg.force_polling || !pass) {
 			log_msg(LOG_DEBUG, "starting polling loop pass: %d\n", pass);
-			for (struct sr_path_t * i = sr_cfg.paths; i; i = i->next) {
+			for (struct sr_path_s * i = sr_cfg.paths; i; i = i->next) {
 				first_call = 1;
 				do1file(sr_c, i->path);
 			}

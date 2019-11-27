@@ -32,7 +32,7 @@ unsigned char *sha512hash(char *str)
 
 int main(int argc, char *argv[])
 {
-	struct sr_cache_t *cache = NULL;
+	struct sr_cache_s *cache = NULL;
 	int ret;
 	int population = 0;
 

@@ -71,7 +71,7 @@ void usage()
 	exit(1);
 }
 
-int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_t *sr_cfg, int dolog)
+int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int dolog)
 {
 	DIR *dir;
 	int ret;
@@ -138,10 +138,10 @@ int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_t *sr_cfg, int do
 
 int main(int argc, char **argv)
 {
-	struct sr_message_t *m;
+	struct sr_message_s *m;
 	struct sr_context *sr_c;
-	struct sr_config_t sr_cfg;
-	struct sr_mask_t *mask;
+	struct sr_config_s sr_cfg;
+	struct sr_mask_s *mask;
 	int consume, i, ret;
 	char *one;
 
