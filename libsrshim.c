@@ -333,9 +333,9 @@ void srshim_realpost(const char *path)
 		strcpy(fn, fnreal);
 
 	if (sr_cfg.realpath_filter) {
-		mask = isMatchingPattern(&sr_cfg, fnreal);
+		mask = sr_isMatchingPattern(&sr_cfg, fnreal);
 	} else {
-		mask = isMatchingPattern(&sr_cfg, fn);
+		mask = sr_isMatchingPattern(&sr_cfg, fn);
 	}
 
 	if ((mask && !(mask->accepting)) || (!mask && !(sr_cfg.accept_unmatched))) {	//reject.
