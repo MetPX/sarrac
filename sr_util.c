@@ -135,7 +135,7 @@ void set_loglevel(int level)
 	loglevel = level;
 }
 
-void log_cleanup()
+void sr_log_cleanup()
 {
 #ifndef SR_DEBUG_LOGS
 	/* (logfd != STDERR_FILENO) <> log_setup called previously */
