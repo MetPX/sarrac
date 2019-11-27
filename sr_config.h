@@ -229,10 +229,10 @@ struct sr_config_s {
 };
 
 /**
- * local_fqdn() - return fully qualified domain name
+ * sr_local_fqdn() - return fully qualified domain name
  * Return: static hostname character string.
  */
-char *local_fqdn();
+char *sr_local_fqdn();
 
 /**
  * isMatchingPattern() - return pointer to matched pattern, if there is one, NULL otherwise.

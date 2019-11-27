@@ -20,7 +20,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 
-// for local_fqdn()
+// for sr_local_fqdn()
 #include <sys/socket.h>
 
 #include <netdb.h>
@@ -517,7 +517,7 @@ static long int chunksize_from_str(char *s)
 
 #define TOKMAX (1024)
 
-char *local_fqdn()
+char *sr_local_fqdn()
 /* 
    return the fully qualified hostname of the current machine
    mostly just a copy/paste from: 
@@ -632,7 +632,7 @@ static char *subarg(struct sr_config_s *sr_cfg, char *arg)
 		*e = '\0';
 		*d = '\0';	// ready for catenation.
 		if (!strcmp(var, "HOSTNAME")) {
-			val = local_fqdn();
+			val = sr_local_fqdn();
 
 		} else if (!strcmp(var, "PROGRAM")) {
 			val = sr_cfg->progname;
@@ -1483,7 +1483,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	d = NULL;
 	val = NULL;
 	if (sr_cfg->statehost != '0') {
-		val = local_fqdn();
+		val = sr_local_fqdn();
 
 		// short
 		if (sr_cfg->statehost == 's') {
@@ -1608,7 +1608,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	if (strcmp(sr_cfg->action, "sanity")) {
 		log_msg(LOG_DEBUG,
 			"sr_%s %s settings: action=%s hostname=%s config_name=%s log_level=%d follow_symlinks=%s realpath=%s\n",
-			sr_cfg->progname, __sarra_version__, local_fqdn(), sr_cfg->action,
+			sr_cfg->progname, __sarra_version__, sr_local_fqdn(), sr_cfg->action,
 			sr_cfg->configname, sr_cfg->loglevel,
 			sr_cfg->follow_symlinks ? "yes" : "no", sr_cfg->realpath ? "yes" : "no");
 		log_msg(LOG_DEBUG,
