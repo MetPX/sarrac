@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
     if ( right( input, expected, output ) ) success++;
 	testcnt++;
 
-    roundtrip = base642hex( output );
+    roundtrip = sr_base642hex( output );
     right( output, input, roundtrip );
     if ( right( output, input, roundtrip ) ) success++;
 	testcnt++;
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
     if ( right( input, expected, output ) ) success++;
 	testcnt++;
 
-    roundtrip = base642hex( output );
+    roundtrip = sr_base642hex( output );
     right( output, input, roundtrip );
     if ( right( output, input, roundtrip ) ) success++;
 	testcnt++;
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
     if ( right( input, expected, output ) ) success++;
 	testcnt++;
 
-    roundtrip = base642hex( output );
+    roundtrip = sr_base642hex( output );
     right( output, input, roundtrip );
     if ( right( output, input, roundtrip ) ) success++;
 	testcnt++;

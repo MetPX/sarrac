@@ -79,8 +79,8 @@ void daemonize(int close_stdout);
  */
 char *hex2base64( const char *hstr );
 
-/* base642hex returns a hex-coded string given a base64 one (reverse of hex2base64) */
-char *base642hex( const char *bstr );
+/* sr_base642hex returns a hex-coded string given a base64 one (reverse of hex2base64) */
+char *sr_base642hex( const char *bstr );
 
 #define SR_TIMESTRLEN (26)
 
