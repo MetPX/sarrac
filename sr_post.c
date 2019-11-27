@@ -858,9 +858,9 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	first_user_header.value = strdup(newname);
 
 	if (sr_c->cfg->realpath_filter) {
-		mask = isMatchingPattern(sr_c->cfg, oldreal);
+		mask = sr_isMatchingPattern(sr_c->cfg, oldreal);
 	} else {
-		mask = isMatchingPattern(sr_c->cfg, oldname);
+		mask = sr_isMatchingPattern(sr_c->cfg, oldname);
 	}
 	if ((mask && !(mask->accepting))
 	    || (!mask && !(sr_c->cfg->accept_unmatched))) {
@@ -881,9 +881,9 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	first_user_header.value = strdup(oldname);
 
 	if (sr_c->cfg->realpath_filter) {
-		mask = isMatchingPattern(sr_c->cfg, newreal);
+		mask = sr_isMatchingPattern(sr_c->cfg, newreal);
 	} else {
-		mask = isMatchingPattern(sr_c->cfg, newname);
+		mask = sr_isMatchingPattern(sr_c->cfg, newname);
 	}
 	if ((mask && !(mask->accepting))
 	    || (!mask && !(sr_c->cfg->accept_unmatched))) {

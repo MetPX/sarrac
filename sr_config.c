@@ -152,7 +152,7 @@ static regexec_fn regexec_fn_ptr = NULL;
 
 #endif
 
-struct sr_mask_s *isMatchingPattern(struct sr_config_s *sr_cfg, const char *chaine)
+struct sr_mask_s *sr_isMatchingPattern(struct sr_config_s *sr_cfg, const char *chaine)
 {
 	struct sr_mask_s *entry;
 
@@ -166,7 +166,7 @@ struct sr_mask_s *isMatchingPattern(struct sr_config_s *sr_cfg, const char *chai
 	entry = sr_cfg->masks;
 	while (entry) {
 		// if ( (sr_cfg) && sr_cfg->debug )
-		//     log_msg( LOG_DEBUG,  "isMatchingPattern, testing mask: %s %-30s next=%p\n", 
+		//     log_msg( LOG_DEBUG,  "sr_isMatchingPattern, testing mask: %s %-30s next=%p\n", 
 		//          (entry->accepting)?"accept":"reject", entry->clause, (entry->next) );
 
 #ifdef FORCE_LIBC_REGEX
@@ -181,11 +181,11 @@ struct sr_mask_s *isMatchingPattern(struct sr_config_s *sr_cfg, const char *chai
 	if ((sr_cfg) && sr_cfg->debug) {
 		if (entry)
 			log_msg(LOG_DEBUG,
-				"isMatchingPattern: %s matched mask: %s %s\n",
+				"sr_isMatchingPattern: %s matched mask: %s %s\n",
 				chaine, (entry->accepting) ? "accept" : "reject", entry->clause);
 		else
 			log_msg(LOG_DEBUG,
-				"isMatchingPattern: %s did not match any masks\n", chaine);
+				"sr_isMatchingPattern: %s did not match any masks\n", chaine);
 	}
 	sr_cfg->match = entry;
 	return (entry);

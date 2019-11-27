@@ -258,9 +258,9 @@ void do1file(struct sr_context *sr_c, char *fn)
 		} else {
 			realpath(fn, fnreal);
 		}
-		mask = isMatchingPattern(sr_c->cfg, fnreal);
+		mask = sr_isMatchingPattern(sr_c->cfg, fnreal);
 	} else {
-		mask = isMatchingPattern(sr_c->cfg, fn);
+		mask = sr_isMatchingPattern(sr_c->cfg, fn);
 	}
 
 	if ((mask && !(mask->accepting))

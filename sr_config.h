@@ -235,7 +235,7 @@ struct sr_config_s {
 char *sr_local_fqdn();
 
 /**
- * isMatchingPattern() - return pointer to matched pattern, if there is one, NULL otherwise.
+ * sr_isMatchingPattern() - return pointer to matched pattern, if there is one, NULL otherwise.
  * \param sr_cfg: the configuration with the masks to match against.
  * \param chaine: the character string to be matched
  *
@@ -245,7 +245,7 @@ char *sr_local_fqdn();
  * Return: The mask entry that matched, if any. (not a copy, do not play with it.)
  */
 
-struct sr_mask_s *isMatchingPattern(struct sr_config_s *sr_cfg, const char *chaine);
+struct sr_mask_s *sr_isMatchingPattern(struct sr_config_s *sr_cfg, const char *chaine);
 
 /**
  * sr_config_find_one() - find the name configuration file name 
