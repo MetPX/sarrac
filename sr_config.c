@@ -833,7 +833,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (1 + (val & 1));
 
 	} else if (!strcmp(option, "events") || !strcmp(option, "e")) {
-		sr_cfg->events = parse_events(argument);
+		sr_cfg->events = sr_parse_events(argument);
 		retval = (2);
 
 	} else if (!strcmp(option, "exchange") || !strcmp(option, "ex")) {
