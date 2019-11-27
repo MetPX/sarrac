@@ -827,7 +827,7 @@ int main(int argc, char **argv)
 	}
 
 	if (strcmp(sr_cfg.action, "foreground")) {
-		daemonize(1);
+		sr_daemonize(1);
 	}
 	// Assert: this is a working instance, not a launcher...
 	if (sr_config_activate(&sr_cfg)) {
