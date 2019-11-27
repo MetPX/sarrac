@@ -104,7 +104,7 @@ void sr_log_msg(int prio, const char *format, ...)
 }
 #endif
 
-void log_setup(const char *fn, mode_t mode, int level, int lr, int lri)
+void sr_log_setup(const char *fn, mode_t mode, int level, int lr, int lri)
 {
 #ifndef SR_DEBUG_LOGS
 	strcpy(logfn, fn);
@@ -138,7 +138,7 @@ void set_loglevel(int level)
 void sr_log_cleanup()
 {
 #ifndef SR_DEBUG_LOGS
-	/* (logfd != STDERR_FILENO) <> log_setup called previously */
+	/* (logfd != STDERR_FILENO) <> sr_log_setup called previously */
 	if (logfd != STDERR_FILENO) {
 		close(logfd);
 		logfd = STDERR_FILENO;
