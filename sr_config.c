@@ -1556,7 +1556,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		sr_cfg->log = 1;
 
 	if (sr_cfg->log) {
-		log_setup(sr_cfg->logfn, sr_cfg->chmod_log,
+		sr_log_setup(sr_cfg->logfn, sr_cfg->chmod_log,
 			  sr_cfg->debug ? LOG_DEBUG : (sr_cfg->loglevel),
 			  sr_cfg->logrotate, sr_cfg->logrotate_interval);
 	}
