@@ -877,7 +877,7 @@ int main(int argc, char **argv)
 
 			// FIXME: I think this breaks non Inotify walks...
 			//if ( sr_cfg.force_polling && !sr_cfg.delete )
-			//    latest_min_mtim = time_of_last_run();
+			//    latest_min_mtim = sr_time_of_last_run();
 
 			//log_msg( LOG_ERROR, "latest_min_mtime: %d, %d\n", latest_min_mtim.tv_sec, latest_min_mtim.tv_nsec );
 		} else {

@@ -257,7 +257,7 @@ struct sr_context *sr_context_connect(struct sr_context *sr_c)
  */
 static struct timespec tstart;
 
-struct timespec time_of_last_run()
+struct timespec sr_time_of_last_run()
 {
 	return (tstart);
 }

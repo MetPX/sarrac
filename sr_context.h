@@ -90,7 +90,7 @@ struct sr_context *sr_context_init_config(struct sr_config_s *sr_cfg, const int 
 
  */
 
-struct timespec time_of_last_run();
+struct timespec sr_time_of_last_run();
 
 struct sr_context *sr_context_connect(struct sr_context *sr_c);
 /* 
