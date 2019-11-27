@@ -386,7 +386,7 @@ static char h2b( char i ) {
 
 }
 
-char *hex2base64( const char *hstr ) 
+char *sr_hex2base64( const char *hstr ) 
 {
   static char buf[1024];
   int hxlen;

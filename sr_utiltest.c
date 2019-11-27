@@ -139,10 +139,10 @@ int main(int argc, char *argv[])
 
 	testcnt++;
 
-    log_msg( LOG_INFO, " testing hex2base64 conversion\n" );
+    log_msg( LOG_INFO, " testing sr_hex2base64 conversion\n" );
 
     strcpy( input, "d15f684279f7d4721671a587325160a8") ;
-    output = hex2base64( input );
+    output = sr_hex2base64( input );
     strcpy( expected, "0V9oQnn31HIWcaWHMlFgqA==" ); 
 
     if ( right( input, expected, output ) ) success++;
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 
 
     strcpy( input, "4c1e5d8ef96ee9e00f2feb38f70de21f") ;
-    output = hex2base64( input );
+    output = sr_hex2base64( input );
     strcpy( expected, "TB5djvlu6eAPL+s49w3iHw==" );
     if ( right( input, expected, output ) ) success++;
 	testcnt++;
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
 
 
     strcpy( input, "dcc2806747cc0046f4dcd7ac93411bde896fd089edf3420e0e5d1fe0b6b876b403dfdcf7221b6dd520298bd2de4c4e74bdd0cd76c10d69ca44ebc724dedda7b1" );
-    output = hex2base64( input );
+    output = sr_hex2base64( input );
     strcpy( expected, "3MKAZ0fMAEb03Nesk0Eb3olv0Int80IODl0f4La4drQD39z3Ihtt1SApi9LeTE50vdDNdsENacpE68\\nck3t2nsQ==" );
     if ( right( input, expected, output ) ) success++;
 	testcnt++;
