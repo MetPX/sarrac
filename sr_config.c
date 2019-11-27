@@ -191,7 +191,7 @@ struct sr_mask_s *isMatchingPattern(struct sr_config_s *sr_cfg, const char *chai
 	return (entry);
 }
 
-void add_mask(struct sr_config_s *sr_cfg, char *directory, char *option, int accept)
+static void add_mask(struct sr_config_s *sr_cfg, char *directory, char *option, int accept)
 {
 	struct sr_mask_s *new_entry;
 	struct sr_mask_s *next_entry;
@@ -282,7 +282,7 @@ char *sr_broker_uri(struct sr_broker_s *b)
  * Return: an initialized allocated sr_broker_s struct.
  */
 
-struct sr_broker_s *broker_uri_parse(char *src)
+static struct sr_broker_s *broker_uri_parse(char *src)
 {
 	/* copy src string to buf, adding nuls to separate path elements. 
 	   so each string is nul-treminated.
@@ -354,7 +354,7 @@ struct sr_broker_s *broker_uri_parse(char *src)
  *
  * Return: void
  */
-void broker_free(struct sr_broker_s *b)
+static void broker_free(struct sr_broker_s *b)
 {
 	if (!b)
 		return;
@@ -463,7 +463,7 @@ int sr_add_header(struct sr_config_s *cfg, char *s)
 	return (3);
 }
 
-int StringIsTrue(const char *s)
+static int StringIsTrue(const char *s)
  /*
     return bitmask:  0-1 string value,  argument is a value 0-1
     0- 00 - unlikely to occur, there is no value, and returning false.
@@ -485,7 +485,7 @@ int StringIsTrue(const char *s)
 	return (0);
 }
 
-long int chunksize_from_str(char *s)
+static long int chunksize_from_str(char *s)
 {
 	char u;			// unit char spec.
 	long unsigned int value;
@@ -556,7 +556,7 @@ char *local_fqdn()
 	return (hostname);
 }
 
-float seconds_from_duration_str(char *s)
+static float seconds_from_duration_str(char *s)
 {
 	int last;
 	int factor = 1;
@@ -589,7 +589,7 @@ float seconds_from_duration_str(char *s)
 	return ((float)(atof(s) * factor));
 }
 
-char *subarg(struct sr_config_s *sr_cfg, char *arg)
+static char *subarg(struct sr_config_s *sr_cfg, char *arg)
 /* 
    do variable substitution in arguments to options.  There are some pre-defined ones, 
    if not found, punt to getenv.
@@ -665,7 +665,7 @@ char *subarg(struct sr_config_s *sr_cfg, char *arg)
 
 }
 
-char token_line[TOKMAX];
+static char token_line[TOKMAX];
 
 // OPTIS - Option Is ... the option string matches x.
 
@@ -1731,9 +1731,9 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	return (1);
 }
 
-struct sr_config_s *thecfg = NULL;
+static struct sr_config_s *thecfg = NULL;
 
-void stop_handler(int sig)
+static void stop_handler(int sig)
 {
 	log_msg(LOG_DEBUG, "shutting down: signal %d received\n", sig);
 
@@ -1942,7 +1942,7 @@ int sr_config_startstop(struct sr_config_s *sr_cfg)
 
 }
 
-void cp(const char *s, const char *d)
+static void cp(const char *s, const char *d)
 {
 	FILE *sfd = NULL;
 	FILE *dfd = NULL;
