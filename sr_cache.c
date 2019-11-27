@@ -26,6 +26,7 @@
 
 #include "sr_cache.h"
 
+/* DEBUG
 void hash_print(unsigned char *hash)
 {
 	for (int i = 0; i < get_sumhashlen(hash[0]); i++)
@@ -33,6 +34,7 @@ void hash_print(unsigned char *hash)
 	fprintf(stderr, "\n");
 
 }
+*/
 
 int sr_cache_check(struct sr_cache_s *cachep, char *cache_basis, char algo,
 		   unsigned char *ekey, char *path, char *partstr)
