@@ -56,7 +56,7 @@ void log_cleanup();
 
 int sr_is_utf8(const char *string);
 
-/* has_vip is also inspired by stack exchange, but changed beyond all recognition.
+/* sr_has_vip is also inspired by stack exchange, but changed beyond all recognition.
  *
  * returns  1 if this host has the indicated virtual internet protocol (vip) address.
  * returns  0 if this host doesn't have it.
@@ -65,7 +65,7 @@ int sr_is_utf8(const char *string);
  * the vip argument is a string, can can be either a dotted quad, a hostname, or 
  * whatever those ipv6 address strings are called.
  */
-int has_vip(char const *vip);
+int sr_has_vip(char const *vip);
  
 void daemonize(int close_stdout);
 // executed to go from a management instance to a daemon working instance.
