@@ -282,7 +282,7 @@ int main(int argc, char **argv)
 
 	while (1) {
 
-        if ( sr_cfg.vip && ( has_vip(sr_cfg.vip) < 1) ) {
+        if ( sr_cfg.vip && ( sr_has_vip(sr_cfg.vip) < 1) ) {
 			sleep(5);
 			continue;
         }

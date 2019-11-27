@@ -15,7 +15,7 @@
 #include <linux/limits.h>
 #include <ctype.h>
 
-/* following three are for has_vip */
+/* following three are for sr_has_vip */
 #include <sys/socket.h>
 #include <ifaddrs.h>
 #include <netdb.h>
@@ -266,7 +266,7 @@ int sr_is_utf8(const char *string)
 
 /* end of code from stack exchange */
 
-/* ok, has_vip is inspired by stack exchange, but changed beyond all recognition.
+/* ok, sr_has_vip is inspired by stack exchange, but changed beyond all recognition.
 
    returns 1 if this host has the indicated virtual internet protocol (vip) address.
    returns 0 if this host doesn't have it.
@@ -275,7 +275,7 @@ int sr_is_utf8(const char *string)
    supports ipv6, and string can be either a hostname or a numeric one.
  */
 
-int has_vip(char const *vip) {
+int sr_has_vip(char const *vip) {
   struct ifaddrs *ifaddr, *ifa;
   char host[NI_MAXHOST];
   char addr[NI_MAXHOST];
@@ -305,14 +305,14 @@ int has_vip(char const *vip) {
           NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
     }
 
-    log_msg(LOG_DEBUG, "has_vip: checking interface %s host=%s addr=%s\n", ifa->ifa_name, host, addr );
+    log_msg(LOG_DEBUG, "sr_has_vip: checking interface %s host=%s addr=%s\n", ifa->ifa_name, host, addr );
     if ( vip && ( !strcmp( host, vip ) || !strcmp( addr, vip) ) ) {
-       log_msg( LOG_DEBUG, "has_vip: Matched!\n" );
+       log_msg( LOG_DEBUG, "sr_has_vip: Matched!\n" );
        return 1;
     }
   }
 
-  log_msg(LOG_DEBUG, "has_vip: we don't have the vip\n" );
+  log_msg(LOG_DEBUG, "sr_has_vip: we don't have the vip\n" );
   freeifaddrs(ifaddr);
   return 0;
 }
