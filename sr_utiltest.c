@@ -111,35 +111,35 @@ int main(int argc, char *argv[])
 		memcpy(original_hash, sr_sumstr2hash(rtsumstr), SHA512_DIGEST_LENGTH + 1);
 	}
 	t = time(NULL);
-	log_msg(LOG_INFO, "              It is now: %s\n", ctime(&t));
+	sr_log_msg(LOG_INFO, "              It is now: %s\n", ctime(&t));
 
 	/* FIXME, repeat for MD5, for N, n, L, R  */
 
 	clock_gettime(CLOCK_REALTIME, &tsnow);
 
-	log_msg(LOG_INFO, "        starting time is: %ld\n", tsnow.tv_sec);
+	sr_log_msg(LOG_INFO, "        starting time is: %ld\n", tsnow.tv_sec);
 	tscp = sr_time2str(&tsnow);
 	memset(timestring, 0, 60);
 	memcpy(timestring, tscp, strlen(tscp));
-	log_msg(LOG_DEBUG, "text version ot time is: %s\n", timestring);
+	sr_log_msg(LOG_DEBUG, "text version ot time is: %s\n", timestring);
 
 	memcpy(&tsrt, sr_str2time(timestring), sizeof(struct timespec));
-	log_msg(LOG_DEBUG, " round tripped, time is: %ld\n", tsrt.tv_sec);
-	log_msg(LOG_DEBUG, "          difference is: %ld\n", tsrt.tv_sec - tsnow.tv_sec);
+	sr_log_msg(LOG_DEBUG, " round tripped, time is: %ld\n", tsrt.tv_sec);
+	sr_log_msg(LOG_DEBUG, "          difference is: %ld\n", tsrt.tv_sec - tsnow.tv_sec);
 	tscp = sr_time2str(&tsrt);
 	memcpy(timestring, tscp, strlen(tscp));
 
-	log_msg(LOG_DEBUG, "text version ot time is: %s\n", timestring);
+	sr_log_msg(LOG_DEBUG, "text version ot time is: %s\n", timestring);
 
 	if (tsrt.tv_sec - tsnow.tv_sec) {
-		log_msg(LOG_ERROR,
+		sr_log_msg(LOG_ERROR,
 			"Failed to roundtrip time through conversion routines, see difference above, should be 0\n");
 	} else
 		success++;
 
 	testcnt++;
 
-    log_msg( LOG_INFO, " testing sr_hex2base64 conversion\n" );
+    sr_log_msg( LOG_INFO, " testing sr_hex2base64 conversion\n" );
 
     strcpy( input, "d15f684279f7d4721671a587325160a8") ;
     output = sr_hex2base64( input );
