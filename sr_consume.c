@@ -546,7 +546,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 			sr_amqp_reply_print(reply, "basic_consume failed");
 			return (NULL);
 		}
-		sprintf(consumer_tag, "host_%s_pid_%d", local_fqdn(), sr_c->cfg->pid);
+		sprintf(consumer_tag, "host_%s_pid_%d", sr_local_fqdn(), sr_c->cfg->pid);
 
 		amqp_basic_consume(sr_c->cfg->broker->conn, 1,
 				   amqp_cstring_bytes(sr_c->cfg->queuename),
