@@ -105,7 +105,7 @@ static void amqp_header_add(char *tag, const char *value)
 
 	/* check utf8 compliance of tag and value for message headers */
 	if (!sr_is_utf8(tag) || !sr_is_utf8(value)) {
-		log_msg(LOG_ERROR,
+		sr_log_msg(LOG_ERROR,
 			"amqp header (tag, value)<>(%s,%s) not utf8 encoded, ignoring header\n",
 			tag, value);
 		return;
@@ -114,7 +114,7 @@ static void amqp_header_add(char *tag, const char *value)
 	char value2[AMQP_MAX_SS];
 
 	if (hdrcnt >= HDRMAX) {
-		log_msg(LOG_ERROR, "too many headers! ignoring %s=%s\n", tag, value);
+		sr_log_msg(LOG_ERROR, "too many headers! ignoring %s=%s\n", tag, value);
 		return;
 	}
 	headers[hdrcnt].key = amqp_cstring_bytes(tag);
@@ -123,7 +123,7 @@ static void amqp_header_add(char *tag, const char *value)
 	if (strlen(value) > AMQP_MAX_SS) {
 		strncpy(value2, value, AMQP_MAX_SS);
 		value2[AMQP_MAX_SS - 1] = '\0';
-		log_msg(LOG_WARNING,
+		sr_log_msg(LOG_WARNING,
 			"header %s too long (%ld bytes), truncating to: %s\n",
 			tag, strlen(value), value2);
 		headers[hdrcnt].value.value.bytes = amqp_cstring_bytes(value2);
@@ -131,7 +131,7 @@ static void amqp_header_add(char *tag, const char *value)
 		headers[hdrcnt].value.value.bytes = amqp_cstring_bytes(value);
 	}
 	hdrcnt++;
-	//log_msg( LOG_DEBUG, "Adding header: %s=%s hdrcnt=%d\n", tag, value, hdrcnt );
+	//sr_log_msg( LOG_DEBUG, "Adding header: %s=%s hdrcnt=%d\n", tag, value, hdrcnt );
 }
 
 static void set_url(char *m, char *spec)
@@ -142,17 +142,17 @@ static void set_url(char *m, char *spec)
 	char *sp;
 
 	if (strchr(spec, ',')) {
-		//log_msg( LOG_DEBUG, "1 picking url, set=%s, cu=%s\n", spec, cu_url );
+		//sr_log_msg( LOG_DEBUG, "1 picking url, set=%s, cu=%s\n", spec, cu_url );
 		if (cu_url) {
 			cu_url = strchr(cu_url, ',');	// if there is a previous one, pick the next one.
-			//log_msg( LOG_DEBUG, "2 picking url, set=%s, cu=%s\n", spec, cu_url );
+			//sr_log_msg( LOG_DEBUG, "2 picking url, set=%s, cu=%s\n", spec, cu_url );
 		}
 		if (cu_url) {
 			cu_url++;	// skip to after the comma.
-			//log_msg( LOG_DEBUG, "3 picking url, set=%s, cu=%s\n", spec, cu_url );
+			//sr_log_msg( LOG_DEBUG, "3 picking url, set=%s, cu=%s\n", spec, cu_url );
 		} else {
 			cu_url = spec;	// start from the beginning.
-			//log_msg( LOG_DEBUG, "4 picking url, set=%s, cu=%s\n", spec, cu_url );
+			//sr_log_msg( LOG_DEBUG, "4 picking url, set=%s, cu=%s\n", spec, cu_url );
 		}
 		sp = strchr(cu_url, ',');
 		if (sp)
@@ -250,7 +250,7 @@ static void v03amqp_header_add( char** c, const char* tag, const char *value )
 
    /* check utf8 compliance of tag and value for message headers */
    if (!sr_is_utf8(tag) || !sr_is_utf8(value)) {
-	   log_msg(LOG_ERROR,
+	   sr_log_msg(LOG_ERROR,
 		   "amqp header (tag, value)<>(%s,%s) not utf8 encoded, ignoring header\n",
            tag, value);
    } else {
@@ -443,7 +443,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
             sprintf( c, "%s}  \n", sep );
             c += status ; 
 
-            log_msg( LOG_DEBUG, "v03 body=%s\n", message_body );
+            sr_log_msg( LOG_DEBUG, "v03 body=%s\n", message_body );
 
     		props._flags = AMQP_BASIC_CONTENT_ENCODING_FLAG | 
                 AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
@@ -468,7 +468,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
         }
 
 		if (status < 0) {
-			log_msg(LOG_ERROR,
+			sr_log_msg(LOG_ERROR,
 				"sr_%s: publish of message for  %s%s failed.\n",
 				sr_c->cfg->progname, m->url, fn);
 			goto restart;
@@ -476,7 +476,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 
 		commit_status = amqp_tx_commit(sr_c->cfg->post_broker->conn, 1);
 		if (!commit_status) {
-			log_msg(LOG_ERROR, "broker failed to acknowledge publish event\n");
+			sr_log_msg(LOG_ERROR, "broker failed to acknowledge publish event\n");
 			reply = amqp_get_rpc_reply(sr_c->cfg->post_broker->conn);
 			if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
 				sr_amqp_reply_print(reply, "failed AMQP get_rpc_reply");
@@ -484,7 +484,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 			goto restart;
 		}
 		amqp_maybe_release_buffers(sr_c->cfg->post_broker->conn);
-		log_msg(LOG_INFO, "published: %s\n", sr_message_2log(m));
+		sr_log_msg(LOG_INFO, "published: %s\n", sr_message_2log(m));
 		return;
 
  restart:
@@ -493,7 +493,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 		sleep(to_sleep);
 		if (to_sleep < 60)
 			to_sleep <<= 1;
-		log_msg(LOG_WARNING, "publish failed. Slept: %ld seconds. Retrying...\n", to_sleep);
+		sr_log_msg(LOG_WARNING, "publish failed. Slept: %ld seconds. Retrying...\n", to_sleep);
 		sr_context_connect(sr_c);
 
 	}
@@ -523,7 +523,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 
 		/* realpath stuff when it exists  sb */
 		if (sb && sr_c->cfg->realpath) {
-			log_msg(LOG_DEBUG, "applying realpath to relpath %s\n", pathspec);
+			sr_log_msg(LOG_DEBUG, "applying realpath to relpath %s\n", pathspec);
 			if (!realpath(linkstr, fn)) {
 				strcpy(fn, linkstr);
 			}
@@ -534,14 +534,14 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	} else {
 		/* realpath stuff when it exists  sb */
 		if (sb && sr_c->cfg->realpath) {
-			log_msg(LOG_DEBUG, "applying realpath to abspath %s\n", pathspec);
+			sr_log_msg(LOG_DEBUG, "applying realpath to abspath %s\n", pathspec);
 			realpath(pathspec, fn);
 		} else
 			strcpy(fn, pathspec);
 	}
 
 	if ((sr_c->cfg != NULL) && sr_c->cfg->debug) {
-		log_msg(LOG_DEBUG,
+		sr_log_msg(LOG_DEBUG,
 			"sr_%s file2message start with: %s sb=%p islnk=%d, isdir=%d, isreg=%d\n",
 			sr_c->cfg->progname, fn, sb,
 			sb ? S_ISLNK(sb->st_mode) : 0,
@@ -653,7 +653,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		if (sr_c->cfg->realpath) {
 			linkp = realpath(linkstr, m->link);
 			if (!linkp) {
-				log_msg(LOG_ERROR,
+				sr_log_msg(LOG_ERROR,
 					"sr_%s unable to obtain realpath for %s\n",
 					sr_c->cfg->progname, fn);
 				return (0);
@@ -704,7 +704,7 @@ struct sr_message_s *sr_file2message_seq(struct sr_context *sr_c,
 	    );
 
 	if (!(m->sum)) {
-		log_msg(LOG_ERROR,
+		sr_log_msg(LOG_ERROR,
 			"file2message_seq unable to generate %c checksum for: %s\n",
 			m->parts_s, pathspec);
 		return (NULL);
@@ -720,7 +720,7 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 
 	/* check utf8 compliance of path */
 	if (!sr_is_utf8(pathspec)) {
-		log_msg(LOG_ERROR,
+		sr_log_msg(LOG_ERROR,
 			"file path \"%s\" not utf8 encoded, ignoring sr_post call\n", pathspec);
 		return;
 	}
@@ -743,11 +743,11 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 						   m.sum[0],
 						   (unsigned char *)(m.sum),
 						   m.path, sr_message_partstr(&m));
-				log_msg(LOG_DEBUG, "sr_post cache_check: %s\n",
+				sr_log_msg(LOG_DEBUG, "sr_post cache_check: %s\n",
 					status ? "not found" : "already there, no post");
 				if (!status) {
 					if (sr_c->cfg->log_reject)
-						log_msg(LOG_INFO,
+						sr_log_msg(LOG_INFO,
 							"rejecting duplicate: %s, %s\n",
 							m.path, sr_message_partstr(&m));
 					continue;	// cache hit.
@@ -770,7 +770,7 @@ void sr_post_rename_dir(struct sr_context *sr_c, const char *oldname, const char
 	char newpath[PATH_MAX + 1];
 	int newlen;
 
-	log_msg(LOG_DEBUG, "sr_%s %s starting rename_dir: %s %s \n",
+	sr_log_msg(LOG_DEBUG, "sr_%s %s starting rename_dir: %s %s \n",
 		sr_c->cfg->progname, __sarra_version__, oldname, newname);
 	dir = opendir(newname);
 	if (!dir)
@@ -829,10 +829,10 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 			strcat(oldreal, "/");
 			strcat(oldreal, s);
 		}
-		log_msg(LOG_DEBUG, "applying realpath to old: %s -> %s\n", o, oldreal);
+		sr_log_msg(LOG_DEBUG, "applying realpath to old: %s -> %s\n", o, oldreal);
 
 		realpath(n, newreal);
-		log_msg(LOG_DEBUG, "applying realpath to new: %s -> %s\n", n, newreal);
+		sr_log_msg(LOG_DEBUG, "applying realpath to new: %s -> %s\n", n, newreal);
 	}
 
 	if (sr_c->cfg->realpath) {
@@ -840,11 +840,11 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 		strcpy(newname, newreal);
 	}
 
-	log_msg(LOG_DEBUG, "sr_%s %s starting rename: %s %s \n",
+	sr_log_msg(LOG_DEBUG, "sr_%s %s starting rename: %s %s \n",
 		sr_c->cfg->progname, __sarra_version__, oldname, newname);
 
 	if (lstat(newname, &sb)) {
-		log_msg(LOG_ERROR, "sr_%s rename: %s cannot stat.\n", sr_c->cfg->progname, newname);
+		sr_log_msg(LOG_ERROR, "sr_%s rename: %s cannot stat.\n", sr_c->cfg->progname, newname);
 		return;
 	}
 	if (S_ISDIR(sb.st_mode)) {
@@ -865,7 +865,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	if ((mask && !(mask->accepting))
 	    || (!mask && !(sr_c->cfg->accept_unmatched))) {
 		if (sr_c->cfg->log_reject)
-			log_msg(LOG_INFO, "rejecting oldname: %s\n", oldname);
+			sr_log_msg(LOG_INFO, "rejecting oldname: %s\n", oldname);
 	} else {
 		if (!access(oldname, F_OK)
 		    && (S_ISREG(sb.st_mode) || S_ISLNK(sb.st_mode))) {
@@ -888,7 +888,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	if ((mask && !(mask->accepting))
 	    || (!mask && !(sr_c->cfg->accept_unmatched))) {
 		if (sr_c->cfg->log_reject)
-			log_msg(LOG_INFO, "rejecting newname: %s\n", newname);
+			sr_log_msg(LOG_INFO, "rejecting newname: %s\n", newname);
 	} else
 		sr_post(sr_c, newname, &sb);
 
@@ -908,7 +908,7 @@ int sr_post_cleanup(struct sr_context *sr_c)
 	if (sr_c->cfg->post_broker->exchange_split) {
 		for (int i = 0; i < sr_c->cfg->post_broker->exchange_split; i++) {
 			sprintf(exchange, "%s%02d", sr_c->cfg->post_broker->exchange, i);
-			log_msg(LOG_INFO, "deleting exchange %s%02d\n",
+			sr_log_msg(LOG_INFO, "deleting exchange %s%02d\n",
 				sr_broker_uri(sr_c->cfg->post_broker), i);
 			amqp_exchange_delete(sr_c->cfg->post_broker->conn, 1,
 					     amqp_cstring_bytes(exchange), 0);
@@ -919,7 +919,7 @@ int sr_post_cleanup(struct sr_context *sr_c)
 			}
 		}
 	} else {
-		log_msg(LOG_INFO, "deleting exchange %s\n", sr_broker_uri(sr_c->cfg->post_broker));
+		sr_log_msg(LOG_INFO, "deleting exchange %s\n", sr_broker_uri(sr_c->cfg->post_broker));
 		amqp_exchange_delete(sr_c->cfg->post_broker->conn, 1,
 				     amqp_cstring_bytes(sr_c->cfg->post_broker->exchange), 0);
 		reply = amqp_get_rpc_reply(sr_c->cfg->post_broker->conn);
@@ -937,7 +937,7 @@ int sr_post_init(struct sr_context *sr_c)
 
 	if (sr_c->cfg->post_broker->exchange_split) {
 		for (int i = 0; i < sr_c->cfg->post_broker->exchange_split; i++) {
-			log_msg(LOG_DEBUG, "declaring exchange %s%02d\n",
+			sr_log_msg(LOG_DEBUG, "declaring exchange %s%02d\n",
 				sr_broker_uri(sr_c->cfg->post_broker), i);
 			sprintf(exchange, "%s%02d", sr_c->cfg->post_broker->exchange, i);
 			amqp_exchange_declare(sr_c->cfg->post_broker->conn, 1,
@@ -951,7 +951,7 @@ int sr_post_init(struct sr_context *sr_c)
 			}
 		}
 	} else {
-		log_msg(LOG_DEBUG, "declaring exchange %s\n",
+		sr_log_msg(LOG_DEBUG, "declaring exchange %s\n",
 			sr_broker_uri(sr_c->cfg->post_broker));
 		amqp_exchange_declare(sr_c->cfg->post_broker->conn, 1,
 				      amqp_cstring_bytes(sr_c->cfg->post_broker->exchange),

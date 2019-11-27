@@ -139,10 +139,10 @@ int sr_consume_setup(struct sr_context *sr_c)
 	if (!sr_c->cfg->topics) {
 		sr_add_topic(sr_c->cfg, "#");
 	}
-	log_msg(LOG_DEBUG, "topics: %p, string=+%p+\n", sr_c->cfg->topics, sr_c->cfg->topics);
+	sr_log_msg(LOG_DEBUG, "topics: %p, string=+%p+\n", sr_c->cfg->topics, sr_c->cfg->topics);
 
 	for (t = sr_c->cfg->topics; t; t = t->next) {
-		log_msg(LOG_INFO, "queue %s bound with topic %s to %s\n",
+		sr_log_msg(LOG_INFO, "queue %s bound with topic %s to %s\n",
 			sr_c->cfg->queuename, t->topic, sr_broker_uri(sr_c->cfg->broker));
 		amqp_queue_bind(sr_c->cfg->broker->conn, 1,
 				amqp_cstring_bytes(sr_c->cfg->queuename),
@@ -179,7 +179,7 @@ static void assign_field(const char *key, char *value)
 	char *s;
 	struct sr_header_s *h;
 
-	//log_msg( LOG_DEBUG, "parsing: \"%s\" : \"%s\"\n", key, value );
+	//sr_log_msg( LOG_DEBUG, "parsing: \"%s\" : \"%s\"\n", key, value );
 	if (!strcmp(key, "atime")) {
 		strcpy(msg.atime, value);
 	} else if (!strcmp(key, "from_cluster")) {
@@ -234,13 +234,13 @@ static void v03assign_field(const char *key, json_object *jso_v)
 
 	if (!strcmp(key, "atime")) {
         if (!json_object_is_type(jso_v,json_type_string)) {
-	       log_msg( LOG_ERROR, "malformed json: atime is not a string: %d\n", json_object_get_type(subvalue) );
+	       sr_log_msg( LOG_ERROR, "malformed json: atime is not a string: %d\n", json_object_get_type(subvalue) );
            return;
         }
 		strcpy(msg.atime, json_object_get_string(jso_v));
         tlen=strlen(msg.atime);
         if ( tlen < 16 ) {
-	       log_msg( LOG_ERROR, "malformed json: atime should be string: %s\n", msg.atime );
+	       sr_log_msg( LOG_ERROR, "malformed json: atime should be string: %s\n", msg.atime );
            return;
         }
         tlen -= 8 ;
@@ -259,7 +259,7 @@ static void v03assign_field(const char *key, json_object *jso_v)
        } else if (json_object_is_type(subvalue,json_type_int)) {
 		   msg.parts_blksz = json_object_get_int64(subvalue);
        } else {
-	       log_msg( LOG_ERROR, "malformed json: blocks/size should be an int, but is: %d\n", json_object_get_type(subvalue) );
+	       sr_log_msg( LOG_ERROR, "malformed json: blocks/size should be an int, but is: %d\n", json_object_get_type(subvalue) );
        } 
        json_object_object_get_ex(jso_v, "remainder", &subvalue );
        if (json_object_is_type(subvalue,json_type_string)) {
@@ -267,7 +267,7 @@ static void v03assign_field(const char *key, json_object *jso_v)
        } else if (json_object_is_type(subvalue,json_type_int)) {
 		   msg.parts_rem = json_object_get_int64(subvalue);
        } else {
-	       log_msg( LOG_ERROR, "malformed json: blocks/remainder should be an int, but is: %d\n", json_object_get_type(subvalue) );
+	       sr_log_msg( LOG_ERROR, "malformed json: blocks/remainder should be an int, but is: %d\n", json_object_get_type(subvalue) );
        } 
       
        json_object_object_get_ex(jso_v, "number", &subvalue );
@@ -276,7 +276,7 @@ static void v03assign_field(const char *key, json_object *jso_v)
        } else if (json_object_is_type(subvalue,json_type_int)) {
 		   msg.parts_num = json_object_get_int64(subvalue);
        } else {
-	       log_msg( LOG_ERROR, "malformed json: blocks/number should be an int, but is: %d\n", json_object_get_type(subvalue) );
+	       sr_log_msg( LOG_ERROR, "malformed json: blocks/number should be an int, but is: %d\n", json_object_get_type(subvalue) );
        } 
       
        json_object_object_get_ex(jso_v, "count", &subvalue );
@@ -285,55 +285,55 @@ static void v03assign_field(const char *key, json_object *jso_v)
        } else if (json_object_is_type(subvalue,json_type_int)) {
 		   msg.parts_blkcount = json_object_get_int64(subvalue);
        } else {
-	       log_msg( LOG_ERROR, "malformed json: blocks/count should be an int, but is: %d\n", json_object_get_type(subvalue) );
+	       sr_log_msg( LOG_ERROR, "malformed json: blocks/count should be an int, but is: %d\n", json_object_get_type(subvalue) );
        } 
 
 	} else if (!strcmp(key, "from_cluster")) {
         if (!json_object_is_type(jso_v,json_type_string)) {
-	       log_msg( LOG_ERROR, "malformed json: from_cluster should be string: %d\n", json_object_get_type(jso_v) );
+	       sr_log_msg( LOG_ERROR, "malformed json: from_cluster should be string: %d\n", json_object_get_type(jso_v) );
            return;
         }
 		strcpy(msg.from_cluster, json_object_get_string(jso_v));
 	} else if (!strcmp(key, "mode")) {
         if (!json_object_is_type(jso_v,json_type_string)) {
-	       log_msg( LOG_ERROR, "malformed json: mode should be string: %d\n", json_object_get_type(jso_v) );
+	       sr_log_msg( LOG_ERROR, "malformed json: mode should be string: %d\n", json_object_get_type(jso_v) );
            return;
         }
 		msg.mode = strtoul(json_object_get_string(jso_v), NULL, 8);
 	} else if (!strcmp(key, "mtime")) {
         if (!json_object_is_type(jso_v,json_type_string)) {
-	       log_msg( LOG_ERROR, "malformed message: mtime value is not a string: %d\n", json_object_get_type(jso_v) );
+	       sr_log_msg( LOG_ERROR, "malformed message: mtime value is not a string: %d\n", json_object_get_type(jso_v) );
            return;
         }
 		strcpy(msg.mtime, json_object_get_string(jso_v));
         tlen=strlen(msg.mtime);
         if ( tlen < 16 ) {
-	       log_msg( LOG_ERROR, "malformed json: mtime should be string: %s\n", msg.mtime );
+	       sr_log_msg( LOG_ERROR, "malformed json: mtime should be string: %s\n", msg.mtime );
            return;
         }
         tlen -= 8 ;
         memmove( &msg.mtime[8], &msg.mtime[9], tlen ); //eliminate "T".
 	} else if (!strcmp(key, "baseUrl")) {
         if (!json_object_is_type(jso_v,json_type_string)) {
-	       log_msg( LOG_ERROR, "malformed json: baseUrl should be string: %d\n", json_object_get_type(jso_v) );
+	       sr_log_msg( LOG_ERROR, "malformed json: baseUrl should be string: %d\n", json_object_get_type(jso_v) );
            return;
         }
         strcpy( msg.url, json_object_get_string(jso_v) );
 	} else if (!strcmp(key, "relPath")) {
         if (!json_object_is_type(jso_v,json_type_string)) {
-	       log_msg( LOG_ERROR, "malformed json: relPath should be string: %d\n", json_object_get_type(jso_v) );
+	       sr_log_msg( LOG_ERROR, "malformed json: relPath should be string: %d\n", json_object_get_type(jso_v) );
            return;
         }
         strcpy( msg.path, json_object_get_string(jso_v) );
 	} else if (!strcmp(key, "pubTime")) {
         if (!json_object_is_type(jso_v,json_type_string)) {
-	       log_msg( LOG_ERROR, "malformed json: pubTime not a string: %d\n", json_object_get_type(jso_v) );
+	       sr_log_msg( LOG_ERROR, "malformed json: pubTime not a string: %d\n", json_object_get_type(jso_v) );
            return;
         }
         strcpy( msg.datestamp, json_object_get_string(jso_v) );
         tlen=strlen(msg.datestamp);
         if ( tlen < 16 ) {
-	       log_msg( LOG_ERROR, "malformed json: pubTime value too short: %s\n", msg.datestamp );
+	       sr_log_msg( LOG_ERROR, "malformed json: pubTime value too short: %s\n", msg.datestamp );
            return;
         }
         tlen -= 8 ;
@@ -342,7 +342,7 @@ static void v03assign_field(const char *key, json_object *jso_v)
 
        //FIXME
        if( json_object_get_type(jso_v) != json_type_object ) {
-	       log_msg( LOG_ERROR, "malformed json: intrity should be an object: %d\n", json_object_get_type(jso_v) );
+	       sr_log_msg( LOG_ERROR, "malformed json: intrity should be an object: %d\n", json_object_get_type(jso_v) );
            return;
        }
        json_object_object_get_ex(jso_v, "method", &subvalue);
@@ -359,7 +359,7 @@ static void v03assign_field(const char *key, json_object *jso_v)
        if ( !strcmp( v3m, "remove" ) ) s='R';
        if ( !strcmp( v3m, "cod" ) ) s='z';
        if ( s == 'u' ) {
-	       log_msg( LOG_ERROR, "unknown checksum specified: %s\n", v3m );
+	       sr_log_msg( LOG_ERROR, "unknown checksum specified: %s\n", v3m );
            return;
        }
        json_object_object_get_ex(jso_v, "value", &subvalue);
@@ -380,19 +380,19 @@ static void v03assign_field(const char *key, json_object *jso_v)
 		msg.parts_num = 0;
 	} else if (!strcmp(key, "relPath")) {
         if (!json_object_is_type(jso_v,json_type_string)) {
-	       log_msg( LOG_ERROR, "malformed json: relPath value should be string: %d\n", json_object_get_type(jso_v) );
+	       sr_log_msg( LOG_ERROR, "malformed json: relPath value should be string: %d\n", json_object_get_type(jso_v) );
            return;
         }
 		strcpy(msg.path,  json_object_get_string(jso_v));
 	} else if (!strcmp(key, "source")) {
         if (!json_object_is_type(jso_v,json_type_string)) {
-	       log_msg( LOG_ERROR, "malformed json: source value should be string: %d\n", json_object_get_type(jso_v) );
+	       sr_log_msg( LOG_ERROR, "malformed json: source value should be string: %d\n", json_object_get_type(jso_v) );
            return;
         }
 		strcpy(msg.source,  json_object_get_string(jso_v));
 	} else if (!strcmp(key, "to_clusters")) {
         if (!json_object_is_type(jso_v,json_type_string)) {
-	       log_msg( LOG_ERROR, "malformed json: to_clusters should be string: %d\n", json_object_get_type(jso_v) );
+	       sr_log_msg( LOG_ERROR, "malformed json: to_clusters should be string: %d\n", json_object_get_type(jso_v) );
            return;
         }
 		strcpy(msg.to_clusters,  json_object_get_string(jso_v));
@@ -523,7 +523,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 	/*
 	   if (sr_c->cfg->broker->last_delivery_tag > 0)
 	   {
-	   log_msg( LOG_DEBUG, "acking: %d\n", sr_c->cfg->broker->last_delivery_tag );
+	   sr_log_msg( LOG_DEBUG, "acking: %d\n", sr_c->cfg->broker->last_delivery_tag );
 	   result = amqp_basic_ack( sr_c->cfg->broker->conn, 1, sr_c->cfg->broker->last_delivery_tag, 0 );
 
 	   reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);
@@ -568,18 +568,18 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 
 	result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
-	log_msg( LOG_DEBUG, "wait_frame result: %d\n", result);
+	sr_log_msg( LOG_DEBUG, "wait_frame result: %d\n", result);
 	if (result < 0) {
 		amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
 		return (NULL);
 	}
-	log_msg( LOG_DEBUG, "Frame type %d, channel %d\n", frame.frame_type, frame.channel);
+	sr_log_msg( LOG_DEBUG, "Frame type %d, channel %d\n", frame.frame_type, frame.channel);
 
 	if (frame.frame_type != AMQP_FRAME_METHOD) {
 		amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
 		return (NULL);
 	}
-	log_msg( LOG_DEBUG, "Method %s\n", amqp_method_name(frame.payload.method.id));
+	sr_log_msg( LOG_DEBUG, "Method %s\n", amqp_method_name(frame.payload.method.id));
 
 	if (frame.payload.method.id != AMQP_BASIC_DELIVER_METHOD) {
 		amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
@@ -588,12 +588,12 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 
 	d = (amqp_basic_deliver_t *) frame.payload.method.decoded;
 
-	log_msg(LOG_DEBUG, "consumer_tag: %s, delivery_tag: %ld\n",
+	sr_log_msg(LOG_DEBUG, "consumer_tag: %s, delivery_tag: %ld\n",
     		(char *)d->consumer_tag.bytes, d->delivery_tag);
 
 	sr_c->cfg->broker->last_delivery_tag = d->delivery_tag;
 
-	log_msg( LOG_DEBUG, " \"exchange\": \"%.*s\",\"routingkey\": \"%.*s\",\n",
+	sr_log_msg( LOG_DEBUG, " \"exchange\": \"%.*s\",\"routingkey\": \"%.*s\",\n",
 	   (int) d->exchange.len, (char *) d->exchange.bytes,
 	   (int) d->routing_key.len, (char *) d->routing_key.bytes);
 
@@ -605,12 +605,12 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 	result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
 	if (result < 0) {
-		log_msg(LOG_ERROR, "error receiving frame!");
+		sr_log_msg(LOG_ERROR, "error receiving frame!");
 		return(NULL);
     }
 
 	if (frame.frame_type != AMQP_FRAME_HEADER) {
-		log_msg(LOG_ERROR, "Expected header!");
+		sr_log_msg(LOG_ERROR, "Expected header!");
 		return(NULL);
 	}
 
@@ -621,7 +621,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
         // FIXME: bug where num_entries==2, and entries=2 instead of a pointer.... very odd.
         //        We have no idea why this shows up, this is just a work-around, around the problem.
         if ( (unsigned long)(p->headers.entries) < 1024 )  {
-			log_msg(LOG_ERROR, 
+			sr_log_msg(LOG_ERROR, 
                  "corrupted message, num_entries > 0 (%d), but entries close to NULL (%p).\n", 
                  p->headers.num_entries, (p->headers.entries) );
             return(NULL);
@@ -638,7 +638,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
     			assign_field(tag, value);
     
     			/*
-    			   log_msg( stdout, "\t\"%.*s\": \"%.*s\",\n",
+    			   sr_log_msg( stdout, "\t\"%.*s\": \"%.*s\",\n",
     			   (int) p->headers.entries[i].key.len, 
     			   (char *) p->headers.entries[i].key.bytes,
     			   (int) p->headers.entries[i].value.value.bytes.len,
@@ -648,21 +648,21 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
                 break;
 
             case AMQP_FIELD_KIND_U64:
-			    log_msg(LOG_WARNING, "skipping U64 header value:%ld\n", (unsigned long)(p->headers.entries[i].value.value.bytes.bytes) );
+			    sr_log_msg(LOG_WARNING, "skipping U64 header value:%ld\n", (unsigned long)(p->headers.entries[i].value.value.bytes.bytes) );
                 break;
 
 
             case AMQP_FIELD_KIND_ARRAY:
-			    log_msg(LOG_WARNING, "skipping ARRAY header\n" );
+			    sr_log_msg(LOG_WARNING, "skipping ARRAY header\n" );
                 break;
 
 
             case AMQP_FIELD_KIND_I64:
-			    log_msg(LOG_WARNING, "skipping I64  header: value:%ld\n", (long)(p->headers.entries[i].value.value.bytes.bytes) );
+			    sr_log_msg(LOG_WARNING, "skipping I64  header: value:%ld\n", (long)(p->headers.entries[i].value.value.bytes.bytes) );
                 break;
 
             default:
-			     log_msg(LOG_WARNING, "skipping non UTF8 header: kind:%d\n", p->headers.entries[i].value.kind );
+			     sr_log_msg(LOG_WARNING, "skipping non UTF8 header: kind:%d\n", p->headers.entries[i].value.kind );
         }
 	}
 
@@ -670,7 +670,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 	body_received = 0;
 
     if (body_target >= SR_SARRAC_MAXIMUM_MESSAGE_LEN) {
-			log_msg(LOG_CRITICAL, "Message too big! received: (%ld bytes) max: %d",
+			sr_log_msg(LOG_CRITICAL, "Message too big! received: (%ld bytes) max: %d",
                  body_target, SR_SARRAC_MAXIMUM_MESSAGE_LEN );
 			abort();
     }
@@ -681,7 +681,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 			return (NULL);
 
 		if (frame.frame_type != AMQP_FRAME_BODY) {
-			log_msg(LOG_CRITICAL, "Expected body!");
+			sr_log_msg(LOG_CRITICAL, "Expected body!");
 			abort();
 		}
 
@@ -689,16 +689,16 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 			(int)frame.payload.body_fragment.len );
 
 		body_received += frame.payload.body_fragment.len;
-	    log_msg(LOG_DEBUG, "frame received: %lu bytes \n",  frame.payload.body_fragment.len );
+	    sr_log_msg(LOG_DEBUG, "frame received: %lu bytes \n",  frame.payload.body_fragment.len );
 
 		buf[body_received] = '\0';
     }
 
     if (body_received != body_target) {
-	    log_msg(LOG_ERROR, "incomplete message, recieved: %lu bytes, expected: %lu bytes\n",  body_received, body_target );
+	    sr_log_msg(LOG_ERROR, "incomplete message, recieved: %lu bytes, expected: %lu bytes\n",  body_received, body_target );
 		return (NULL);
     } else {
-	    log_msg(LOG_DEBUG, "complete message, recieved: %lu bytes \n",  body_received );
+	    sr_log_msg(LOG_DEBUG, "complete message, recieved: %lu bytes \n",  body_received );
     }
 
 	/* Can only happen when amqp_simple_wait_frame returns <= 0 */
@@ -744,10 +744,10 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
             jo = json_tokener_parse( buf );
 
             if (jo == NULL) {
-			    log_msg( LOG_ERROR, "failed to parse message body: %s", buf);
+			    sr_log_msg( LOG_ERROR, "failed to parse message body: %s", buf);
                 return(NULL);
             } else {
-			    log_msg( LOG_DEBUG, "successfully parsed message body: %s", buf);
+			    sr_log_msg( LOG_DEBUG, "successfully parsed message body: %s", buf);
             }
             json_object_object_foreach( jo, k, jso_kv ) {
                 v03assign_field(k, jso_kv);
@@ -755,7 +755,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
             json_object_put(jo); //attempting to free everything?
             jo=NULL;
 #else
-            log_msg( LOG_ERROR, "v03 parsing not compiled in, recompile with libjson-c support\n" );
+            sr_log_msg( LOG_ERROR, "v03 parsing not compiled in, recompile with libjson-c support\n" );
 #endif
 
     }

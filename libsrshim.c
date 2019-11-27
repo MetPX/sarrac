@@ -108,7 +108,7 @@ void setup_pfo()
 		}
 		closedir(fddir);
 	}
-	log_msg(LOG_DEBUG, "setup pfo done.\n");
+	sr_log_msg(LOG_DEBUG, "setup pfo done.\n");
 }
 
 static struct sr_context *sr_c = NULL;
@@ -161,13 +161,13 @@ int should_not_post(const char *fn)
 			    ((*remembered_filenames)[i].ts.tv_sec +
 			     (*remembered_filenames)[i].ts.tv_nsec / 1e9);
 			if (interval < sr_cfg.shim_post_minterval) {
-				log_msg(LOG_DEBUG,
+				sr_log_msg(LOG_DEBUG,
 					"suppress repeated post of %s (count=%d) (only: %g seconds ago, minterval is: %g)\n",
 					fn, remembered_count, interval, sr_cfg.shim_post_minterval);
 				(*remembered_filenames)[i].clean = 0;
 				return (1);
 			} else {
-				log_msg(LOG_DEBUG,
+				sr_log_msg(LOG_DEBUG,
 					"shim_post_minterval (%g) exceeded (%g), repeat post of %s (count=%d) \n",
 					sr_cfg.shim_post_minterval, interval, fn, remembered_count);
 				(*remembered_filenames)[i].ts = ts;
@@ -198,7 +198,7 @@ int should_not_post(const char *fn)
 	(*remembered_filenames)[remembered_count].ts = ts;
 	(*remembered_filenames)[remembered_count++].name = strdup(fn);
 
-	log_msg(LOG_DEBUG, "remembering post of %s (count=%d) \n", fn, remembered_count);
+	sr_log_msg(LOG_DEBUG, "remembering post of %s (count=%d) \n", fn, remembered_count);
 	return (0);
 
 }
@@ -212,7 +212,7 @@ void srshim_initialize(const char *progname)
 	char *setstr;
 	int finalize_good;
 
-	//log_msg( LOG_DEBUG, "FIXME srshim_initialize %s starting..\n", progname);
+	//sr_log_msg( LOG_DEBUG, "FIXME srshim_initialize %s starting..\n", progname);
 	if (sr_c)
 		return;
 
@@ -221,7 +221,7 @@ void srshim_initialize(const char *progname)
 	if (setstr == NULL)
 		return;
 
-	//log_msg( LOG_DEBUG, "FIXME srshim_initialize 2 %s setstr=%p\n", progname, setstr);
+	//sr_log_msg( LOG_DEBUG, "FIXME srshim_initialize 2 %s setstr=%p\n", progname, setstr);
 
 	// skip many FD to try to avoid stepping over stdout stderr, for logs & broker connection.
 	if (config_read == 0) {
@@ -230,7 +230,7 @@ void srshim_initialize(const char *progname)
 		config_read = sr_config_read(&sr_cfg, setstr, 1, 1);
 		free(setstr);
 		if (!config_read) {
-			log_msg(LOG_ERROR,
+			sr_log_msg(LOG_ERROR,
 				"srshim_initialize problem with configuration file. library disabled\n");
 			shim_disabled = 1;	// turn off the library so stuff works without it.
 			errno = 0;
@@ -291,12 +291,12 @@ void srshim_realpost(const char *path)
 	char fn[PATH_MAX + 1];
 	char fnreal[PATH_MAX + 1];
 
-	//log_msg( LOG_DEBUG, "FIXME realpost PATH %s src=%p\n", path, sr_c);
+	//sr_log_msg( LOG_DEBUG, "FIXME realpost PATH %s src=%p\n", path, sr_c);
 
 	if (!path || !sr_c)
 		return;
 
-	//log_msg( LOG_DEBUG, "FIXME realpost 2 PATH %s\n", path);
+	//sr_log_msg( LOG_DEBUG, "FIXME realpost 2 PATH %s\n", path);
 
 	statres = lstat(path, &sb);
 
@@ -339,14 +339,14 @@ void srshim_realpost(const char *path)
 	}
 
 	if ((mask && !(mask->accepting)) || (!mask && !(sr_cfg.accept_unmatched))) {	//reject.
-		log_msg(LOG_DEBUG,
+		sr_log_msg(LOG_DEBUG,
 			"mask: %p, mask->accepting=%d accept_unmatched=%d\n",
 			mask, mask->accepting, sr_cfg.accept_unmatched);
 		if (sr_cfg.log_reject)
-			log_msg(LOG_INFO, "sr_%s rejecting pattern: %s\n", sr_cfg.progname, fn);
+			sr_log_msg(LOG_INFO, "sr_%s rejecting pattern: %s\n", sr_cfg.progname, fn);
 		return;
 	}
-	log_msg(LOG_DEBUG, "accepted... %s now\n", fn);
+	sr_log_msg(LOG_DEBUG, "accepted... %s now\n", fn);
 
 	if (should_not_post(fn))
 		return;
@@ -358,7 +358,7 @@ void srshim_realpost(const char *path)
 		return;
 
 	if (statres) {
-		log_msg(LOG_DEBUG, "should be really posting %s now sr_c=%p\n", fn, sr_c);
+		sr_log_msg(LOG_DEBUG, "should be really posting %s now sr_c=%p\n", fn, sr_c);
 		sr_post(sr_c, fn, NULL);
 		return;
 	}
@@ -614,7 +614,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		else if (link_fn_ptr && !flags)
 			status = link_fn_ptr(oldpath, newpath);
 		else {
-			log_msg(LOG_ERROR,
+			sr_log_msg(LOG_ERROR,
 				"SR_SHIMDEBUG renameorlink could not identify real entry point for link\n");
 		}
 	} else {
@@ -623,7 +623,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		else if (renameat_fn_ptr && !flags)
 			status = renameat_fn_ptr(olddirfd, oldpath, newdirfd, newpath);
 		else {
-			log_msg(LOG_ERROR,
+			sr_log_msg(LOG_ERROR,
 				"SR_SHIMDEBUG renameorlink could not identify real entry point for renameat\n");
 			return (-1);
 		}
@@ -651,7 +651,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		snprintf(fdpath, 32, "/proc/self/fd/%d", olddirfd);
 		oreal_return = realpath(fdpath, oreal_path);
 		if (oreal_return) {
-			log_msg(LOG_WARNING,
+			sr_log_msg(LOG_WARNING,
 				"srshim renameorlink could not obtain real_path for olddir=%s failed, no post\n",
 				fdpath);
 			clerror(status);
@@ -667,7 +667,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		snprintf(fdpath, 32, "/proc/self/fd/%d", newdirfd);
 		real_return = realpath(fdpath, real_path);
 		if (real_return) {
-			log_msg(LOG_WARNING,
+			sr_log_msg(LOG_WARNING,
 				"srshim renameorlink could not obtain real_path for newdir=%s failed, no post\n",
 				fdpath);
 			clerror(status);

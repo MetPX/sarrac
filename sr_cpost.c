@@ -106,7 +106,7 @@ int dir_stack_push(char *fn, int wd, dev_t dev, ino_t ino)
 	if (!present) {
 		t = (struct dir_stack *)(malloc(sizeof(struct dir_stack)));
 		if (!t) {
-			log_msg(LOG_ERROR,
+			sr_log_msg(LOG_ERROR,
 				"ERROR: failed to malloc adding to dir_stack for: %s\n", fn);
 			return (0);
 		}
@@ -236,7 +236,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 	//sb.st_mtim.tv_nsec=0;
 
 	//if (sr_c->cfg->debug)
-	//    log_msg( LOG_DEBUG, "do1file starting on: %s\n", fn );
+	//    sr_log_msg( LOG_DEBUG, "do1file starting on: %s\n", fn );
 	/* apply the accept/reject clauses */
 
 	// FIXME BUG: pattern to match is supposed to be complete URL, not just path...
@@ -266,7 +266,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 	if ((mask && !(mask->accepting))
 	    || (!mask && !(sr_c->cfg->accept_unmatched))) {
 		if (sr_c->cfg->log_reject)
-			log_msg(LOG_INFO, "rejecting pattern: %s\n", fn);
+			sr_log_msg(LOG_INFO, "rejecting pattern: %s\n", fn);
 		return;
 	}
 
@@ -277,7 +277,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 
 	if (S_ISLNK(sb.st_mode)) {	// process a symbolic link.
 		if (sr_c->cfg->debug)
-			log_msg(LOG_DEBUG,
+			sr_log_msg(LOG_DEBUG,
 				"debug: %s is a symbolic link. (follow=%s) posting\n",
 				fn, (sr_c->cfg->follow_symlinks) ? "on" : "off");
 
@@ -291,7 +291,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 			return;
 
 		if (stat(fn, &sb) < 0) {	// repeat the stat, but for the destination.
-			log_msg(LOG_ERROR, "failed to stat: %s\n", fn);
+			sr_log_msg(LOG_ERROR, "failed to stat: %s\n", fn);
 			return;
 		}
 		//if (ts_newer( latest_min_mtim, sb.st_mtim ) ) return; // only the link was new.
@@ -301,7 +301,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 	if (S_ISDIR(sb.st_mode))	// process a directory.
 	{
 		if (sr_c->cfg->debug)
-			log_msg(LOG_DEBUG,
+			sr_log_msg(LOG_DEBUG,
 				"info: opening directory: %s, first_call=%s, recursive=%s, follow_symlinks=%s\n",
 				fn, first_call ? "on" : "off",
 				(sr_c->cfg->recursive) ? "on" : "off",
@@ -317,7 +317,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 		if (!sr_c->cfg->force_polling) {
 			w = inotify_add_watch(inot_fd, fn, inotify_event_mask);
 			if (w < 0) {
-				log_msg(LOG_ERROR, "failed to add_watch: %s\n", fn);
+				sr_log_msg(LOG_ERROR, "failed to add_watch: %s\n", fn);
 				return;
 			}
 		} else
@@ -325,14 +325,14 @@ void do1file(struct sr_context *sr_c, char *fn)
 
 		if (!dir_stack_push(fn, w, sb.st_dev, sb.st_ino)) {
 			if (sr_c->cfg->log_reject)
-				log_msg(LOG_INFO, "rejecting loop: %s\n", fn);
+				sr_log_msg(LOG_INFO, "rejecting loop: %s\n", fn);
 			return;
 		}		//else 
-		//log_msg( LOG_DEBUG, "pushed on stack: %s\n", fn );
+		//sr_log_msg( LOG_DEBUG, "pushed on stack: %s\n", fn );
 
 		dir = opendir(fn);
 		if (!dir) {
-			log_msg(LOG_ERROR, "failed to open directory: %s\n", fn);
+			sr_log_msg(LOG_ERROR, "failed to open directory: %s\n", fn);
 			return;
 		}
 
@@ -348,7 +348,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 		closedir(dir);
 
 		if (sr_c->cfg->debug)
-			log_msg(LOG_DEBUG, "info: closing directory: %s\n", fn);
+			sr_log_msg(LOG_DEBUG, "info: closing directory: %s\n", fn);
 
 	} else {
 		//if (ts_newer( sb.st_mtim, latest_min_mtim )) 
@@ -395,18 +395,18 @@ void dir_stack_check4events(struct sr_context *sr_c)
 
 			for (d = dir_stack_top; d && (e->wd != d->wd); d = d->next) ;
 			if (!d) {
-				log_msg(LOG_ERROR, "cannot find path for event %s\n", e->name);
+				sr_log_msg(LOG_ERROR, "cannot find path for event %s\n", e->name);
 				continue;
 			}
 			sprintf(fn, "%s/%s", d->path, e->name);
 
-			log_msg(LOG_DEBUG,
+			sr_log_msg(LOG_DEBUG,
 				"bytes read: %d, sz ev: %ld, event: %04x %s: len=%d, fn=%s\n",
 				ret, sizeof(struct inotify_event) + e->len,
 				e->mask, inotify_event_2string(e->mask), e->len, fn);
 
 			if ((e->mask & IN_IGNORED)) {
-				log_msg(LOG_DEBUG,"ignoring IGNORE event\n" );
+				sr_log_msg(LOG_DEBUG,"ignoring IGNORE event\n" );
 				continue;
 			}
 			/*
@@ -415,7 +415,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 			 */
 			if (e->mask & IN_ISDIR)  {
                 if (e->mask & IN_DELETE) {
-   				    log_msg(LOG_DEBUG,
+   				    sr_log_msg(LOG_DEBUG,
 				    	"detected directory removal, removing from internal data structures");
     				dir_stack_rm(fn);
     				continue;
@@ -432,7 +432,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 			 */
 			if (((e->mask & IN_MOVED_FROM) == IN_MOVED_FROM)
 			    || ((e->mask & IN_MOVED_TO) == IN_MOVED_TO)) {
-				log_msg(LOG_DEBUG, "rename, %sname=%s\n",
+				sr_log_msg(LOG_DEBUG, "rename, %sname=%s\n",
 					((e->mask & IN_MOVED_TO) ==
 					 IN_MOVED_TO) ? "new" : "old", fn);
 				if (old_names) {
@@ -442,13 +442,13 @@ void dir_stack_check4events(struct sr_context *sr_c)
 						prevon = on;
 					if (on) {
 						if (on->ofn) {
-							log_msg(LOG_DEBUG,
+							sr_log_msg(LOG_DEBUG,
 								"ok invoking rename ofn=%s %s\n",
 								on->ofn, fn);
 							sr_post_rename(sr_c, on->ofn, fn);
 							free(on->ofn);
 						} else {
-							log_msg(LOG_DEBUG,
+							sr_log_msg(LOG_DEBUG,
 								"ok invoking rename %s nfn=%s\n",
 								fn, on->nfn);
 							sr_post_rename(sr_c, fn, on->nfn);
@@ -488,7 +488,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 
 			HASH_FIND_STR(entries_done, fn, tmpe);
 
-			log_msg(LOG_DEBUG,
+			sr_log_msg(LOG_DEBUG,
 				"looking in entries_done, for %s, result=%p\n", fn, tmpe);
 
 			if (!tmpe) {
@@ -497,15 +497,15 @@ void dir_stack_check4events(struct sr_context *sr_c)
 				new_entry->fn = strdup(fn);
 				HASH_ADD_KEYPTR(hh, entries_done, new_entry->fn,
 						strlen(new_entry->fn), new_entry);
-				log_msg(LOG_DEBUG,
+				sr_log_msg(LOG_DEBUG,
 					"e->mask=%04x from:  %04x  to: %04x \n",
 					e->mask, IN_MOVED_FROM, IN_MOVED_TO);
 				if (!(e->mask & (IN_MOVED_FROM | IN_MOVED_TO))) {
-					log_msg(LOG_DEBUG, "do one file: %s\n", fn);
+					sr_log_msg(LOG_DEBUG, "do one file: %s\n", fn);
 					do1file(sr_c, fn);
 				}
 			} else {
-				log_msg(LOG_DEBUG, "entries_done hit! ignoring:%s\n", fn);
+				sr_log_msg(LOG_DEBUG, "entries_done hit! ignoring:%s\n", fn);
 			}
 		}
 	}
@@ -542,9 +542,9 @@ int sr_cpost_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
 		sr_c->cfg->progname, sr_c->cfg->configname);
 
 	if (!sr_post_cleanup(sr_c)) {
-		log_msg(LOG_WARNING, "failed to delete exchange: %s\n", sr_cfg->exchange);
+		sr_log_msg(LOG_WARNING, "failed to delete exchange: %s\n", sr_cfg->exchange);
 	} else {
-		log_msg(LOG_INFO, "exchange: %s deleted\n", sr_cfg->exchange);
+		sr_log_msg(LOG_INFO, "exchange: %s deleted\n", sr_cfg->exchange);
 	}
 	sr_context_close(sr_c);
 	sr_config_free(sr_cfg);
@@ -759,7 +759,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!sr_config_finalize(&sr_cfg, 0)) {
-		log_msg(LOG_ERROR, "something missing, failed to finalize config\n");
+		sr_log_msg(LOG_ERROR, "something missing, failed to finalize config\n");
 		sr_config_free(&sr_cfg);
 		return (1);
 	}
@@ -778,13 +778,13 @@ int main(int argc, char **argv)
 
 	if ((sr_cfg.sleep <= 0.0) &&
 	    ((!strcmp(sr_cfg.action, "start")) || (!strcmp(sr_cfg.action, "restart")))) {
-		log_msg(LOG_WARNING,
+		sr_log_msg(LOG_WARNING,
 			"start|restart with sleep <= 0 does nothing. exiting normally\n");
 		return (0);
 	}
 	sr_c = sr_context_init_config(&sr_cfg, 0);
 	if (!sr_c) {
-		log_msg(LOG_CRITICAL, "failed to read config\n");
+		sr_log_msg(LOG_CRITICAL, "failed to read config\n");
 		sr_config_free(&sr_cfg);
 		return (1);
 	}
@@ -792,7 +792,7 @@ int main(int argc, char **argv)
 	sr_c = sr_context_connect(sr_c);
 
 	if (!sr_c) {
-		log_msg(LOG_CRITICAL, "failed to establish sr_context\n");
+		sr_log_msg(LOG_CRITICAL, "failed to establish sr_context\n");
 		sr_config_free(&sr_cfg);
 		return (1);
 	}
@@ -814,7 +814,7 @@ int main(int argc, char **argv)
 	sr_post_init(sr_c);
 
 	if (!sr_c->cfg->post_base_url) {
-		log_msg(LOG_ERROR, "URL setting missing\n");
+		sr_log_msg(LOG_ERROR, "URL setting missing\n");
 		return (0);
 	}
 
@@ -831,12 +831,12 @@ int main(int argc, char **argv)
 	}
 	// Assert: this is a working instance, not a launcher...
 	if (sr_config_activate(&sr_cfg)) {
-		log_msg(LOG_WARNING,
+		sr_log_msg(LOG_WARNING,
 			"could not save pidfile %s: possible to run conflicting instances  \n",
 			sr_cfg.pidfile);
 	}
 
-	log_msg(LOG_INFO, "%s %s config: %s, pid: %d, starting\n",
+	sr_log_msg(LOG_INFO, "%s %s config: %s, pid: %d, starting\n",
 		sr_cfg.progname, __sarra_version__, sr_cfg.configname, sr_cfg.pid);
 
 	pass = 0;		// when using inotify, have to walk the tree to set the watches initially.
@@ -858,7 +858,7 @@ int main(int argc, char **argv)
 
 		inot_fd = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
 		if (inot_fd < 0)
-			log_msg(LOG_ERROR, "inot init failed: error: %d\n", errno);
+			sr_log_msg(LOG_ERROR, "inot init failed: error: %d\n", errno);
 	}
 
 	while (1) {
@@ -868,7 +868,7 @@ int main(int argc, char **argv)
 			continue;
         }
 		if (sr_cfg.force_polling || !pass) {
-			log_msg(LOG_DEBUG, "starting polling loop pass: %d\n", pass);
+			sr_log_msg(LOG_DEBUG, "starting polling loop pass: %d\n", pass);
 			for (struct sr_path_s * i = sr_cfg.paths; i; i = i->next) {
 				first_call = 1;
 				do1file(sr_c, i->path);
@@ -879,7 +879,7 @@ int main(int argc, char **argv)
 			//if ( sr_cfg.force_polling && !sr_cfg.delete )
 			//    latest_min_mtim = sr_time_of_last_run();
 
-			//log_msg( LOG_ERROR, "latest_min_mtime: %d, %d\n", latest_min_mtim.tv_sec, latest_min_mtim.tv_nsec );
+			//sr_log_msg( LOG_ERROR, "latest_min_mtime: %d, %d\n", latest_min_mtim.tv_sec, latest_min_mtim.tv_nsec );
 		} else {
 
 			dir_stack_check4events(sr_c);	// inotify. process accumulated events.
@@ -894,10 +894,10 @@ int main(int argc, char **argv)
 		if (elapsed < sr_cfg.sleep) {
 			tsleep.tv_sec = (long)(sr_cfg.sleep - elapsed);
 			tsleep.tv_nsec = (long)((sr_cfg.sleep - elapsed) - tsleep.tv_sec);
-			//log_msg( LOG_DEBUG, "debug: watch sleeping for %g seconds. \n", (sr_cfg.sleep-elapsed));
+			//sr_log_msg( LOG_DEBUG, "debug: watch sleeping for %g seconds. \n", (sr_cfg.sleep-elapsed));
 			nanosleep(&tsleep, NULL);
 		} else
-			log_msg(LOG_WARNING,
+			sr_log_msg(LOG_WARNING,
 				"INFO: watch, one pass takes longer (%g) than sleep interval (%g), not sleeping at all\n",
 				elapsed, sr_cfg.sleep);
 
@@ -906,7 +906,7 @@ int main(int argc, char **argv)
 
 	if (sr_cfg.pipe) {
 		if (sr_cfg.sleep > 0.0) {
-			log_msg(LOG_ERROR, "sleep conflicts with pipe. pipe ignored.\n");
+			sr_log_msg(LOG_ERROR, "sleep conflicts with pipe. pipe ignored.\n");
 		} else
 			while (fgets(inbuff, PATH_MAX, stdin) > 0) {
 				inbuff[strlen(inbuff) - 1] = '\0';

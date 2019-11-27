@@ -210,7 +210,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!sr_config_finalize(&sr_cfg, 1)) {
-		log_msg(LOG_ERROR, "failed to finalize configuration\n");
+		sr_log_msg(LOG_ERROR, "failed to finalize configuration\n");
 		return (1);
 	}
 
@@ -227,12 +227,12 @@ int main(int argc, char **argv)
 
 	sr_c = sr_context_init_config(&sr_cfg, 0);
 	if (!sr_c) {
-		log_msg(LOG_ERROR, "failed to build context from configuration\n");
+		sr_log_msg(LOG_ERROR, "failed to build context from configuration\n");
 		return (1);
 	}
 	sr_c = sr_context_connect(sr_c);
 	if (!sr_c) {
-		log_msg(LOG_ERROR, "failed to connect context.\n");
+		sr_log_msg(LOG_ERROR, "failed to connect context.\n");
 		return (1);
 	}
 
@@ -264,18 +264,18 @@ int main(int argc, char **argv)
 
 	if (strcmp(sr_cfg.action, "foreground")) {
 		if (!sr_cfg.outlet) {
-			log_msg(LOG_CRITICAL, "must specify output file when running as daemon.\n");
+			sr_log_msg(LOG_CRITICAL, "must specify output file when running as daemon.\n");
 			return (1);
 		}
 		sr_daemonize(0);
 	}
 	// Assert: this is a working instance, not a launcher...
 	if (sr_config_activate(&sr_cfg)) {
-		log_msg(LOG_WARNING,
+		sr_log_msg(LOG_WARNING,
 			"could not save pidfile %s: possible to run conflicting instances  \n",
 			sr_cfg.pidfile);
 	}
-	log_msg(LOG_INFO,
+	sr_log_msg(LOG_INFO,
 		"%s %s config: %s, pid: %d, queue: %s bound to exchange: %s starting\n",
 		sr_cfg.progname, __sarra_version__, sr_cfg.configname,
 		sr_cfg.pid, sr_cfg.queuename, sr_cfg.exchange);
@@ -292,7 +292,7 @@ int main(int argc, char **argv)
 		if (!m)
 			break;
 
-		log_msg(LOG_INFO, "received: %s\n", sr_message_2log(m));
+		sr_log_msg(LOG_INFO, "received: %s\n", sr_message_2log(m));
 
 		/* apply the accept/reject clauses */
 		// FIXME BUG: pattern to match is supposed to be complete URL, not just path...
@@ -300,7 +300,7 @@ int main(int argc, char **argv)
 		if ((mask && !(mask->accepting))
 		    || (!mask && !(sr_cfg.accept_unmatched))) {
 			if (sr_cfg.log_reject)
-				log_msg(LOG_INFO, "rejecting pattern: %s\n", m->path);
+				sr_log_msg(LOG_INFO, "rejecting pattern: %s\n", m->path);
 			continue;
 		}
 		// check cache.
@@ -311,7 +311,7 @@ int main(int argc, char **argv)
 					   m->path, sr_message_partstr(m));
 
 			if ( (ret <= 0) && ( sr_cfg.log_reject ) ) {
-  				    log_msg( ((ret < 0)?LOG_WARNING:LOG_INFO),
+  				    sr_log_msg( ((ret < 0)?LOG_WARNING:LOG_INFO),
 						"%s : %s %s\n", 
                         (ret < 0) ? "cache problem":"rejecting duplicate", 
 						m->path, sr_message_partstr(m));
