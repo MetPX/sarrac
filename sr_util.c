@@ -130,7 +130,7 @@ void sr_log_setup(const char *fn, mode_t mode, int level, int lr, int lri)
 }
 
 /* global accessor for loglevel, ugly but better than using a global variable... */
-void set_loglevel(int level)
+void sr_set_loglevel(int level)
 {
 	loglevel = level;
 }

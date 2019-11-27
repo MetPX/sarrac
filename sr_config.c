@@ -787,7 +787,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		val = StringIsTrue(argument);
 		sr_cfg->debug = val & 2;
 		sr_cfg->loglevel = LOG_DEBUG;
-		set_loglevel(LOG_DEBUG);
+		sr_set_loglevel(LOG_DEBUG);
 		retval = (1 + (val & 1));
 
 	} else if (!strcmp(option, "declare")) {
@@ -916,7 +916,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		} else {
 			sr_cfg->loglevel = atoi(argument);
 		}
-		set_loglevel(sr_cfg->loglevel);
+		sr_set_loglevel(sr_cfg->loglevel);
 		retval = (2);
 
 	} else if (!strcmp(option, "log")) {
