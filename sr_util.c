@@ -494,7 +494,7 @@ static char sumstr[SR_SUMSTRLEN];
 
 static unsigned char sumhash[SR_SUMHASHLEN];
 
-int get_sumhashlen(char algo)
+int sr_get_sumhashlen(char algo)
 {
 	switch (algo) {
 	case 'd':
@@ -763,7 +763,7 @@ unsigned char *sr_sumstr2hash(const char *s)
 		return (sumhash);
 	}
 
-	for (i = 1; (i < get_sumhashlen(s[0])); i++) {
+	for (i = 1; (i < sr_get_sumhashlen(s[0])); i++) {
 		sumhash[i] =
 		    (unsigned char)((hexchr2nibble(s[i << 1]) << 4) +
 				    hexchr2nibble(s[(i << 1) + 1]));
@@ -784,7 +784,7 @@ char *sr_hash2sumstr(const unsigned char *h)
 		return (sumstr);
 	}
 
-	for (i = 1; i < get_sumhashlen(h[0]); i++) {
+	for (i = 1; i < sr_get_sumhashlen(h[0]); i++) {
 		sumstr[i * 2] = nibble2hexchr(h[i] >> 4);
 		sumstr[i * 2 + 1] = nibble2hexchr(h[i]);
 	}

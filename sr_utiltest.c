@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "sumstr=%s", sr_hash2sumstr(sr_sumstr2hash("z,d")));
 
 	for (i = 0; i < 9; i++) {
-		for (i = 1; i < get_sumhashlen(osumstr[0]); i++)
+		for (i = 1; i < sr_get_sumhashlen(osumstr[0]); i++)
 			fprintf(stderr, " %02d", i);
 		fprintf(stderr, "\n");
 
