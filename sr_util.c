@@ -318,7 +318,7 @@ int sr_has_vip(char const *vip) {
 }
 
 
-void daemonize(int close_stdout)
+void sr_daemonize(int close_stdout)
 /* 
    fork child,  parent then exits.  child returns with proper daemon prep done.
  */

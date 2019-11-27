@@ -267,7 +267,7 @@ int main(int argc, char **argv)
 			log_msg(LOG_CRITICAL, "must specify output file when running as daemon.\n");
 			return (1);
 		}
-		daemonize(0);
+		sr_daemonize(0);
 	}
 	// Assert: this is a working instance, not a launcher...
 	if (sr_config_activate(&sr_cfg)) {

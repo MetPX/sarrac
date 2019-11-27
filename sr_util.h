@@ -67,7 +67,7 @@ int sr_is_utf8(const char *string);
  */
 int sr_has_vip(char const *vip);
  
-void daemonize(int close_stdout);
+void sr_daemonize(int close_stdout);
 // executed to go from a management instance to a daemon working instance.
 
 
