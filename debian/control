@@ -11,8 +11,8 @@ Vcs-Git: https//github.com/MetPX/sarrac
 Package: libsarrac-dev
 Section: libdevel
 Architecture: all
-Depends: sarrac (= ${binary:Version}), ${misc:Depends} 
-Recommends: metpx-sarracenia (>= 2.18.04 )
+Depends: libsarrac (= ${binary:Version}), ${misc:Depends}, librabbitmq4, librabbitmq-dev
+Recommends: metpx-sarracenia (>= 2.19.04 )
 Description: C-Implementation of a Sarracenia Client
  API library could be used to integrate sarra posting into C applications.
  See http://github.com/MetPX/ for more information.
@@ -21,8 +21,8 @@ Description: C-Implementation of a Sarracenia Client
 Package: libsarrac
 Section: libs
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: metpx-sarracenia (>= 2.18.04 )
+Depends: ${shlibs:Depends}, ${misc:Depends}, librabbitmq4
+Recommends: metpx-sarracenia (>= 2.19.04 )
 Description: C-Implementation of a Sarracenia Client
  API library that builds against librabbitmq
  includes sarracenia posting and consuming implementations.
@@ -31,8 +31,8 @@ Description: C-Implementation of a Sarracenia Client
 
 Package: sarrac
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: metpx-sarracenia (>= 2.18.04 )
+Depends: ${shlibs:Depends}, ${misc:Depends}, libsarrac
+Recommends: metpx-sarracenia (>= 2.19.04 )
 Description: C-Implementation of a Sarracenia Client
  sr_cpost, implementation of sr_post (see metpx-sarracenia)
  sr_cpump, implementation of sr_shovel (see metpx-sarracenia)
