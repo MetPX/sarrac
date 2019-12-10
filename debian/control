@@ -31,7 +31,7 @@ Description: C-Implementation of a Sarracenia Client
 
 Package: sarrac
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, libsarrac
+Depends: ${shlibs:Depends}, ${misc:Depends}, libsarrac (= ${binary:Version})
 Recommends: metpx-sarracenia (>= 2.19.04 )
 Description: C-Implementation of a Sarracenia Client
  sr_cpost, implementation of sr_post (see metpx-sarracenia)
