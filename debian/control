@@ -11,7 +11,7 @@ Vcs-Git: https//github.com/MetPX/sarrac
 Package: libsarrac-dev
 Section: libdevel
 Architecture: all
-Depends: libsarrac (= ${binary:Version}), ${misc:Depends}, librabbitmq4, librabbitmq-dev
+Depends: libsarrac (= ${binary:Version}), ${misc:Depends}, librabbitmq4  ( >= 0.8 ), librabbitmq-dev
 Recommends: metpx-sarracenia (>= 2.19.04 )
 Description: C-Implementation of a Sarracenia Client
  API library could be used to integrate sarra posting into C applications.
@@ -21,7 +21,7 @@ Description: C-Implementation of a Sarracenia Client
 Package: libsarrac
 Section: libs
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, librabbitmq4
+Depends: ${shlibs:Depends}, ${misc:Depends}, librabbitmq4 ( >= 0.8 )
 Recommends: metpx-sarracenia (>= 2.19.04 )
 Description: C-Implementation of a Sarracenia Client
  API library that builds against librabbitmq
