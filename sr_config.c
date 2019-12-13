@@ -1629,6 +1629,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			"\tsource=%s to=%s post_base_url=%s topic_prefix=%s post_topic_prefix=%s, pid=%d\n",
 			sr_cfg->source, sr_cfg->to, sr_cfg->post_base_url,
 			sr_cfg->topic_prefix, sr_cfg->post_topic_prefix, sr_cfg->pid);
+		sr_log_msg(LOG_DEBUG, "man sr_post(1) for more information\n");
 	}
 	// FIXME: Missing: topics, user_headers, 
 	if (!strcmp(sr_cfg->progname, "post")
