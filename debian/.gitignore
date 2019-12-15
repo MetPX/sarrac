@@ -1,9 +1,11 @@
 .debhelper
 files
-libsarrac/.*
+libsarrac-dev/*
+libsarrac/*
 debhelper-build-stamp
-sarrac.substvars
+*.substvars
+*.log
 sarrac
-sarrac/.*
+sarrac/*
 sarrac-server.substvars
     
