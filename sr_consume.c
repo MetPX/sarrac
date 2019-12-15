@@ -142,8 +142,6 @@ int sr_consume_setup(struct sr_context *sr_c)
 	sr_log_msg(LOG_DEBUG, "topics: %p, string=+%p+\n", sr_c->cfg->topics, sr_c->cfg->topics);
 
 	for (t = sr_c->cfg->topics; t; t = t->next) {
-		sr_log_msg(LOG_INFO, "queue %s bound with topic %s to %s\n",
-			sr_c->cfg->queuename, t->topic, sr_broker_uri(sr_c->cfg->broker));
 		amqp_queue_bind(sr_c->cfg->broker->conn, 1,
 				amqp_cstring_bytes(sr_c->cfg->queuename),
 				amqp_cstring_bytes(sr_c->cfg->broker->exchange),
@@ -154,6 +152,8 @@ int sr_consume_setup(struct sr_context *sr_c)
 			sr_amqp_reply_print(reply, "binding failed");
 			return (0);
 		}
+		sr_log_msg(LOG_INFO, "queue %s bound with topic %s to %s\n",
+			sr_c->cfg->queuename, t->topic, sr_broker_uri(sr_c->cfg->broker));
 	}
 	return (1);
 }

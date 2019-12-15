@@ -143,6 +143,7 @@ int main(int argc, char **argv)
 	struct sr_config_s sr_cfg;
 	struct sr_mask_s *mask;
 	int consume, i, ret;
+    int backoff=1;
 	char *one;
 
 	//if ( argc < 3 ) usage();
@@ -246,8 +247,14 @@ int main(int argc, char **argv)
 	// dont consume_setup or post_init if in cleanup
 	// (just hangs when attempting to bind queue with cleaned up exchange)
 	if (strcmp(sr_cfg.action, "cleanup")) {
-		sr_consume_setup(sr_c);
 
+        while(!sr_consume_setup(sr_c)) { /* loop until success */
+		       sr_log_msg(LOG_ERROR, "Due to binding failure, sleeping for %d seconds to rety.\n", backoff);
+	           sr_context_close(sr_c);
+               sleep(backoff);
+               if ( backoff < 60 ) backoff *= 2;
+	           sr_c = sr_context_connect(sr_c);
+        }
 		if (!strcmp(sr_cfg.outlet, "post"))
 			sr_post_init(sr_c);
 	}

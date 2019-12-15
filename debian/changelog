@@ -1,3 +1,9 @@
+sarrac (2.19.12b1) UNRELEASED; urgency=medium
+
+  * have binding attempts loop on error (do not accept failure to bind.)
+
+ -- Peter Silva <peter@blacklab>  Sun, 15 Dec 2019 00:28:37 -0500
+
 sarrac (2.19.11b2) unstable; urgency=medium
 
   * fix: #76  crash with libsrshim and sed command.

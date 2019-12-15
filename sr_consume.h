@@ -73,6 +73,8 @@ struct sr_message_s {
 int sr_consume_setup(struct sr_context *sr_c);
 /* 
    declare and bind queue over a connection already established by context_init
+
+    return: 1 on success, 0 on failure.
  */
 
 int sr_consume_cleanup(struct sr_context *sr_c);
