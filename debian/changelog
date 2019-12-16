@@ -1,6 +1,8 @@
-sarrac (2.19.12b1) UNRELEASED; urgency=medium
+sarrac (2.19.12b2) unstable; urgency=medium
 
-  * have binding attempts loop on error (do not accept failure to bind.)
+  * now loops forever if binding fails (do not accept failure to bind.)
+  * fix: #80 systematic cleanup for problem in #76. minimizing overall risk.
+  * improved debian packaging dependencies.
 
  -- Peter Silva <peter@blacklab>  Sun, 15 Dec 2019 00:28:37 -0500
 
