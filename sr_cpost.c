@@ -419,7 +419,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 				    	"detected directory removal, removing from internal data structures");
     				dir_stack_rm(fn);
     				continue;
-                } else if ( e->mask & IN_CREATE ) {
+                } else if ( e->mask & (IN_CREATE|IN_ATTRIB) ) {
 					do1file(sr_c, fn);
                 }
 			} else if ( (e->mask & IN_CREATE) && ! (sr_c->cfg->events & SR_CREATE) ) {
@@ -845,7 +845,7 @@ int main(int argc, char **argv)
 	if (!sr_cfg.force_polling) {
 
         // IN_CREATE must be included always in order to add directories to inotfd when created.
-		inotify_event_mask = IN_DONT_FOLLOW| IN_CREATE;
+		inotify_event_mask =  IN_DONT_FOLLOW| IN_CREATE | IN_ATTRIB  ;
 
 		if (sr_cfg.events & SR_CREATE)	
 			inotify_event_mask |= IN_CREATE | IN_MOVED_FROM | IN_MOVED_TO;
@@ -859,7 +859,7 @@ int main(int argc, char **argv)
 		inot_fd = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
 		if (inot_fd < 0)
 			sr_log_msg(LOG_ERROR, "inot init failed: error: %d\n", errno);
-	}
+	} 
 
 	while (1) {
 
