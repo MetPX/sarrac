@@ -20,7 +20,7 @@ Description: C-Implementation of a Sarracenia Client
 Package: libsarrac
 Section: libs
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, librabbitmq4 ( >= 0.8 ), libssl, libjson-c
+Depends: ${shlibs:Depends}, ${misc:Depends}, librabbitmq4 ( >= 0.8 )
 Recommends: metpx-sarracenia (>= 2.19.04 )
 Description: C-Implementation of a Sarracenia Client
  API library that builds against librabbitmq
