@@ -500,7 +500,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 				sr_log_msg(LOG_DEBUG,
 					"e->mask=%04x from:  %04x  to: %04x \n",
 					e->mask, IN_MOVED_FROM, IN_MOVED_TO);
-				if (!(e->mask & (IN_MOVED_FROM | IN_MOVED_TO))) {
+				if (!(e->mask & (IN_ATTRIB|IN_MOVED_FROM | IN_MOVED_TO))) {
 					sr_log_msg(LOG_DEBUG, "do one file: %s\n", fn);
 					do1file(sr_c, fn);
 				}
