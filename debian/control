@@ -2,7 +2,6 @@ Source: sarrac
 Priority: optional
 Maintainer: Shared Services Canada Supercomputing <ssc.hpc-chp.spc@canada.ca>
 Build-Depends: debhelper (>=9), librabbitmq4 ( >= 0.8 ), librabbitmq-dev ( >= 0.8 ), libssl-dev, libjson-c-dev
-Depends: librabbitmq4 ( >= 0.8 ), libssl, libjson-c
 Standards-Version: 3.9.6
 Section: libs
 Homepage: https://github.com/MetPX
@@ -21,7 +20,7 @@ Description: C-Implementation of a Sarracenia Client
 Package: libsarrac
 Section: libs
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, librabbitmq4 ( >= 0.8 )
+Depends: ${shlibs:Depends}, ${misc:Depends}, librabbitmq4 ( >= 0.8 ), libssl, libjson-c
 Recommends: metpx-sarracenia (>= 2.19.04 )
 Description: C-Implementation of a Sarracenia Client
  API library that builds against librabbitmq

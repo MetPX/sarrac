@@ -1,10 +1,16 @@
+sarrac (2.19.12b3) unstable; urgency=medium
+
+  * fix: #83 for RCM use case 
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 17 Dec 2019 23:21:02 -0500
+
 sarrac (2.19.12b2) unstable; urgency=medium
 
   * now loops forever if binding fails (do not accept failure to bind.)
   * fix: #80 systematic cleanup for problem in #76. minimizing overall risk.
   * improved debian packaging dependencies.
 
- -- Peter Silva <peter@blacklab>  Sun, 15 Dec 2019 00:28:37 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Sun, 15 Dec 2019 00:28:37 -0500
 
 sarrac (2.19.11b2) unstable; urgency=medium
 
