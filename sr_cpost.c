@@ -500,9 +500,11 @@ void dir_stack_check4events(struct sr_context *sr_c)
 				sr_log_msg(LOG_DEBUG,
 					"e->mask=%04x from:  %04x  to: %04x \n",
 					e->mask, IN_MOVED_FROM, IN_MOVED_TO);
-				if (!(e->mask & (IN_ATTRIB|IN_MOVED_FROM | IN_MOVED_TO))) {
-					sr_log_msg(LOG_DEBUG, "do one file: %s\n", fn);
-					do1file(sr_c, fn);
+				if (!(e->mask & (IN_ATTRIB|IN_MOVED_FROM|IN_MOVED_TO))) {
+		            if (  !( e->mask & IN_ATTRIB) || (sr_c->cfg->events & SR_ATTRIB) ) {
+					    sr_log_msg(LOG_DEBUG, "do one file: %s\n", fn);
+					    do1file(sr_c, fn);
+                    }
 				}
 			} else {
 				sr_log_msg(LOG_DEBUG, "entries_done hit! ignoring:%s\n", fn);
@@ -622,6 +624,7 @@ void usage()
 		"\t\tcreate - file creation (generally empty files are not interesting.)\n");
 	fprintf(stderr, "\t\tmodify - when files being written are closed (most interesting.)\n");
 	fprintf(stderr, "\t\tdelete - when files removed. \n");
+	fprintf(stderr, "\t\tattrib - when files chown, chmoded, or touched. \n");
 	fprintf(stderr,
 		"\t\tlink - when files are linked or symbolically linked removed (converted to symlink). \n");
 	fprintf(stderr,

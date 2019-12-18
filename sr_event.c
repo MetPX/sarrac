@@ -3,6 +3,10 @@
 
 #include "sr_event.h"
 
+/*
+ * 
+ * FIXME: No error handling! if you mis-spell an event, it just sucks to be you! 
+ */
 static void str2event(char *evstr, sr_event_s * evbm)
 {
 	if (!strcmp(evstr, "modify"))
@@ -13,6 +17,8 @@ static void str2event(char *evstr, sr_event_s * evbm)
 		(*evbm) |= SR_DELETE;
 	if (!strcmp(evstr, "create"))
 		(*evbm) |= SR_CREATE;
+	if (!strcmp(evstr, "attrib"))
+		(*evbm) |= SR_ATTRIB;
 }
 
 sr_event_s sr_parse_events(char *el)
