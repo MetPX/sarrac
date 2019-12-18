@@ -1,4 +1,4 @@
-sarrac (2.19.12b3ubuntu1) UNRELEASED; urgency=medium
+sarrac (2.19.12b4) unstable; urgency=medium
 
   * more fix for #83, added attrib event. 
   * dependencies were perhaps broken in b3?
