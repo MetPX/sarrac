@@ -1,3 +1,10 @@
+sarrac (2.19.12b3ubuntu1) UNRELEASED; urgency=medium
+
+  * more fix for #83, added attrib event. 
+  * dependencies were perhaps broken in b3?
+
+ -- Peter Silva <peter@blacklab>  Wed, 18 Dec 2019 09:26:17 -0500
+
 sarrac (2.19.12b3) unstable; urgency=medium
 
   * fix: #83 for RCM use case 
