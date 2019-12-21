@@ -20,6 +20,10 @@
 //for opendir/readdir
 #include <dirent.h>
 
+//for errno
+#include <string.h>
+#include <errno.h>
+
 #include "sr_version.h"
 
 #include "sr_consume.h"
@@ -79,6 +83,7 @@ int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
 	char cache_fil[PATH_MAX];
 	struct stat sb;
 	struct dirent *e;
+    char *s;
 
 	// if running, warn no cleanup
 	if (sr_cfg->pid > 0) {
@@ -88,7 +93,12 @@ int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
 				"cannot cleanup : sr_cpump configuration %s is running\n",
 				sr_cfg->configname);
 			return (1);
-		}
+		} else if ( ret < 0  ) {
+            s = strerror_r( errno, cache_fil, PATH_MAX-1 );
+			fprintf(stderr, 
+               "cannot cleanup sr_cpump configuration %s, failed to check pid ( %d ): %s ",
+               sr_cfg->configname, sr_cfg->pid, s );
+        }
 	}
 
 	sprintf(cache_dir, "%s/.cache/sarra/%s/%s", getenv("HOME"),

@@ -1,3 +1,9 @@
+sarrac (2.19.12b5) UNRELEASED; urgency=medium
+
+  * improving some error messages.
+
+ -- Peter Silva <peter@blacklab>  Fri, 20 Dec 2019 21:46:32 -0500
+
 sarrac (2.19.12b4) unstable; urgency=medium
 
   * more fix for #83, added attrib event. 
