@@ -636,6 +636,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
         } else switch (p->headers.entries[i].value.kind) {
             case AMQP_FIELD_KIND_I8:
                 sr_log_msg(LOG_WARNING, "skipping I8 header %d value:%d\n", i, (p->headers.entries[i].value.value.i8) );
+                goto after_headers;
                 break;
 
             case AMQP_FIELD_KIND_TIMESTAMP:
@@ -666,23 +667,29 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 
             case AMQP_FIELD_KIND_U64:
 			    sr_log_msg(LOG_WARNING, "skipping U64 header %d value:%ld\n", i, (p->headers.entries[i].value.value.u64) );
+                goto after_headers;
                 break;
 
 
             case AMQP_FIELD_KIND_ARRAY:
 			    sr_log_msg(LOG_WARNING, "skipping ARRAY header %d\n", i );
+                goto after_headers;
                 break;
 
 
             case AMQP_FIELD_KIND_I64:
 			    sr_log_msg(LOG_WARNING, "skipping I64  header %d: value:%ld\n", i, (p->headers.entries[i].value.value.i64) );
+                goto after_headers;
                 break;
 
             default:
-			     sr_log_msg(LOG_WARNING, "skipping non UTF8 header: kind:%d\n", p->headers.entries[i].value.kind );
+			    sr_log_msg(LOG_WARNING, "skipping non UTF8 header: kind:%d\n", p->headers.entries[i].value.kind );
+                goto after_headers;
+                
         }
 	}
 
+after_headers:
 	body_target = frame.payload.properties.body_size;
 	body_received = 0;
 
