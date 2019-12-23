@@ -20,6 +20,10 @@
 //for opendir/readdir
 #include <dirent.h>
 
+//for errno
+#include <string.h>
+#include <errno.h>
+
 #include "sr_version.h"
 
 #include "sr_consume.h"
@@ -79,6 +83,7 @@ int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
 	char cache_fil[PATH_MAX];
 	struct stat sb;
 	struct dirent *e;
+    char *s;
 
 	// if running, warn no cleanup
 	if (sr_cfg->pid > 0) {
@@ -88,7 +93,12 @@ int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
 				"cannot cleanup : sr_cpump configuration %s is running\n",
 				sr_cfg->configname);
 			return (1);
-		}
+		} else if ( ret < 0  ) {
+            s = strerror_r( errno, cache_fil, PATH_MAX-1 );
+			fprintf(stderr, 
+               "cannot cleanup sr_cpump configuration %s, failed to check pid ( %d ): %s ",
+               sr_cfg->configname, sr_cfg->pid, s );
+        }
 	}
 
 	sprintf(cache_dir, "%s/.cache/sarra/%s/%s", getenv("HOME"),
@@ -143,6 +153,7 @@ int main(int argc, char **argv)
 	struct sr_config_s sr_cfg;
 	struct sr_mask_s *mask;
 	int consume, i, ret;
+    int backoff=1;
 	char *one;
 
 	//if ( argc < 3 ) usage();
@@ -246,8 +257,14 @@ int main(int argc, char **argv)
 	// dont consume_setup or post_init if in cleanup
 	// (just hangs when attempting to bind queue with cleaned up exchange)
 	if (strcmp(sr_cfg.action, "cleanup")) {
-		sr_consume_setup(sr_c);
 
+        while(!sr_consume_setup(sr_c)) { /* loop until success */
+		       sr_log_msg(LOG_ERROR, "Due to binding failure, sleeping for %d seconds to rety.\n", backoff);
+	           sr_context_close(sr_c);
+               sleep(backoff);
+               if ( backoff < 60 ) backoff *= 2;
+	           sr_c = sr_context_connect(sr_c);
+        }
 		if (!strcmp(sr_cfg.outlet, "post"))
 			sr_post_init(sr_c);
 	}

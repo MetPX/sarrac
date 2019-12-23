@@ -17,11 +17,17 @@
  */
 #include <linux/limits.h>
 #include <errno.h>
+
+#define EBUFLEN (127)
+static char *es;
+static char error_buf[EBUFLEN+1];
+
 #include <sys/types.h>
 #include <dirent.h>
 #include <stdlib.h>
 #include <sys/inotify.h>
 #include <unistd.h>
+#include <string.h>
 
 /*
    https://troydhanson.github.io/uthash/userguide.html
@@ -71,7 +77,7 @@ struct dir_stack {
  */
 
 static struct dir_stack *dir_stack_top = NULL;	/* insertion point (end of line.) */
-int dir_stack_size = 0;
+static int dir_stack_size = 0;
 
 /* 
    at the beginning of each poll, need to walk the tree again.
@@ -106,8 +112,9 @@ int dir_stack_push(char *fn, int wd, dev_t dev, ino_t ino)
 	if (!present) {
 		t = (struct dir_stack *)(malloc(sizeof(struct dir_stack)));
 		if (!t) {
+            es=strerror_r( errno, error_buf, EBUFLEN );
 			sr_log_msg(LOG_ERROR,
-				"ERROR: failed to malloc adding to dir_stack for: %s\n", fn);
+				"ERROR: failed to malloc adding to dir_stack for%s: %s\n", fn, es);
 			return (0);
 		}
 
@@ -291,7 +298,8 @@ void do1file(struct sr_context *sr_c, char *fn)
 			return;
 
 		if (stat(fn, &sb) < 0) {	// repeat the stat, but for the destination.
-			sr_log_msg(LOG_ERROR, "failed to stat: %s\n", fn);
+            es=strerror_r( errno, error_buf, EBUFLEN );
+			sr_log_msg(LOG_ERROR, "failed to stat %s: %s\n", fn, es);
 			return;
 		}
 		//if (ts_newer( latest_min_mtim, sb.st_mtim ) ) return; // only the link was new.
@@ -317,7 +325,8 @@ void do1file(struct sr_context *sr_c, char *fn)
 		if (!sr_c->cfg->force_polling) {
 			w = inotify_add_watch(inot_fd, fn, inotify_event_mask);
 			if (w < 0) {
-				sr_log_msg(LOG_ERROR, "failed to add_watch: %s\n", fn);
+                es=strerror_r( errno, error_buf, EBUFLEN );
+				sr_log_msg(LOG_ERROR, "failed to add_watch for %s: %s\n", fn, es );
 				return;
 			}
 		} else
@@ -332,7 +341,8 @@ void do1file(struct sr_context *sr_c, char *fn)
 
 		dir = opendir(fn);
 		if (!dir) {
-			sr_log_msg(LOG_ERROR, "failed to open directory: %s\n", fn);
+            es=strerror_r( errno, error_buf, EBUFLEN );
+			sr_log_msg(LOG_ERROR, "failed to open directory %s: %s\n", fn, es);
 			return;
 		}
 
@@ -419,7 +429,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 				    	"detected directory removal, removing from internal data structures");
     				dir_stack_rm(fn);
     				continue;
-                } else if ( e->mask & IN_CREATE ) {
+                } else if ( e->mask & (IN_CREATE|IN_ATTRIB) ) {
 					do1file(sr_c, fn);
                 }
 			} else if ( (e->mask & IN_CREATE) && ! (sr_c->cfg->events & SR_CREATE) ) {
@@ -500,9 +510,11 @@ void dir_stack_check4events(struct sr_context *sr_c)
 				sr_log_msg(LOG_DEBUG,
 					"e->mask=%04x from:  %04x  to: %04x \n",
 					e->mask, IN_MOVED_FROM, IN_MOVED_TO);
-				if (!(e->mask & (IN_MOVED_FROM | IN_MOVED_TO))) {
-					sr_log_msg(LOG_DEBUG, "do one file: %s\n", fn);
-					do1file(sr_c, fn);
+				if (!(e->mask & (IN_ATTRIB|IN_MOVED_FROM|IN_MOVED_TO))) {
+		            if (  !( e->mask & IN_ATTRIB) || (sr_c->cfg->events & SR_ATTRIB) ) {
+					    sr_log_msg(LOG_DEBUG, "do one file: %s\n", fn);
+					    do1file(sr_c, fn);
+                    }
 				}
 			} else {
 				sr_log_msg(LOG_DEBUG, "entries_done hit! ignoring:%s\n", fn);
@@ -622,6 +634,7 @@ void usage()
 		"\t\tcreate - file creation (generally empty files are not interesting.)\n");
 	fprintf(stderr, "\t\tmodify - when files being written are closed (most interesting.)\n");
 	fprintf(stderr, "\t\tdelete - when files removed. \n");
+	fprintf(stderr, "\t\tattrib - when files chown, chmoded, or touched. \n");
 	fprintf(stderr,
 		"\t\tlink - when files are linked or symbolically linked removed (converted to symlink). \n");
 	fprintf(stderr,
@@ -845,7 +858,7 @@ int main(int argc, char **argv)
 	if (!sr_cfg.force_polling) {
 
         // IN_CREATE must be included always in order to add directories to inotfd when created.
-		inotify_event_mask = IN_DONT_FOLLOW| IN_CREATE;
+		inotify_event_mask =  IN_DONT_FOLLOW| IN_CREATE | IN_ATTRIB  ;
 
 		if (sr_cfg.events & SR_CREATE)	
 			inotify_event_mask |= IN_CREATE | IN_MOVED_FROM | IN_MOVED_TO;
@@ -858,8 +871,9 @@ int main(int argc, char **argv)
 
 		inot_fd = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
 		if (inot_fd < 0)
-			sr_log_msg(LOG_ERROR, "inot init failed: error: %d\n", errno);
-	}
+            es=strerror_r( errno, error_buf, EBUFLEN );
+			sr_log_msg(LOG_ERROR, "inot init failed: %s\n", es);
+	} 
 
 	while (1) {
 

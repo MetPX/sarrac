@@ -1202,6 +1202,12 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 		free(tmph);
 	}
 
+    while ( sr_cfg->topics ) {
+		struct sr_topic_s *tmpt;
+		tmpt = sr_cfg->topics;
+		sr_cfg->topics = sr_cfg->topics->next;
+		free(tmpt);
+    }
 	struct sr_path_s *p = sr_cfg->paths;
 	while (p) {
 		struct sr_path_s *tmpp;

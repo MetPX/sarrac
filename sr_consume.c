@@ -142,8 +142,6 @@ int sr_consume_setup(struct sr_context *sr_c)
 	sr_log_msg(LOG_DEBUG, "topics: %p, string=+%p+\n", sr_c->cfg->topics, sr_c->cfg->topics);
 
 	for (t = sr_c->cfg->topics; t; t = t->next) {
-		sr_log_msg(LOG_INFO, "queue %s bound with topic %s to %s\n",
-			sr_c->cfg->queuename, t->topic, sr_broker_uri(sr_c->cfg->broker));
 		amqp_queue_bind(sr_c->cfg->broker->conn, 1,
 				amqp_cstring_bytes(sr_c->cfg->queuename),
 				amqp_cstring_bytes(sr_c->cfg->broker->exchange),
@@ -154,6 +152,8 @@ int sr_consume_setup(struct sr_context *sr_c)
 			sr_amqp_reply_print(reply, "binding failed");
 			return (0);
 		}
+		sr_log_msg(LOG_INFO, "queue %s bound with topic %s to %s\n",
+			sr_c->cfg->queuename, t->topic, sr_broker_uri(sr_c->cfg->broker));
 	}
 	return (1);
 }
@@ -342,7 +342,7 @@ static void v03assign_field(const char *key, json_object *jso_v)
 
        //FIXME
        if( json_object_get_type(jso_v) != json_type_object ) {
-	       sr_log_msg( LOG_ERROR, "malformed json: intrity should be an object: %d\n", json_object_get_type(jso_v) );
+	       sr_log_msg( LOG_ERROR, "malformed json: integrity should be an object: %d\n", json_object_get_type(jso_v) );
            return;
        }
        json_object_object_get_ex(jso_v, "method", &subvalue);
@@ -616,6 +616,14 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 
 	p = (amqp_basic_properties_t *) frame.payload.properties.decoded;
 
+    /* FIXME */
+    if (p->_flags & AMQP_BASIC_CONTENT_TYPE_FLAG) {
+	      sr_log_msg(LOG_DEBUG, "Content-type: %.*s\n", 
+              (int)p->content_type.len, (char *)p->content_type.bytes);
+    }
+
+
+
 	for (int i = 0; i < p->headers.num_entries; i++) {
 
         // FIXME: bug where num_entries==2, and entries=2 instead of a pointer.... very odd.
@@ -626,6 +634,16 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
                  p->headers.num_entries, (p->headers.entries) );
             return(NULL);
         } else switch (p->headers.entries[i].value.kind) {
+            case AMQP_FIELD_KIND_I8:
+                sr_log_msg(LOG_WARNING, "skipping I8 header %d value:%d\n", i, (p->headers.entries[i].value.value.i8) );
+                goto after_headers;
+                break;
+
+            case AMQP_FIELD_KIND_TIMESTAMP:
+                sr_log_msg(LOG_WARNING, "skipping TIMESTAMP header %d value:%ld\n", i, (p->headers.entries[i].value.value.u64) );
+                break;
+
+            case AMQP_FIELD_KIND_BYTES:
             case AMQP_FIELD_KIND_UTF8:
     			sprintf(tag, "%.*s",
     				(int)p->headers.entries[i].key.len,
@@ -648,24 +666,30 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
                 break;
 
             case AMQP_FIELD_KIND_U64:
-			    sr_log_msg(LOG_WARNING, "skipping U64 header value:%ld\n", (unsigned long)(p->headers.entries[i].value.value.bytes.bytes) );
+			    sr_log_msg(LOG_WARNING, "skipping U64 header %d value:%ld\n", i, (p->headers.entries[i].value.value.u64) );
+                goto after_headers;
                 break;
 
 
             case AMQP_FIELD_KIND_ARRAY:
-			    sr_log_msg(LOG_WARNING, "skipping ARRAY header\n" );
+			    sr_log_msg(LOG_WARNING, "skipping ARRAY header %d\n", i );
+                goto after_headers;
                 break;
 
 
             case AMQP_FIELD_KIND_I64:
-			    sr_log_msg(LOG_WARNING, "skipping I64  header: value:%ld\n", (long)(p->headers.entries[i].value.value.bytes.bytes) );
+			    sr_log_msg(LOG_WARNING, "skipping I64  header %d: value:%ld\n", i, (p->headers.entries[i].value.value.i64) );
+                goto after_headers;
                 break;
 
             default:
-			     sr_log_msg(LOG_WARNING, "skipping non UTF8 header: kind:%d\n", p->headers.entries[i].value.kind );
+			    sr_log_msg(LOG_WARNING, "skipping non UTF8 header: kind:%d\n", p->headers.entries[i].value.kind );
+                goto after_headers;
+                
         }
 	}
 
+after_headers:
 	body_target = frame.payload.properties.body_size;
 	body_received = 0;
 

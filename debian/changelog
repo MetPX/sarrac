@@ -1,3 +1,31 @@
+sarrac (2.19.12b5) unstable; urgency=medium
+
+  * work-around for issue #71 (random occasional crash in cpump receiving v03 messages.)
+  * improving some error messages.
+
+ -- Peter Silva <peter@blacklab>  Fri, 20 Dec 2019 21:46:32 -0500
+
+sarrac (2.19.12b4) unstable; urgency=medium
+
+  * more fix for #83, added attrib event. 
+  * dependencies were perhaps broken in b3?
+
+ -- Peter Silva <peter@blacklab>  Wed, 18 Dec 2019 09:26:17 -0500
+
+sarrac (2.19.12b3) unstable; urgency=medium
+
+  * fix: #83 for RCM use case 
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 17 Dec 2019 23:21:02 -0500
+
+sarrac (2.19.12b2) unstable; urgency=medium
+
+  * now loops forever if binding fails (do not accept failure to bind.)
+  * fix: #80 systematic cleanup for problem in #76. minimizing overall risk.
+  * improved debian packaging dependencies.
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Sun, 15 Dec 2019 00:28:37 -0500
+
 sarrac (2.19.11b2) unstable; urgency=medium
 
   * fix: #76  crash with libsrshim and sed command.

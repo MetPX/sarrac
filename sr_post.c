@@ -53,6 +53,11 @@ FIXME: posting partitioned parts Not yet implemented.
 #include <string.h>
 #include <strings.h>
 
+#include <errno.h>
+#define EBUFLEN (127)
+static char *es;
+static char error_buf[EBUFLEN+1];
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -114,7 +119,7 @@ static void amqp_header_add(char *tag, const char *value)
 	char value2[AMQP_MAX_SS];
 
 	if (hdrcnt >= HDRMAX) {
-		sr_log_msg(LOG_ERROR, "too many headers! ignoring %s=%s\n", tag, value);
+		sr_log_msg(LOG_ERROR, "too many headers! (only support %d) ignoring %s=%s\n", HDRMAX, tag, value);
 		return;
 	}
 	headers[hdrcnt].key = amqp_cstring_bytes(tag);
@@ -844,7 +849,8 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 		sr_c->cfg->progname, __sarra_version__, oldname, newname);
 
 	if (lstat(newname, &sb)) {
-		sr_log_msg(LOG_ERROR, "sr_%s rename: %s cannot stat.\n", sr_c->cfg->progname, newname);
+        es=strerror_r( errno, error_buf, EBUFLEN );
+		sr_log_msg(LOG_ERROR, "sr_%s rename cannot stat %s: %s\n", sr_c->cfg->progname, newname, es);
 		return;
 	}
 	if (S_ISDIR(sb.st_mode)) {
