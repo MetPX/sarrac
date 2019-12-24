@@ -1976,7 +1976,7 @@ static void cp(const char *s, const char *d)
 
 char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one)
 {
-	static char oldp[256];
+	static char oldp[512];
 	char one[256];
 	int len_one;
 
@@ -2044,7 +2044,7 @@ char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one)
 
 int sr_config_add_one(struct sr_config_s *sr_cfg, const char *original_one)
 {
-	char oldp[256];
+	char oldp[512];
 	char newp[256];
 	char one[256];
 	int len_one;
