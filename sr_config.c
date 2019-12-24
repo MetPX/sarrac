@@ -1925,7 +1925,7 @@ int sr_config_startstop(struct sr_config_s *sr_cfg)
 			return (0);
 		}
 		if (!strcmp(sr_cfg->action, "restart"))
-			return (0);
+			return (1);
 	} else {
 		/* At this point, config is not running which is good for actions cleanup/remove... */
 		if (!strcmp(sr_cfg->action, "cleanup")
