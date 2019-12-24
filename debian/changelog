@@ -2,7 +2,7 @@ sarrac (2.19.12b5) unstable; urgency=medium
 
   * work-around for issue #71 (random occasional crash in cpump receiving v03 messages.)
   * improving some error messages.
-  * when restarting a component if it wasn't running before, it would not restart. 
+  * bugfix Issue #85 when restarting a component if it wasn't running before, it would not restart. 
 
  -- Peter Silva <peter@blacklab>  Fri, 20 Dec 2019 21:46:32 -0500
 
