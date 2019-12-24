@@ -632,7 +632,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 			sr_log_msg(LOG_ERROR, 
                  "corrupted message, num_entries > 0 (%d), but entries close to NULL (%p).\n", 
                  p->headers.num_entries, (p->headers.entries) );
-            return(NULL);
+            goto after_headers;
         } else switch (p->headers.entries[i].value.kind) {
             case AMQP_FIELD_KIND_I8:
                 sr_log_msg(LOG_WARNING, "skipping I8 header %d value:%d\n", i, (p->headers.entries[i].value.value.i8) );
@@ -672,7 +672,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 
 
             case AMQP_FIELD_KIND_ARRAY:
-			    sr_log_msg(LOG_WARNING, "skipping ARRAY header %d\n", i );
+			    sr_log_msg(LOG_WARNING, "skipping ARRAY header index: %d\n", i );
                 goto after_headers;
                 break;
 
@@ -683,7 +683,8 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
                 break;
 
             default:
-			    sr_log_msg(LOG_WARNING, "skipping non UTF8 header: kind:%d\n", p->headers.entries[i].value.kind );
+			    sr_log_msg(LOG_WARNING, "skipping non UTF8 headers: amount: %d, this one: %d, kind:%d\n", 
+                      p->headers.num_entries, i, p->headers.entries[i].value.kind );
                 goto after_headers;
                 
         }
