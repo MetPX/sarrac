@@ -564,8 +564,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 		sr_c->cfg->broker->started = 1;
 	}
 
-	amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
-
+	//amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
 	result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
 	sr_log_msg( LOG_DEBUG, "wait_frame result: %d\n", result);
@@ -618,11 +617,10 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 
     /* FIXME */
     if (p->_flags & AMQP_BASIC_CONTENT_TYPE_FLAG) {
-	      sr_log_msg(LOG_DEBUG, "Content-type: %.*s\n", 
-              (int)p->content_type.len, (char *)p->content_type.bytes);
+	      sr_log_msg(LOG_DEBUG, "Content-type: %.*s  frame.payload.properties.class_id: %d body_size: %d\n", 
+              (int)p->content_type.len, (char *)p->content_type.bytes, frame.payload.properties.class_id,
+                 frame.payload.properties.body_size );
     }
-
-
 
 	for (int i = 0; i < p->headers.num_entries; i++) {
 
@@ -643,7 +641,6 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
                 sr_log_msg(LOG_WARNING, "skipping TIMESTAMP header %d value:%ld\n", i, (p->headers.entries[i].value.value.u64) );
                 break;
 
-            case AMQP_FIELD_KIND_BYTES:
             case AMQP_FIELD_KIND_UTF8:
     			sprintf(tag, "%.*s",
     				(int)p->headers.entries[i].key.len,
@@ -699,6 +696,7 @@ after_headers:
                  body_target, SR_SARRAC_MAXIMUM_MESSAGE_LEN );
 			abort();
     }
+
 	while (body_received < body_target) {
 		result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
@@ -720,11 +718,12 @@ after_headers:
     }
 
     if (body_received != body_target) {
-	    sr_log_msg(LOG_ERROR, "incomplete message, recieved: %lu bytes, expected: %lu bytes\n",  body_received, body_target );
+	    sr_log_msg(LOG_ERROR, "incomplete message, received: %lu bytes, expected: %lu bytes\n",  body_received, body_target );
 		return (NULL);
     } else {
-	    sr_log_msg(LOG_DEBUG, "complete message, recieved: %lu bytes \n",  body_received );
+	    sr_log_msg(LOG_DEBUG, "complete message, received: %lu bytes \n",  body_received );
     }
+	//amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
 
 	/* Can only happen when amqp_simple_wait_frame returns <= 0 */
 	/* We break here to close the connection */
