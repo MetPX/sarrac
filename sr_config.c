@@ -292,8 +292,7 @@ static struct sr_broker_s *broker_uri_parse(char *src)
 	char buf[PATH_MAX];
 	char *c, *d, *save;
 
-	if (!src)
-		return (NULL);
+	if (!src) return (NULL);
 
 	b = (struct sr_broker_s *)malloc(sizeof(struct sr_broker_s));
 	strcpy(buf, src);
@@ -302,21 +301,22 @@ static struct sr_broker_s *broker_uri_parse(char *src)
 	save = buf + 7 + (b->ssl);
 	d = strchr(save, '@');
 	if (!d) {
-		free(b);
-		return (NULL);
-	}
-	// save points at user string, null terminated.
-	*d = '\0';
-	c = d + 1;		// continuation point.
-	d = strchr(save, ':');
-	if (d) {
-		*d = '\0';
-		d++;
-		b->password = strdup(d);
-	} else
-		b->password = NULL;
-
-	b->user = strdup(save);
+        b->user = strdup("anonymous");
+        b->password = strdup("anonymous");
+        c=save;
+	} else {
+ 	    // save points at user string, null terminated.
+    	*d = '\0';
+    	c = d + 1;		// continuation point.
+    	d = strchr(save, ':');
+    	if (d) {
+    		*d = '\0';
+    		d++;
+    		b->password = strdup(d);
+    	} else
+    		b->password = NULL;
+	    b->user = strdup(save);
+    }
 
 	// c points at hostname
 	save = c;
@@ -334,6 +334,7 @@ static struct sr_broker_s *broker_uri_parse(char *src)
 		d = strchr(save, '/');
 	if (d)
 		*d = '\0';
+
 	b->hostname = strdup(save);
 
 	b->conn = NULL;
@@ -733,9 +734,9 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 			broker_free(sr_cfg->broker);
 		brokerstr = sr_credentials_fetch(argument);
 		if (brokerstr == NULL) {
-			sr_log_msg(LOG_ERROR, "notice: no stored credential: %s.\n", argument);
 			sr_cfg->broker = broker_uri_parse(argument);
 			if (!sr_cfg->broker)
+			    sr_log_msg(LOG_ERROR, "unknown/invalid broker: %s.\n", argument);
 				retval = -2;
 		} else {
 			sr_cfg->broker = broker_uri_parse(brokerstr);
