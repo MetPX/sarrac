@@ -88,9 +88,9 @@ int sr_consume_setup(struct sr_context *sr_c)
 	amqp_boolean_t exclusive = 0;
 	amqp_boolean_t auto_delete = 0;
 	struct sr_topic_s *t;
-	amqp_basic_properties_t props;
-	amqp_table_t table;
-	amqp_table_entry_t table_entries[2];
+	static amqp_basic_properties_t props;
+	static amqp_table_t table;
+	static amqp_table_entry_t table_entries[2];
 
 	int tecnt = 0;
 
@@ -498,7 +498,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 	amqp_basic_deliver_t *d;
 	amqp_basic_properties_t *p;
 	int is_report;
-	char consumer_tag[AMQP_MAX_SS];
+	static char consumer_tag[AMQP_MAX_SS];
 	char *tok;
 	size_t body_target;
 	size_t body_received;
