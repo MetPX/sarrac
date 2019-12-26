@@ -16,10 +16,7 @@
 
   how to use:
 
-  In a shell, to use an sr_config(7) style configuration file:
-  set the SR_POST_CONFIG environment variable to the name of the
-  file to use.
-
+  In a shell, to use an sr_subscribe(1) or sr_post(1) style configuration file. 
  
  */
 #include <stdlib.h>
