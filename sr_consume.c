@@ -622,70 +622,75 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
                  frame.payload.properties.body_size );
     }
 
-	for (int i = 0; i < p->headers.num_entries; i++) {
-
-        // FIXME: bug where num_entries==2, and entries=2 instead of a pointer.... very odd.
-        //        We have no idea why this shows up, this is just a work-around, around the problem.
-        if ( (unsigned long)(p->headers.entries) < 1024 )  {
-			sr_log_msg(LOG_ERROR, 
-                 "corrupted message, num_entries > 0 (%d), but entries close to NULL (%p).\n", 
-                 p->headers.num_entries, (p->headers.entries) );
-            goto after_headers;
-        } else switch (p->headers.entries[i].value.kind) {
-            case AMQP_FIELD_KIND_I8:
-                sr_log_msg(LOG_WARNING, "skipping I8 header %d value:%d\n", i, (p->headers.entries[i].value.value.i8) );
-                goto after_headers;
-                break;
-
-            case AMQP_FIELD_KIND_TIMESTAMP:
-                sr_log_msg(LOG_WARNING, "skipping TIMESTAMP header %d value:%ld\n", i, (p->headers.entries[i].value.value.u64) );
-                break;
-
-            case AMQP_FIELD_KIND_UTF8:
-    			sprintf(tag, "%.*s",
-    				(int)p->headers.entries[i].key.len,
-    				(char *)p->headers.entries[i].key.bytes);
+    if (p->_flags & AMQP_BASIC_HEADERS_FLAG) { 
+        sr_log_msg(LOG_DEBUG, "AMQP_BASIC_HEADERS_FLAG set. %d headers in message\n", p->headers.num_entries );
+    	for (int i = 0; i < p->headers.num_entries; i++) {
     
-    			sprintf(value, "%.*s",
-    				(int)p->headers.entries[i].value.value.bytes.len,
-    				(char *)p->headers.entries[i].value.value.bytes.bytes);
+            // FIXME: bug where num_entries==2, and entries=2 instead of a pointer.... very odd.
+            //        We have no idea why this shows up, this is just a work-around, around the problem.
+            if ( (unsigned long)(p->headers.entries) < 1024 )  {
+    			sr_log_msg(LOG_ERROR, 
+                     "corrupted message, num_entries > 0 (%d), but entries close to NULL (%p).\n", 
+                     p->headers.num_entries, (p->headers.entries) );
+                goto after_headers;
+            } else switch (p->headers.entries[i].value.kind) {
+                case AMQP_FIELD_KIND_I8:
+                    sr_log_msg(LOG_WARNING, "skipping I8 header %d value:%d\n", i, (p->headers.entries[i].value.value.i8) );
+                    goto after_headers;
+                    break;
     
-    			assign_field(tag, value);
+                case AMQP_FIELD_KIND_TIMESTAMP:
+                    sr_log_msg(LOG_WARNING, "skipping TIMESTAMP header %d value:%ld\n", i, (p->headers.entries[i].value.value.u64) );
+                    break;
     
-    			/*
-    			   sr_log_msg( stdout, "\t\"%.*s\": \"%.*s\",\n",
-    			   (int) p->headers.entries[i].key.len, 
-    			   (char *) p->headers.entries[i].key.bytes,
-    			   (int) p->headers.entries[i].value.value.bytes.len,
-    			   (char *) p->headers.entries[i].value.value.bytes.bytes
-    			   );
-    			 */
-                break;
-
-            case AMQP_FIELD_KIND_U64:
-			    sr_log_msg(LOG_WARNING, "skipping U64 header %d value:%ld\n", i, (p->headers.entries[i].value.value.u64) );
-                goto after_headers;
-                break;
-
-
-            case AMQP_FIELD_KIND_ARRAY:
-			    sr_log_msg(LOG_WARNING, "skipping ARRAY header index: %d\n", i );
-                goto after_headers;
-                break;
-
-
-            case AMQP_FIELD_KIND_I64:
-			    sr_log_msg(LOG_WARNING, "skipping I64  header %d: value:%ld\n", i, (p->headers.entries[i].value.value.i64) );
-                goto after_headers;
-                break;
-
-            default:
-			    sr_log_msg(LOG_WARNING, "skipping non UTF8 headers: amount: %d, this one: %d, kind:%d\n", 
-                      p->headers.num_entries, i, p->headers.entries[i].value.kind );
-                goto after_headers;
-                
-        }
-	}
+                case AMQP_FIELD_KIND_UTF8:
+        			sprintf(tag, "%.*s",
+        				(int)p->headers.entries[i].key.len,
+        				(char *)p->headers.entries[i].key.bytes);
+        
+        			sprintf(value, "%.*s",
+        				(int)p->headers.entries[i].value.value.bytes.len,
+        				(char *)p->headers.entries[i].value.value.bytes.bytes);
+        
+        			assign_field(tag, value);
+        
+        			/*
+        			   sr_log_msg( stdout, "\t\"%.*s\": \"%.*s\",\n",
+        			   (int) p->headers.entries[i].key.len, 
+        			   (char *) p->headers.entries[i].key.bytes,
+        			   (int) p->headers.entries[i].value.value.bytes.len,
+        			   (char *) p->headers.entries[i].value.value.bytes.bytes
+        			   );
+        			 */
+                    break;
+    
+                case AMQP_FIELD_KIND_U64:
+    			    sr_log_msg(LOG_WARNING, "skipping U64 header %d value:%ld\n", i, (p->headers.entries[i].value.value.u64) );
+                    goto after_headers;
+                    break;
+    
+    
+                case AMQP_FIELD_KIND_ARRAY:
+    			    sr_log_msg(LOG_WARNING, "skipping ARRAY header index: %d\n", i );
+                    goto after_headers;
+                    break;
+    
+    
+                case AMQP_FIELD_KIND_I64:
+    			    sr_log_msg(LOG_WARNING, "skipping I64  header %d: value:%ld\n", i, (p->headers.entries[i].value.value.i64) );
+                    goto after_headers;
+                    break;
+    
+                default:
+    			    sr_log_msg(LOG_WARNING, "skipping non UTF8 headers: amount: %d, this one: %d, kind:%d\n", 
+                          p->headers.num_entries, i, p->headers.entries[i].value.kind );
+                    goto after_headers;
+                    
+            }
+    	}
+    } else {
+        sr_log_msg( LOG_DEBUG, "message has no headers. Good.\n" );
+    }
 
 after_headers:
 	body_target = frame.payload.properties.body_size;
