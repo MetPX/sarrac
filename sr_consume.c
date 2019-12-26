@@ -564,7 +564,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 		sr_c->cfg->broker->started = 1;
 	}
 
-	//amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
+	amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
 	result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
 	sr_log_msg( LOG_DEBUG, "wait_frame result: %d\n", result);
