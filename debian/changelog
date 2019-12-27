@@ -1,3 +1,9 @@
+sarrac (2.19.12b6) UNRELEASED; urgency=medium
+
+  * issue #86 guess anonymous:anonymous for broker user.
+
+ -- Peter Silva <peter@blacklab>  Thu, 26 Dec 2019 23:26:34 -0500
+
 sarrac (2.19.12b5) unstable; urgency=medium
 
   * issue #71 fixed (apparent message corruption was just a parsing problem.)
