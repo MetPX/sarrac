@@ -93,6 +93,7 @@ static char error_buf[EBUFLEN+1];
 static amqp_table_entry_t headers[HDRMAX];
 
 static int hdrcnt = 0;
+static int bad_hdrcnt = 0;
 
 static void header_reset()
 {
@@ -103,6 +104,7 @@ static void header_reset()
 		headers[hdrcnt].value.value.bytes = amqp_cstring_bytes("");
 	}
 	hdrcnt = 0;
+    bad_hdrcnt = 0;
 }
 
 static void amqp_header_add(char *tag, const char *value)
@@ -111,7 +113,7 @@ static void amqp_header_add(char *tag, const char *value)
 	/* check utf8 compliance of tag and value for message headers */
 	if (!sr_is_utf8(tag) || !sr_is_utf8(value)) {
 		sr_log_msg(LOG_ERROR,
-			"amqp header (tag, value)<>(%s,%s) not utf8 encoded, ignoring header\n",
+			"amqp header (tag, value)<>(%s,%s) not utf8 encoded, Message corrupt.\n",
 			tag, value);
 		return;
 	}
@@ -119,7 +121,8 @@ static void amqp_header_add(char *tag, const char *value)
 	char value2[AMQP_MAX_SS];
 
 	if (hdrcnt >= HDRMAX) {
-		sr_log_msg(LOG_ERROR, "too many headers! (only support %d) ignoring %s=%s\n", HDRMAX, tag, value);
+		sr_log_msg(LOG_ERROR, "too many headers! (only support %d) ignoring %s=%s Message corrupt.\n", HDRMAX, tag, value);
+        bad_hdrcnt++;
 		return;
 	}
 	headers[hdrcnt].key = amqp_cstring_bytes(tag);
@@ -128,10 +131,11 @@ static void amqp_header_add(char *tag, const char *value)
 	if (strlen(value) > AMQP_MAX_SS) {
 		strncpy(value2, value, AMQP_MAX_SS);
 		value2[AMQP_MAX_SS - 1] = '\0';
-		sr_log_msg(LOG_WARNING,
-			"header %s too long (%ld bytes), truncating to: %s\n",
+		sr_log_msg(LOG_ERROR,
+			"header %s too long (%ld bytes), truncating to: %s. Message corrupt.\n",
 			tag, strlen(value), value2);
 		headers[hdrcnt].value.value.bytes = amqp_cstring_bytes(value2);
+        bad_hdrcnt++;
 	} else {
 		headers[hdrcnt].value.value.bytes = amqp_cstring_bytes(value);
 	}
@@ -368,8 +372,9 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 		    		m->sum[sr_get_sumhashlen(m->sum[0]) -
 		    		       1] % sr_c->cfg->post_broker->exchange_split);
 		    }
-		    status =
-		        amqp_basic_publish(sr_c->cfg->post_broker->conn, 1,
+            if ( bad_hdrcnt == 0 ) 
+		        status =
+		            amqp_basic_publish(sr_c->cfg->post_broker->conn, 1,
 				       amqp_cstring_bytes(thisexchange),
 				       amqp_cstring_bytes(m->routing_key), 0, 0,
 				       &props, amqp_cstring_bytes(message_body));
