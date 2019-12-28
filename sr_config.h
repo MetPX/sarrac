@@ -367,6 +367,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer);
  *
  * Return: 0  on success , failure otherwise.
  */
+int sr_config_deactivate(struct sr_config_s *sr_cfg);
 int sr_config_activate(struct sr_config_s *sr_cfg);
 
 /**

@@ -1756,6 +1756,15 @@ static void stop_handler(int sig)
 	raise(sig);
 }
 
+int sr_config_deactivate(struct sr_config_s *sr_cfg)
+{
+  int ret=0;
+  
+  if (sr_cfg && sr_cfg->pidfile) 
+      ret = unlink(sr_cfg->pidfile);
+  return(ret); 
+}
+
 int sr_config_activate(struct sr_config_s *sr_cfg)
 /* 
    now a really running instance.
