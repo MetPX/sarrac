@@ -1327,21 +1327,25 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->xattr_cc = 0;
 
 	sprintf(p, "%s/.config", getenv("HOME"));
-	if (access(p, R_OK))
+	if (access(p, R_OK) == -1) 
+    {
 		mkdir(p, 0700);
-
+    }
 	sprintf(p, "%s/.config/%s", getenv("HOME"), sr_cfg->appname );
-	if (access(p, R_OK))
+	if (access(p, R_OK) == -1 )
+    {
 		mkdir(p, 0700);
+    }
 
 	if (!strcmp(progname, "shim")) {
 		sprintf(p, "%s/.config/%s/%s", getenv("HOME"), sr_cfg->appname, "post");
 	} else {
 		sprintf(p, "%s/.config/%s/%s", getenv("HOME"), sr_cfg->appname, progname);
 	}
-	if (access(p, R_OK))
+	if (access(p, R_OK) == -1) 
+    {
 		mkdir(p, 0700);
-
+    }
 	sprintf(p, "%s/.config/%s/default.conf", getenv("HOME"), sr_cfg->appname );
 	sr_config_read(sr_cfg, p, 0, 0);
 
@@ -1522,7 +1526,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		sprintf(p, "%s/.cache", getenv("HOME"));
 		mkdir(p, 0700);
 		strcat(p, "/");
-		strcat(p, "sarra");
+		strcat(p, sr_cfg->appname);
 		mkdir(p, 0700);
 		if (val) {
 			strcat(p, "/");
@@ -2344,7 +2348,7 @@ void sr_config_list(struct sr_config_s *sr_cfg)
 			*s = '\0';
 		}
 
-		sprintf(p, "%s/.cache/i%s/%s/%s/i001.pid", getenv("HOME"),
+		sprintf(p, "%s/.cache/%s/%s/%s/i001.pid", getenv("HOME"),
 			sr_cfg->appname, sr_cfg->progname, d->d_name);
 		f = fopen(p, "r");
 		if (f)		// read the pid from the file.
