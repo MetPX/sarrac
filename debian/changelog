@@ -1,3 +1,9 @@
+sarrac (2.20.01b3) UNRELEASED; urgency=medium
+
+  * adding support for sr_insects (more extensive test data.)
+
+ -- Peter Silva <peter@blacklab>  Sun, 05 Jan 2020 14:20:40 -0500
+
 sarrac (2.19.12b6) unstable; urgency=medium
 
   * issue #86 guess anonymous:anonymous for broker user.
