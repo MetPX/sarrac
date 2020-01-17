@@ -1,16 +1,32 @@
+sarrac (2.20.01b3) UNRELEASED; urgency=medium
+
+  * adding support for sr_insects (more extensive test data.)
+
+ -- Peter Silva <peter@blacklab>  Sun, 05 Jan 2020 14:20:40 -0500
+
+sarrac (2.19.12b6) unstable; urgency=medium
+
+  * issue #86 guess anonymous:anonymous for broker user.
+  * issue #87 clean up instance files after one-shot call.
+  * issue #88 do not post clearly corrupt messages.
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Thu, 26 Dec 2019 23:26:34 -0500
+
 sarrac (2.19.12b5) unstable; urgency=medium
 
-  * work-around for issue #71 (random occasional crash in cpump receiving v03 messages.)
+  * issue #71 fixed (apparent message corruption was just a parsing problem.)
   * improving some error messages.
+  * when a message is corrupted, disconnect and reconnect. 
+  * Issue #85 when restarting a component if it wasn't running before, it would not restart. 
 
- -- Peter Silva <peter@blacklab>  Fri, 20 Dec 2019 21:46:32 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Fri, 20 Dec 2019 21:46:32 -0500
 
 sarrac (2.19.12b4) unstable; urgency=medium
 
   * more fix for #83, added attrib event. 
   * dependencies were perhaps broken in b3?
 
- -- Peter Silva <peter@blacklab>  Wed, 18 Dec 2019 09:26:17 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Wed, 18 Dec 2019 09:26:17 -0500
 
 sarrac (2.19.12b3) unstable; urgency=medium
 

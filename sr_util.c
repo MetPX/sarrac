@@ -792,7 +792,7 @@ char *sr_hash2sumstr(const unsigned char *h)
 	return (sumstr);
 }
 
-static char time2str_result[SR_TIMESTRLEN];
+static char time2str_result[SR_TIMESTRLEN+30];
 
 char *sr_time2str(struct timespec *tin)
 {

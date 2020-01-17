@@ -929,6 +929,7 @@ int main(int argc, char **argv)
 	}
 
 	sr_context_close(sr_c);
+	sr_config_deactivate(&sr_cfg);
 	free(sr_c);
 	sr_config_free(&sr_cfg);
 	dir_stack_free();

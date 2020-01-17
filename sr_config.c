@@ -292,8 +292,7 @@ static struct sr_broker_s *broker_uri_parse(char *src)
 	char buf[PATH_MAX];
 	char *c, *d, *save;
 
-	if (!src)
-		return (NULL);
+	if (!src) return (NULL);
 
 	b = (struct sr_broker_s *)malloc(sizeof(struct sr_broker_s));
 	strcpy(buf, src);
@@ -302,21 +301,22 @@ static struct sr_broker_s *broker_uri_parse(char *src)
 	save = buf + 7 + (b->ssl);
 	d = strchr(save, '@');
 	if (!d) {
-		free(b);
-		return (NULL);
-	}
-	// save points at user string, null terminated.
-	*d = '\0';
-	c = d + 1;		// continuation point.
-	d = strchr(save, ':');
-	if (d) {
-		*d = '\0';
-		d++;
-		b->password = strdup(d);
-	} else
-		b->password = NULL;
-
-	b->user = strdup(save);
+        b->user = strdup("anonymous");
+        b->password = strdup("anonymous");
+        c=save;
+	} else {
+ 	    // save points at user string, null terminated.
+    	*d = '\0';
+    	c = d + 1;		// continuation point.
+    	d = strchr(save, ':');
+    	if (d) {
+    		*d = '\0';
+    		d++;
+    		b->password = strdup(d);
+    	} else
+    		b->password = NULL;
+	    b->user = strdup(save);
+    }
 
 	// c points at hostname
 	save = c;
@@ -334,6 +334,7 @@ static struct sr_broker_s *broker_uri_parse(char *src)
 		d = strchr(save, '/');
 	if (d)
 		*d = '\0';
+
 	b->hostname = strdup(save);
 
 	b->conn = NULL;
@@ -733,9 +734,9 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 			broker_free(sr_cfg->broker);
 		brokerstr = sr_credentials_fetch(argument);
 		if (brokerstr == NULL) {
-			sr_log_msg(LOG_ERROR, "notice: no stored credential: %s.\n", argument);
 			sr_cfg->broker = broker_uri_parse(argument);
 			if (!sr_cfg->broker)
+			    sr_log_msg(LOG_ERROR, "unknown/invalid broker: %s.\n", argument);
 				retval = -2;
 		} else {
 			sr_cfg->broker = broker_uri_parse(brokerstr);
@@ -1235,6 +1236,12 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_credentials_init();
 	sr_cfg->action = strdup("foreground");
 	sr_cfg->accept_unmatched = 1;
+    if ( getenv("SR_DEV_APPNAME" ) ) 
+    {
+         strcpy( sr_cfg->appname, getenv("SR_DEV_APPNAME") );
+    } else {
+         strcpy( sr_cfg->appname, "sarra" );
+    } 
 	sr_cfg->blocksize = 1;
 	sr_cfg->broker = NULL;
 	sr_cfg->cache = 0;
@@ -1320,22 +1327,26 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->xattr_cc = 0;
 
 	sprintf(p, "%s/.config", getenv("HOME"));
-	if (access(p, R_OK))
+	if (access(p, R_OK) == -1) 
+    {
 		mkdir(p, 0700);
-
-	sprintf(p, "%s/.config/sarra", getenv("HOME"));
-	if (access(p, R_OK))
+    }
+	sprintf(p, "%s/.config/%s", getenv("HOME"), sr_cfg->appname );
+	if (access(p, R_OK) == -1 )
+    {
 		mkdir(p, 0700);
+    }
 
 	if (!strcmp(progname, "shim")) {
-		sprintf(p, "%s/.config/sarra/%s", getenv("HOME"), "post");
+		sprintf(p, "%s/.config/%s/%s", getenv("HOME"), sr_cfg->appname, "post");
 	} else {
-		sprintf(p, "%s/.config/sarra/%s", getenv("HOME"), progname);
+		sprintf(p, "%s/.config/%s/%s", getenv("HOME"), sr_cfg->appname, progname);
 	}
-	if (access(p, R_OK))
+	if (access(p, R_OK) == -1) 
+    {
 		mkdir(p, 0700);
-
-	sprintf(p, "%s/.config/sarra/default.conf", getenv("HOME"));
+    }
+	sprintf(p, "%s/.config/%s/default.conf", getenv("HOME"), sr_cfg->appname );
 	sr_config_read(sr_cfg, p, 0, 0);
 
 }
@@ -1377,7 +1388,7 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 	}
 	/* linux config location */
 	if (*filename != '/') {
-		sprintf(p, "%s/.config/sarra/%s/%s", getenv("HOME"),
+		sprintf(p, "%s/.config/%s/%s/%s", getenv("HOME"), sr_cfg->appname, 
 			strcmp(sr_cfg->progname, "shim") ? sr_cfg->progname : "post", filename);
 	} else {
 		strcpy(p, filename);
@@ -1504,10 +1515,10 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 
 	// if the state directory is missing, build it.
 	if (val) {
-		sprintf(p, "%s/.cache/sarra/%s/%s/%s", getenv("HOME"), val,
+		sprintf(p, "%s/.cache/%s/%s/%s/%s", getenv("HOME"), sr_cfg->appname, val,
 			sr_cfg->progname, sr_cfg->configname);
 	} else {
-		sprintf(p, "%s/.cache/sarra/%s/%s", getenv("HOME"),
+		sprintf(p, "%s/.cache/%s/%s/%s", getenv("HOME"), sr_cfg->appname,
 			sr_cfg->progname, sr_cfg->configname);
 	}
 	ret = stat(p, &sb);
@@ -1515,7 +1526,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		sprintf(p, "%s/.cache", getenv("HOME"));
 		mkdir(p, 0700);
 		strcat(p, "/");
-		strcat(p, "sarra");
+		strcat(p, sr_cfg->appname);
 		mkdir(p, 0700);
 		if (val) {
 			strcat(p, "/");
@@ -1531,13 +1542,13 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	}
 	// if the log directory is missing, build it.
 	if (val) {
-		sprintf(p, "%s/.cache/sarra/%s/log", getenv("HOME"), val);
+		sprintf(p, "%s/.cache/%s/%s/log", getenv("HOME"), sr_cfg->appname, val);
 	} else {
-		sprintf(p, "%s/.cache/sarra/log", getenv("HOME"));
+		sprintf(p, "%s/.cache/%s/log", getenv("HOME"), sr_cfg->appname );
 	}
 	ret = stat(p, &sb);
 	if (ret) {
-		sprintf(p, "%s/.cache/sarra", getenv("HOME"));
+		sprintf(p, "%s/.cache/%s", getenv("HOME"), sr_cfg->appname );
 		if (val) {
 			strcat(p, "/");
 			strcat(p, val);
@@ -1548,12 +1559,12 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	}
 	// logfn
 	if (val) {
-		sprintf(p, "%s/.cache/sarra/%s/log/sr_%s_%s_%02d.log",
-			getenv("HOME"), val, sr_cfg->progname,
+		sprintf(p, "%s/.cache/%s/%s/log/sr_%s_%s_%02d.log",
+			getenv("HOME"), sr_cfg->appname, val, sr_cfg->progname,
 			sr_cfg->configname, sr_cfg->instance);
 	} else {
-		sprintf(p, "%s/.cache/sarra/log/sr_%s_%s_%02d.log",
-			getenv("HOME"), sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
+		sprintf(p, "%s/.cache/%s/log/sr_%s_%s_%02d.log",
+			getenv("HOME"), sr_cfg->appname, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 
 	sr_cfg->logfn = strdup(p);
@@ -1568,12 +1579,12 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	}
 	// pidfn statehost
 	if (val) {
-		sprintf(p, "%s/.cache/sarra/%s/%s/%s/i%03d.pid", getenv("HOME"),
+		sprintf(p, "%s/.cache/%s/%s/%s/%s/i%03d.pid", getenv("HOME"), sr_cfg->appname, 
 			val, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 	// pidfn default
 	else {
-		sprintf(p, "%s/.cache/sarra/%s/%s/i%03d.pid", getenv("HOME"),
+		sprintf(p, "%s/.cache/%s/%s/%s/i%03d.pid", getenv("HOME"), sr_cfg->appname, 
 			sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 
@@ -1587,15 +1598,15 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	}
 	// cachefn statehost
 	if (val) {
-		sprintf(p, "%s/.cache/sarra/%s/%s/%s/recent_files_%03d.cache",
-			getenv("HOME"), val, sr_cfg->progname,
+		sprintf(p, "%s/.cache/%s/%s/%s/%s/recent_files_%03d.cache",
+			getenv("HOME"), sr_cfg->appname, val, sr_cfg->progname,
 			sr_cfg->configname, sr_cfg->instance);
 	}
 	// cachefn default
 	else {
 		// FIXME: open and read cache file if present. seek to end.
-		sprintf(p, "%s/.cache/sarra/%s/%s/recent_files_%03d.cache",
-			getenv("HOME"), sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
+		sprintf(p, "%s/.cache/%s/%s/%s/recent_files_%03d.cache",
+			getenv("HOME"), sr_cfg->appname, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 
 	if (sr_cfg->sanity_log_dead == 0.0)
@@ -1707,7 +1718,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		sr_log_msg(LOG_ERROR, "incomplete configuration, cannot guess queue\n");
 		return (0);
 	}
-	sprintf(p, "%s/.cache/sarra/%s/%s/sr_%s.%s.%s", getenv("HOME"),
+	sprintf(p, "%s/.cache/%s/%s/%s/sr_%s.%s.%s", getenv("HOME"), sr_cfg->appname,
 		sr_cfg->progname, sr_cfg->configname, sr_cfg->progname,
 		sr_cfg->configname, sr_cfg->broker->user);
 	f = fopen(p, "r");
@@ -1753,6 +1764,15 @@ static void stop_handler(int sig)
 	// propagate handler for further processing, likely trigger exit.
 	signal(sig, SIG_DFL);
 	raise(sig);
+}
+
+int sr_config_deactivate(struct sr_config_s *sr_cfg)
+{
+  int ret=0;
+  
+  if (sr_cfg && sr_cfg->pidfile) 
+      ret = unlink(sr_cfg->pidfile);
+  return(ret); 
 }
 
 int sr_config_activate(struct sr_config_s *sr_cfg)
@@ -1925,7 +1945,7 @@ int sr_config_startstop(struct sr_config_s *sr_cfg)
 			return (0);
 		}
 		if (!strcmp(sr_cfg->action, "restart"))
-			return (0);
+			return (1);
 	} else {
 		/* At this point, config is not running which is good for actions cleanup/remove... */
 		if (!strcmp(sr_cfg->action, "cleanup")
@@ -1976,7 +1996,7 @@ static void cp(const char *s, const char *d)
 
 char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one)
 {
-	static char oldp[256];
+	static char oldp[512];
 	char one[256];
 	int len_one;
 
@@ -1994,40 +2014,40 @@ char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one)
 		}
 		//fprintf( stderr, " find_one, one: %s\n", one );
 		if (!strcmp(one, "default")) {
-			sprintf(oldp, "%s/.config/sarra/default.conf", getenv("HOME"));
+			sprintf(oldp, "%s/.config/%s/default.conf", getenv("HOME"), sr_cfg->appname );
 			return (oldp);
 		}
 		if (!strcmp(one, "admin")) {
-			sprintf(oldp, "%s/.config/sarra/admin.conf", getenv("HOME"));
+			sprintf(oldp, "%s/.config/%s/admin.conf", getenv("HOME"), sr_cfg->appname );
 			return (oldp);
 		}
 		if (!strcmp(one, "credentials")) {
-			sprintf(oldp, "%s/.config/sarra/credentials.conf", getenv("HOME"));
+			sprintf(oldp, "%s/.config/%s/credentials.conf", getenv("HOME"), sr_cfg->appname );
 			return (oldp);
 		}
 
-		sprintf(oldp, "%s/.config/sarra/%s/%s.inc", getenv("HOME"), sr_cfg->progname, one);
+		sprintf(oldp, "%s/.config/%s/%s/%s.inc", getenv("HOME"), sr_cfg->appname, sr_cfg->progname, one);
 		if (!access(oldp, R_OK))
 			return (oldp);
 		else {
 			//fprintf(stderr, "not %s\n", oldp );
 
-			sprintf(oldp, "%s/.config/sarra/%s/%s.conf",
-				getenv("HOME"), sr_cfg->progname, one);
+			sprintf(oldp, "%s/.config/%s/%s/%s.conf",
+				getenv("HOME"), sr_cfg->appname, sr_cfg->progname, one);
 
 			if (!access(oldp, R_OK))
 				return (oldp);
 			else {
 				//fprintf(stderr, "not %s\n", oldp );
-				sprintf(oldp, "%s/.config/sarra/%s/%s",
-					getenv("HOME"), sr_cfg->progname, one);
+				sprintf(oldp, "%s/.config/%s/%s/%s",
+					getenv("HOME"), sr_cfg->appname, sr_cfg->progname, one);
 				if (!access(oldp, R_OK))
 					return (oldp);
 				else {
 					//fprintf(stderr, "not %s\n", oldp );
 					sprintf(oldp,
-						"%s/.config/sarra/%s/%s.conf.off",
-						getenv("HOME"), sr_cfg->progname, one);
+						"%s/.config/%s/%s/%s.conf.off",
+						getenv("HOME"), sr_cfg->appname, sr_cfg->progname, one);
 					if (!access(oldp, R_OK))
 						return (oldp);
 					else {
@@ -2044,7 +2064,7 @@ char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one)
 
 int sr_config_add_one(struct sr_config_s *sr_cfg, const char *original_one)
 {
-	char oldp[256];
+	char oldp[512];
 	char newp[256];
 	char one[256];
 	int len_one;
@@ -2052,7 +2072,7 @@ int sr_config_add_one(struct sr_config_s *sr_cfg, const char *original_one)
 	if (original_one) {
 
 		if (!access(original_one, R_OK)) {
-			sprintf(newp, "%s/.config/sarra/%s/%s", getenv("HOME"),
+			sprintf(newp, "%s/.config/%s/%s/%s", getenv("HOME"), sr_cfg->appname,
 				sr_cfg->progname, original_one);
 			cp(original_one, newp);
 			return (0);
@@ -2073,7 +2093,7 @@ int sr_config_add_one(struct sr_config_s *sr_cfg, const char *original_one)
 		sprintf(oldp, "%s/%s/%s", getenv("SR_CONFIG_EXAMPLES"),
 			sr_cfg->progname, original_one);
 		if (!access(oldp, R_OK)) {
-			sprintf(newp, "%s/.config/sarra/%s/%s", getenv("HOME"),
+			sprintf(newp, "%s/.config/%s/%s/%s", getenv("HOME"), sr_cfg->appname,
 				sr_cfg->progname, original_one);
 			cp(oldp, newp);
 			return (0);
@@ -2121,13 +2141,13 @@ int sr_config_add_one(struct sr_config_s *sr_cfg, const char *original_one)
      // assert: one now contains the name, without suffix.
 
      sprintf( oldp, "%s.inc", one ) ;
-     sprintf( newp, "%s/.config/sarra/%s/%s.inc", getenv("HOME"), sr_cfg->progname, one ) ;
+     sprintf( newp, "%s/.config/%s/%s/%s.inc", getenv("HOME"), sr_cfg->appname, sr_cfg->progname, one ) ;
 
      if ( !access( oldp, R_OK ) ) cp( oldp, newp );
      else 
      {
         sprintf( oldp, "%s.conf", one ) ;
-        sprintf( newp, "%s/.config/sarra/%s/%s.conf", getenv("HOME"), 
+        sprintf( newp, "%s/.config/%s/%s/%s.conf", getenv("HOME"), sr_cfg->appname,
             sr_cfg->progname, one ) ;
 
         if ( !access( oldp, R_OK ) ) cp( oldp, newp );
@@ -2171,11 +2191,11 @@ void sr_config_log(struct sr_config_s *sr_cfg)
 	char p[256];
 
 	if (sr_cfg->statehost == '0') {
-		sprintf(p, "%s/.cache/sarra/log/sr_%s_%s_%04d.log",
-			getenv("HOME"), sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
+		sprintf(p, "%s/.cache/%s/log/sr_%s_%s_%04d.log",
+			getenv("HOME"), sr_cfg->appname, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	} else {
-		sprintf(p, "%s/.cache/sarra/%s/log/sr_%s_%s_%04d.log",
-			getenv("HOME"), sr_cfg->statehostval, sr_cfg->progname,
+		sprintf(p, "%s/.cache/%s/%s/log/sr_%s_%s_%04d.log",
+			getenv("HOME"), sr_cfg->appname, sr_cfg->statehostval, sr_cfg->progname,
 			sr_cfg->configname, sr_cfg->instance);
 	}
 
@@ -2291,7 +2311,7 @@ void sr_config_list(struct sr_config_s *sr_cfg)
 	} else {
 		fprintf(stdout, "SR_CONFIG_EXAMPLES, not set, no samples available\n");
 	}
-	sprintf(p, "%s/.config/sarra/%s", getenv("HOME"), sr_cfg->progname);
+	sprintf(p, "%s/.config/%s/%s", getenv("HOME"), sr_cfg->appname, sr_cfg->progname);
 
 	fprintf(stdout, "\nConfigurations for sr_%s ( %s ):\n", sr_cfg->progname, p);
 	cld = opendir(p);
@@ -2328,8 +2348,8 @@ void sr_config_list(struct sr_config_s *sr_cfg)
 			*s = '\0';
 		}
 
-		sprintf(p, "%s/.cache/sarra/%s/%s/i001.pid", getenv("HOME"),
-			sr_cfg->progname, d->d_name);
+		sprintf(p, "%s/.cache/%s/%s/%s/i001.pid", getenv("HOME"),
+			sr_cfg->appname, sr_cfg->progname, d->d_name);
 		f = fopen(p, "r");
 		if (f)		// read the pid from the file.
 		{

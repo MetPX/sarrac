@@ -16,10 +16,7 @@
 
   how to use:
 
-  In a shell, to use an sr_config(7) style configuration file:
-  set the SR_POST_CONFIG environment variable to the name of the
-  file to use.
-
+  In a shell, to use an sr_subscribe(1) or sr_post(1) style configuration file. 
  
  */
 #include <stdlib.h>
@@ -88,9 +85,9 @@ int sr_consume_setup(struct sr_context *sr_c)
 	amqp_boolean_t exclusive = 0;
 	amqp_boolean_t auto_delete = 0;
 	struct sr_topic_s *t;
-	amqp_basic_properties_t props;
-	amqp_table_t table;
-	amqp_table_entry_t table_entries[2];
+	static amqp_basic_properties_t props;
+	static amqp_table_t table;
+	static amqp_table_entry_t table_entries[2];
 
 	int tecnt = 0;
 
@@ -498,7 +495,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 	amqp_basic_deliver_t *d;
 	amqp_basic_properties_t *p;
 	int is_report;
-	char consumer_tag[AMQP_MAX_SS];
+	static char consumer_tag[AMQP_MAX_SS];
 	char *tok;
 	size_t body_target;
 	size_t body_received;
@@ -565,35 +562,31 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 	}
 
 	amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
-
 	result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
-	sr_log_msg( LOG_DEBUG, "wait_frame result: %d\n", result);
 	if (result < 0) {
-		amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
+	    sr_log_msg( LOG_ERROR, "wait_frame bad result: %d. aborting connection.\n", result);
 		return (NULL);
 	}
-	sr_log_msg( LOG_DEBUG, "Frame type %d, channel %d\n", frame.frame_type, frame.channel);
 
 	if (frame.frame_type != AMQP_FRAME_METHOD) {
-		amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
+	    sr_log_msg( LOG_ERROR, "bad FRAME_METHOD: %d. aborting connection.\n", frame.frame_type);
 		return (NULL);
 	}
-	sr_log_msg( LOG_DEBUG, "Method %s\n", amqp_method_name(frame.payload.method.id));
-
 	if (frame.payload.method.id != AMQP_BASIC_DELIVER_METHOD) {
-		amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
+	    sr_log_msg( LOG_ERROR, "bad payload method: %d. aborting connection.\n", frame.payload.method.id );
 		return (NULL);
 	}
 
 	d = (amqp_basic_deliver_t *) frame.payload.method.decoded;
 
-	sr_log_msg(LOG_DEBUG, "consumer_tag: %s, delivery_tag: %ld\n",
+	sr_log_msg( LOG_DEBUG, "Frame type %d, channel %d Method %s consumer_tag: %s, delivery_tag: %ld\n",
+        frame.frame_type, frame.channel, amqp_method_name(frame.payload.method.id), 
     		(char *)d->consumer_tag.bytes, d->delivery_tag);
 
 	sr_c->cfg->broker->last_delivery_tag = d->delivery_tag;
 
-	sr_log_msg( LOG_DEBUG, " \"exchange\": \"%.*s\",\"routingkey\": \"%.*s\",\n",
+	sr_log_msg( LOG_DEBUG, "exchange: \"%.*s\", routingkey: \"%.*s\",\n",
 	   (int) d->exchange.len, (char *) d->exchange.bytes,
 	   (int) d->routing_key.len, (char *) d->routing_key.bytes);
 
@@ -605,12 +598,12 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 	result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
 	if (result < 0) {
-		sr_log_msg(LOG_ERROR, "error receiving frame!");
+		sr_log_msg(LOG_ERROR, "error receiving frame! aborting connection.");
 		return(NULL);
     }
 
 	if (frame.frame_type != AMQP_FRAME_HEADER) {
-		sr_log_msg(LOG_ERROR, "Expected header!");
+		sr_log_msg(LOG_ERROR, "Expected header! aborting connection.");
 		return(NULL);
 	}
 
@@ -618,76 +611,80 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 
     /* FIXME */
     if (p->_flags & AMQP_BASIC_CONTENT_TYPE_FLAG) {
-	      sr_log_msg(LOG_DEBUG, "Content-type: %.*s\n", 
-              (int)p->content_type.len, (char *)p->content_type.bytes);
+	      sr_log_msg(LOG_DEBUG, "Content-type: %.*s  frame.payload.properties.class_id: %d body_size: %ld\n", 
+              (int)p->content_type.len, (char *)p->content_type.bytes, frame.payload.properties.class_id,
+                 frame.payload.properties.body_size );
     }
 
-
-
-	for (int i = 0; i < p->headers.num_entries; i++) {
-
-        // FIXME: bug where num_entries==2, and entries=2 instead of a pointer.... very odd.
-        //        We have no idea why this shows up, this is just a work-around, around the problem.
-        if ( (unsigned long)(p->headers.entries) < 1024 )  {
-			sr_log_msg(LOG_ERROR, 
-                 "corrupted message, num_entries > 0 (%d), but entries close to NULL (%p).\n", 
-                 p->headers.num_entries, (p->headers.entries) );
-            return(NULL);
-        } else switch (p->headers.entries[i].value.kind) {
-            case AMQP_FIELD_KIND_I8:
-                sr_log_msg(LOG_WARNING, "skipping I8 header %d value:%d\n", i, (p->headers.entries[i].value.value.i8) );
-                goto after_headers;
-                break;
-
-            case AMQP_FIELD_KIND_TIMESTAMP:
-                sr_log_msg(LOG_WARNING, "skipping TIMESTAMP header %d value:%ld\n", i, (p->headers.entries[i].value.value.u64) );
-                break;
-
-            case AMQP_FIELD_KIND_BYTES:
-            case AMQP_FIELD_KIND_UTF8:
-    			sprintf(tag, "%.*s",
-    				(int)p->headers.entries[i].key.len,
-    				(char *)p->headers.entries[i].key.bytes);
+    if (p->_flags & AMQP_BASIC_HEADERS_FLAG) { 
+        sr_log_msg(LOG_DEBUG, "AMQP_BASIC_HEADERS_FLAG set. %d headers in message\n", p->headers.num_entries );
+    	for (int i = 0; i < p->headers.num_entries; i++) {
     
-    			sprintf(value, "%.*s",
-    				(int)p->headers.entries[i].value.value.bytes.len,
-    				(char *)p->headers.entries[i].value.value.bytes.bytes);
+            // FIXME: bug where num_entries==2, and entries=2 instead of a pointer.... very odd.
+            //        We have no idea why this shows up, this is just a work-around, around the problem.
+            if ( (unsigned long)(p->headers.entries) < 1024 )  {
+    			sr_log_msg(LOG_ERROR, 
+                     "corrupted message, num_entries > 0 (%d), but entries close to NULL (%p).\n", 
+                     p->headers.num_entries, (p->headers.entries) );
+                goto after_headers;
+            } else switch (p->headers.entries[i].value.kind) {
+                case AMQP_FIELD_KIND_I8:
+                    sr_log_msg(LOG_WARNING, "skipping I8 header %d value:%d\n", i, (p->headers.entries[i].value.value.i8) );
+                    goto after_headers;
+                    break;
     
-    			assign_field(tag, value);
+                case AMQP_FIELD_KIND_TIMESTAMP:
+                    sr_log_msg(LOG_WARNING, "skipping TIMESTAMP header %d value:%ld\n", i, (p->headers.entries[i].value.value.u64) );
+                    break;
     
-    			/*
-    			   sr_log_msg( stdout, "\t\"%.*s\": \"%.*s\",\n",
-    			   (int) p->headers.entries[i].key.len, 
-    			   (char *) p->headers.entries[i].key.bytes,
-    			   (int) p->headers.entries[i].value.value.bytes.len,
-    			   (char *) p->headers.entries[i].value.value.bytes.bytes
-    			   );
-    			 */
-                break;
-
-            case AMQP_FIELD_KIND_U64:
-			    sr_log_msg(LOG_WARNING, "skipping U64 header %d value:%ld\n", i, (p->headers.entries[i].value.value.u64) );
-                goto after_headers;
-                break;
-
-
-            case AMQP_FIELD_KIND_ARRAY:
-			    sr_log_msg(LOG_WARNING, "skipping ARRAY header %d\n", i );
-                goto after_headers;
-                break;
-
-
-            case AMQP_FIELD_KIND_I64:
-			    sr_log_msg(LOG_WARNING, "skipping I64  header %d: value:%ld\n", i, (p->headers.entries[i].value.value.i64) );
-                goto after_headers;
-                break;
-
-            default:
-			    sr_log_msg(LOG_WARNING, "skipping non UTF8 header: kind:%d\n", p->headers.entries[i].value.kind );
-                goto after_headers;
-                
-        }
-	}
+                case AMQP_FIELD_KIND_UTF8:
+        			sprintf(tag, "%.*s",
+        				(int)p->headers.entries[i].key.len,
+        				(char *)p->headers.entries[i].key.bytes);
+        
+        			sprintf(value, "%.*s",
+        				(int)p->headers.entries[i].value.value.bytes.len,
+        				(char *)p->headers.entries[i].value.value.bytes.bytes);
+        
+        			assign_field(tag, value);
+        
+        			/*
+        			   sr_log_msg( stdout, "\t\"%.*s\": \"%.*s\",\n",
+        			   (int) p->headers.entries[i].key.len, 
+        			   (char *) p->headers.entries[i].key.bytes,
+        			   (int) p->headers.entries[i].value.value.bytes.len,
+        			   (char *) p->headers.entries[i].value.value.bytes.bytes
+        			   );
+        			 */
+                    break;
+    
+                case AMQP_FIELD_KIND_U64:
+    			    sr_log_msg(LOG_WARNING, "skipping U64 header %d value:%ld\n", i, (p->headers.entries[i].value.value.u64) );
+                    goto after_headers;
+                    break;
+    
+    
+                case AMQP_FIELD_KIND_ARRAY:
+    			    sr_log_msg(LOG_WARNING, "skipping ARRAY header index: %d\n", i );
+                    goto after_headers;
+                    break;
+    
+    
+                case AMQP_FIELD_KIND_I64:
+    			    sr_log_msg(LOG_WARNING, "skipping I64  header %d: value:%ld\n", i, (p->headers.entries[i].value.value.i64) );
+                    goto after_headers;
+                    break;
+    
+                default:
+    			    sr_log_msg(LOG_WARNING, "skipping non UTF8 headers: amount: %d, this one: %d, kind:%d\n", 
+                          p->headers.num_entries, i, p->headers.entries[i].value.kind );
+                    goto after_headers;
+                    
+            }
+    	}
+    } else {
+        sr_log_msg( LOG_DEBUG, "message has no headers. Good.\n" );
+    }
 
 after_headers:
 	body_target = frame.payload.properties.body_size;
@@ -698,14 +695,16 @@ after_headers:
                  body_target, SR_SARRAC_MAXIMUM_MESSAGE_LEN );
 			abort();
     }
+
 	while (body_received < body_target) {
 		result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
-		if (result < 0)
+		if (result < 0) {
+	        sr_log_msg(LOG_WARNING, "broken message received: wait_frame returned %d. aborting connection.\n",  result );
 			return (NULL);
-
+        }
 		if (frame.frame_type != AMQP_FRAME_BODY) {
-			sr_log_msg(LOG_CRITICAL, "Expected body!");
+			sr_log_msg(LOG_CRITICAL, "Expected body! aborting connection.");
 			abort();
 		}
 
@@ -713,17 +712,18 @@ after_headers:
 			(int)frame.payload.body_fragment.len );
 
 		body_received += frame.payload.body_fragment.len;
-	    sr_log_msg(LOG_DEBUG, "frame received: %lu bytes \n",  frame.payload.body_fragment.len );
+	    sr_log_msg(LOG_DEBUG, "message body frame received: %lu bytes \n",  frame.payload.body_fragment.len );
 
 		buf[body_received] = '\0';
     }
 
     if (body_received != body_target) {
-	    sr_log_msg(LOG_ERROR, "incomplete message, recieved: %lu bytes, expected: %lu bytes\n",  body_received, body_target );
+	    sr_log_msg(LOG_ERROR, "incomplete message, received: %lu bytes, expected: %lu bytes.\n",  body_received, body_target );
 		return (NULL);
     } else {
-	    sr_log_msg(LOG_DEBUG, "complete message, recieved: %lu bytes \n",  body_received );
+	    sr_log_msg(LOG_DEBUG, "complete message, received: %lu bytes \n",  body_received );
     }
+	//amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
 
 	/* Can only happen when amqp_simple_wait_frame returns <= 0 */
 	/* We break here to close the connection */

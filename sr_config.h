@@ -147,6 +147,7 @@ struct sr_broker_s {
 struct sr_config_s {
 	int accept_unmatched;		/**< if no masks match, reject(0), or accept(1) the file.*/
 	char *action;	      /**< the action to perform: start, stop, status, add, remove, foreground, enable, disable, etc...*/
+	char appname[128];	      /**< the name of the application, also the name of subdirectory used to find config and state files (default: sarra) */
 	long unsigned blocksize; /**< blocksize: 
           the size of blocks 0 (guess), 
                              1 ( send entire file in one block ),  
@@ -367,6 +368,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer);
  *
  * Return: 0  on success , failure otherwise.
  */
+int sr_config_deactivate(struct sr_config_s *sr_cfg);
 int sr_config_activate(struct sr_config_s *sr_cfg);
 
 /**

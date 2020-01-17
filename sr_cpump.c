@@ -146,6 +146,28 @@ int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
 	return (0);
 }
 
+
+/* establish bindings, and teardown and reestablish connection until it works.
+ */
+struct sr_context *force_good_connection_and_bindings(struct sr_context *sr_c) 
+{
+   struct sr_context *new_one;
+   int backoff=1;
+
+   new_one = sr_c;
+   while(!sr_consume_setup(new_one)) 
+   { /* loop until success */
+      sr_log_msg(LOG_WARNING, "Due to failure, sleeping for %d seconds to try to re-connect.\n", backoff);
+      sr_context_close(new_one);
+      sleep(backoff);
+      if ( backoff < 60 ) backoff *= 2;
+         new_one = sr_context_connect(new_one);
+   }
+   return(new_one);
+}
+
+
+
 int main(int argc, char **argv)
 {
 	struct sr_message_s *m;
@@ -153,7 +175,6 @@ int main(int argc, char **argv)
 	struct sr_config_s sr_cfg;
 	struct sr_mask_s *mask;
 	int consume, i, ret;
-    int backoff=1;
 	char *one;
 
 	//if ( argc < 3 ) usage();
@@ -258,13 +279,16 @@ int main(int argc, char **argv)
 	// (just hangs when attempting to bind queue with cleaned up exchange)
 	if (strcmp(sr_cfg.action, "cleanup")) {
 
-        while(!sr_consume_setup(sr_c)) { /* loop until success */
+        /*
+        while(!sr_consume_setup(sr_c)) { 
 		       sr_log_msg(LOG_ERROR, "Due to binding failure, sleeping for %d seconds to rety.\n", backoff);
 	           sr_context_close(sr_c);
                sleep(backoff);
                if ( backoff < 60 ) backoff *= 2;
 	           sr_c = sr_context_connect(sr_c);
         }
+         */
+        sr_c = force_good_connection_and_bindings(sr_c);
 		if (!strcmp(sr_cfg.outlet, "post"))
 			sr_post_init(sr_c);
 	}
@@ -306,8 +330,10 @@ int main(int argc, char **argv)
 		// inlet: from queue, json, tree.
 		m = sr_consume(sr_c);
 
-		if (!m)
-			break;
+		if (!m) {
+            sr_c = force_good_connection_and_bindings(sr_c);
+			continue;
+        }
 
 		sr_log_msg(LOG_INFO, "received: %s\n", sr_message_2log(m));
 
