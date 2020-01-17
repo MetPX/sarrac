@@ -453,7 +453,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
     		props._flags = AMQP_BASIC_CONTENT_ENCODING_FLAG | 
                 AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
 		    props.content_encoding = amqp_cstring_bytes("utf-8");
-		    props.content_type = amqp_cstring_bytes("text/plain");
+		    props.content_type = amqp_cstring_bytes("application/json");
 		    props.delivery_mode = 2;	/* persistent delivery mode */
     		table.num_entries = 0;
     		table.entries = 0;
