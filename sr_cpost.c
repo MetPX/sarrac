@@ -870,9 +870,10 @@ int main(int argc, char **argv)
 			inotify_event_mask |= IN_DELETE;
 
 		inot_fd = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
-		if (inot_fd < 0)
-            es=strerror_r( errno, error_buf, EBUFLEN );
-			sr_log_msg(LOG_ERROR, "inot init failed: %s\n", es);
+		if (inot_fd < 0) {
+                    es=strerror_r( errno, error_buf, EBUFLEN );
+		    sr_log_msg(LOG_ERROR, "inot init failed: %s\n", es);
+                }
 	} 
 
 	while (1) {
