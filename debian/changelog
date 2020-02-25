@@ -1,8 +1,11 @@
-sarrac (2.20.01b3) UNRELEASED; urgency=medium
+sarrac (2.20.02b3) unstable; urgency=medium
 
   * adding support for sr_insects (more extensive test data.)
+  * bugfix #89 bogus message on cpost startup: 'inot init failed: (null)'
+  * change AMQP message content-type fro text/plain to application/json for
+    v03 messages (user feedback.)
 
- -- Peter Silva <peter@blacklab>  Sun, 05 Jan 2020 14:20:40 -0500
+ -- Peter Silva <peter@bsqt.homeip.net>  Sun, 05 Jan 2020 14:20:40 -0500
 
 sarrac (2.19.12b6) unstable; urgency=medium
 
