@@ -284,26 +284,26 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 	signed int status;
 	struct sr_header_s *uh;
 	time_t to_sleep = 1;
-        time_t this_second = 0;
-        time_t new_second = 0;
+        static time_t this_second = 0;
+        static time_t new_second = 0;
         static int posted_this_second = 0;
 
         // rate limiting.        
 
         if ( sr_c->cfg->post_rate_limit > 0 )  {
 
-	        while (posted_this_second >= sr_c->cfg->post_rate_limit ) {
+	        if (posted_this_second >= sr_c->cfg->post_rate_limit ) {
 			sr_log_msg(LOG_INFO, "post_rate_limit %d per second\n", sr_c->cfg->post_rate_limit);
        		 	sleep(1);
        		}
 
 	        new_second = time(NULL);
        		if (new_second > this_second ) {
+                        this_second = new_second;
                		posted_this_second = 0;
         	}
-
+                posted_this_second++;
         }
-        posted_this_second++;
 
 	// MG white space in filename
 	strcpy(fn, m->path);
