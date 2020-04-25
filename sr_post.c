@@ -274,7 +274,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 	char message_body[1024*1024];
 	char smallbuf[256];
 	char thisexchange[256];
-    char sep[8];
+        char sep[8];
 	char *c, *d;
 	amqp_table_t table;
 	amqp_basic_properties_t props;
@@ -283,6 +283,15 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 	signed int status;
 	struct sr_header_s *uh;
 	time_t to_sleep = 1;
+        static int posted_this_second = 0;
+
+        // rate limiting.        
+        while ( ( sr_c->cfg->post_rate_limit > 0 ) && ( posted_this_second >= sr_c->cfg->post_rate_limit ) ) {
+		sr_log_msg(LOG_INFO, "post_rate limiting to %d per second\n", sr_c->cfg->post_rate_limit);
+        	sleep(1);
+                posted_this_second = 0;
+        }
+        posted_this_second++;
 
 	// MG white space in filename
 	strcpy(fn, m->path);
@@ -478,7 +487,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
         }
 
 		if (status < 0) {
-			sr_log_msg(LOG_ERROR,
+			sr_log_msg(LOG_WARNING,
 				"sr_%s: publish of message for  %s%s failed.\n",
 				sr_c->cfg->progname, m->url, fn);
 			goto restart;
@@ -486,7 +495,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 
 		commit_status = amqp_tx_commit(sr_c->cfg->post_broker->conn, 1);
 		if (!commit_status) {
-			sr_log_msg(LOG_ERROR, "broker failed to acknowledge publish event\n");
+			sr_log_msg(LOG_WARNING, "broker failed to acknowledge publish event\n");
 			reply = amqp_get_rpc_reply(sr_c->cfg->post_broker->conn);
 			if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
 				sr_amqp_reply_print(reply, "failed AMQP get_rpc_reply");

@@ -995,6 +995,11 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		argument = NULL;
 		retval = (2);
 
+	} else if (!strcmp(option, "post_rate_limit")
+		   || !strcmp(option, "pxs")) {
+		sr_cfg->post_rate_limit = atoi(argument);
+		retval = (2);
+
 	} else if (!strcmp(option, "prefetch")) {
 		sr_cfg->prefetch = atoi(argument);
 		retval = (2);
@@ -1279,6 +1284,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->post_broker = NULL;
 	sr_cfg->post_exchange = NULL;
 	sr_cfg->post_exchange_split = 0;
+	sr_cfg->post_rate_limit = 0;
 	sr_cfg->post_exchange_suffix = NULL;
 	sr_cfg->prefetch = 25;
 
