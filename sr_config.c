@@ -681,7 +681,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
  */
 {
 
-	char *brokerstr, *argument, *argument2;
+	char *brokerstr, *argument, *argument2, *spare;
 	int val;
 	int retval;
 	//char p[PATH_MAX];
@@ -834,7 +834,13 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (1 + (val & 1));
 
 	} else if (!strcmp(option, "events") || !strcmp(option, "e")) {
+                spare=strdup(argument);
 		sr_cfg->events = sr_parse_events(argument);
+                if ( sr_cfg->events & SR_EVERR ) {
+			sr_log_msg(LOG_ERROR, "Unrecognized event in: %s.\n", spare );
+                }
+                free(spare);
+                spare=NULL;
 		retval = (2);
 
 	} else if (!strcmp(option, "exchange") || !strcmp(option, "ex")) {
@@ -1631,15 +1637,15 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	if (strcmp(sr_cfg->action, "sanity")) {
 		sr_log_msg(LOG_DEBUG,
 			"sr_%s %s settings: action=%s hostname=%s config_name=%s log_level=%d follow_symlinks=%s realpath=%s\n",
-			sr_cfg->progname, __sarra_version__, sr_local_fqdn(), sr_cfg->action,
+			sr_cfg->progname, __sarra_version__,  sr_cfg->action, sr_local_fqdn(), 
 			sr_cfg->configname, sr_cfg->loglevel,
 			sr_cfg->follow_symlinks ? "yes" : "no", sr_cfg->realpath ? "yes" : "no");
 		sr_log_msg(LOG_DEBUG,
 			"\tsleep=%g expire=%g heartbeat=%g sanity_log_dead=%g cache=%g\n",
 			sr_cfg->sleep, sr_cfg->expire, sr_cfg->heartbeat,
 			sr_cfg->sanity_log_dead, sr_cfg->cache);
-		sr_log_msg(LOG_DEBUG, "\tcache_file=%s accept_unmatch=%s\n",
-			sr_cfg->cachep ? p : "off", sr_cfg->accept_unmatched ? "on" : "off");
+		sr_log_msg(LOG_DEBUG, "\tcache_file=%s accept_unmatch=%s post_rate_limit=%d\n",
+			sr_cfg->cachep ? p : "off", sr_cfg->accept_unmatched ? "on" : "off", sr_cfg->post_rate_limit );
 		sr_log_msg(LOG_DEBUG,
 			"\tevents=%04x directory=%s queuename=%s force_polling=%s sum=%c statehost=%c\n",
 			sr_cfg->events, sr_cfg->directory, sr_cfg->queuename,

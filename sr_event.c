@@ -1,5 +1,6 @@
 
 #include <string.h>
+#include <stdbool.h>
 
 #include "sr_event.h"
 
@@ -9,16 +10,32 @@
  */
 static void str2event(char *evstr, sr_event_s * evbm)
 {
-	if (!strcmp(evstr, "modify"))
+        bool found=false;
+
+	if (!strcmp(evstr, "modify")) {
 		(*evbm) |= SR_MODIFY;
-	if (!strcmp(evstr, "link"))
+                found=true;
+        }
+	if (!strcmp(evstr, "link")) {
 		(*evbm) |= SR_LINK;
-	if (!strcmp(evstr, "delete"))
+                found=true;
+        }
+	if (!strcmp(evstr, "delete")) {
 		(*evbm) |= SR_DELETE;
-	if (!strcmp(evstr, "create"))
+                found=true;
+        }
+	if (!strcmp(evstr, "create")) {
 		(*evbm) |= SR_CREATE;
-	if (!strcmp(evstr, "attrib"))
+                found=true;
+        }
+	if (!strcmp(evstr, "attrib")) {
 		(*evbm) |= SR_ATTRIB;
+                found=true;
+        }
+    
+        if (!found) {
+        	(*evbm) |= SR_EVERR ;
+        }
 }
 
 sr_event_s sr_parse_events(char *el)
