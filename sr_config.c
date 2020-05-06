@@ -1730,7 +1730,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		sr_log_msg(LOG_ERROR, "incomplete configuration, cannot guess queue\n");
 		return (0);
 	}
-	sprintf(p, "%s/.cache/%s/%s/%s/sr_%s.%s.%s", getenv("HOME"), sr_cfg->appname,
+	sprintf(p, "%s/.cache/%s/%s/%s/sr_%s.%s.%s.qname", getenv("HOME"), sr_cfg->appname,
 		sr_cfg->progname, sr_cfg->configname, sr_cfg->progname,
 		sr_cfg->configname, sr_cfg->broker->user);
 	f = fopen(p, "r");

@@ -1,5 +1,10 @@
 sarrac (2.20.04b1ubuntu1) UNRELEASED; urgency=medium
 
+  * qname files used by sr_post were missing the .qname suffix.
+    if upgrading, need to rename the queue files to match, or lose data.
+    before upgrade, stop the software. for all configs:
+    ie.. cd ~/.cache/sarra/cpump/cfg/; mv sr_cpump_cfg   sr_cpump_cfg.qname
+    (very little use of cpump at the moment, so no large effect.)
   * added post_rate_limit ( #90 )
   * complain when invalid events specified #84.
 
