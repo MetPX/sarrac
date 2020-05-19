@@ -1,4 +1,4 @@
-sarrac (2.20.04b1ubuntu1) UNRELEASED; urgency=medium
+sarrac (2.20.05) unstable; urgency=medium
 
   * qname files used by sr_post were missing the .qname suffix.
     if upgrading, need to rename the queue files to match, or lose data.
