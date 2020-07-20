@@ -1066,6 +1066,10 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (2);
 
 	} else if (!strcmp(option, "statehost") || !strcmp(option, "sh")) {
+
+		val = StringIsTrue(argument);
+		sr_cfg->statehost = val & 2;
+/*
 		sr_cfg->statehost = 's';
 		if (!strcasecmp(argument, "short")) {
 			sr_cfg->statehost = 's';
@@ -1081,6 +1085,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 			};
 			retval = (1 + (val & 1));
 		}
+ */
 	} else if (!strcmp(option, "strip")) {
 		sr_cfg->strip = atoi(argument);
 		// Check if arg was a number, if not: REGEX
@@ -1321,7 +1326,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->heartbeat = 300.0;
 	sr_cfg->help = 0;
 	sr_cfg->source = NULL;
-	sr_cfg->statehost = '0';
+	sr_cfg->statehost = 0;
 	sr_cfg->strip = 0;
 	sr_cfg->sumalgo = 'd';
 	sr_cfg->sumalgoz = 'd';
@@ -1332,7 +1337,6 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->topics = NULL;
 	sr_cfg->post_base_url = NULL;
 
-	sr_cfg->statehost = '0';
 	sr_cfg->statehostval = NULL;
 
 	sr_cfg->vip = NULL;
@@ -1515,12 +1519,12 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		val = sr_local_fqdn();
 
 		// short
-		if (sr_cfg->statehost == 's') {
+		/* if (sr_cfg->statehost == 's') { */
 			d = strchr(val, '.');
 			if (d) {
 				*d = '\0';
 			}
-		}
+		/* } */
 	}
 	if (val)
 		sr_cfg->statehostval = strdup(val);
