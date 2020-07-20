@@ -1,3 +1,10 @@
+sarrac (2.20.07) UNRELEASED; urgency=medium
+
+  * fix for coredump when a path is set to a non-existe environment variable.
+  * statehost is now a boolean, as per sr_subscribe man page (core dumped before.)
+
+ -- Peter Silva <peter@fractal>  Mon, 20 Jul 2020 12:05:15 -0400
+
 sarrac (2.20.05) unstable; urgency=medium
 
   * qname files used by sr_post were missing the .qname suffix.
