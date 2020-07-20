@@ -59,6 +59,8 @@ void sr_add_path(struct sr_config_s *sr_cfg, const char *option)
 	struct sr_path_s *p;
 	struct sr_path_s *n;
 
+        if (option == NULL) return;
+
 	if (!strcmp(option, "add")
 	    || !strcmp(option, "cleanup")
 	    || !strcmp(option, "declare")
