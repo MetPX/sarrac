@@ -1339,8 +1339,6 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->topics = NULL;
 	sr_cfg->post_base_url = NULL;
 
-	sr_cfg->statehostval = NULL;
-
 	sr_cfg->vip = NULL;
 	sr_cfg->xattr_cc = 0;
 
@@ -1517,16 +1515,10 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 
 	d = NULL;
 	val = NULL;
-	if (sr_cfg->statehost != '0') {
+	if (sr_cfg->statehost) {
 		val = sr_local_fqdn();
-
-		// short
-		/* if (sr_cfg->statehost == 's') { */
-			d = strchr(val, '.');
-			if (d) {
-				*d = '\0';
-			}
-		/* } */
+		d = strchr(val, '.');
+		if (d) *d = '\0';
 	}
 	if (val)
 		sr_cfg->statehostval = strdup(val);
@@ -1647,9 +1639,9 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			sr_cfg->configname, sr_cfg->loglevel,
 			sr_cfg->follow_symlinks ? "yes" : "no", sr_cfg->realpath ? "yes" : "no");
 		sr_log_msg(LOG_DEBUG,
-			"\tsleep=%g expire=%g heartbeat=%g sanity_log_dead=%g cache=%g\n",
+			"\tsleep=%g expire=%g heartbeat=%g sanity_log_dead=%g cache=%g statehost=%s\n",
 			sr_cfg->sleep, sr_cfg->expire, sr_cfg->heartbeat,
-			sr_cfg->sanity_log_dead, sr_cfg->cache);
+			sr_cfg->sanity_log_dead, sr_cfg->cache, sr_cfg->statehost ? "yes" : "no" );
 		sr_log_msg(LOG_DEBUG, "\tcache_file=%s accept_unmatch=%s post_rate_limit=%d\n",
 			sr_cfg->cachep ? p : "off", sr_cfg->accept_unmatched ? "on" : "off", sr_cfg->post_rate_limit );
 		sr_log_msg(LOG_DEBUG,
