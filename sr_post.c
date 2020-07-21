@@ -133,8 +133,8 @@ static void amqp_header_add(char *tag, const char *value)
 		strncpy(value2, value, AMQP_MAX_SS);
 		value2[AMQP_MAX_SS - 1] = '\0';
 		sr_log_msg(LOG_ERROR,
-			"header %s too long (%ld bytes), truncating to: %s. Message corrupt.\n",
-			tag, strlen(value), value2);
+			"header %s too long (%lu bytes), truncating to: %s. Message corrupt.\n",
+			tag, (unsigned long)strlen(value), value2);
 		headers[hdrcnt].value.value.bytes = amqp_cstring_bytes(value2);
         bad_hdrcnt++;
 	} else {

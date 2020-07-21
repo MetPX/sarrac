@@ -582,7 +582,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 
 	sr_log_msg( LOG_DEBUG, "Frame type %d, channel %d Method %s consumer_tag: %s, delivery_tag: %ld\n",
         frame.frame_type, frame.channel, amqp_method_name(frame.payload.method.id), 
-    		(char *)d->consumer_tag.bytes, d->delivery_tag);
+    		(char *)d->consumer_tag.bytes, (long)(d->delivery_tag));
 
 	sr_c->cfg->broker->last_delivery_tag = d->delivery_tag;
 
@@ -613,7 +613,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
     if (p->_flags & AMQP_BASIC_CONTENT_TYPE_FLAG) {
 	      sr_log_msg(LOG_DEBUG, "Content-type: %.*s  frame.payload.properties.class_id: %d body_size: %ld\n", 
               (int)p->content_type.len, (char *)p->content_type.bytes, frame.payload.properties.class_id,
-                 frame.payload.properties.body_size );
+                 (long)frame.payload.properties.body_size );
     }
 
     if (p->_flags & AMQP_BASIC_HEADERS_FLAG) { 
@@ -634,7 +634,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
                     break;
     
                 case AMQP_FIELD_KIND_TIMESTAMP:
-                    sr_log_msg(LOG_WARNING, "skipping TIMESTAMP header %d value:%ld\n", i, (p->headers.entries[i].value.value.u64) );
+                    sr_log_msg(LOG_WARNING, "skipping TIMESTAMP header %d value:%lld\n", i, (long long unsigned)(p->headers.entries[i].value.value.u64) );
                     break;
     
                 case AMQP_FIELD_KIND_UTF8:
@@ -659,19 +659,19 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
                     break;
     
                 case AMQP_FIELD_KIND_U64:
-    			    sr_log_msg(LOG_WARNING, "skipping U64 header %d value:%ld\n", i, (p->headers.entries[i].value.value.u64) );
+    		    sr_log_msg(LOG_WARNING, "skipping U64 header %d value:%lld\n", i, (long long unsigned)(p->headers.entries[i].value.value.u64) );
                     goto after_headers;
                     break;
     
     
                 case AMQP_FIELD_KIND_ARRAY:
-    			    sr_log_msg(LOG_WARNING, "skipping ARRAY header index: %d\n", i );
+    		    sr_log_msg(LOG_WARNING, "skipping ARRAY header index: %d\n", i );
                     goto after_headers;
                     break;
     
     
                 case AMQP_FIELD_KIND_I64:
-    			    sr_log_msg(LOG_WARNING, "skipping I64  header %d: value:%ld\n", i, (p->headers.entries[i].value.value.i64) );
+    		    sr_log_msg(LOG_WARNING, "skipping I64  header %d: value:%lld\n", i, (long long)(p->headers.entries[i].value.value.i64) );
                     goto after_headers;
                     break;
     
@@ -692,7 +692,7 @@ after_headers:
 
     if (body_target >= SR_SARRAC_MAXIMUM_MESSAGE_LEN) {
 			sr_log_msg(LOG_CRITICAL, "Message too big! received: (%ld bytes) max: %d",
-                 body_target, SR_SARRAC_MAXIMUM_MESSAGE_LEN );
+                 (long)body_target, SR_SARRAC_MAXIMUM_MESSAGE_LEN );
 			abort();
     }
 
@@ -712,16 +712,16 @@ after_headers:
 			(int)frame.payload.body_fragment.len );
 
 		body_received += frame.payload.body_fragment.len;
-	    sr_log_msg(LOG_DEBUG, "message body frame received: %lu bytes \n",  frame.payload.body_fragment.len );
+	        sr_log_msg(LOG_DEBUG, "message body frame received: %lu bytes \n", (unsigned long)frame.payload.body_fragment.len );
 
 		buf[body_received] = '\0';
     }
 
     if (body_received != body_target) {
-	    sr_log_msg(LOG_ERROR, "incomplete message, received: %lu bytes, expected: %lu bytes.\n",  body_received, body_target );
+	    sr_log_msg(LOG_ERROR, "incomplete message, received: %lu bytes, expected: %lu bytes.\n",  (long)body_received, (long)body_target );
 		return (NULL);
     } else {
-	    sr_log_msg(LOG_DEBUG, "complete message, received: %lu bytes \n",  body_received );
+	    sr_log_msg(LOG_DEBUG, "complete message, received: %lu bytes \n",  (unsigned long)body_received );
     }
 	//amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
 
