@@ -1,4 +1,4 @@
-sarrac (2.20.07) UNRELEASED; urgency=medium
+sarrac (2.20.07) stable; urgency=medium
 
   * fix for coredump when a path is set to a non-existe environment variable.
   * statehost is now a boolean, as per sr_subscribe man page (core dumped before.)
