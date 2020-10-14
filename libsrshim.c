@@ -476,6 +476,61 @@ int symlink(const char *target, const char *linkpath)
 	return (shimpost(linkpath, status));
 }
 
+static int symlinkat_init_done = 0;
+typedef int (*symlinkat_fn) (const char *, int, const char *);
+static symlinkat_fn symlinkat_fn_ptr = symlinkat;
+
+int symlinkat(const char *target, int dirfd, const char *linkpath)
+{
+	int status;
+	char fdpath[PATH_MAX + 1];
+	char real_path[PATH_MAX + 1];
+	char *real_return;
+
+	if (!symlinkat_init_done) {
+		setup_exit();
+		symlinkat_fn_ptr = (symlinkat_fn) dlsym(RTLD_NEXT, "symlinkat");
+		symlinkat_init_done = 1;
+	}
+	status = symlinkat_fn_ptr(target, dirfd, linkpath);
+
+	if (shim_disabled) {
+	        if (getenv("SR_SHIMDEBUG"))
+		      fprintf(stderr, "SR_SHIMDEBUG symlinkat %s %s\n", target, linkpath);
+		return (status);
+        }
+	clerror(status);
+	if (status == -1)
+		return status;
+
+	if (!strncmp(linkpath, "/dev/", 5))
+		return (status);
+	if (!strncmp(linkpath, "/proc/", 6))
+		return (status);
+
+	snprintf(fdpath, 32, "/proc/self/fd/%d", dirfd);
+	real_return = realpath(fdpath, real_path);
+	if (getenv("SR_SHIMDEBUG"))
+		fprintf(stderr,
+			"SR_SHIMDEBUG symlinkat %s %s %s\n",
+			real_path, target, linkpath );
+
+	clerror(status);
+	if (!real_return)
+		return (status);
+
+	strcat(real_path, "/");
+	strcat(real_path, linkpath );
+
+
+	clerror(status);
+	return (shimpost(real_path, status));
+
+}
+
+
+
+
 static int unlinkat_init_done = 0;
 typedef int (*unlinkat_fn) (int dirfd, const char *, int flags);
 static unlinkat_fn unlinkat_fn_ptr = unlinkat;
