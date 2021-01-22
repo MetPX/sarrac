@@ -59,6 +59,8 @@ void sr_add_path(struct sr_config_s *sr_cfg, const char *option)
 	struct sr_path_s *p;
 	struct sr_path_s *n;
 
+        if (option == NULL) return;
+
 	if (!strcmp(option, "add")
 	    || !strcmp(option, "cleanup")
 	    || !strcmp(option, "declare")
@@ -681,7 +683,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
  */
 {
 
-	char *brokerstr, *argument, *argument2;
+	char *brokerstr, *argument, *argument2, *spare;
 	int val;
 	int retval;
 	//char p[PATH_MAX];
@@ -834,7 +836,13 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (1 + (val & 1));
 
 	} else if (!strcmp(option, "events") || !strcmp(option, "e")) {
+                spare=strdup(argument);
 		sr_cfg->events = sr_parse_events(argument);
+                if ( sr_cfg->events & SR_EVERR ) {
+			sr_log_msg(LOG_ERROR, "Unrecognized event in: %s.\n", spare );
+                }
+                free(spare);
+                spare=NULL;
 		retval = (2);
 
 	} else if (!strcmp(option, "exchange") || !strcmp(option, "ex")) {
@@ -995,6 +1003,11 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		argument = NULL;
 		retval = (2);
 
+	} else if (!strcmp(option, "post_rate_limit")
+		   || !strcmp(option, "pxs")) {
+		sr_cfg->post_rate_limit = atoi(argument);
+		retval = (2);
+
 	} else if (!strcmp(option, "prefetch")) {
 		sr_cfg->prefetch = atoi(argument);
 		retval = (2);
@@ -1055,6 +1068,10 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (2);
 
 	} else if (!strcmp(option, "statehost") || !strcmp(option, "sh")) {
+
+		val = StringIsTrue(argument);
+		sr_cfg->statehost = val & 2;
+/*
 		sr_cfg->statehost = 's';
 		if (!strcasecmp(argument, "short")) {
 			sr_cfg->statehost = 's';
@@ -1070,6 +1087,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 			};
 			retval = (1 + (val & 1));
 		}
+ */
 	} else if (!strcmp(option, "strip")) {
 		sr_cfg->strip = atoi(argument);
 		// Check if arg was a number, if not: REGEX
@@ -1279,6 +1297,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->post_broker = NULL;
 	sr_cfg->post_exchange = NULL;
 	sr_cfg->post_exchange_split = 0;
+	sr_cfg->post_rate_limit = 0;
 	sr_cfg->post_exchange_suffix = NULL;
 	sr_cfg->prefetch = 25;
 
@@ -1309,7 +1328,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->heartbeat = 300.0;
 	sr_cfg->help = 0;
 	sr_cfg->source = NULL;
-	sr_cfg->statehost = '0';
+	sr_cfg->statehost = 0;
 	sr_cfg->strip = 0;
 	sr_cfg->sumalgo = 'd';
 	sr_cfg->sumalgoz = 'd';
@@ -1319,9 +1338,6 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	strcpy(sr_cfg->post_topic_prefix, "v02.post");
 	sr_cfg->topics = NULL;
 	sr_cfg->post_base_url = NULL;
-
-	sr_cfg->statehost = '0';
-	sr_cfg->statehostval = NULL;
 
 	sr_cfg->vip = NULL;
 	sr_cfg->xattr_cc = 0;
@@ -1499,16 +1515,10 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 
 	d = NULL;
 	val = NULL;
-	if (sr_cfg->statehost != '0') {
+	if (sr_cfg->statehost) {
 		val = sr_local_fqdn();
-
-		// short
-		if (sr_cfg->statehost == 's') {
-			d = strchr(val, '.');
-			if (d) {
-				*d = '\0';
-			}
-		}
+		d = strchr(val, '.');
+		if (d) *d = '\0';
 	}
 	if (val)
 		sr_cfg->statehostval = strdup(val);
@@ -1625,15 +1635,19 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	if (strcmp(sr_cfg->action, "sanity")) {
 		sr_log_msg(LOG_DEBUG,
 			"sr_%s %s settings: action=%s hostname=%s config_name=%s log_level=%d follow_symlinks=%s realpath=%s\n",
+<<<<<<< HEAD
 			sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_local_fqdn(), 
+=======
+			sr_cfg->progname, __sarra_version__,  sr_cfg->action, sr_local_fqdn(), 
+>>>>>>> master
 			sr_cfg->configname, sr_cfg->loglevel,
 			sr_cfg->follow_symlinks ? "yes" : "no", sr_cfg->realpath ? "yes" : "no");
 		sr_log_msg(LOG_DEBUG,
-			"\tsleep=%g expire=%g heartbeat=%g sanity_log_dead=%g cache=%g\n",
+			"\tsleep=%g expire=%g heartbeat=%g sanity_log_dead=%g cache=%g statehost=%s\n",
 			sr_cfg->sleep, sr_cfg->expire, sr_cfg->heartbeat,
-			sr_cfg->sanity_log_dead, sr_cfg->cache);
-		sr_log_msg(LOG_DEBUG, "\tcache_file=%s accept_unmatch=%s\n",
-			sr_cfg->cachep ? p : "off", sr_cfg->accept_unmatched ? "on" : "off");
+			sr_cfg->sanity_log_dead, sr_cfg->cache, sr_cfg->statehost ? "yes" : "no" );
+		sr_log_msg(LOG_DEBUG, "\tcache_file=%s accept_unmatch=%s post_rate_limit=%d\n",
+			sr_cfg->cachep ? p : "off", sr_cfg->accept_unmatched ? "on" : "off", sr_cfg->post_rate_limit );
 		sr_log_msg(LOG_DEBUG,
 			"\tevents=%04x directory=%s queuename=%s force_polling=%s sum=%c statehost=%c\n",
 			sr_cfg->events, sr_cfg->directory, sr_cfg->queuename,
@@ -1718,7 +1732,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		sr_log_msg(LOG_ERROR, "incomplete configuration, cannot guess queue\n");
 		return (0);
 	}
-	sprintf(p, "%s/.cache/%s/%s/%s/sr_%s.%s.%s", getenv("HOME"), sr_cfg->appname,
+	sprintf(p, "%s/.cache/%s/%s/%s/sr_%s.%s.%s.qname", getenv("HOME"), sr_cfg->appname,
 		sr_cfg->progname, sr_cfg->configname, sr_cfg->progname,
 		sr_cfg->configname, sr_cfg->broker->user);
 	f = fopen(p, "r");

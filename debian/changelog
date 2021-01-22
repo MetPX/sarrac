@@ -5,13 +5,29 @@ sarrac (2.20.10) UNRELEASED; urgency=medium
 
  -- Peter Silva <peter@fractal>  Wed, 14 Oct 2020 13:36:47 -0400
 
+sarrac (2.20.07) stable; urgency=medium
+
+  * fix for coredump when a path is set to a non-existe environment variable.
+  * statehost is now a boolean, as per sr_subscribe man page (core dumped before.)
+
+ -- Peter Silva <peter@fractal>  Mon, 20 Jul 2020 12:05:15 -0400
+
+sarrac (2.20.05) unstable; urgency=medium
+
+  * qname files used by sr_post were missing the .qname suffix.
+    if upgrading, need to rename the queue files to match, or lose data.
+    before upgrade, stop the software. for all configs:
+    ie.. cd ~/.cache/sarra/cpump/cfg/; mv sr_cpump_cfg   sr_cpump_cfg.qname
+    (very little use of cpump at the moment, so no large effect.)
+  * added post_rate_limit ( #90 )
+  * complain when invalid events specified #84.
+
+ -- peter <peter@bsqt.homeip.net>  Fri, 24 Apr 2020 21:34:03 -0400
+
 sarrac (2.20.01b3) unstable; urgency=medium
 
   * adding support for sr_insects (more extensive test data.)
   * 
-
- -- Peter Silva <peter@blacklab>  Sun, 05 Jan 2020 14:20:40 -0500
-
 sarrac (2.19.12b6) unstable; urgency=medium
 
   * issue #86 guess anonymous:anonymous for broker user.
