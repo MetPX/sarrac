@@ -1003,8 +1003,8 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		argument = NULL;
 		retval = (2);
 
-	} else if (!strcmp(option, "post_rate_limit")
-		   || !strcmp(option, "pxs")) {
+	} else if ( !strcmp(option, "post_rate_limit") || !strcmp(option, "pxs")
+                    || !strcmp(option, "message_rate_max") || !strcmp(option, "mrx") ) {
 		sr_cfg->post_rate_limit = atoi(argument);
 		retval = (2);
 
