@@ -67,7 +67,7 @@ int sr_consume_cleanup(struct sr_context *sr_c)
 	/* PS - should this be in sr_config? see sr_config_finalize for the other end of this
 	 */
 
-	sprintf(p, "%s/.cache/sarra/%s/%s/sr_%s.%s.%s", getenv("HOME"),
+	sprintf(p, "%s/.cache/" SR_APPNAME "/%s/%s/sr_%s.%s.%s", getenv("HOME"),
 		sr_c->cfg->progname, sr_c->cfg->configname, sr_c->cfg->progname,
 		sr_c->cfg->configname, sr_c->cfg->broker->user);
 	unlink(p);

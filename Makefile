@@ -32,8 +32,9 @@ LIBCLOCATION=$(shell ldd /bin/sh | awk '/libc\.so\./ { print; }' | cut -d' ' -f3
 #     when you do this, you can no longer accept v03 messages, but you can still post them.
 #
 # also remove -ljson-c from EXT_LIB declaration.
+# to work with sr3, change SR_APPNAME=\"sr3\" ... otherwise will be managed by version 2. 
 
-CFLAGS = -DHAVE_JSONC -DFORCE_LIBC_REGEX=\"$(LIBCLOCATION)\" -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE $(RABBIT_INCDIR)
+CFLAGS = -DHAVE_JSONC -DSR_APPNAME=\"sarra\" -DFORCE_LIBC_REGEX=\"$(LIBCLOCATION)\" -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE $(RABBIT_INCDIR)
 
 SARRA_HEADER = sr_cache.h sr_config.h sr_consume.h sr_context.h sr_credentials.h sr_event.h sr_post.h sr_util.h sr_version.h uthash.h 
 SARRA_OBJECT = sr_post.o sr_consume.o sr_context.o sr_config.o sr_event.o sr_credentials.o sr_cache.o sr_util.o

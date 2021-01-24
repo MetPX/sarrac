@@ -35,7 +35,7 @@ void usage()
 		"usage: sr_cpump %s <options> <action> <configuration>\n\n", __sarra_version__);
 	fprintf(stderr, "\t<options> - sr_post compatible configuration file.\n");
 	fprintf(stderr,
-		"\tbroker amqps://<user>@host - required - to lookup in ~/.config/sarra/credentials.\n");
+		"\tbroker amqps://<user>@host - required - to lookup in ~/.config/" SR_APPNAME "/credentials.\n");
 	fprintf(stderr, "\tdebug <on|off> - more verbose output.\n");
 	fprintf(stderr, "\texchange <exchange> - required - name of exchange to bind to\n");
 	fprintf(stderr, "\taccept/reject <regex> - to filter files to post.\n");
@@ -101,7 +101,7 @@ int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
         }
 	}
 
-	sprintf(cache_dir, "%s/.cache/sarra/%s/%s", getenv("HOME"),
+	sprintf(cache_dir, "%s/.cache/" SR_APPNAME "/%s/%s", getenv("HOME"),
 		sr_c->cfg->progname, sr_c->cfg->configname);
 
 	sr_consume_cleanup(sr_c);

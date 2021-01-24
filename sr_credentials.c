@@ -105,7 +105,7 @@ void sr_credentials_init()
 	int status;
 
 	strcpy(cfnbuf, getenv("HOME"));
-	strcat(cfnbuf, "/.config/sarra/credentials.conf");
+	strcat(cfnbuf, "/.config/" SR_APPNAME "/credentials.conf");
 
 	status = stat(cfnbuf, &sb);
 

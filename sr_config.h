@@ -43,8 +43,13 @@ status:
 #include <amqp.h>
 #include <amqp_framing.h>
 
+#ifndef SR_APPNAME
+#define SR_APPNAME "sarra"
+#endif
+
 #include "sr_util.h"
 #include "sr_event.h"
+
 
 // AMQP PROTOCOL LIMIT IMPOSED HERE... see definition of short strings.
 // 255 characters, + terminating nul
@@ -320,7 +325,7 @@ void sr_config_free(struct sr_config_s *sr_cfg);
  * sr_config_init()  - Initialize an sr_config structure (setting defaults)
  * \param sr_cfg: The configuration to be modified with the additional topic.
  * \param progname: Sets where in the configuration file tree to look for defaults, as well
- *            as where the .cache files will be placed ( .(config|cache)/sarra/<progname>/<config>/ )
+ *            as where the .cache files will be placed ( .(config|cache)/SR_APPNAME/<progname>/<config>/ )
  *            config name is guessed later during read, and the cache directories are made
  *            when the config is finalized.
  *

@@ -550,7 +550,7 @@ int sr_cpost_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
 		}
 	}
 
-	sprintf(cache_dir, "%s/.cache/sarra/%s/%s", getenv("HOME"),
+	sprintf(cache_dir, "%s/.cache/" SR_APPNAME "/%s/%s", getenv("HOME"),
 		sr_c->cfg->progname, sr_c->cfg->configname);
 
 	if (!sr_post_cleanup(sr_c)) {
@@ -618,7 +618,7 @@ void usage()
 	fprintf(stderr,
 		"\t\tforeground - run as a foreground process logging to stderr (ideal for debugging.)\n");
 	fprintf(stderr,
-		"\tbroker amqps://<user>@host - required - to lookup in ~/.config/sarra/credentials. MANDATORY\n");
+		"\tbroker amqps://<user>@host - required - to lookup in ~/.config/" SR_APPNAME "/credentials. MANDATORY\n");
 	fprintf(stderr, "\tchmod_log <mode> - permissions to set on log files (default: 0600)\n");
 	fprintf(stderr, "\tconfig|c <name> - Configuration file (to store options) MANDATORY\n");
 	fprintf(stderr, "\tdebug <on|off> - more verbose output. (default: off) \n");
