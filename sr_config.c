@@ -1254,12 +1254,12 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_credentials_init();
 	sr_cfg->action = strdup("foreground");
 	sr_cfg->accept_unmatched = 1;
-    if ( getenv("SR_DEV_APPNAME" ) ) 
-    {
-         strcpy( sr_cfg->appname, getenv("SR_DEV_APPNAME") );
-    } else {
-         strcpy( sr_cfg->appname, "sarra" );
-    } 
+        if ( getenv("SR_DEV_APPNAME" ) ) 
+        {
+             strcpy( sr_cfg->appname, getenv("SR_DEV_APPNAME") );
+        } else {
+             strcpy( sr_cfg->appname, SR_APPNAME );
+        } 
 	sr_cfg->blocksize = 1;
 	sr_cfg->broker = NULL;
 	sr_cfg->cache = 0;

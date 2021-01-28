@@ -554,7 +554,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 
 		/* realpath stuff when it exists  sb */
 		if (sb && sr_c->cfg->realpath) {
-			sr_log_msg(LOG_DEBUG, "applying realpath to relpath %s\n", pathspec);
+			sr_log_msg(LOG_DEBUG, "applying realpath 1 to relpath %s\n", pathspec);
 			if (!realpath(linkstr, fn)) {
 				strcpy(fn, linkstr);
 			}
@@ -565,8 +565,10 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	} else {
 		/* realpath stuff when it exists  sb */
 		if (sb && sr_c->cfg->realpath) {
-			sr_log_msg(LOG_DEBUG, "applying realpath to abspath %s\n", pathspec);
-			realpath(pathspec, fn);
+			sr_log_msg(LOG_DEBUG, "applying realpath 2 to abspath %s\n", pathspec);
+			if (!realpath(linkstr, fn)) {
+			    strcpy(fn, pathspec);
+                        }
 		} else
 			strcpy(fn, pathspec);
 	}

@@ -43,10 +43,6 @@ status:
 #include <amqp.h>
 #include <amqp_framing.h>
 
-#ifndef SR_APPNAME
-#define SR_APPNAME "sarra"
-#endif
-
 #include "sr_util.h"
 #include "sr_event.h"
 

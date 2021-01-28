@@ -18,6 +18,7 @@
 
 #include "sr_post.h"
 
+
 /*
  libsrshim - intercepts calls to libc and kernel to post files for broker.
 
@@ -292,7 +293,7 @@ void srshim_realpost(const char *path)
 	char fn[PATH_MAX + 1];
 	char fnreal[PATH_MAX + 1];
 
-	//sr_log_msg( LOG_DEBUG, "FIXME realpost PATH %s src=%p\n", path, sr_c);
+	//sr_log_msg( LOG_DEBUG, "FIXME realpost 1 PATH %s src=%p\n", path, sr_c);
 
 	if (!path || !sr_c)
 		return;
@@ -301,9 +302,11 @@ void srshim_realpost(const char *path)
 
 	statres = lstat(path, &sb);
 
-	if (!statres && !S_ISREG(sb.st_mode) && !S_ISLNK(sb.st_mode))
+	if (!statres && !S_ISREG(sb.st_mode) && !S_ISLNK(sb.st_mode)) {
+	        //sr_log_msg( LOG_DEBUG, "FIXME realpost 2.2 returning statres=%d, mode=%o , S_IFREG=%o, S_IFLNK=%o \n", 
+                //    statres, sb.st_mode, S_IFREG, S_IFLNK );
 		return;
-
+        }
 	strcpy(fn, path);
 
 	if (sr_cfg.realpath || sr_cfg.realpath_filter) {
@@ -311,8 +314,11 @@ void srshim_realpost(const char *path)
 			/* realpath of a link might result in a file or directory
 			   the stat must be reassigned
 			 */
-			realpath(path, fnreal);
-			statres = lstat(fnreal, &sb);
+                        if ( realpath(path,fnreal) ) {
+			    statres = lstat(fnreal, &sb);
+                        } else {
+                            strcpy(fnreal, path);
+                        }
 		} else {
 			/* If the stat failed, assume ENOENT (normal for removal or move), do realpath the directory containing the entry.
 			   then add the filename onto the that.
@@ -330,8 +336,9 @@ void srshim_realpost(const char *path)
 		}
 	}
 
-	if (sr_cfg.realpath)
+	if (sr_cfg.realpath) {
 		strcpy(fn, fnreal);
+        }
 
 	if (sr_cfg.realpath_filter) {
 		mask = sr_isMatchingPattern(&sr_cfg, fnreal);
@@ -389,7 +396,7 @@ int shimpost(const char *path, int status)
 		if (path[0] == '/') {
 			if (getenv("SR_SHIMDEBUG"))
 				fprintf(stderr,
-					"SR_SHIMDEBUG absolute shimpost %s, status=%d\n",
+					"SR_SHIMDEBUG absolute 1 shimpost %s, status=%d\n",
 					path, status);
 			srshim_realpost(path);
 		} else {
@@ -401,7 +408,7 @@ int shimpost(const char *path, int status)
 			strcat(real_path, path);
 			if (getenv("SR_SHIMDEBUG"))
 				fprintf(stderr,
-					"SR_SHIMDEBUG relative shimpost %s status=%d\n",
+					"SR_SHIMDEBUG relative 2 shimpost %s status=%d\n",
 					real_path, status);
 			srshim_realpost(real_path);
 			free(real_path);
@@ -508,20 +515,25 @@ int symlinkat(const char *target, int dirfd, const char *linkpath)
 	if (!strncmp(linkpath, "/proc/", 6))
 		return (status);
 
+	if (dirfd == AT_FDCWD) {
+		clerror(status);
+	        return (shimpost(linkpath, status));
+        } 
+
 	snprintf(fdpath, 32, "/proc/self/fd/%d", dirfd);
 	real_return = realpath(fdpath, real_path);
+
 	if (getenv("SR_SHIMDEBUG"))
 		fprintf(stderr,
-			"SR_SHIMDEBUG symlinkat %s %s %s\n",
+			"SR_SHIMDEBUG 4 symlinkat real_path=%s target=%s linkpath=%s\n",
 			real_path, target, linkpath );
 
 	clerror(status);
-	if (!real_return)
+	if (!real_return) {
 		return (status);
-
+        }
 	strcat(real_path, "/");
 	strcat(real_path, linkpath );
-
 
 	clerror(status);
 	return (shimpost(real_path, status));
