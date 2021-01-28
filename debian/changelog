@@ -1,7 +1,7 @@
-sarrac (2.20.10) UNRELEASED; urgency=medium
+sarrac (2.21.01) UNRELEASED; urgency=medium
 
   * fix for #93 missing symlinkat(2) 
-  * 
+  * fix usage printing had fqdn and action inverted.
 
  -- Peter Silva <peter@fractal>  Wed, 14 Oct 2020 13:36:47 -0400
 
@@ -24,10 +24,15 @@ sarrac (2.20.05) unstable; urgency=medium
 
  -- peter <peter@bsqt.homeip.net>  Fri, 24 Apr 2020 21:34:03 -0400
 
-sarrac (2.20.01b3) unstable; urgency=medium
+sarrac (2.20.02b3) unstable; urgency=medium
 
   * adding support for sr_insects (more extensive test data.)
-  * 
+  * bugfix #89 bogus message on cpost startup: 'inot init failed: (null)'
+  * change AMQP message content-type fro text/plain to application/json for
+    v03 messages (user feedback.)
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Fri, 24 Feb 2020 11:59:19 -0500
+
 sarrac (2.19.12b6) unstable; urgency=medium
 
   * issue #86 guess anonymous:anonymous for broker user.
