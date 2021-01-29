@@ -34,34 +34,34 @@ LIBCLOCATION=$(shell ldd /bin/sh | awk '/libc\.so\./ { print; }' | cut -d' ' -f3
 # also remove -ljson-c from EXT_LIB declaration.
 # to work with sr3, change SR_APPNAME=\"sr3\" ... otherwise will be managed by version 2. 
 
-CFLAGS = -DHAVE_JSONC -DSR_APPNAME=\"sarra\" -DFORCE_LIBC_REGEX=\"$(LIBCLOCATION)\" -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE $(RABBIT_INCDIR)
+CFLAGS = -DHAVE_JSONC -DSR_APPNAME=\"sr3\" -DFORCE_LIBC_REGEX=\"$(LIBCLOCATION)\" -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE $(RABBIT_INCDIR)
 
 SARRA_HEADER = sr_cache.h sr_config.h sr_consume.h sr_context.h sr_credentials.h sr_event.h sr_post.h sr_util.h sr_version.h uthash.h 
 SARRA_OBJECT = sr_post.o sr_consume.o sr_context.o sr_config.o sr_event.o sr_credentials.o sr_cache.o sr_util.o
-SARRA_LIB = libsarra.so.1.0.0 
+SARRA_LIB = libsr3c.so.1.0.0 
 EXT_LIB = -ljson-c -lrabbitmq -lcrypto -lc
-SHARED_LIB = libsrshim.so.1 -o libsrshim.so.1.0.0 libsrshim.c libsarra.so.1.0.0
+SHARED_LIB = libsr3shim.so.1 -o libsr3shim.so.1.0.0 libsr3shim.c libsr3c.so.1.0.0
 
 .c.o: $(SARRA_HEADER) Makefile
 	$(CC) $(CFLAGS) -c  $<
 
 #  head -1 debian/changelog | sed 's/.*(//' | sed 's/).*//'
 all: sr_version.h $(SARRA_OBJECT)
-	$(CC) $(CFLAGS) -shared -Wl,-soname,libsarra.so.1 -o libsarra.so.1.0.0 $(SARRA_OBJECT) -ldl $(RABBIT_LINK) $(EXT_LIB)
+	$(CC) $(CFLAGS) -shared -Wl,-soname,libsr3c.so.1 -o libsr3c.so.1.0.0 $(SARRA_OBJECT) -ldl $(RABBIT_LINK) $(EXT_LIB)
 	$(CC) $(CFLAGS) -shared -Wl,-soname,$(SHARED_LIB) -ldl $(SARRA_LINK) $(RABBIT_LINK) $(EXT_LIB)
-	if [ ! -f libsarra.so ]; \
+	if [ ! -f libsr3c.so ]; \
 	then \
-		ln -s libsarra.so.1.0.0 libsarra.so ; \
+		ln -s libsr3c.so.1.0.0 libsr3c.so ; \
 	fi;
-	if [ ! -f libsarra.so.1 ]; \
+	if [ ! -f libsr3c.so.1 ]; \
 	then \
-		ln -s libsarra.so.1.0.0 libsarra.so.1 ; \
+		ln -s libsr3c.so.1.0.0 libsr3c.so.1 ; \
 	fi;
 	$(CC) $(CFLAGS) -o sr_configtest sr_configtest.c -lsarra $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
 	$(CC) $(CFLAGS) -o sr_utiltest sr_utiltest.c -lsarra $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
 	$(CC) $(CFLAGS) -o sr_cachetest sr_cachetest.c -lsarra $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
-	$(CC) $(CFLAGS) -o sr_cpost sr_cpost.c -lsarra $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
-	$(CC) $(CFLAGS) -o sr_cpump sr_cpump.c -lsarra $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
+	$(CC) $(CFLAGS) -o sr3_cpost sr_cpost.c -lsarra $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
+	$(CC) $(CFLAGS) -o sr3_cpump sr_cpump.c -lsarra $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
 
 #debian/changelog: ../sarracenia/debian/changelog
 #	sed 's/^metpx-sarracenia/libsarra-c/' <../sarracenia/debian/changelog >debian/changelog 
@@ -73,8 +73,8 @@ install:
 	@mkdir -p build build/bin build/lib build/include
 	@mv *.so build/lib
 	@mv *.so.* build/lib
-	@mv sr_cpost build/bin
-	@mv sr_cpump build/bin
+	@mv sr3_cpost build/bin
+	@mv sr3_cpump build/bin
 	@cp *.h build/include/
 	@if [ $$(echo "$(DESTDIR)" | grep "rpmbuild") ]; \
 	then \
@@ -100,7 +100,7 @@ format:
 	@rm *.c~ *.h~
 
 clean:
-	@rm -f *.o *.gcno *.so *.so.* sr_cpost sr_configtest sr_utiltest sr_cpump sr_cachetest sr_cache_save.test
+	@rm -f *.o *.gcno *.so *.so.* sr3_cpost sr_configtest sr_utiltest sr3_cpump sr_cachetest sr_cache_save.test
 	@rm -rf build sr_version.h
 
 trust_but_verify: all
