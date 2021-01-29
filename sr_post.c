@@ -542,7 +542,6 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	char *c, *d;
 	int lasti;
 	int linklen;
-	char *linkp;
 	char linkstr[PATH_MAXNUL];
 	char tmprk[PATH_MAXNUL + 100];
 
@@ -683,17 +682,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		linkstr[0] = '\0';
 		linklen = readlink(fn, linkstr, PATH_MAX);
 		linkstr[linklen] = '\0';
-		if (sr_c->cfg->realpath) {
-			linkp = realpath(linkstr, m->link);
-			if (!linkp) {
-				sr_log_msg(LOG_ERROR,
-					"sr_%s unable to obtain realpath for %s\n",
-					sr_c->cfg->progname, fn);
-				return (0);
-			}
-		} else {
-			strcpy(m->link, linkstr);
-		}
+		strcpy(m->link, linkstr);
 
 	} else if (S_ISREG(sb->st_mode)) {	/* regular files, add mode and determine block parameters */
 
