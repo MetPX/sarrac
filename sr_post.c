@@ -542,7 +542,6 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	char *c, *d;
 	int lasti;
 	int linklen;
-	char *linkp;
 	char linkstr[PATH_MAXNUL];
 	char tmprk[PATH_MAXNUL + 100];
 
