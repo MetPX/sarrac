@@ -1,16 +1,17 @@
-sarrac (2.21.01) UNRELEASED; urgency=medium
+sarrac (2.21.01) stable; urgency=medium
 
-  * fix for #93 missing symlinkat(2) 
+  * fix for #93 missing symlinkat(2) and symlinks combined with realpath option.
   * fix usage printing had fqdn and action inverted.
+  * some prep for v03 upward compatibility.
 
- -- Peter Silva <peter@fractal>  Wed, 14 Oct 2020 13:36:47 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Fri, 29 Jan 2021 15:37:04 -0500
 
 sarrac (2.20.07) stable; urgency=medium
 
   * fix for coredump when a path is set to a non-existe environment variable.
   * statehost is now a boolean, as per sr_subscribe man page (core dumped before.)
 
- -- Peter Silva <peter@fractal>  Mon, 20 Jul 2020 12:05:15 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Mon, 20 Jul 2020 12:05:15 -0400
 
 sarrac (2.20.05) unstable; urgency=medium
 
