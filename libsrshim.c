@@ -299,20 +299,20 @@ char *stubborn_realpath( const char *path, char *resolved_path )
 
 	if (res) return(res);
 
-	sr_log_msg(LOG_INFO, "sr_%s stubborn_realpath 2: failed initial realpath of %s\n", sr_cfg.progname, path);
+	//sr_log_msg(LOG_INFO, "sr_%s stubborn_realpath 2: failed initial realpath of %s\n", sr_cfg.progname, path);
 
         strcpy(path_buffer,path);
         last_slash=rindex(path_buffer,'/');
 	*last_slash='\0';
 	res = realpath(path_buffer, resolved_path);
 
-	sr_log_msg(LOG_INFO, "sr_%s stubborn_realpath 3: tried realpath: %s result: %s\n", sr_cfg.progname, path_buffer, res);
+	//sr_log_msg(LOG_INFO, "sr_%s stubborn_realpath 3: tried realpath: %s result: %s\n", sr_cfg.progname, path_buffer, res);
         if (!res) {
 		strcpy( resolved_path, path );
         } else { 
                 *last_slash='/';
 	        strcat( resolved_path, last_slash );
-	        sr_log_msg(LOG_INFO, "sr_%s stubborn_realpath 4: after parent result: %s\n", sr_cfg.progname, resolved_path);
+	        //sr_log_msg(LOG_INFO, "sr_%s stubborn_realpath 4: after parent result: %s\n", sr_cfg.progname, resolved_path);
         }
         return(resolved_path);
 }
