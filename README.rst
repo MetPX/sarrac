@@ -15,7 +15,7 @@ are performance concerns that this implementation would help with..
 
 Detailed use case:
 
-  https://github.com/MetPX/sarracenia/blob/master/doc/hpc_mirroring_use_case.rst
+  https://github.com/MetPX/sarracenia/blob/main/doc/hpc_mirroring_use_case.rst
 
 .. Contents::
 
@@ -52,7 +52,7 @@ binary, that can call the library::
    sr_cpost
 
 This function takes the same options as 
-`sr_post <https://github.com/MetPX/sarracenia/blob/master/doc/sr_post.1.rst>`_, 
+`sr_post <https://github.com/MetPX/sarracenia/blob/main/doc/sr_post.1.rst>`_, 
 but the *sleep* argument, when supplied causes it to loop, checking for new 
 items every *sleep* seconds (equivalent to sr_watch.) There is also a sample consumer::
 
@@ -61,7 +61,7 @@ items every *sleep* seconds (equivalent to sr_watch.) There is also a sample con
 which obtains messages and, by default, prints them to standard output in json
 format identical the the format used by the python implementation for 
 save/restore. 
-`sr_cpump <https://github.com/MetPX/sarracenia/blob/master/doc/sr_cpump.1.rst>`_, 
+`sr_cpump <https://github.com/MetPX/sarracenia/blob/main/doc/sr_cpump.1.rst>`_, 
 
 In order to have a complete downloader, one needs a script to
 parse the json output and invoke an appropriate binary downloader. One can
@@ -77,7 +77,7 @@ url:
   just print out the retrieval urls, rather than the entire message
 
 There is also an LD_PRELOAD shim library. (libsrshim.c) that uses the posting
-API, this is to be used in `very high volume use cases <https://github.com/MetPX/sarracenia/blob/master/doc/hpc_mirroring_use_case.rst>`_
+API, this is to be used in `very high volume use cases <https://github.com/MetPX/sarracenia/blob/main/doc/hpc_mirroring_use_case.rst>`_
 
 Sample usage::
 
@@ -264,10 +264,17 @@ To note changes:
   - when ready to release, edit UNRELEASED to an appropriate status, usually unstable.
   - git commit #what you need to commit...
   - git tag <release> -m <release>
+
+  - if doing a stable release, on v2::
+        git checkout v2_stable
+        git merge main
+
   - git push
   - git push origin <release>
 
-  - go to Launchpad, and import source `here <https://code.launchpad.net/~ssc-hpc-chp-spc/metpx-sarrac/+git/master>`_.
+  (consider that branch for v2 is v2_stable, so might want to go to git checkout v2_stable, git pull main
+
+  - go to Launchpad, and import source `here <https://code.launchpad.net/~ssc-hpc-chp-spc/metpx-sarrac/+git/main>`_.
   - go to launchpad, find the recipe and Request Build `here <https://code.launchpad.net/~ssc-hpc-chp-spc/+recipe/metpx-sarrac>`_.
 
 
