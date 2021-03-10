@@ -544,7 +544,7 @@ int sr_cpost_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
 		ret = kill(sr_cfg->pid, 0);
 		if (!ret) {	// is running.
 			fprintf(stderr,
-				"cannot cleanup : sr_cpost configuration %s is running\n",
+				"cannot cleanup : sr3_cpost configuration %s is running\n",
 				sr_cfg->configname);
 			return (1);
 		}
@@ -578,7 +578,7 @@ int sr_cpost_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
 
 			if (S_ISDIR(sb.st_mode)) {
 				fprintf(stderr,
-					"cannot cleanup : sr_cpost configuration %s directory\n",
+					"cannot cleanup : sr3_cpost configuration %s directory\n",
 					e->d_name);
 			}
 
@@ -603,7 +603,7 @@ int sr_cpost_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
 
 void usage()
 {
-	fprintf(stderr, "usage: sr_cpost %s <options> <paths>\n\n", __sarra_version__);
+	fprintf(stderr, "usage: sr3_cpost %s <options> <paths>\n\n", __sarra_version__);
 	fprintf(stderr, "\taccept/reject <regex> - to filter files to post.\n");
 	fprintf(stderr, "\taccept_unmatch <boolean> - if not matched, accept? (default: true).\n");
 	fprintf(stderr, "\taction [start|stop|setup|cleanup|foreground] default: foreground\n");

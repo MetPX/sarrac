@@ -2,7 +2,7 @@
 
 if [ ! "${SR_POST_CONFIG}" ]; then
    export SR_POST_CONFIG=${SARRAC_HOME}/etc/test_post.conf
-   export LD_PRELOAD=${SARRAC_HOME}/lib/libsrshim.so.1.0.0
+   export LD_PRELOAD=${SARRAC_HOME}/lib/libsr3shim.so.1.0.0
    exec $0
 fi
 echo "SR_POST_CONFIG=$SR_POST_CONFIG"

@@ -11,7 +11,7 @@ are performance concerns that this implementation would help with..
  - in some environments getting python3 environment installed is hard
    (example: cray linux environment is a software environment from circa 2009)
 
- - in-process invocation of sr_post on file closes (libsrshim.)
+ - in-process invocation of sr_post on file closes (libsr3shim.)
 
 Detailed use case:
 
@@ -76,21 +76,21 @@ post:
 url: 
   just print out the retrieval urls, rather than the entire message
 
-There is also an LD_PRELOAD shim library. (libsrshim.c) that uses the posting
+There is also an LD_PRELOAD shim library. (libsr3shim.c) that uses the posting
 API, this is to be used in `very high volume use cases <https://github.com/MetPX/sarracenia/blob/master/doc/hpc_mirroring_use_case.rst>`_
 
 Sample usage::
 
    export SR_POST_CONFIG="mypost"
-   export LD_PRELOAD=`pwd`/libsrshim.so.1.0.0
+   export LD_PRELOAD=`pwd`/libsr3shim.so.1.0.0
    #export SR_POST_READS=true
    #export SR_SHIMDEBUG=true 
 
-   cp libsrshim.c ~/test/hoho_my_darling.txt
+   cp libsr3shim.c ~/test/hoho_my_darling.txt
    ln -s hoho haha
    rm haha
 
-With the SR_POST_CONFIG set to "mypost", The libsrshim library will look in 
+With the SR_POST_CONFIG set to "mypost", The libsr3shim library will look in 
 ~/.config/sarra/post/  for "mypost.conf." With the LD_PRELOAD set to use the
 library, processes that run will call functions like 'close' that are in the
 shim library, and the shim library will apply the "mypost.conf" configuration

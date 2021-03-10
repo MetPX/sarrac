@@ -1569,11 +1569,11 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	}
 	// logfn
 	if (val) {
-		sprintf(p, "%s/.cache/%s/%s/log/sr_%s_%s_%02d.log",
+		sprintf(p, "%s/.cache/%s/%s/log/%s_%s_%02d.log",
 			getenv("HOME"), sr_cfg->appname, val, sr_cfg->progname,
 			sr_cfg->configname, sr_cfg->instance);
 	} else {
-		sprintf(p, "%s/.cache/%s/log/sr_%s_%s_%02d.log",
+		sprintf(p, "%s/.cache/%s/log/%s_%s_%02d.log",
 			getenv("HOME"), sr_cfg->appname, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 
@@ -2201,10 +2201,10 @@ void sr_config_log(struct sr_config_s *sr_cfg)
 	char p[256];
 
 	if (sr_cfg->statehost == '0') {
-		sprintf(p, "%s/.cache/%s/log/sr_%s_%s_%04d.log",
+		sprintf(p, "%s/.cache/%s/log/%s_%s_%04d.log",
 			getenv("HOME"), sr_cfg->appname, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	} else {
-		sprintf(p, "%s/.cache/%s/%s/log/sr_%s_%s_%04d.log",
+		sprintf(p, "%s/.cache/%s/%s/log/%s_%s_%04d.log",
 			getenv("HOME"), sr_cfg->appname, sr_cfg->statehostval, sr_cfg->progname,
 			sr_cfg->configname, sr_cfg->instance);
 	}

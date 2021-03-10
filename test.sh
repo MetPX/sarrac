@@ -2,7 +2,7 @@
 
 if [ ! "${SR_POST_CONFIG}" ]; then
    export SR_POST_CONFIG=`pwd`/local_post.conf
-   export LD_PRELOAD=`pwd`/libsrshim.so.1.0.0
+   export LD_PRELOAD=`pwd`/libsr3shim.so.1.0.0
    exec $0
 fi
 
@@ -17,7 +17,7 @@ truncate --size=2 ./hoho
 
 /usr/bin/python2.7 pyiotest
 grep lovely pyiotest
-cp libsrshim.c ~/test/hoho_my_darling.txt
+cp libsr3shim.c ~/test/hoho_my_darling.txt
 touch hihi
 ln -s hoho haha
 mv haha hihi

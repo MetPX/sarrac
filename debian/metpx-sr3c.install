@@ -1,0 +1,2 @@
+build/bin/*  usr/bin/
+build/lib/libsr3shim*  usr/lib/

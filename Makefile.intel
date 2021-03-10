@@ -38,7 +38,7 @@ SARRA_HEADER = sr_cache.h sr_config.h sr_consume.h sr_context.h sr_credentials.h
 SARRA_OBJECT = sr_post.o sr_consume.o sr_context.o sr_config.o sr_event.o sr_credentials.o sr_cache.o sr_util.o
 SARRA_LIB = libsarra.so.1.0.0 
 EXT_LIB = -lrabbitmq -lcrypto -lc
-SHARED_LIB = libsrshim.so.1 -o libsrshim.so.1.0.0 libsrshim.c libsarra.so.1.0.0
+SHARED_LIB = libsr3shim.so.1 -o libsr3shim.so.1.0.0 libsr3shim.c libsr3c.so.1.0.0
 
 .c.o: $(SARRA_HEADER)
 	$(CC) $(CFLAGS) -c  $<

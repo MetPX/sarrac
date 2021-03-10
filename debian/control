@@ -7,19 +7,19 @@ Section: libs
 Homepage: https://github.com/MetPX
 Vcs-Git: https//github.com/MetPX/sarrac
 
-Package: libsr3c-dev
+Package: metpx-libsr3c-dev
 Section: libdevel
-Architecture: all
-Depends: libsr3c (= ${binary:Version}), ${misc:Depends}, librabbitmq4  ( >= 0.8 ), librabbitmq-dev
+Architecture: any
+Depends: metpx-libsr3c (= ${binary:Version}), ${misc:Depends}, librabbitmq4  ( >= 0.8 ), librabbitmq-dev
 Recommends: metpx-sr3 (>= 3.0.0 )
 Description: C-Implementation of a Sarracenia Client
  API library could be used to integrate sarra posting into C applications.
  See http://github.com/MetPX/ for more information.
  Documentation is in the metpx-sarracenia package.
 
-Package: libsr3c
+Package: metpx-libsr3c
 Section: libs
-Architecture: all
+Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, librabbitmq4 ( >= 0.8 )
 Recommends: metpx-sr3 (>= 3.0.0 )
 Description: C-Implementation of a Sarracenia Client
@@ -28,9 +28,9 @@ Description: C-Implementation of a Sarracenia Client
  See http://github.com/MetPX/ for more information.
  Documentation is in the metpx-sarracenia package.
 
-Package: sr3c
-Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, libsarrac (= ${binary:Version})
+Package: metpx-sr3c
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, metpx-libsr3c (= ${binary:Version})
 Recommends: metpx-sr3 (>= 3.0.0 )
 Description: C-Implementation of a Sarracenia Client
  sr_cpost, implementation of sr_post (see metpx-sarracenia)

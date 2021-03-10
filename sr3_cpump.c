@@ -32,8 +32,8 @@
 void usage()
 {
 	fprintf(stderr,
-		"usage: sr_cpump %s <options> <action> <configuration>\n\n", __sarra_version__);
-	fprintf(stderr, "\t<options> - sr_post compatible configuration file.\n");
+		"usage: sr3_cpump %s <options> <action> <configuration>\n\n", __sarra_version__);
+	fprintf(stderr, "\t<options> - sr3_post compatible configuration file.\n");
 	fprintf(stderr,
 		"\tbroker amqps://<user>@host - required - to lookup in ~/.config/" SR_APPNAME "/credentials.\n");
 	fprintf(stderr, "\tdebug <on|off> - more verbose output.\n");
@@ -70,7 +70,7 @@ void usage()
 		"\t\tforeground - run as a foreground process logging to stderr (ideal for debugging.)\n");
 
 	fprintf(stderr,
-		"\nThis is a limited C implementation of sr_subscribe(1), see man page for details\n\n");
+		"\nThis is a limited C implementation of sr3_subscribe(1), see man page for details\n\n");
 	fprintf(stderr, "\t\tcan only move messages (no downloading.), no plugin support.\n");
 	exit(1);
 }
@@ -96,7 +96,7 @@ int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
 		} else if ( ret < 0  ) {
             s = strerror_r( errno, cache_fil, PATH_MAX-1 );
 			fprintf(stderr, 
-               "cannot cleanup sr_cpump configuration %s, failed to check pid ( %d ): %s ",
+               "cannot cleanup sr3_cpump configuration %s, failed to check pid ( %d ): %s ",
                sr_cfg->configname, sr_cfg->pid, s );
         }
 	}
@@ -124,7 +124,7 @@ int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
 
 			if (S_ISDIR(sb.st_mode)) {
 				fprintf(stderr,
-					"cannot cleanup : sr_cpump configuration %s directory\n",
+					"cannot cleanup : sr3_cpump configuration %s directory\n",
 					e->d_name);
 			}
 

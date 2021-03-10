@@ -19,7 +19,7 @@ XOCA52 KWBC 272012
 XOCA52 KWBC 272012
 EOF
    export SR_POST_CONFIG=`pwd`/test_post.conf
-   export LD_PRELOAD=`pwd`/libsrshim.so.1.0.0
+   export LD_PRELOAD=`pwd`/libsr3shim.so.1.0.0
    exec $0
 fi
 

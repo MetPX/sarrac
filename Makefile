@@ -57,11 +57,11 @@ all: sr_version.h $(SARRA_OBJECT)
 	then \
 		ln -s libsr3c.so.1.0.0 libsr3c.so.1 ; \
 	fi;
-	$(CC) $(CFLAGS) -o sr_configtest sr_configtest.c -lsarra $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
-	$(CC) $(CFLAGS) -o sr_utiltest sr_utiltest.c -lsarra $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
-	$(CC) $(CFLAGS) -o sr_cachetest sr_cachetest.c -lsarra $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
-	$(CC) $(CFLAGS) -o sr3_cpost sr_cpost.c -lsarra $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
-	$(CC) $(CFLAGS) -o sr3_cpump sr_cpump.c -lsarra $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
+	$(CC) $(CFLAGS) -o sr_configtest sr_configtest.c -lsr3c $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
+	$(CC) $(CFLAGS) -o sr_utiltest sr_utiltest.c -lsr3c $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
+	$(CC) $(CFLAGS) -o sr_cachetest sr_cachetest.c -lsr3c $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
+	$(CC) $(CFLAGS) -o sr3_cpost sr3_cpost.c -lsr3c $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
+	$(CC) $(CFLAGS) -o sr3_cpump sr3_cpump.c -lsr3c $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
 
 #debian/changelog: ../sarracenia/debian/changelog
 #	sed 's/^metpx-sarracenia/libsarra-c/' <../sarracenia/debian/changelog >debian/changelog 
@@ -107,5 +107,5 @@ trust_but_verify: all
 	./sr_configtest test_post.conf 
 	./sr_utiltest 
 	./sr_cachetest
-	@valgrind --show-reachable=yes --track-origins=yes ./sr_cpost -c local_post.conf uthash.h
+	@valgrind --show-reachable=yes --track-origins=yes ./sr3_cpost -c local_post.conf uthash.h
 
