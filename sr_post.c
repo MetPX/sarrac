@@ -206,7 +206,7 @@ static char *hex_to_b64str( char *hextr, int hexstrlen ) {
   return( "not implemented" );
 }
 
-static const char *sum2integrity( char sum )
+const char *sum2integrity( char sum )
 {
    switch (sum) {
        case '0': return( "random" );
@@ -238,7 +238,14 @@ static char *v03integrity( struct sr_message_s *m )
 
 }
 
-static char *v03time( char *v02time )
+char *v03content( struct sr_message_t *m )
+{
+        
+	sr_log_msg(LOG_ERROR, "Content inlinining not implemented. Faking it for now\n" );
+	return "\"encoding\" : \"_encoding_\", \"value\" : \"_value_\"";
+}
+
+char *v03time( char *v02time )
 {
    static char buf[128];
 
@@ -422,6 +429,9 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 
             status = sprintf( c, ",%s\"integrity\" : { %s }", sep, v03integrity(m) );
             c += status ; 
+
+            //status = sprintf( c, ", \"content\" : { %s }", v03content(m) );
+            //c += status;
 
     		if (sr_c->cfg->strip > 0) 
                  v03amqp_header_add( &c, "rename", m->rename );
