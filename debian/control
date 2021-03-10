@@ -9,7 +9,7 @@ Vcs-Git: https//github.com/MetPX/sarrac
 
 Package: libsarrac-dev
 Section: libdevel
-Architecture: all
+Architecture: any
 Depends: libsarrac (= ${binary:Version}), ${misc:Depends}, librabbitmq4  ( >= 0.8 ), librabbitmq-dev
 Recommends: metpx-sarracenia (>= 2.19.04 )
 Description: C-Implementation of a Sarracenia Client
@@ -19,7 +19,7 @@ Description: C-Implementation of a Sarracenia Client
 
 Package: libsarrac
 Section: libs
-Architecture: all
+Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, librabbitmq4 ( >= 0.8 )
 Recommends: metpx-sarracenia (>= 2.19.04 )
 Description: C-Implementation of a Sarracenia Client
@@ -29,7 +29,7 @@ Description: C-Implementation of a Sarracenia Client
  Documentation is in the metpx-sarracenia package.
 
 Package: sarrac
-Architecture: all
+Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libsarrac (= ${binary:Version})
 Recommends: metpx-sarracenia (>= 2.19.04 )
 Description: C-Implementation of a Sarracenia Client
