@@ -1728,7 +1728,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		sr_log_msg(LOG_ERROR, "incomplete configuration, cannot guess queue\n");
 		return (0);
 	}
-	sprintf(p, "%s/.cache/%s/%s/%s/sr_%s.%s.%s.qname", getenv("HOME"), sr_cfg->appname,
+	sprintf(p, "%s/.cache/%s/%s/%s/%s.%s.%s.qname", getenv("HOME"), sr_cfg->appname,
 		sr_cfg->progname, sr_cfg->configname, sr_cfg->progname,
 		sr_cfg->configname, sr_cfg->broker->user);
 	f = fopen(p, "r");
@@ -1740,7 +1740,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	} else {
 		// If unset in config, set queuename now
 		if (!sr_cfg->queuename) {
-			sprintf(q, "q_%s.sr_%s.%s.%ld.%ld",
+			sprintf(q, "q_%s_%s.%s.%ld.%ld",
 				sr_cfg->broker->user, sr_cfg->progname,
 				sr_cfg->configname, random(), random());
 			sr_cfg->queuename = strdup(q);

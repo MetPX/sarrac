@@ -1,4 +1,4 @@
-sr3c (3.21.01a3) UNRELEASED; urgency=medium
+sr3c (3.21.08a1) UNRELEASED; urgency=medium
 
   * oriented to work with sr3
   * fix for #93 missing symlinkat(2) 
