@@ -1,5 +1,6 @@
-sarrac (2.21.01) stable; urgency=medium
+sarrac (2.21.02) stable; urgency=medium
 
+  * renumbered release because of weird build issue on launchpad metpx-daily
   * fix for #93 missing symlinkat(2) and symlinks combined with realpath option.
   * fix usage printing had fqdn and action inverted.
   * some prep for v03 upward compatibility.
