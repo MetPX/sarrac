@@ -1260,6 +1260,9 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
         } else {
              strcpy( sr_cfg->appname, SR_APPNAME );
         } 
+        if ( !getenv("OPENSSL_CONF" ) ) {
+	     setenv("OPENSSL_CONF", "/etc/ssl/", 1);
+        }
 	sr_cfg->blocksize = 1;
 	sr_cfg->broker = NULL;
 	sr_cfg->cache = 0;
