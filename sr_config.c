@@ -750,8 +750,8 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 	       || !strcmp(option, "no_duplicates")
 		   || !strcmp(option, "noduplicates") || !strcmp(option, "nd")
 		   || !strcmp(option, "suppress_duplicates")
-		   || !strcmp(option, "sd"))
-		   || !strcmp(option, "nodupe_ttl"){
+		   || !strcmp(option, "sd")
+		   || !strcmp(option, "nodupe_ttl")){
 		if isalpha
 			(*argument) {
 			val = StringIsTrue(argument);
@@ -776,7 +776,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		}
 		retval = (2);
 
-	} else if (!strcmp(option, "chmod_log") !strcmp(option, "permLog")) {
+	} else if (!strcmp(option, "chmod_log") || !strcmp(option, "permLog")) {
 		sscanf(argument, "%04o", &(sr_cfg->chmod_log));
 		retval = 2;
 
@@ -915,7 +915,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		sr_cfg->logrotate_interval = (int)seconds_from_duration_str(argument);
 		retval = (2);
 
-	} else if (!strcmp(option, "loglevel") !strcmp(option, "logLevel")) {
+	} else if (!strcmp(option, "loglevel") || !strcmp(option, "logLevel")) {
 		if (!strcasecmp(argument, "info")) {
 			sr_cfg->loglevel = LOG_INFO;
 		} else if (!strcasecmp(argument, "warning")
@@ -940,7 +940,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		sr_cfg->log = val & 2;
 		retval = (1 + (val & 1));
 
-	} else if (!strcmp(option, "log_reject") !strcmp(option, "logReject") ) {
+	} else if (!strcmp(option, "log_reject") || !strcmp(option, "logReject") ) {
 		val = StringIsTrue(argument);
 		sr_cfg->log_reject = val & 2;
 		retval = (1 + (val & 1));
