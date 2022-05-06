@@ -746,11 +746,12 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		free(brokerstr);
 		retval = 2;
 
-	} else if (!strcmp(option, "cache") || !strcmp(option, "caching") ||
-		   !strcmp(option, "no_duplicates")
+	} else if (!strcmp(option, "cache") || !strcmp(option, "caching")
+	       || !strcmp(option, "no_duplicates")
 		   || !strcmp(option, "noduplicates") || !strcmp(option, "nd")
 		   || !strcmp(option, "suppress_duplicates")
-		   || !strcmp(option, "sd")) {
+		   || !strcmp(option, "sd"))
+		   || !strcmp(option, "nodupe_ttl"){
 		if isalpha
 			(*argument) {
 			val = StringIsTrue(argument);
@@ -762,6 +763,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		}
 	} else if (!strcmp(option, "suppress_duplicates_basis")
 		   || !strcmp(option, "sdb") || !strcmp(option, "cache_basis")
+		   || !strcmp(option, "nodupe_basis")
 		   || !strcmp(option, "cb")) {
 		if (!strcmp(argument, "data") || !strcmp(argument, "name")
 		    || !strcmp(argument, "path")) {
@@ -774,7 +776,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		}
 		retval = (2);
 
-	} else if (!strcmp(option, "chmod_log")) {
+	} else if (!strcmp(option, "chmod_log") !strcmp(option, "permLog")) {
 		sscanf(argument, "%04o", &(sr_cfg->chmod_log));
 		retval = 2;
 
@@ -810,6 +812,8 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 
 	} else if (!strcmp(option, "post_document_root")
 		   || !strcmp(option, "pdr") || !strcmp(option, "document_root")
+		   || !strcmp(option, "documentRoot")
+		   || !strcmp(option, "post_documentRoot")
 		   || !strcmp(option, "dr")) {
 		sr_log_msg(LOG_WARNING,
 			"please replace (deprecated) [post_]document_root with base_dir: %s.\n",
@@ -819,14 +823,16 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		sr_cfg->post_base_dir = argument;
 		argument = NULL;
 
-	} else if (!strcmp(option, "post_base_dir") || !strcmp(option, "pbd")) {
+	} else if (!strcmp(option, "post_base_dir") || !strcmp(option, "pbd")
+	       ||  !strcmp(option, "post_baseDir") ||  !strcmp(option, "post_basedir") ) {
 		if (sr_cfg->post_base_dir)
 			free(sr_cfg->post_base_dir);
 		sr_cfg->post_base_dir = argument;
 		argument = NULL;
 		retval = 2;
 
-    } else if (!strcmp(option, "post_topic_prefix") || !strcmp(option, "ptp" ) ) {
+    } else if (!strcmp(option, "post_topic_prefix") || !strcmp(option, "ptp" )
+           || !strcmp(option, "post_topicPrefix" )) {
         strcpy( sr_cfg->post_topic_prefix, argument );
         retval = 2;
 
@@ -835,7 +841,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		sr_cfg->durable = val & 2;
 		retval = (1 + (val & 1));
 
-	} else if (!strcmp(option, "events") || !strcmp(option, "e")) {
+	} else if (!strcmp(option, "events") || !strcmp(option, "e") || !strcmp(option, "fileEvents")) {
                 spare=strdup(argument);
 		sr_cfg->events = sr_parse_events(argument);
                 if ( sr_cfg->events & SR_EVERR ) {
@@ -881,7 +887,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		sr_cfg->force_polling = val & 2;
 		retval = (1 + (val & 1));
 
-	} else if (!strcmp(option, "heartbeat") || !strcmp(option, "hb")) {
+	} else if (!strcmp(option, "heartbeat") || !strcmp(option, "hb") || !strcmp(option, "housekeeping") ) {
 		sr_cfg->heartbeat = seconds_from_duration_str(argument);
 		retval = (2);
 
@@ -894,6 +900,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (1 + (val & 1));
 
 	} else if (!strcmp(option, "logrotate") || !strcmp(option, "lr")
+	       || !strcmp(option, "logRotateCount")
 		   || !strcmp(option, "logdays") || !strcmp(option, "ld")) {
 		if (!strcmp(option, "logdays") || !strcmp(option, "ld")) {
 			printf
@@ -904,11 +911,11 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (2);
 
 	} else if (!strcmp(option, "logrotate_interval")
-		   || !strcmp(option, "lri")) {
+		   || !strcmp(option, "lri") || !strcmp(option, "logRotateInterval")) {
 		sr_cfg->logrotate_interval = (int)seconds_from_duration_str(argument);
 		retval = (2);
 
-	} else if (!strcmp(option, "loglevel")) {
+	} else if (!strcmp(option, "loglevel") !strcmp(option, "logLevel")) {
 		if (!strcasecmp(argument, "info")) {
 			sr_cfg->loglevel = LOG_INFO;
 		} else if (!strcasecmp(argument, "warning")
@@ -933,7 +940,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		sr_cfg->log = val & 2;
 		retval = (1 + (val & 1));
 
-	} else if (!strcmp(option, "log_reject")) {
+	} else if (!strcmp(option, "log_reject") !strcmp(option, "logReject") ) {
 		val = StringIsTrue(argument);
 		sr_cfg->log_reject = val & 2;
 		retval = (1 + (val & 1));
@@ -994,7 +1001,8 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (2);
 
 	} else if (!strcmp(option, "post_exchange_split")
-		   || !strcmp(option, "pxs")) {
+		   || !strcmp(option, "pxs")
+		   || !strcmp(option, "post_exchangeSplit")) {
 		sr_cfg->post_exchange_split = atoi(argument);
 		retval = (2);
 
@@ -1004,7 +1012,8 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (2);
 
 	} else if ( !strcmp(option, "post_rate_limit") || !strcmp(option, "pxs")
-                    || !strcmp(option, "message_rate_max") || !strcmp(option, "mrx") ) {
+           || !strcmp(option, "message_rate_max") || !strcmp(option, "mrx")
+           || !strcmp(option, "messageRateMax")) {
 		sr_cfg->post_rate_limit = atoi(argument);
 		retval = (2);
 
@@ -1096,7 +1105,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		}
 		retval = (2);
 
-	} else if (!strcmp(option, "sum")) {
+	} else if (!strcmp(option, "sum") || !strcmp(option, "integrity")) {
 		sr_cfg->sumalgo = argument[0];
 		if (sr_cfg->sumalgo == 'z')
 			sr_cfg->sumalgoz = argument[2];
@@ -1109,7 +1118,8 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		argument = NULL;
 		retval = (2);
 
-	} else if (!strcmp(option, "topic_prefix") || !strcmp(option, "tp")) {
+	} else if (!strcmp(option, "topic_prefix") || !strcmp(option, "tp")
+	       || !strcmp(option, "topicPrefix")) {
 		strcpy(sr_cfg->topic_prefix, argument);
 		retval = (2);
 
@@ -1121,7 +1131,8 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		sr_cfg->post_base_url = argument;
 		argument = NULL;
 		retval = (2);
-	} else if (!strcmp(option, "post_base_url") || !strcmp(option, "pbu")) {
+	} else if (!strcmp(option, "post_base_url") || !strcmp(option, "pbu")
+	       || !strcmp(option, "post_baseUrl")  || !strcmp(option, "post_baseurl")) {
 		if (sr_cfg->post_base_url)
 			free(sr_cfg->post_base_url);
 		sr_cfg->post_base_url = argument;
