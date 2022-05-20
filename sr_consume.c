@@ -118,17 +118,19 @@ int sr_consume_setup(struct sr_context *sr_c)
 	msg.user_headers = NULL;
 
 	//amqp_queue_declare_ok_t *r = 
-	amqp_queue_declare(sr_c->cfg->broker->conn,
+        if ( sr_c->cfg->declare_queue ) {
+  		amqp_queue_declare(sr_c->cfg->broker->conn,
 			   1,
 			   amqp_cstring_bytes(sr_c->cfg->queuename),
 			   passive, sr_c->cfg->durable, exclusive, auto_delete, table);
-	/* FIXME how to parse r for error? */
+		/* FIXME how to parse r for error? */
 
-	reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);
-	if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-		sr_amqp_reply_print(reply, "queue declare failed");
-		return (0);
-	}
+		reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);
+		if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
+			sr_amqp_reply_print(reply, "queue declare failed");
+			return (0);
+		}
+        }
 
 	/*
 	   FIXME: topic bindings are not working properly...

@@ -796,6 +796,16 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 	} else if (!strcmp(option, "declare")) {
 		retval = sr_add_decl(sr_cfg, argument, argument2);
 
+	} else if (!strcmp(option, "declare_exchange")||!strcmp(option,"de")||!strcmp(option,"dx")) {
+		val = StringIsTrue(argument);
+		sr_cfg->declare_exchange = val & 2;
+		retval = (1 + (val & 1));
+
+	} else if (!strcmp(option, "declare_queue")||!strcmp(option,"dq")) {
+		val = StringIsTrue(argument);
+		sr_cfg->declare_queue = val & 2;
+		retval = (1 + (val & 1));
+
 	} else if (!strcmp(option, "delete")) {
 		val = StringIsTrue(argument);
 		sr_cfg->delete = val & 2;
@@ -1271,6 +1281,8 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->chmod_log = 0600;
 	sr_cfg->configname = NULL;
 	sr_cfg->debug = 0;
+        sr_cfg->declare_exchange = 1;
+        sr_cfg->declare_queue = 1;
 	sr_cfg->delete = 0;
 	sr_cfg->directory = NULL;
 	sr_cfg->post_base_dir = NULL;
