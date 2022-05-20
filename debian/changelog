@@ -1,3 +1,9 @@
+sarrac (2.22.05) UNRELEASED; urgency=medium
+
+  * #096 bugfix for crash/hang on permissions problems. 
+
+ -- Peter Silva <peter@fractal>  Fri, 20 May 2022 04:52:47 -0400
+
 sarrac (2.21.02) stable; urgency=medium
 
   * renumbered release because of weird build issue on launchpad metpx-daily
