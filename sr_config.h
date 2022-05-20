@@ -163,6 +163,8 @@ struct sr_config_s {
 	mode_t chmod_log;	 /**< permission mode bits to use for the log files.*/
 	char *configname;	  /**< the configuration being run (name of the main configuration file.)*/
 	int debug;	     /**< turn on debug output.*/
+        int declare_exchange; //**< declare exchange before use */
+        int declare_queue; //**< declare queue before use */
 	int delete;	      /**< flag to mark that files downloaded should be deleted (unimplemented)*/
 	char *directory;	 /**< the current directory setting (used when building masks)*/
 	int durable;	       /**< flag to pass to broker to set corresponding Queue property*/

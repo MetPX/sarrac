@@ -514,6 +514,13 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 				sr_c->cfg->progname, m->url, fn);
 			goto restart;
 		}
+	        reply = amqp_get_rpc_reply(sr_c->cfg->post_broker->conn);
+                if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
+                        sr_amqp_reply_print(reply,
+                                    "basic publish failed AMQP get_rpc_reply:");
+                        goto restart;
+                }
+
 
 		commit_status = amqp_tx_commit(sr_c->cfg->post_broker->conn, 1);
 		if (!commit_status) {
@@ -589,9 +596,9 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 			sb ? S_ISLNK(sb->st_mode) : 0,
 			sb ? S_ISDIR(sb->st_mode) : 0, sb ? S_ISREG(sb->st_mode) : 0);
 	}
-	if (sb && S_ISDIR(sb->st_mode))
+	if (sb && S_ISDIR(sb->st_mode)) {
 		return (0);	// cannot post directories.
-
+        }
 	/* copy filename to path, but inserting %20 for every space
 	 */
 	c = m->path;
@@ -765,7 +772,6 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 	// report...
 	// FIXME: duration, consumingurl, consuminguser, statuscode?
 	numblks = sr_file2message_start(sr_c, pathspec, sb, &m);
-
 	for (int blk = 0; (blk < numblks); blk++) {
 		if (sr_file2message_seq(sr_c, pathspec, blk, &m)) {
 			if (sr_c->cfg->cache > 0) {
@@ -968,6 +974,9 @@ int sr_post_init(struct sr_context *sr_c)
 	char exchange[256];
 	amqp_rpc_reply_t reply;
 
+        if ( ! sr_c->cfg->declare_exchange ) {
+            return(1);
+        }
 	if (sr_c->cfg->post_broker->exchange_split) {
 		for (int i = 0; i < sr_c->cfg->post_broker->exchange_split; i++) {
 			sr_log_msg(LOG_DEBUG, "declaring exchange %s%02d\n",
