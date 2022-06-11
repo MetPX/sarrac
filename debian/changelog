@@ -1,10 +1,19 @@
-sr3c (3.22.00) UNRELEASED; urgency=medium
+sr3c (3.22.02) unstable; urgency=medium
+
+  * #096 second bugfix for "already running " (race condition on startup)
+  * fix for #96 problem with cpost hanging on permission issues, have it report & recover better
+  * adding understanding of sr3 option names in addition to v2 ones (compatibility with v3 configs)
+
+ -- Peter Silva <peter@fractal>  Wed, 14 Oct 2020 13:36:47 -0400
+
+sr3c (3.21.01a3) UNRELEASED; urgency=medium
 
   * oriented to work with sr3
-  * fix for #93 missing symlinkat(2) 
+  * fix for #93 missing symlinkat(2)
   * fix usage printing had fqdn and action inverted.
 
  -- Peter Silva <peter@fractal>  Wed, 14 Oct 2020 13:36:47 -0400
+
 
 sarrac (2.20.07) stable; urgency=medium
 
