@@ -1,5 +1,6 @@
-sarrac (2.22.06) stable; urgency=medium
+sarrac (2.22.06p1) stable; urgency=medium
 
+  * bugfix coredump for n sum with path in cwd.
   * #096 second bugfix for "already running " (race condition on startup)
 
  -- Peter Silva <peter@fractal>  Sat, 11 Jun 2022 01:11:10 -0400

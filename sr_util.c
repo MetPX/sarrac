@@ -625,9 +625,8 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	case 'n':
 		MD5_Init(&md5ctx);
-		just_the_name = rindex(fn, '/') + 1;
-		if (!just_the_name)
-			just_the_name = fn;
+		just_the_name = rindex(fn, '/');
+                just_the_name = (just_the_name != NULL)?just_the_name++:fn ;
 		MD5_Update(&md5ctx, just_the_name, strlen(just_the_name));
 		MD5_Final(sumhash + 1, &md5ctx);
 		sr_hash2sumstr(sumhash);
@@ -643,8 +642,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	case 'R':		// null, or removal.
 		just_the_name = rindex(fn, '/') + 1;
-		if (just_the_name < (char *)2)
-			just_the_name = fn;
+                just_the_name = (just_the_name != NULL)?just_the_name++:fn ;
 		SHA512_Init(&shactx);
 		SHA512_Update(&shactx, just_the_name, strlen(just_the_name));
 		SHA512_Final(sumhash + 1, &shactx);
@@ -654,8 +652,8 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	case 'p':
 		SHA512_Init(&shactx);
 		just_the_name = rindex(fn, '/') + 1;
-		if (just_the_name < (char *)2)
-			just_the_name = fn;
+                just_the_name = (just_the_name != NULL)?just_the_name++:fn ;
+
 		strcpy(buf, just_the_name);
 		sprintf(buf, "%s%c,%lu,%lu,%lu,%lu", just_the_name, algo,
 			block_size, block_count, block_rem, block_num);
