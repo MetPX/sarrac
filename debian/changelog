@@ -1,5 +1,6 @@
-sr3c (3.22.02) unstable; urgency=medium
+sr3c (3.22.06) unstable; urgency=medium
 
+  * bugfix coredump for n sum with path in cwd.
   * #096 second bugfix for "already running " (race condition on startup)
   * fix for #96 problem with cpost hanging on permission issues, have it report & recover better
   * adding understanding of sr3 option names in addition to v2 ones (compatibility with v3 configs)
