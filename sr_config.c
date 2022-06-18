@@ -994,8 +994,8 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 			broker_free(sr_cfg->post_broker);
 		brokerstr = sr_credentials_fetch(argument);
 		if (brokerstr == NULL) {
-			sr_log_msg(LOG_ERROR,
-				"notice: no stored credential for post_broker: %s.\n", argument);
+			sr_log_msg(LOG_NOTICE,
+				"no stored credential for post_broker: %s.\n", argument);
 			sr_cfg->post_broker = broker_uri_parse(argument);
 		} else {
 			sr_cfg->post_broker = broker_uri_parse(brokerstr);
@@ -1167,7 +1167,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 			retval = (1);
 		}
 	} else {
-		sr_log_msg(LOG_WARNING, "info: %s option not implemented, ignored.\n", option);
+		sr_log_msg(LOG_NOTICE, "%s option not implemented, ignored.\n", option);
 	}
 
 	if (argument)

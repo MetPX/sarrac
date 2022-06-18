@@ -54,6 +54,9 @@ void sr_log_msg(int prio, const char *format, ...)
 	case LOG_INFO:
 		level = "INFO";
 		break;
+	case LOG_NOTICE:
+		level = "NOTICE";
+		break;
 	case LOG_WARNING:
 		level = "WARNING";
 		break;

@@ -10,8 +10,9 @@
 #include <openssl/sha.h>
 
 // log message severities.
-#define LOG_DEBUG     (5)
-#define LOG_INFO      (4)
+#define LOG_DEBUG     (6)
+#define LOG_INFO      (5)
+#define LOG_NOTICE    (4)
 #define LOG_WARNING   (3)
 #define LOG_ERROR     (2)
 #define LOG_CRITICAL  (1)
