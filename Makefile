@@ -22,6 +22,9 @@ SARRA_LINK = -Wl,-rpath,${SARRA_LIBDIR} -L${SARRA_LIBDIR}
 
 CC = gcc
 
+# can also use intel compiller just by changing CC
+# CC = icc
+
 # add -DSR_DEBUG_LOGS to CFLAGS to replace log files with writing to stderr, and much improved compiler checks.
 #    if you try the explain library, need to add -lexplain to SARRA_LINK also.
 
