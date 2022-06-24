@@ -1,5 +1,8 @@
 sr3c (3.22.06) unstable; urgency=medium
 
+  * fix for hang on (GoC internal) hpcr U2 pppX environment.
+  * fix for crash on (GoC internal) hpfx U2 dtnX environment.
+  * #096 second bugfix for "already running " (race condition on startup)
   * bugfix coredump for n sum with path in cwd.
   * #096 second bugfix for "already running " (race condition on startup)
   * fix for #96 problem with cpost hanging on permission issues, have it report & recover better
