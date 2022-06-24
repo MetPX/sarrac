@@ -1749,7 +1749,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	f = fopen(p, "r");
 	if (f)			// read the queue name from the file.
 	{
-		fgets(q, PATH_MAX, f);
+		fgets(q, AMQP_MAX_SS, f);
 		sr_cfg->queuename = strdup(q);
 		fclose(f);
 	} else {
@@ -2378,7 +2378,7 @@ void sr_config_list(struct sr_config_s *sr_cfg)
 		f = fopen(p, "r");
 		if (f)		// read the pid from the file.
 		{
-			fgets(p, PATH_MAX, f);
+			fgets(p, 1024, f);
 			pid = atoi(p);
 			fclose(f);
 			pidstat = kill(pid, 0);
