@@ -1,4 +1,5 @@
 
+#include <openssl/evp.h>
 #include <openssl/sha.h>
 #include <openssl/md5.h>
 #include <unistd.h>
@@ -10,22 +11,34 @@ unsigned char hash[SHA512_DIGEST_LENGTH + 1];
 
 unsigned char *md5hash(char *str)
 {
-	MD5_CTX md5ctx;
+	EVP_MD_CTX *ctx;
+	const EVP_MD *md;
+	unsigned int hashlen = 0;
 
-	MD5_Init(&md5ctx);
-	MD5_Update(&md5ctx, str, strlen(str));
-	MD5_Final(hash + 1, &md5ctx);
+	ctx = EVP_MD_CTX_create();
+	md = EVP_md5();
+	EVP_DigestInit_ex(ctx, md, NULL );
+ 
+	EVP_DigestUpdate(ctx, str, strlen(str));
+	EVP_DigestFinal_ex(ctx, hash + 1, &hashlen);
 	hash[0] = 'd';
 	return (hash);
 }
 
 unsigned char *sha512hash(char *str)
 {
-	SHA512_CTX shactx;
+	EVP_MD_CTX *ctx;
+	const EVP_MD *md;
+	unsigned int hashlen = 0;
 
-	SHA512_Init(&shactx);
-	SHA512_Update(&shactx, str, strlen(str));
-	SHA512_Final(hash + 1, &shactx);
+
+	ctx = EVP_MD_CTX_create();
+	md = EVP_sha512();
+	EVP_DigestInit_ex(ctx, md, NULL );
+ 
+	EVP_DigestUpdate(ctx, str, strlen(str));
+	EVP_DigestFinal_ex(ctx, hash + 1, &hashlen);
+
 	hash[0] = 's';
 	return (hash);
 }
