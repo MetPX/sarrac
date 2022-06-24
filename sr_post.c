@@ -201,10 +201,6 @@ static unsigned long int set_blocksize(long int bssetting, size_t fsz)
 
 }
 
-static char *hex_to_b64str( char *hextr, int hexstrlen ) {
-
-  return( "not implemented" );
-}
 
 const char *sum2integrity( char sum )
 {
