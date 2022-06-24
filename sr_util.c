@@ -634,8 +634,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
                 md = EVP_md5();
                 EVP_DigestInit_ex(ctx, md, NULL );
 
-		just_the_name = rindex(fn, '/');
-                just_the_name = (just_the_name != NULL)?just_the_name++:fn ;
+                just_the_name = just_the_name?just_the_name+1:fn ;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumhash);
@@ -655,12 +654,12 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	case 'R':		// null, or removal.
 		just_the_name = rindex(fn, '/') + 1;
-                just_the_name = (just_the_name != NULL)?just_the_name++:fn ;
+                just_the_name = just_the_name?just_the_name+1:fn ;
 		ctx = EVP_MD_CTX_create();
                 md = EVP_sha512();
                 EVP_DigestInit_ex(ctx, md, NULL );
 
-		EVP_DigestUpdate(&ctx, just_the_name, strlen(just_the_name));
+		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen );
 		sr_hash2sumstr(sumhash);
 		break;
@@ -671,7 +670,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
                 EVP_DigestInit_ex(ctx, md, NULL );
 
 		just_the_name = rindex(fn, '/') + 1;
-                just_the_name = (just_the_name != NULL)?just_the_name++:fn ;
+                just_the_name = just_the_name?just_the_name+1:fn ;
 
 		strcpy(buf, just_the_name);
 		sprintf(buf, "%s%c,%lu,%lu,%lu,%lu", just_the_name, algo,
@@ -705,7 +704,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			//   how_many_to_read, bytes_read );
 
 			if (bytes_read >= 0) {
-				EVP_DigestUpdate(&ctx, buf, bytes_read);
+				EVP_DigestUpdate(ctx, buf, bytes_read);
 				start += bytes_read;
 			} else {
 				fprintf(stderr, "error reading %s for SHA\n", fn);
