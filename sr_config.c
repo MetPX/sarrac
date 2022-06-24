@@ -541,7 +541,7 @@ char *sr_local_fqdn()
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_CANONNAME;
 
-	if ((gai_result = getaddrinfo(hostname, "http", &hints, &info)) != 0) {
+	if ((gai_result = getaddrinfo(hostname, NULL, &hints, &info)) != 0) {
 		sr_log_msg(LOG_CRITICAL,
 			"cannot get hostname.  Getaddrinfo returned: %s\n",
 			gai_strerror(gai_result));
