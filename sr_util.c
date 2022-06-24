@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <openssl/evp.h>
 #include <openssl/md5.h>
 #include <string.h>
 #include <time.h>
@@ -539,8 +540,9 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
     block starts at block_size * block_num, and ends 
   */
 {
-	MD5_CTX md5ctx;
-	SHA512_CTX shactx;
+	EVP_MD_CTX *ctx;
+    	const EVP_MD *md;
+        unsigned int hashlen = 0;
 
 	static int fd;
 	static char buf[SUMBUFSIZE];
@@ -585,8 +587,9 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		break;
 
 	case 'd':
-		MD5_Init(&md5ctx);
-
+		ctx = EVP_MD_CTX_create();
+                md = EVP_md5();
+                EVP_DigestInit_ex(ctx, md, NULL );
 		// keep file open through repeated calls.
 		//fprintf( stderr, "opening %s to checksum\n", fn );
 
@@ -605,7 +608,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 			bytes_read = read(fd, buf, how_many_to_read);
 			if (bytes_read > 0) {
-				MD5_Update(&md5ctx, buf, bytes_read);
+                                EVP_DigestUpdate(ctx, buf, bytes_read);
 				start += bytes_read;
 			} else {
 				fprintf(stderr, "error reading %s for MD5\n", fn);
@@ -622,51 +625,66 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			fd = 0;
 		}
 
-		MD5_Final(sumhash + 1, &md5ctx);
+                EVP_DigestFinal_ex(ctx, sumhash+1, &hashlen);
 		sr_hash2sumstr(sumhash);
 		break;
 
 	case 'n':
-		MD5_Init(&md5ctx);
+		ctx = EVP_MD_CTX_create();
+                md = EVP_md5();
+                EVP_DigestInit_ex(ctx, md, NULL );
+
 		just_the_name = rindex(fn, '/');
                 just_the_name = (just_the_name != NULL)?just_the_name++:fn ;
-		MD5_Update(&md5ctx, just_the_name, strlen(just_the_name));
-		MD5_Final(sumhash + 1, &md5ctx);
+		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
+		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumhash);
 		break;
 
 	case 'L':		// symlink case
 		just_the_name = linkstr;
-		SHA512_Init(&shactx);
-		SHA512_Update(&shactx, linkstr, strlen(linkstr));
-		SHA512_Final(sumhash + 1, &shactx);
+		ctx = EVP_MD_CTX_create();
+                md = EVP_sha512();
+                EVP_DigestInit_ex(ctx, md, NULL );
+
+
+		EVP_DigestUpdate(ctx, linkstr, strlen(linkstr));
+		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumhash);
 		break;
 
 	case 'R':		// null, or removal.
 		just_the_name = rindex(fn, '/') + 1;
                 just_the_name = (just_the_name != NULL)?just_the_name++:fn ;
-		SHA512_Init(&shactx);
-		SHA512_Update(&shactx, just_the_name, strlen(just_the_name));
-		SHA512_Final(sumhash + 1, &shactx);
+		ctx = EVP_MD_CTX_create();
+                md = EVP_sha512();
+                EVP_DigestInit_ex(ctx, md, NULL );
+
+		EVP_DigestUpdate(&ctx, just_the_name, strlen(just_the_name));
+		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen );
 		sr_hash2sumstr(sumhash);
 		break;
 
 	case 'p':
-		SHA512_Init(&shactx);
+		ctx = EVP_MD_CTX_create();
+                md = EVP_sha512();
+                EVP_DigestInit_ex(ctx, md, NULL );
+
 		just_the_name = rindex(fn, '/') + 1;
                 just_the_name = (just_the_name != NULL)?just_the_name++:fn ;
 
 		strcpy(buf, just_the_name);
 		sprintf(buf, "%s%c,%lu,%lu,%lu,%lu", just_the_name, algo,
 			block_size, block_count, block_rem, block_num);
-		SHA512_Update(&shactx, buf, strlen(buf));
-		SHA512_Final(sumhash + 1, &shactx);
+		EVP_DigestUpdate(ctx, buf, strlen(buf));
+		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumhash);
 		break;
 
 	case 's':
-		SHA512_Init(&shactx);
+		ctx = EVP_MD_CTX_create();
+                md = EVP_sha512();
+                EVP_DigestInit_ex(ctx, md, NULL );
 
 		// keep file open through repeated calls.
 		if (!(fd > 0))
@@ -687,7 +705,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			//   how_many_to_read, bytes_read );
 
 			if (bytes_read >= 0) {
-				SHA512_Update(&shactx, buf, bytes_read);
+				EVP_DigestUpdate(&ctx, buf, bytes_read);
 				start += bytes_read;
 			} else {
 				fprintf(stderr, "error reading %s for SHA\n", fn);
@@ -703,7 +721,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			close(fd);
 			fd = 0;
 		}
-		SHA512_Final(sumhash + 1, &shactx);
+		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumhash);
 		break;
 
