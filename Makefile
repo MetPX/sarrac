@@ -75,7 +75,7 @@ sr_version.h: debian/changelog
 install:
 	@mkdir -p build build/bin build/lib build/include
 	@mv *.so build/lib
-	@mv *.so.* build/lib
+	@mv *.so.*1.0.0 build/lib
 	@mv sr_cpost build/bin
 	@mv sr_cpump build/bin
 	@cp *.h build/include/
