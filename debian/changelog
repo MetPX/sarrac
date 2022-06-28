@@ -1,3 +1,10 @@
+sarrac (2.22.06p2) stable; urgency=medium
+
+  * rpath to ../lib fixing search for dyn libraries.
+  * put back mv for libsarra.so.1
+
+ -- Peter Silva <peter@fractal>  Tue, 28 Jun 2022 16:27:04 -0400
+
 sarrac (2.22.06p1) stable; urgency=medium
 
   * fix for hang on (GoC internal) hpcr U2 pppX environment.

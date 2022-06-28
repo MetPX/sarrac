@@ -16,7 +16,7 @@ endif
 
 SARRA_LIBDIR = ${CURDIR}
 
-SARRA_LINK = -Wl,-rpath,${SARRA_LIBDIR} -L${SARRA_LIBDIR} 
+SARRA_LINK = '-Wl,-rpath,$$ORIGIN/../lib' -L${SARRA_LIBDIR} 
 
 # if neither variable is set, then it is assumed to be available from default environment.
 
@@ -46,7 +46,7 @@ SARRA_LIB = libsarra.so.1.0.0
 EXT_LIB = -ljson-c -lrabbitmq -lcrypto -lc
 SHARED_LIB = libsrshim.so.1 -o libsrshim.so.1.0.0 libsrshim.c libsarra.so.1.0.0
 
-.c.o: $(SARRA_HEADER) Makefile
+.c.o:
 	$(CC) $(CFLAGS) -c  $<
 
 #  head -1 debian/changelog | sed 's/.*(//' | sed 's/).*//'
@@ -76,6 +76,7 @@ sr_version.h: debian/changelog
 install:
 	@mkdir -p build build/bin build/lib build/include
 	@mv *.so build/lib
+	@mv *.so.1 build/lib
 	@mv *.so.*1.0.0 build/lib
 	@mv sr_cpost build/bin
 	@mv sr_cpump build/bin
