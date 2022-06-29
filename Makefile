@@ -16,7 +16,7 @@ endif
 
 SARRA_LIBDIR = ${CURDIR}
 
-SARRA_LINK = -Wl,-rpath,${SARRA_LIBDIR} -L${SARRA_LIBDIR} 
+SARRA_LINK = '-Wl,-rpath,$$ORIGIN/../lib' -L${SARRA_LIBDIR} 
 
 # if neither variable is set, then it is assumed to be available from default environment.
 
@@ -76,6 +76,7 @@ sr_version.h: debian/changelog
 install:
 	@mkdir -p build build/bin build/lib build/include
 	@mv *.so build/lib
+	@mv *.so.1 build/lib
 	@mv *.so.*1.0.0 build/lib
 	@mv sr3_cpost build/bin
 	@mv sr3_cpump build/bin
