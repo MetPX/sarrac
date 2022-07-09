@@ -541,7 +541,7 @@ char *sr_local_fqdn()
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_CANONNAME;
 
-	if ((gai_result = getaddrinfo(hostname, "http", &hints, &info)) != 0) {
+	if ((gai_result = getaddrinfo(hostname, NULL, &hints, &info)) != 0) {
 		sr_log_msg(LOG_CRITICAL,
 			"cannot get hostname.  Getaddrinfo returned: %s\n",
 			gai_strerror(gai_result));
@@ -987,8 +987,8 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 			broker_free(sr_cfg->post_broker);
 		brokerstr = sr_credentials_fetch(argument);
 		if (brokerstr == NULL) {
-			sr_log_msg(LOG_ERROR,
-				"notice: no stored credential for post_broker: %s.\n", argument);
+			sr_log_msg(LOG_NOTICE,
+				"no stored credential for post_broker: %s.\n", argument);
 			sr_cfg->post_broker = broker_uri_parse(argument);
 		} else {
 			sr_cfg->post_broker = broker_uri_parse(brokerstr);
@@ -1156,7 +1156,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 			retval = (1);
 		}
 	} else {
-		sr_log_msg(LOG_WARNING, "info: %s option not implemented, ignored.\n", option);
+		sr_log_msg(LOG_NOTICE, "%s option not implemented, ignored.\n", option);
 	}
 
 	if (argument)
@@ -1270,6 +1270,9 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
         } else {
              strcpy( sr_cfg->appname, SR_APPNAME );
         } 
+        if ( !getenv("OPENSSL_CONF" ) ) {
+	     setenv("OPENSSL_CONF", "/etc/ssl/", 1);
+        }
 	sr_cfg->blocksize = 1;
 	sr_cfg->broker = NULL;
 	sr_cfg->cache = 0;
@@ -1746,7 +1749,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	f = fopen(p, "r");
 	if (f)			// read the queue name from the file.
 	{
-		fgets(q, PATH_MAX, f);
+		fgets(q, AMQP_MAX_SS, f);
 		sr_cfg->queuename = strdup(q);
 		fclose(f);
 	} else {
@@ -2375,7 +2378,7 @@ void sr_config_list(struct sr_config_s *sr_cfg)
 		f = fopen(p, "r");
 		if (f)		// read the pid from the file.
 		{
-			fgets(p, PATH_MAX, f);
+			fgets(p, 1024, f);
 			pid = atoi(p);
 			fclose(f);
 			pidstat = kill(pid, 0);

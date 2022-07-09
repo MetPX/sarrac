@@ -781,13 +781,26 @@ int main(int argc, char **argv)
 		sr_config_log(&sr_cfg);
 		exit(0);
 	}
-	// Check if already running. (conflict in use of state files.)
 
-	ret = sr_config_startstop(&sr_cfg);
+	// if going to run as a daemon, Check if already running. (conflict in use of state files.)
+	if ( strcmp(sr_cfg.action, "foreground") || (sr_cfg.sleep > 0) ) {
+ 	    ret = sr_config_startstop(&sr_cfg);
 
-	if (ret < 1) {
+	    if (ret < 1) {
 		exit(abs(ret));
-	}
+	    }
+	    if ( sr_cfg.sleep > 0) {
+		sr_log_msg(LOG_INFO,
+			"sleep > 0 means run as a daemon, watching given paths.\n");
+            }
+          
+        } else {
+	    if ( sr_cfg.cache > 0) {
+		sr_log_msg(LOG_CRITICAL,
+			"cache > 0 cannot be used unless running as a daeemon. turn off to use for rapid parallel posting.\n");
+                return(4);
+            }
+        }
 
 	if ((sr_cfg.sleep <= 0.0) &&
 	    ((!strcmp(sr_cfg.action, "start")) || (!strcmp(sr_cfg.action, "restart")))) {

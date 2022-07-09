@@ -1,4 +1,20 @@
-sarrac (2.22.05) UNRELEASED; urgency=medium
+sarrac (2.22.06p2) stable; urgency=medium
+
+  * rpath to ../lib fixing search for dyn libraries.
+  * put back mv for libsarra.so.1
+
+ -- Peter Silva <peter@fractal>  Tue, 28 Jun 2022 16:27:04 -0400
+
+sarrac (2.22.06p1) stable; urgency=medium
+
+  * fix for hang on (GoC internal) hpcr U2 pppX environment.
+  * fix for crash on (GoC internal) hpfx U2 dtnX environment.
+  * bugfix coredump for n sum with path in cwd.
+  * #096 second bugfix for "already running " (race condition on startup)
+
+ -- Peter Silva <peter@fractal>  Sat, 11 Jun 2022 01:11:10 -0400
+
+sarrac (2.22.05) stable; urgency=medium
 
   * #096 bugfix for crash/hang on permissions problems. 
 

@@ -16,11 +16,14 @@ endif
 
 SARRA_LIBDIR = ${CURDIR}
 
-SARRA_LINK = -Wl,-rpath,${SARRA_LIBDIR} -L${SARRA_LIBDIR} 
+SARRA_LINK = '-Wl,-rpath,$$ORIGIN/../lib' -L${SARRA_LIBDIR} 
 
 # if neither variable is set, then it is assumed to be available from default environment.
 
 CC = gcc
+
+# can also use intel compiller just by changing CC
+# CC = icc
 
 # add -DSR_DEBUG_LOGS to CFLAGS to replace log files with writing to stderr, and much improved compiler checks.
 #    if you try the explain library, need to add -lexplain to SARRA_LINK also.
@@ -33,8 +36,9 @@ LIBCLOCATION=$(shell ldd /bin/sh | awk '/libc\.so\./ { print; }' | cut -d' ' -f3
 #
 # also remove -ljson-c from EXT_LIB declaration.
 # to work with sr3, change SR_APPNAME=\"sr3\" ... otherwise will be managed by version 2. 
-
-CFLAGS = -DHAVE_JSONC -DSR_APPNAME=\"sarra\" -DFORCE_LIBC_REGEX=\"$(LIBCLOCATION)\" -fPIC -ftest-coverage -fstack-check -std=gnu99 -Wall -g -D_GNU_SOURCE $(RABBIT_INCDIR)
+# on Power9, -fstack-check  causes coredumps, so removed for now.
+#
+CFLAGS = -DHAVE_JSONC -DSR_APPNAME=\"sarra\" -DFORCE_LIBC_REGEX=\"$(LIBCLOCATION)\" -fPIC -ftest-coverage -std=gnu99 -Wall -g -D_GNU_SOURCE $(RABBIT_INCDIR)
 
 SARRA_HEADER = sr_cache.h sr_config.h sr_consume.h sr_context.h sr_credentials.h sr_event.h sr_post.h sr_util.h sr_version.h uthash.h 
 SARRA_OBJECT = sr_post.o sr_consume.o sr_context.o sr_config.o sr_event.o sr_credentials.o sr_cache.o sr_util.o
@@ -42,7 +46,7 @@ SARRA_LIB = libsarra.so.1.0.0
 EXT_LIB = -ljson-c -lrabbitmq -lcrypto -lc
 SHARED_LIB = libsrshim.so.1 -o libsrshim.so.1.0.0 libsrshim.c libsarra.so.1.0.0
 
-.c.o: $(SARRA_HEADER) Makefile
+.c.o:
 	$(CC) $(CFLAGS) -c  $<
 
 #  head -1 debian/changelog | sed 's/.*(//' | sed 's/).*//'
@@ -72,7 +76,8 @@ sr_version.h: debian/changelog
 install:
 	@mkdir -p build build/bin build/lib build/include
 	@mv *.so build/lib
-	@mv *.so.* build/lib
+	@mv *.so.1 build/lib
+	@mv *.so.*1.0.0 build/lib
 	@mv sr_cpost build/bin
 	@mv sr_cpump build/bin
 	@cp *.h build/include/
