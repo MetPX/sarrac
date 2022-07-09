@@ -13,28 +13,33 @@ static void str2event(char *evstr, sr_event_s * evbm)
         bool found=false;
 
 	if (!strcmp(evstr, "modify")) {
-		(*evbm) |= SR_MODIFY;
+		(*evbm) |= SR_EVENT_MODIFY;
                 found=true;
         }
 	if (!strcmp(evstr, "link")) {
-		(*evbm) |= SR_LINK;
+		(*evbm) |= SR_EVENT_LINK;
                 found=true;
         }
 	if (!strcmp(evstr, "delete")) {
-		(*evbm) |= SR_DELETE;
+		(*evbm) |= SR_EVENT_DELETE;
                 found=true;
         }
 	if (!strcmp(evstr, "create")) {
-		(*evbm) |= SR_CREATE;
+		(*evbm) |= SR_EVENT_CREATE;
                 found=true;
         }
 	if (!strcmp(evstr, "attrib")) {
-		(*evbm) |= SR_ATTRIB;
+		(*evbm) |= SR_EVENT_ATTRIB;
+                found=true;
+        }
+    
+	if (!strcmp(evstr, "default")) {
+		(*evbm) |= SR_EVENT_DEFAULT;
                 found=true;
         }
     
         if (!found) {
-        	(*evbm) |= SR_EVERR ;
+        	(*evbm) |= SR_EVENT_ERROR ;
         }
 }
 
