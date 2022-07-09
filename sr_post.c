@@ -680,11 +680,11 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	}
 
 	if (!sb) {
-		if (!((sr_c->cfg->events) & SR_DELETE))
+		if (!((sr_c->cfg->events) & SR_EVENT_DELETE))
 			return (0);	// not posting deletes...
 		m->sum[0] = 'R';
 	} else if (S_ISLNK(sb->st_mode)) {
-		if (!((sr_c->cfg->events) & SR_LINK))
+		if (!((sr_c->cfg->events) & SR_EVENT_LINK))
 			return (0);	// not posting links...
 
 		strcpy(m->atime, sr_time2str(&(sb->st_atim)));
@@ -699,7 +699,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 
 	} else if (S_ISREG(sb->st_mode)) {	/* regular files, add mode and determine block parameters */
 
-		if (!((sr_c->cfg->events) & (SR_CREATE | SR_MODIFY)))
+		if (!((sr_c->cfg->events) & (SR_EVENT_CREATE | SR_EVENT_MODIFY)))
 			return (0);
 
 		if (access(fn, R_OK))

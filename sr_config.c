@@ -854,7 +854,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 	} else if (!strcmp(option, "events") || !strcmp(option, "e") || !strcmp(option, "fileEvents")) {
                 spare=strdup(argument);
 		sr_cfg->events = sr_parse_events(argument);
-                if ( sr_cfg->events & SR_EVERR ) {
+                if ( sr_cfg->events & SR_EVENT_ERROR ) {
 			sr_log_msg(LOG_ERROR, "Unrecognized event in: %s.\n", spare );
                 }
                 free(spare);
@@ -1295,7 +1295,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->directory = NULL;
 	sr_cfg->post_base_dir = NULL;
 	sr_cfg->durable = 1;
-	sr_cfg->events = (SR_CREATE | SR_MODIFY | SR_DELETE | SR_LINK);
+	sr_cfg->events = (SR_EVENT_CREATE | SR_EVENT_MODIFY | SR_EVENT_DELETE | SR_EVENT_LINK);
 	sr_cfg->expire = 3 * 60;
 	sr_cfg->exchange = NULL;
 	sr_cfg->exchange_suffix = NULL;

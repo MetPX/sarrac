@@ -432,7 +432,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
                 } else if ( e->mask & (IN_CREATE|IN_ATTRIB) ) {
 					do1file(sr_c, fn);
                 }
-			} else if ( (e->mask & IN_CREATE) && ! (sr_c->cfg->events & SR_CREATE) ) {
+			} else if ( (e->mask & IN_CREATE) && ! (sr_c->cfg->events & SR_EVENT_CREATE) ) {
                 continue; // should skip non-dir create events.
             }
 
@@ -511,7 +511,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 					"e->mask=%04x from:  %04x  to: %04x \n",
 					e->mask, IN_MOVED_FROM, IN_MOVED_TO);
 				if (!(e->mask & (IN_ATTRIB|IN_MOVED_FROM|IN_MOVED_TO))) {
-		            if (  !( e->mask & IN_ATTRIB) || (sr_c->cfg->events & SR_ATTRIB) ) {
+		            if (  !( e->mask & IN_ATTRIB) || (sr_c->cfg->events & SR_EVENT_ATTRIB) ) {
 					    sr_log_msg(LOG_DEBUG, "do one file: %s\n", fn);
 					    do1file(sr_c, fn);
                     }
@@ -873,13 +873,13 @@ int main(int argc, char **argv)
         // IN_CREATE must be included always in order to add directories to inotfd when created.
 		inotify_event_mask =  IN_DONT_FOLLOW| IN_CREATE | IN_ATTRIB  ;
 
-		if (sr_cfg.events & SR_CREATE)	
+		if (sr_cfg.events & SR_EVENT_CREATE)	
 			inotify_event_mask |= IN_CREATE | IN_MOVED_FROM | IN_MOVED_TO;
 
-		if (sr_cfg.events & SR_MODIFY)
+		if (sr_cfg.events & SR_EVENT_MODIFY)
 			inotify_event_mask |= IN_CLOSE_WRITE | IN_MOVED_FROM | IN_MOVED_TO;
 
-		if (sr_cfg.events & SR_DELETE)
+		if (sr_cfg.events & SR_EVENT_DELETE)
 			inotify_event_mask |= IN_DELETE;
 
 		inot_fd = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
