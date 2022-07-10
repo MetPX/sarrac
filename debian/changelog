@@ -1,3 +1,9 @@
+sarrac (2.22.06p3) UNRELEASED; urgency=medium
+
+  * added outlet support for v03 format.
+
+ -- Peter Silva <peter@fractal>  Sun, 10 Jul 2022 14:34:13 -0400
+
 sarrac (2.22.06p2) stable; urgency=medium
 
   * rpath to ../lib fixing search for dyn libraries.
