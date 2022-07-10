@@ -170,6 +170,7 @@ struct sr_context *force_good_connection_and_bindings(struct sr_context *sr_c)
 
 int main(int argc, char **argv)
 {
+        char raw_body[1024*1024];
 	struct sr_message_s *m;
 	struct sr_context *sr_c;
 	struct sr_config_s sr_cfg;
@@ -369,9 +370,14 @@ int main(int argc, char **argv)
 
 		// outlet:
 		if (m) {
-			if (!strcmp(sr_cfg.outlet, "json"))
+			if (!strcmp(sr_cfg.outlet, "json")) {
+                            if ( !strncmp("v02.", sr_c->cfg->post_topic_prefix, 4 ) ) {
 				sr_message_2json(m);
-			else if (!strcmp(sr_cfg.outlet, "url"))
+                            } else {
+                                v03encode( (char *)&raw_body, sr_c, m );
+                                printf("%s\n", raw_body );
+                            }
+			} else if (!strcmp(sr_cfg.outlet, "url"))
 				sr_message_2url(m);
 			else if (!strcmp(sr_cfg.outlet, "post"))
 				sr_post_message(sr_c, m);
