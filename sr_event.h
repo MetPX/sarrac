@@ -10,7 +10,7 @@ typedef unsigned char sr_event_s;
 #define SR_EVENT_DELETE      ((sr_event_s)(0x08))
 #define SR_EVENT_ATTRIB      ((sr_event_s)(0x10))
 #define SR_EVENT_ERROR       ((sr_event_s)(0x20))
-#define SR_EVENT_GUESS       ((sr_event_s)(0x40))
+#define SR_EVENT_NONEXISTENT ((sr_event_s)(0x40))
 
 sr_event_s sr_parse_events(char *);
 

@@ -33,8 +33,8 @@ static void str2event(char *evstr, sr_event_s * evbm)
                 found=true;
         }
     
-	if (!strcmp(evstr, "default")) {
-		(*evbm) |= SR_EVENT_DEFAULT;
+	if (!strcmp(evstr, "nonexistent")) {
+		(*evbm) |= SR_EVENT_NONEXISTENT;
                 found=true;
         }
     
