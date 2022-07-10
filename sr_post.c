@@ -265,6 +265,89 @@ static void v03amqp_header_add( char** c, const char* tag, const char *value )
    }
 }
 
+void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s *m ) 
+{
+	char *c;
+        char sep[8];
+	char smallbuf[256];
+	signed int status;
+	struct sr_header_s *uh;
+
+        // convert routing key, if necessary.
+        // FIXME: a generic conversion replacing topic_prefix by post_topic_prefix
+        //        would be much better, but this >99% answer is good enough for now.
+        if ( m->routing_key[2] != '3' )
+                m->routing_key[2] = '3' ;
+
+        strcpy( message_body, "{" );
+        c = message_body+1;
+
+        strncpy( sep, "\n\t", 8 );
+        strncpy( sep, " ", 8 );
+
+        status = sprintf( c, "%s\"pubTime\" : \"%s\"", sep, v03time( m->datestamp ) );
+        c += status ; 
+
+        v03amqp_header_add( &c, "baseUrl", m->url );
+
+        v03amqp_header_add( &c, "relPath", m->path );
+
+        status = sprintf( c, ",%s\"integrity\" : { %s }", sep, v03integrity(m) );
+        c += status ; 
+
+    	if (sr_c->cfg->strip > 0) 
+                 v03amqp_header_add( &c, "rename", m->rename );
+
+    	if (m->from_cluster && m->from_cluster[0]) 
+                 v03amqp_header_add( &c, "from_cluster", m->from_cluster );
+
+    	if (m->source && m->source[0]) 
+                v03amqp_header_add( &c, "source", m->source );
+
+    	if (m->to_clusters && m->to_clusters[0]) 
+                v03amqp_header_add( &c, "to_clusters", m->to_clusters );
+
+        if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
+                if ( m->parts_s != '1' ) {
+                    status = sprintf( c, 
+                      ",%s\"blocks\" : { \"method\": \"%s\", \"size\" : "
+                      "\"%0ld\", \"count\": \"%ld\", \"remainder\": \"%ld\", "
+                      "\"number\" : \"%ld\" }",
+                      sep, (m->parts_s=='i')?"inplace":"partitioned", 
+                      m->parts_blksz, m->parts_blkcount, m->parts_rem, 
+                      m->parts_num  );
+                    c += status ; 
+                } else {
+                    sprintf( smallbuf, "%ld", m->parts_blksz );
+                    v03amqp_header_add( &c, "size", smallbuf );
+                }
+
+                if (m->atime && m->atime[0]) {
+                    v03amqp_header_add( &c, "atime", v03time( m->atime ) );
+                }
+
+                if (m->mode > 0) {
+                    sprintf( smallbuf, "%03o", m->mode );
+                    v03amqp_header_add( &c, "mode", smallbuf );
+                }
+
+                if (m->mtime && m->mtime[0]) 
+                    v03amqp_header_add( &c, "mtime", v03time( m->mtime ) );
+        }
+
+        if (m->sum[0] == 'L')  {
+                v03amqp_header_add( &c, "link", m->link );
+        }
+
+    	for (uh = m->user_headers; uh; uh = uh->next) {
+                v03amqp_header_add( &c, uh->key, uh->value );
+        }
+
+        sprintf( c, "%s}  \n", sep );
+        c += status ; 
+}
+
+
 void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 {
 	char fn[PATH_MAXNUL];
@@ -397,79 +480,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 				       &props, amqp_cstring_bytes(message_body));
         } else { /* v03 */
 
-            // convert routing key, if necessary.
-            // FIXME: a generic conversion replacing topic_prefix by post_topic_prefix
-            //        would be much better, but this >99% answer is good enough for now.
-            if ( m->routing_key[2] != '3' )
-                m->routing_key[2] = '3' ;
-
-            strcpy( message_body, "{" );
-            c = message_body+1;
-
-            strncpy( sep, "\n\t", 8 );
-            strncpy( sep, " ", 8 );
-
-            status = sprintf( c, "%s\"pubTime\" : \"%s\"", sep, v03time( m->datestamp ) );
-            c += status ; 
-
-            v03amqp_header_add( &c, "baseUrl", m->url );
-
-            v03amqp_header_add( &c, "relPath", m->path );
-
-            status = sprintf( c, ",%s\"integrity\" : { %s }", sep, v03integrity(m) );
-            c += status ; 
-
-    		if (sr_c->cfg->strip > 0) 
-                 v03amqp_header_add( &c, "rename", m->rename );
-
-    		if (m->from_cluster && m->from_cluster[0]) 
-                 v03amqp_header_add( &c, "from_cluster", m->from_cluster );
-
-    		if (m->source) 
-                v03amqp_header_add( &c, "source", m->source );
-
-    		if (m->to_clusters) 
-                v03amqp_header_add( &c, "to_clusters", m->to_clusters );
-
-            if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
-                if ( m->parts_s != '1' ) {
-                    status = sprintf( c, 
-                      ",%s\"blocks\" : { \"method\": \"%s\", \"size\" : "
-                      "\"%0ld\", \"count\": \"%ld\", \"remainder\": \"%ld\", "
-                      "\"number\" : \"%ld\" }",
-                      sep, (m->parts_s=='i')?"inplace":"partitioned", 
-                      m->parts_blksz, m->parts_blkcount, m->parts_rem, 
-                      m->parts_num  );
-                    c += status ; 
-                } else {
-                    sprintf( smallbuf, "%ld", m->parts_blksz );
-                    v03amqp_header_add( &c, "size", smallbuf );
-                }
-
-                if (m->atime && m->atime[0]) {
-                    v03amqp_header_add( &c, "atime", v03time( m->atime ) );
-                }
-
-                if (m->mode > 0) {
-                    sprintf( smallbuf, "%03o", m->mode );
-                    v03amqp_header_add( &c, "mode", smallbuf );
-                }
-
-                if (m->mtime && m->mtime[0]) 
-                    v03amqp_header_add( &c, "mtime", v03time( m->mtime ) );
-            }
-
-            if (m->sum[0] == 'L')  {
-                v03amqp_header_add( &c, "link", m->link );
-            }
-
-    		for (uh = m->user_headers; uh; uh = uh->next) {
-                v03amqp_header_add( &c, uh->key, uh->value );
-            }
-
-            sprintf( c, "%s}  \n", sep );
-            c += status ; 
-
+            v03encode( &message_body, sr_c, m );
             sr_log_msg( LOG_DEBUG, "v03 body=%s\n", message_body );
 
     		props._flags = AMQP_BASIC_CONTENT_ENCODING_FLAG | 

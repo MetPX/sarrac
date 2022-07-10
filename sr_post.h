@@ -27,6 +27,11 @@
 #include "sr_context.h"
 #include "sr_consume.h"
 
+void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s *m );
+/* 
+   fill the message body with a v03 encoded representation of the given message, in the given context.
+ */
+
 void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m);
 /* 
    post the given message using the established context.
