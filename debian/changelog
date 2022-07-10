@@ -1,5 +1,6 @@
 sr3c (3.22.06) unstable; urgency=medium
 
+  * added outlet v03 format support. 
   * rpath to ../lib fixing search for dyn libraries.
   * ensur libsarra.so.1 is installed.
   * fix for hang on (GoC internal) hpcr U2 pppX environment.
