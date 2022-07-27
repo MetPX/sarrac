@@ -947,6 +947,8 @@ int dup3(int oldfd, int newfd, int flags)
 	return status;
 }
 
+static int exit_cleanup_posts_ran = 0;
+
 void exit_cleanup_posts()
 {
 	int fdstat;
@@ -960,10 +962,11 @@ void exit_cleanup_posts()
 	DIR *fddir = NULL;
 	struct dirent *fdde;
 
+        exit_cleanup_posts_ran = 1;
 	if (getenv("SR_SHIMDEBUG"))
 		sr_shimdebug_msg( "exit_cleanup_posts, context=%p\n", sr_c);
 
-	if (shim_disabled || !getenv("SR_POST_CONFIG"))
+	if (exit_cleanup_posts_ran || shim_disabled || !getenv("SR_POST_CONFIG"))
 		return;
 
 	// In the current process, find files which are not opened by the parent
@@ -1081,6 +1084,8 @@ void exit(int status)
 {
 	static exit_fn exit_fn_ptr = NULL;
 
+	if (exit_cleanup_posts_ran) _exit(status);
+
 	if (getenv("SR_SHIMDEBUG"))
 		sr_shimdebug_msg( " exit 0 context=%p exit=%p\n", sr_c, exit);
 
@@ -1091,7 +1096,7 @@ void exit(int status)
 	if (getenv("SR_SHIMDEBUG"))
 		sr_shimdebug_msg( " exit 99 context=%p real_exit=%p\n", sr_c, exit_fn_ptr);
 
-	// do it for real.
+	// how to ensure other atexit functions run? call it again... loop potential.
 	exit_fn_ptr(status);
 
 	if (getenv("SR_SHIMDEBUG"))
