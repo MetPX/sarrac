@@ -75,8 +75,6 @@ static struct sr_config_s sr_cfg;
 
 void setup_exit()
 {
-        if (!getenv("SR_SHIMDEBUG")) 
-	     fprintf(stderr, "setup_exit "  );
 	if (!exit_cleanup_posts_setup) {
 		atexit(exit_cleanup_posts);
 		exit_cleanup_posts_setup = 1;
