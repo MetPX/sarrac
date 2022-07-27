@@ -975,8 +975,8 @@ void exit_cleanup_posts()
 
 	if (fddir) {
 		while ((fdde = readdir(fddir))) {
-	                 if (getenv("SR_SHIMDEBUG"))
-                     		sr_shimdebug_msg( "exit_cleanup_posts, readdir fdde->d_name=%s\n", fdde->d_name);
+	                //if (getenv("SR_SHIMDEBUG"))
+                     	//	sr_shimdebug_msg( "exit_cleanup_posts, readdir fdde->d_name=%s\n", fdde->d_name);
 			if (fdde->d_name[0] == '.')
 				continue;
 
@@ -999,9 +999,9 @@ void exit_cleanup_posts()
 
 			found = 0;
 			for (int i = 0; (i < last_pfo); i++) {
-	                        if (getenv("SR_SHIMDEBUG"))
-                     		sr_shimdebug_msg( "exit_cleanup_posts, last_pfo i=%d open_file=%s\n", 
-						 i, parent_files_open[i]);
+	                        //if (getenv("SR_SHIMDEBUG"))
+                     		//         sr_shimdebug_msg( "exit_cleanup_posts, last_pfo i=%d open_file=%s\n", 
+				//		 i, parent_files_open[i]);
 				if (!strcmp(real_path, parent_files_open[i])) {
 					found = 1;
 					break;
@@ -1086,22 +1086,12 @@ void exit(int status)
 
 	if (exit_cleanup_posts_ran) _exit(status);
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " exit 0 context=%p exit=%p\n", sr_c, exit);
-
 	exit_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit");
 
 	exit_cleanup_posts();
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " exit 99 context=%p real_exit=%p\n", sr_c, exit_fn_ptr);
-
 	// how to ensure other atexit functions run? call it again... loop potential.
 	exit_fn_ptr(status);
-
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " wtf? shoule never return from real_exit ? context=%p real_exit=%p\n", sr_c, exit_fn_ptr);
-
 }
 
 /*  
@@ -1113,7 +1103,7 @@ void exit_group(int status)
 {
     static exit_fn exit_group_fn_ptr = NULL;
 
-    if ( getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " exit_group 0, context=%p\n", sr_c );
+    if ( getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  "exit_group 0, context=%p\n", sr_c );
 
     exit_group_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit_group");
 
@@ -1136,7 +1126,7 @@ int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath,
 {
 	if (getenv("SR_SHIMDEBUG"))
 		sr_shimdebug_msg(
-			" linkat olddirfd=%d, oldname=%s newdirfd=%d newname=%s flags=%d\n",
+			"linkat olddirfd=%d, oldname=%s newdirfd=%d newname=%s flags=%d\n",
 			olddirfd, oldpath, newdirfd, newpath, flags);
 	return (renameorlink(olddirfd, oldpath, newdirfd, newpath, flags, 1));
 }
@@ -1144,7 +1134,7 @@ int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath,
 int rename(const char *oldpath, const char *newpath)
 {
 	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " rename %s %s\n", oldpath, newpath);
+		sr_shimdebug_msg( "rename %s %s\n", oldpath, newpath);
 
 	return (renameorlink(AT_FDCWD, oldpath, AT_FDCWD, newpath, 0, 0));
 }
@@ -1152,7 +1142,7 @@ int rename(const char *oldpath, const char *newpath)
 int renameat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath)
 {
 	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " renameat %s %s\n", oldpath, newpath);
+		sr_shimdebug_msg( "renameat %s %s\n", oldpath, newpath);
 
 	return (renameorlink(olddirfd, oldpath, newdirfd, newpath, 0, 0));
 }
@@ -1161,7 +1151,7 @@ int renameat2(int olddirfd, const char *oldpath, int newdirfd,
 	      const char *newpath, unsigned int flags)
 {
 	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " renameat2 %s %s\n", oldpath, newpath);
+		sr_shimdebug_msg( "renameat2 %s %s\n", oldpath, newpath);
 
 	return (renameorlink(olddirfd, oldpath, newdirfd, newpath, flags, 0));
 }
@@ -1233,7 +1223,7 @@ ssize_t copy_file_range(int fd_in, loff_t * off_in, int fd_out,
 	real_return = realpath(fdpath, real_path);
 
 	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " copy_file_range to %s\n", real_path);
+		sr_shimdebug_msg( "copy_file_range to %s\n", real_path);
 
 	if (!real_return)
 		return (status);
@@ -1295,7 +1285,7 @@ int close(int fd)
 		return status;
 
 	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " close %s fd=%d\n", real_path, fd);
+		sr_shimdebug_msg( "close %s fd=%d\n", real_path, fd);
 
 	if (!strncmp(real_path, "/dev/", 5)) {
 		clerror(status);
@@ -1376,7 +1366,7 @@ int fclose(FILE * f)
 	}
 
 	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " fclose %p %s status=%d\n", f, real_path, status);
+		sr_shimdebug_msg( "fclose %p %s status=%d\n", f, real_path, status);
 
 	return shimpost(real_path, status);
 }
@@ -1400,7 +1390,7 @@ FILE* fopen(const char *pathname, const char *mode)
         setup_exit();
 	}
 	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " fopen %s %s\n", pathname, mode);
+		sr_shimdebug_msg( "fopen %s %s\n", pathname, mode);
 
 	return( fopen_fn_ptr(pathname,mode) );
 }
