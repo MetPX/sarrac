@@ -1,5 +1,8 @@
-sr3c (3.22.06) unstable; urgency=medium
+sr3c (3.22.07) unstable; urgency=medium
 
+  * added outlet support for v03 format.
+  * fix for shim library looping forever when too many exit hooks present.
+  * refactored/refined debug printing.
   * added outlet v03 format support. 
   * rpath to ../lib fixing search for dyn libraries.
   * ensur libsarra.so.1 is installed.
