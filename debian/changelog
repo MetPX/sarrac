@@ -1,8 +1,8 @@
-sarrac (2.22.07) UNRELEASED; urgency=medium
+sarrac (2.22.07) stable; urgency=medium
 
   * added outlet support for v03 format.
   * fix for shim library looping forever when too many exit hooks present.
-  * refactored/refined debug printing.
+  * refactored/refined shim library debug printing.
 
  -- Peter Silva <peter@bsqt.homeip.net>  Sun, 10 Jul 2022 14:34:13 -0400
 
