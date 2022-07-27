@@ -1,3 +1,9 @@
+sarrac (2.22.07p1) stable; urgency=medium
+
+  * remove debug fprintf(stderr,...) in libsrshim / setup_exit  
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Wed, 27 Jul 2022 10:24:57 -0400
+
 sarrac (2.22.07) stable; urgency=medium
 
   * added outlet support for v03 format.
