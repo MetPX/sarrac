@@ -232,143 +232,140 @@ static void v03assign_field(const char *key, json_object *jso_v)
     strcpy(unsupported,"unsupported");
 
 	if (!strcmp(key, "atime")) {
-        if (!json_object_is_type(jso_v,json_type_string)) {
-	       sr_log_msg( LOG_ERROR, "malformed json: atime is not a string: %d\n", json_object_get_type(subvalue) );
-           return;
+		if (!json_object_is_type(jso_v,json_type_string)) {
+	       		sr_log_msg( LOG_ERROR, "malformed json: atime is not a string: %d\n", json_object_get_type(subvalue) );
+		return;
         }
-		strcpy(msg.atime, json_object_get_string(jso_v));
+	strcpy(msg.atime, json_object_get_string(jso_v));
         tlen=strlen(msg.atime);
         if ( tlen < 16 ) {
-	       sr_log_msg( LOG_ERROR, "malformed json: atime should be string: %s\n", msg.atime );
-           return;
+		sr_log_msg( LOG_ERROR, "malformed json: atime should be string: %s\n", msg.atime );
+           	return;
         }
         tlen -= 8 ;
         memmove( &msg.atime[8], &msg.atime[9], tlen ); //eliminate "T".
 	} else if (!strcmp(key, "blocks")) {
 
-       json_object_object_get_ex(jso_v, "method", &subvalue );
-       if (!strcmp(json_object_get_string(subvalue),"inplace")) {
-           msg.parts_s='i';
-       } else {
-           msg.parts_s='p';
-       }
-       json_object_object_get_ex(jso_v, "size", &subvalue );
-       if (json_object_is_type(subvalue,json_type_string)) {
-		   msg.parts_blksz = atol(json_object_get_string(subvalue));
-       } else if (json_object_is_type(subvalue,json_type_int)) {
-		   msg.parts_blksz = json_object_get_int64(subvalue);
-       } else {
-	       sr_log_msg( LOG_ERROR, "malformed json: blocks/size should be an int, but is: %d\n", json_object_get_type(subvalue) );
-       } 
-       json_object_object_get_ex(jso_v, "remainder", &subvalue );
-       if (json_object_is_type(subvalue,json_type_string)) {
-		   msg.parts_rem = atol(json_object_get_string(subvalue));
-       } else if (json_object_is_type(subvalue,json_type_int)) {
-		   msg.parts_rem = json_object_get_int64(subvalue);
-       } else {
-	       sr_log_msg( LOG_ERROR, "malformed json: blocks/remainder should be an int, but is: %d\n", json_object_get_type(subvalue) );
-       } 
-      
-       json_object_object_get_ex(jso_v, "number", &subvalue );
-       if (json_object_is_type(subvalue,json_type_string)) {
-		   msg.parts_num = atol(json_object_get_string(subvalue));
-       } else if (json_object_is_type(subvalue,json_type_int)) {
-		   msg.parts_num = json_object_get_int64(subvalue);
-       } else {
-	       sr_log_msg( LOG_ERROR, "malformed json: blocks/number should be an int, but is: %d\n", json_object_get_type(subvalue) );
-       } 
-      
-       json_object_object_get_ex(jso_v, "count", &subvalue );
-       if (json_object_is_type(subvalue,json_type_string)) {
-		   msg.parts_blkcount = atol(json_object_get_string(subvalue));
-       } else if (json_object_is_type(subvalue,json_type_int)) {
-		   msg.parts_blkcount = json_object_get_int64(subvalue);
-       } else {
-	       sr_log_msg( LOG_ERROR, "malformed json: blocks/count should be an int, but is: %d\n", json_object_get_type(subvalue) );
-       } 
-
+       		json_object_object_get_ex(jso_v, "method", &subvalue );
+		if (!strcmp(json_object_get_string(subvalue),"inplace")) {
+			msg.parts_s='i';
+		} else {
+			msg.parts_s='p';
+       		}
+       		json_object_object_get_ex(jso_v, "size", &subvalue );
+       		if (json_object_is_type(subvalue,json_type_string)) {
+			msg.parts_blksz = atol(json_object_get_string(subvalue));
+       		} else if (json_object_is_type(subvalue,json_type_int)) {
+		   	msg.parts_blksz = json_object_get_int64(subvalue);
+       		} else {
+	       		sr_log_msg( LOG_ERROR, "malformed json: blocks/size should be an int, but is: %d\n", json_object_get_type(subvalue) );
+       		} 
+       		json_object_object_get_ex(jso_v, "remainder", &subvalue );
+       		if (json_object_is_type(subvalue,json_type_string)) {
+		   	msg.parts_rem = atol(json_object_get_string(subvalue));
+       		} else if (json_object_is_type(subvalue,json_type_int)) {
+			msg.parts_rem = json_object_get_int64(subvalue);
+       		} else {
+	       		sr_log_msg( LOG_ERROR, "malformed json: blocks/remainder should be an int, but is: %d\n", json_object_get_type(subvalue) );
+       		} 
+       		json_object_object_get_ex(jso_v, "number", &subvalue );
+		if (json_object_is_type(subvalue,json_type_string)) {
+			msg.parts_num = atol(json_object_get_string(subvalue));
+		} else if (json_object_is_type(subvalue,json_type_int)) {
+			msg.parts_num = json_object_get_int64(subvalue);
+		} else {
+		       sr_log_msg( LOG_ERROR, "malformed json: blocks/number should be an int, but is: %d\n", json_object_get_type(subvalue) );
+       		} 
+       		json_object_object_get_ex(jso_v, "count", &subvalue );
+		if (json_object_is_type(subvalue,json_type_string)) {
+			msg.parts_blkcount = atol(json_object_get_string(subvalue));
+		} else if (json_object_is_type(subvalue,json_type_int)) {
+			msg.parts_blkcount = json_object_get_int64(subvalue);
+		} else {
+	       		sr_log_msg( LOG_ERROR, "malformed json: blocks/count should be an int, but is: %d\n", json_object_get_type(subvalue) );
+       		} 
 	} else if (!strcmp(key, "from_cluster")) {
-        if (!json_object_is_type(jso_v,json_type_string)) {
-	       sr_log_msg( LOG_ERROR, "malformed json: from_cluster should be string: %d\n", json_object_get_type(jso_v) );
-           return;
-        }
+	        if (!json_object_is_type(jso_v,json_type_string)) {
+		       sr_log_msg( LOG_ERROR, "malformed json: from_cluster should be string: %d\n", json_object_get_type(jso_v) );
+			return;
+		}
 		strcpy(msg.from_cluster, json_object_get_string(jso_v));
 	} else if (!strcmp(key, "mode")) {
-        if (!json_object_is_type(jso_v,json_type_string)) {
-	       sr_log_msg( LOG_ERROR, "malformed json: mode should be string: %d\n", json_object_get_type(jso_v) );
-           return;
-        }
+        	if (!json_object_is_type(jso_v,json_type_string)) {
+	       		sr_log_msg( LOG_ERROR, "malformed json: mode should be string: %d\n", json_object_get_type(jso_v) );
+           		return;
+        	}
 		msg.mode = strtoul(json_object_get_string(jso_v), NULL, 8);
 	} else if (!strcmp(key, "mtime")) {
-        if (!json_object_is_type(jso_v,json_type_string)) {
-	       sr_log_msg( LOG_ERROR, "malformed message: mtime value is not a string: %d\n", json_object_get_type(jso_v) );
-           return;
-        }
+		if (!json_object_is_type(jso_v,json_type_string)) {
+	       		sr_log_msg( LOG_ERROR, "malformed message: mtime value is not a string: %d\n", json_object_get_type(jso_v) );
+			return;
+		}
 		strcpy(msg.mtime, json_object_get_string(jso_v));
-        tlen=strlen(msg.mtime);
-        if ( tlen < 16 ) {
-	       sr_log_msg( LOG_ERROR, "malformed json: mtime should be string: %s\n", msg.mtime );
-           return;
-        }
-        tlen -= 8 ;
-        memmove( &msg.mtime[8], &msg.mtime[9], tlen ); //eliminate "T".
+	        tlen=strlen(msg.mtime);
+		if ( tlen < 16 ) {
+			       sr_log_msg( LOG_ERROR, "malformed json: mtime should be string: %s\n", msg.mtime );
+		           return;
+        	}
+		tlen -= 8 ;
+       		memmove( &msg.mtime[8], &msg.mtime[9], tlen ); //eliminate "T".
 	} else if (!strcmp(key, "baseUrl")) {
-        if (!json_object_is_type(jso_v,json_type_string)) {
-	       sr_log_msg( LOG_ERROR, "malformed json: baseUrl should be string: %d\n", json_object_get_type(jso_v) );
-           return;
-        }
-        strcpy( msg.url, json_object_get_string(jso_v) );
+		if (!json_object_is_type(jso_v,json_type_string)) {
+			sr_log_msg( LOG_ERROR, "malformed json: baseUrl should be string: %d\n", json_object_get_type(jso_v) );
+			return;
+		}
+	        strcpy( msg.url, json_object_get_string(jso_v) );
 	} else if (!strcmp(key, "relPath")) {
-        if (!json_object_is_type(jso_v,json_type_string)) {
-	       sr_log_msg( LOG_ERROR, "malformed json: relPath should be string: %d\n", json_object_get_type(jso_v) );
-           return;
-        }
-        strcpy( msg.path, json_object_get_string(jso_v) );
+       		if (!json_object_is_type(jso_v,json_type_string)) {
+	       		sr_log_msg( LOG_ERROR, "malformed json: relPath should be string: %d\n", json_object_get_type(jso_v) );
+		 	return;
+        	}
+	        strcpy( msg.path, json_object_get_string(jso_v) );
 	} else if (!strcmp(key, "pubTime")) {
-        if (!json_object_is_type(jso_v,json_type_string)) {
-	       sr_log_msg( LOG_ERROR, "malformed json: pubTime not a string: %d\n", json_object_get_type(jso_v) );
-           return;
-        }
-        strcpy( msg.datestamp, json_object_get_string(jso_v) );
-        tlen=strlen(msg.datestamp);
-        if ( tlen < 16 ) {
-	       sr_log_msg( LOG_ERROR, "malformed json: pubTime value too short: %s\n", msg.datestamp );
-           return;
-        }
-        tlen -= 8 ;
-        memmove( &msg.datestamp[8], &msg.datestamp[9], tlen ); //eliminate "T".
+       		if (!json_object_is_type(jso_v,json_type_string)) {
+			sr_log_msg( LOG_ERROR, "malformed json: pubTime not a string: %d\n", json_object_get_type(jso_v) );
+			return;
+	        }
+       		strcpy( msg.datestamp, json_object_get_string(jso_v) );
+		tlen=strlen(msg.datestamp);
+	        if ( tlen < 16 ) {
+		       sr_log_msg( LOG_ERROR, "malformed json: pubTime value too short: %s\n", msg.datestamp );
+       		       return;
+	        }
+	        tlen -= 8 ;
+       		memmove( &msg.datestamp[8], &msg.datestamp[9], tlen ); //eliminate "T".
 	} else if (!strcmp(key, "integrity")) {
 
-       //FIXME
-       if( json_object_get_type(jso_v) != json_type_object ) {
-	       sr_log_msg( LOG_ERROR, "malformed json: integrity should be an object: %d\n", json_object_get_type(jso_v) );
-           return;
-       }
-       json_object_object_get_ex(jso_v, "method", &subvalue);
-       const char *v3m = json_object_get_string(subvalue);
-       char s;
-       s='u';
-       if ( !strcmp( v3m, "random" ) ) s='0';
-       if ( !strcmp( v3m, "arbitrary" ) ) s='a';
-       if ( !strcmp( v3m, "md5" ) ) s='d';
-       if ( !strcmp( v3m, "md5name" ) ) s='n';
-       if ( !strcmp( v3m, "sha512name" ) ) s='p';
-       if ( !strcmp( v3m, "sha512" ))  s='s';
-       if ( !strcmp( v3m, "link" ) ) s='L';
-       if ( !strcmp( v3m, "remove" ) ) s='R';
-       if ( !strcmp( v3m, "cod" ) ) s='z';
-       if ( s == 'u' ) {
-	       sr_log_msg( LOG_ERROR, "unknown checksum specified: %s\n", v3m );
-           return;
-       }
-       json_object_object_get_ex(jso_v, "value", &subvalue);
-       const char *v = json_object_get_string(subvalue);
+       		//FIXME
+		if( json_object_get_type(jso_v) != json_type_object ) {
+	       		sr_log_msg( LOG_ERROR, "malformed json: integrity should be an object: %d\n", json_object_get_type(jso_v) );
+		        return;
+       		}
+		json_object_object_get_ex(jso_v, "method", &subvalue);
+		const char *v3m = json_object_get_string(subvalue);
+		char s;
+		s='u';
+		if ( !strcmp( v3m, "random" ) ) s='0';
+		if ( !strcmp( v3m, "arbitrary" ) ) s='a';
+		if ( !strcmp( v3m, "md5" ) ) s='d';
+		if ( !strcmp( v3m, "md5name" ) ) s='n';
+		if ( !strcmp( v3m, "sha512name" ) ) s='p';
+		if ( !strcmp( v3m, "sha512" ))  s='s';
+		if ( !strcmp( v3m, "link" ) ) s='L';
+		if ( !strcmp( v3m, "remove" ) ) s='R';
+		if ( !strcmp( v3m, "cod" ) ) s='z';
+		if ( s == 'u' ) {
+		       sr_log_msg( LOG_ERROR, "unknown checksum specified: %s\n", v3m );
+	           return;
+		}
+		json_object_object_get_ex(jso_v, "value", &subvalue);
+		const char *v = json_object_get_string(subvalue);
        
-       if ( ! strchr("0az",s) ) {
-            v = sr_base642hex(v);
-       }
-       sprintf( msg.sum, "%c,%s", s, v );
-       return;   
+		if ( ! strchr("0az",s) ) {
+			v = sr_base642hex(v);
+		}
+		sprintf( msg.sum, "%c,%s", s, v );
+		return;   
 
 	} else if (!strcmp(key, "size")) {
 		//FIXME: no error checking, invalid parts header will cause a bobo.
@@ -378,31 +375,31 @@ static void v03assign_field(const char *key, json_object *jso_v)
 		msg.parts_rem = 0;
 		msg.parts_num = 0;
 	} else if (!strcmp(key, "relPath")) {
-        if (!json_object_is_type(jso_v,json_type_string)) {
-	       sr_log_msg( LOG_ERROR, "malformed json: relPath value should be string: %d\n", json_object_get_type(jso_v) );
-           return;
-        }
+	        if (!json_object_is_type(jso_v,json_type_string)) {
+			sr_log_msg( LOG_ERROR, "malformed json: relPath value should be string: %d\n", json_object_get_type(jso_v) );
+       		    	return;
+	        }
 		strcpy(msg.path,  json_object_get_string(jso_v));
 	} else if (!strcmp(key, "source")) {
-        if (!json_object_is_type(jso_v,json_type_string)) {
-	       sr_log_msg( LOG_ERROR, "malformed json: source value should be string: %d\n", json_object_get_type(jso_v) );
-           return;
-        }
+		if (!json_object_is_type(jso_v,json_type_string)) {
+			sr_log_msg( LOG_ERROR, "malformed json: source value should be string: %d\n", json_object_get_type(jso_v) );
+		        return;
+		}
 		strcpy(msg.source,  json_object_get_string(jso_v));
 	} else if (!strcmp(key, "to_clusters")) {
-        if (!json_object_is_type(jso_v,json_type_string)) {
-	       sr_log_msg( LOG_ERROR, "malformed json: to_clusters should be string: %d\n", json_object_get_type(jso_v) );
-           return;
-        }
+		if (!json_object_is_type(jso_v,json_type_string)) {
+	       		sr_log_msg( LOG_ERROR, "malformed json: to_clusters should be string: %d\n", json_object_get_type(jso_v) );
+			return;
+		}
 		strcpy(msg.to_clusters,  json_object_get_string(jso_v));
 	} else {
 		h = (struct sr_header_s *)malloc(sizeof(struct sr_header_s));
 		h->key = strdup(key);
-        if (json_object_is_type(jso_v,json_type_string)) {
-		     h->value = strdup(json_object_get_string(jso_v));
-        } else {
-             h->value = strdup(unsupported) ;
-        }
+	        if (json_object_is_type(jso_v,json_type_string)) {
+			h->value = strdup(json_object_get_string(jso_v));
+        	} else {
+			h->value = strdup(unsupported) ;
+		}
 		h->next = msg.user_headers;
 		msg.user_headers = h;
 	}
