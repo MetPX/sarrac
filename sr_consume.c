@@ -33,6 +33,7 @@
 
 #include <openssl/md5.h>
 #include <openssl/sha.h>
+#include <openssl/evp.h>
 
 #include <stdint.h>
 #include <amqp_tcp_socket.h>
@@ -225,7 +226,7 @@ static void v03assign_field(const char *key, json_object *jso_v)
   */
 {
     static char unsupported[15];
-	struct sr_header_s *h;
+    struct sr_header_s *h;
     size_t tlen;
     json_object *subvalue;
 
@@ -334,6 +335,58 @@ static void v03assign_field(const char *key, json_object *jso_v)
 	        }
 	        tlen -= 8 ;
        		memmove( &msg.datestamp[8], &msg.datestamp[9], tlen ); //eliminate "T".
+	} else if (!strcmp(key, "fileOp")) {
+                sr_log_msg( LOG_ERROR, "got a fileOp!\n" );
+       		//FIXME
+		if( json_object_get_type(jso_v) != json_type_object ) {
+	       		sr_log_msg( LOG_ERROR, "malformed json: integrity should be an object: %d\n", json_object_get_type(jso_v) );
+		        return;
+       		}
+               
+       		EVP_MD_CTX *ctx;
+	        const EVP_MD *md;
+
+                unsigned int hashlen = 0;
+                unsigned char sumhash[SR_SUMHASHLEN];
+
+		if ( json_object_object_get_ex(jso_v, "link", &subvalue) ) { 
+			const char *v = json_object_get_string(subvalue);
+	       		sr_log_msg( LOG_ERROR, "link subvalue: %s\n", v );
+			strcpy(msg.link,v);
+	       		sr_log_msg( LOG_ERROR, "copied to msg.link: %s\n", msg.link );
+
+			ctx = EVP_MD_CTX_create();
+			md = EVP_sha512();
+			EVP_DigestInit_ex(ctx, md, NULL );
+			EVP_DigestUpdate(ctx, v, strlen(v));
+			EVP_DigestFinal_ex(ctx, sumhash, &hashlen);
+		    	sprintf( msg.sum, "L,%s", sr_hash2sumstr(sumhash) );
+			return;
+                } else if ( json_object_object_get_ex(jso_v, "remove", &subvalue) ) { 
+                        char *just_the_name;
+                        if (msg.path) {
+				just_the_name = rindex(msg.path, '/') + 1;
+				just_the_name = just_the_name?just_the_name+1:msg.path;
+                        } else {
+                                // FIXME should defer to end of parse and find the real name.
+                                // This is a bug, but nobody does mirroring with v2 anyways.
+                                just_the_name = "placeholder";
+                        }
+			ctx = EVP_MD_CTX_create();
+			md = EVP_sha512();
+			EVP_DigestInit_ex(ctx, md, NULL );
+			EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
+			EVP_DigestFinal_ex(ctx, sumhash, &hashlen );
+			sprintf( msg.sum, "R,%s", sr_hash2sumstr(sumhash) );
+		        return;   
+                } else if ( json_object_object_get_ex(jso_v, "rename", &subvalue) ) { 
+			const char *v = json_object_get_string(subvalue);
+                	h = (struct sr_header_s *)malloc(sizeof(struct sr_header_s));
+	                h->key = strdup("oldname");
+       			h->value = strdup(v);
+			h->next = msg.user_headers;
+			msg.user_headers = h;
+ 		}
 	} else if (!strcmp(key, "integrity")) {
 
        		//FIXME
@@ -351,8 +404,6 @@ static void v03assign_field(const char *key, json_object *jso_v)
 		if ( !strcmp( v3m, "md5name" ) ) s='n';
 		if ( !strcmp( v3m, "sha512name" ) ) s='p';
 		if ( !strcmp( v3m, "sha512" ))  s='s';
-		if ( !strcmp( v3m, "link" ) ) s='L';
-		if ( !strcmp( v3m, "remove" ) ) s='R';
 		if ( !strcmp( v3m, "cod" ) ) s='z';
 		if ( s == 'u' ) {
 		       sr_log_msg( LOG_ERROR, "unknown checksum specified: %s\n", v3m );
