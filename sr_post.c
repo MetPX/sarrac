@@ -219,13 +219,15 @@ static const char *sum2integrity( char sum )
 
 }
 
+
 static char *v03integrity( struct sr_message_s *m ) 
 {
    static char istr[1024]; 
    const char *value;
 
    switch (m->sum[0]) {
-       case 'd' : case 'n' : case 's' : case 'L' : case 'R' : value = sr_hex2base64( &(m->sum[2]) ); break;
+       case 'n' : case 'L' : case 'R' : return(NULL); break;
+       case 'd' : case 's' : value = sr_hex2base64( &(m->sum[2]) ); break;
        case 'z' : value = sum2integrity(m->sum[2]); break;
        case '0' : case 'a' : default : value = &(m->sum[2]); break;
    }
@@ -234,7 +236,14 @@ static char *v03integrity( struct sr_message_s *m )
 
 }
 
-static char *v03time( char *v02time )
+char *v03content( struct sr_message_s *m )
+{
+        
+	sr_log_msg(LOG_ERROR, "Content inlinining not implemented. Faking it for now\n" );
+	return "\"encoding\" : \"_encoding_\", \"value\" : \"_value_\"";
+}
+
+char *v03time( char *v02time )
 {
    static char buf[128];
 
@@ -268,8 +277,10 @@ static void v03amqp_header_add( char** c, const char* tag, const char *value )
 void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s *m ) 
 {
 	char *c;
+        char *ci;
         char sep[8];
 	char smallbuf[256];
+	char largerbuf[PATH_MAX+10];
 	signed int status;
 	struct sr_header_s *uh;
 
@@ -292,8 +303,22 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
 
         v03amqp_header_add( &c, "relPath", m->path );
 
-        status = sprintf( c, ",%s\"integrity\" : { %s }", sep, v03integrity(m) );
-        c += status ; 
+        ci= v03integrity(m) ;
+        if (ci) {
+        	status = sprintf( c, ",%s\"integrity\" : { %s }", sep, v03integrity(m) );
+	        c += status ; 
+        }
+
+        if (m->sum[0] == 'L')  {
+                strcpy( largerbuf, "{ \"link\" : \"" );
+                strcat( largerbuf, m->link );                 
+                strcat( largerbuf, "\" } " );
+                status = sprintf( c, ", \"fileOp\": %s", largerbuf );
+                c+=status;
+        } else if (m->sum[0] == 'R') {
+                status = sprintf( c, ", \"fileOp\": { \"remove\" : \"\"} " );
+	        c+=status;
+        }
 
     	if (sr_c->cfg->strip > 0) 
                  v03amqp_header_add( &c, "rename", m->rename );
@@ -335,12 +360,17 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
                     v03amqp_header_add( &c, "mtime", v03time( m->mtime ) );
         }
 
-        if (m->sum[0] == 'L')  {
-                v03amqp_header_add( &c, "link", m->link );
-        }
 
     	for (uh = m->user_headers; uh; uh = uh->next) {
-                v03amqp_header_add( &c, uh->key, uh->value );
+                if (!strcmp(uh->key,"oldname") ) {
+                        strcpy( largerbuf, "{ \"rename\" : \"" );
+                        strcat( largerbuf, uh->value );                 
+                        strcat( largerbuf, "\" } " );
+                	status = sprintf( c, ", \"fileOp\": %s", largerbuf );
+	                c+=status;
+                } else {
+                	v03amqp_header_add( &c, uh->key, uh->value );
+                }
         }
 
         sprintf( c, "%s}  \n", sep );
@@ -354,7 +384,6 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 	char message_body[1024*1024];
 	char smallbuf[256];
 	char thisexchange[256];
-        char sep[8];
 	char *c, *d;
 	amqp_table_t table;
 	amqp_basic_properties_t props;
@@ -479,8 +508,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 				       amqp_cstring_bytes(m->routing_key), 0, 0,
 				       &props, amqp_cstring_bytes(message_body));
         } else { /* v03 */
-
-            v03encode( &message_body, sr_c, m );
+            v03encode( message_body, sr_c, m );
             sr_log_msg( LOG_DEBUG, "v03 body=%s\n", message_body );
 
     		props._flags = AMQP_BASIC_CONTENT_ENCODING_FLAG | 
