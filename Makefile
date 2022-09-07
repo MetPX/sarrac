@@ -92,7 +92,10 @@ install:
 rpm_suse15:
 	rpmbuild --build-in-place -bb sarrac_suse15.spec 
 
-rpm_rhel7:
+sarrac_rhel7.spec: sr_version.h sarrac_rhel7.spec.tem
+	 sed 's/__sarra_version__/'`head -1 debian/changelog| sed 's/.*(//' | sed 's/).*//'`'/' <sarrac_rhel7.spec.tem >sarrac_rhel7.spec
+
+rpm_rhel7: sarrac_rhel7.spec
 	rpmdev-setuptree
 	echo "%_unpackaged_files_terminate_build      0" > ~/.rpmmacros
 	echo "%_binaries_in_noarch_packages_terminate_build   0" >> ~/.rpmmacros
