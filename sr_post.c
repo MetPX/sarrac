@@ -211,10 +211,13 @@ static const char *sum2integrity( char sum )
        case 'n': return( "md5name" );
        case 'p': return( "sha512name" );
        case 's': return( "sha512" );
+       case 'l': return( "link" );
        case 'L': return( "link" );
        case 'R': return( "remove" );
        case 'z': return( "cod" );
-       default: return( "unknown" );
+       default: 
+           sr_log_msg(LOG_ERROR," FIXME... huh?  sum=%c\n", sum );
+           return( "unknown" );
    }
 
 }
@@ -226,7 +229,7 @@ static char *v03integrity( struct sr_message_s *m )
    const char *value;
 
    switch (m->sum[0]) {
-       case 'n' : case 'L' : case 'R' : return(NULL); break;
+       case 'n' : case 'l': case 'L' : case 'R' : return(NULL); break;
        case 'd' : case 's' : value = sr_hex2base64( &(m->sum[2]) ); break;
        case 'z' : value = sum2integrity(m->sum[2]); break;
        case '0' : case 'a' : default : value = &(m->sum[2]); break;
@@ -303,6 +306,7 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
 
         v03amqp_header_add( &c, "relPath", m->path );
 
+        
         ci= v03integrity(m) ;
         if (ci) {
         	status = sprintf( c, ",%s\"integrity\" : { %s }", sep, v03integrity(m) );

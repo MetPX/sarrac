@@ -414,6 +414,13 @@ static void v03assign_field(const char *key, json_object *jso_v)
 		}
 		json_object_object_get_ex(jso_v, "value", &subvalue);
 		const char *v = json_object_get_string(subvalue);
+
+                if ( ! strchr("0az",s) ) {
+                        v = sr_base642hex(v);
+                }
+                sprintf( msg.sum, "%c,%s", s, v );
+                return;
+
 	} else if (!strcmp(key, "size")) {
 		//FIXME: no error checking, invalid parts header will cause a bobo.
 		msg.parts_s = '1';

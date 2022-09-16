@@ -1,3 +1,9 @@
+sarrac (2.22.09) UNRELEASED; urgency=medium
+
+  * new v03 encoding from https://github.com/MetPX/sarracenia/issues/547
+
+ -- Peter Silva <peter@fractal>  Wed, 14 Sep 2022 15:19:38 -0400
+
 sarrac (2.22.07p1) stable; urgency=medium
 
   * remove debug fprintf(stderr,...) in libsrshim / setup_exit  
