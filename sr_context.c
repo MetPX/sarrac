@@ -356,7 +356,7 @@ void sr_context_close(struct sr_context *sr_c)
 		sr_log_msg(LOG_DEBUG, "%s subscription broker closed.\n", sr_c->cfg->progname);
 	}
 	if (sr_c->cfg->post_broker) {
-		sr_log_msg(LOG_DEBUG, "%s %d post broker closing.\n", getpid(), sr_c->cfg->progname);
+		sr_log_msg(LOG_DEBUG, "%d %s post broker closing.\n", getpid(), sr_c->cfg->progname);
 		sr_broker_close(sr_c->cfg->post_broker);
 		sr_log_msg(LOG_DEBUG, "%s post broker closed.\n", sr_c->cfg->progname);
 	}
