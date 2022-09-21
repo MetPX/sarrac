@@ -1,3 +1,11 @@
+sr3c (3.22.09) UNRELEASED; urgency=medium
+
+  * changed v03 format (for symlinks, rename, remove cases.)
+  * #85 fix for infinite loop on_exit.
+  * debug messages include pid and wall-clock time offset from start in seconds.
+
+ -- Peter Silva <peter@fractal>  Wed, 21 Sep 2022 14:32:10 -0400
+
 sr3c (3.22.07) unstable; urgency=medium
 
   * added outlet support for v03 format.
