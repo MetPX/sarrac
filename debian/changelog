@@ -1,10 +1,12 @@
-sr3c (3.22.09) UNRELEASED; urgency=medium
+sr3c (3.22.09p2) unstable; urgency=medium
 
   * changed v03 format (for symlinks, rename, remove cases.)
   * #85 fix for infinite loop on_exit.
   * debug messages include pid and wall-clock time offset from start in seconds.
+  * packaging improvements (separate devel package) 
+  * fixes for #100, and #101 HPC mirroring symlink processing.
 
- -- Peter Silva <peter@fractal>  Wed, 21 Sep 2022 14:32:10 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Wed, 21 Sep 2022 14:32:10 -0400
 
 sr3c (3.22.07) unstable; urgency=medium
 
@@ -22,15 +24,15 @@ sr3c (3.22.07) unstable; urgency=medium
   * fix for #96 problem with cpost hanging on permission issues, have it report & recover better
   * adding understanding of sr3 option names in addition to v2 ones (compatibility with v3 configs)
 
- -- Peter Silva <peter@fractal>  Wed, 14 Oct 2020 13:36:47 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Wed, 14 Oct 2020 13:36:47 -0400
 
-sr3c (3.21.01a3) UNRELEASED; urgency=medium
+sr3c (3.21.01a3) unstable; urgency=medium
 
   * oriented to work with sr3
   * fix for #93 missing symlinkat(2)
   * fix usage printing had fqdn and action inverted.
 
- -- Peter Silva <peter@fractal>  Wed, 14 Oct 2020 13:36:47 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Wed, 14 Oct 2020 13:36:47 -0400
 
 
 sarrac (2.20.07) stable; urgency=medium
@@ -38,7 +40,7 @@ sarrac (2.20.07) stable; urgency=medium
   * fix for coredump when a path is set to a non-existe environment variable.
   * statehost is now a boolean, as per sr_subscribe man page (core dumped before.)
 
- -- Peter Silva <peter@fractal>  Mon, 20 Jul 2020 12:05:15 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Mon, 20 Jul 2020 12:05:15 -0400
 
 sarrac (2.20.05) unstable; urgency=medium
 
