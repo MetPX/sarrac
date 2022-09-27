@@ -611,9 +611,9 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		/* realpath stuff when it exists  sb */
 		if (sb && sr_c->cfg->realpath) {
 			sr_log_msg(LOG_DEBUG, "applying realpath 2 to abspath %s\n", pathspec);
-			if (!realpath(linkstr, fn)) {
+			if (!realpath(pathspec, fn)) {
 			    strcpy(fn, pathspec);
-                        }
+      }
 		} else
 			strcpy(fn, pathspec);
 	}
