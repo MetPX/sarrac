@@ -90,18 +90,18 @@ install:
 	fi;
 
 rpm_suse15:
-	rpmbuild --build-in-place -bb sarrac_suse15.spec 
+	rpmbuild --build-in-place -bb sr3c_suse15.spec 
 
-sarrac_rhel7.spec: sr_version.h sarrac_rhel7.spec.tem
-	 sed 's/__sarra_version__/'`head -1 debian/changelog| sed 's/.*(//' | sed 's/).*//'`'/' <sarrac_rhel7.spec.tem >sarrac_rhel7.spec
+sr3c_rhel7.spec: sr_version.h sr3c_rhel7.spec.tem
+	 sed 's/__sarra_version__/'`head -1 debian/changelog| sed 's/.*(//' | sed 's/).*//'`'/' <sr3c_rhel7.spec.tem >sr3c_rhel7.spec
 
-rpm_rhel7: sarrac_rhel7.spec
+rpm_rhel7: sr3c_rhel7.spec
 	rpmdev-setuptree
 	echo "%_unpackaged_files_terminate_build      0" > ~/.rpmmacros
 	echo "%_binaries_in_noarch_packages_terminate_build   0" >> ~/.rpmmacros
-	tar -czvf /tmp/sarrac.tar.gz ../sarrac
-	cp -p /tmp/sarrac.tar.gz `rpm --eval "%{_sourcedir}"`
-	rpmbuild -bb sarrac_rhel7.spec
+	tar -czvf /tmp/sr3c.tar.gz ../sr3c
+	cp -p /tmp/sr3c.tar.gz `rpm --eval "%{_sourcedir}"`
+	rpmbuild -bb sr3c_rhel7.spec
 
 format:
 	@indent -linux -l100 *.c *.h
