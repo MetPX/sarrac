@@ -1,4 +1,11 @@
-sarrac (2.22.09) UNRELEASED; urgency=medium
+sarrac (2.22.09p1) UNRELEASED; urgency=medium
+
+  * fixes for #101 symlink handling problems in HPC mirror case.
+  * fix for #100 core dump when -c option given with no argument.
+
+ -- Peter Silva <peter@fractal>  Tue, 27 Sep 2022 13:12:18 -0400
+
+sarrac (2.22.09) released; urgency=medium
 
   * new v03 encoding from https://github.com/MetPX/sarracenia/issues/547
 
