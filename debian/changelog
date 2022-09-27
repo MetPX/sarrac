@@ -1,15 +1,21 @@
-sarrac (2.22.09p1) UNRELEASED; urgency=medium
+sarrac (2.22.09p2) unstable; urgency=medium
+
+  * RPM packaging improvement, separate -devel package.
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 27 Sep 2022 17:37:55 -0400
+
+sarrac (2.22.09p1) unstable; urgency=medium
 
   * fixes for #101 symlink handling problems in HPC mirror case.
   * fix for #100 core dump when -c option given with no argument.
 
- -- Peter Silva <peter@fractal>  Tue, 27 Sep 2022 13:12:18 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 27 Sep 2022 13:12:18 -0400
 
-sarrac (2.22.09) released; urgency=medium
+sarrac (2.22.09) unstable; urgency=medium
 
   * new v03 encoding from https://github.com/MetPX/sarracenia/issues/547
 
- -- Peter Silva <peter@fractal>  Wed, 14 Sep 2022 15:19:38 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Wed, 14 Sep 2022 15:19:38 -0400
 
 sarrac (2.22.07p1) stable; urgency=medium
 
