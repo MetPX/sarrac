@@ -26,7 +26,17 @@ BuildRequires:  gcc make openssl-devel json-c-devel librabbitmq-devel
 Requires:	openssl json-c librabbitmq
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
+%package devel
+Summary: C implementation of Sarracenia (devel files)
+
 %description
+Sarracenia is a message queueing protocol application that manages continuous file transfers.
+For more information on sarracenia see: https://metpx.github.io/sarracenia
+This package contains a C interface to Sarracenia, including:
+libsr3, the main messaging API; CLI binaries, and the shim library for very high speed transfers.
+
+%description devel
+include files to make calls to the libsr3 library from your application.
 
 %prep
 %setup -q -n sarrac
@@ -45,7 +55,8 @@ make %{?_smp_mflags}
 %doc README.rst ./debian/changelog
 %{_bindir}/*
 %{_libdir}/*
-%{_includedir}/*
 
 %changelog
 
+%files devel
+%{_includedir}/*
