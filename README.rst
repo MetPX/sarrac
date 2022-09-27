@@ -49,14 +49,14 @@ sr_post.h, and sr_consume.h files. The library uses sr_subscribe(1) style config
 files (see Limitations). A sample usage of the libraries is a command line
 binary, that can call the library::
 
-   sr_cpost
+   sr3_cpost
 
 This function takes the same options as 
 `sr_post <https://github.com/MetPX/sarracenia/blob/master/doc/sr_post.1.rst>`_, 
 but the *sleep* argument, when supplied causes it to loop, checking for new 
 items every *sleep* seconds (equivalent to sr_watch.) There is also a sample consumer::
 
-  sr_cpump
+  sr3_cpump
 
 which obtains messages and, by default, prints them to standard output in json
 format identical the the format used by the python implementation for 
