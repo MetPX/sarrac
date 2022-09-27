@@ -780,11 +780,16 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 
 	} else if (!strcmp(option, "config") || !strcmp(option, "include")
 		   || !strcmp(option, "c")) {
-		val = sr_config_read(sr_cfg, argument, 1, master);
-		if (val < 0)
-			retval = -1;
-		else
-			retval = 2;
+                if (argument) {
+			val = sr_config_read(sr_cfg, argument, 1, master);
+			if (val < 0)
+				retval = -1;
+			else
+				retval = 2;
+                } else {
+			sr_log_msg(LOG_ERROR, "config option requires a file name argument, none given\n");
+                        retval=-1;
+                }
 
 	} else if (!strcmp(option, "debug")) {
 		val = StringIsTrue(argument);
