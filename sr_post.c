@@ -576,6 +576,22 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 	}
 }
 
+char *realpath_dir(char *input_path, char *output_path) 
+{
+    char *last_slash;
+    char *return_value;
+
+    last_slash=rindex(input_path,'/');
+    *last_slash='\0';
+    return_value=realpath(input_path,output_path);
+    *last_slash='/';
+    if (return_value) {
+        strcat(output_path,last_slash); 
+    }
+    return(return_value);
+}
+
+
 int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 			  struct stat *sb, struct sr_message_s *m)
 /*
@@ -591,32 +607,25 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	char linkstr[PATH_MAXNUL];
 	char tmprk[PATH_MAXNUL + 100];
 
-	if (*pathspec != '/')	// need absolute path.
-	{
-		getcwd(linkstr, PATH_MAX);
-		strcat(linkstr, "/");
-		strcat(linkstr, pathspec);
+  	if (*pathspec != '/')	// need absolute path.
+  	{
+  		getcwd(linkstr, PATH_MAX);
+  		strcat(linkstr, "/");
+  		strcat(linkstr, pathspec);
+    } else {
+      strcpy(linkstr, pathspec);
+    }
 
 		/* realpath stuff when it exists  sb */
 		if (sb && sr_c->cfg->realpath) {
 			sr_log_msg(LOG_DEBUG, "applying realpath 1 to relpath %s\n", pathspec);
-			if (!realpath(linkstr, fn)) {
+			if (!realpath_dir(linkstr, fn)) {
 				strcpy(fn, linkstr);
 			}
 		} else
 			strcpy(fn, linkstr);
-		linkstr[0] = '\0';
 
-	} else {
-		/* realpath stuff when it exists  sb */
-		if (sb && sr_c->cfg->realpath) {
-			sr_log_msg(LOG_DEBUG, "applying realpath 2 to abspath %s\n", pathspec);
-			if (!realpath(pathspec, fn)) {
-			    strcpy(fn, pathspec);
-      }
-		} else
-			strcpy(fn, pathspec);
-	}
+		linkstr[0] = '\0';
 
 	if ((sr_c->cfg != NULL) && sr_c->cfg->debug) {
 		sr_log_msg(LOG_DEBUG,
