@@ -109,7 +109,7 @@ format:
 
 clean:
 	@rm -f *.o *.gcno *.so *.so.* sr3_cpost sr_configtest sr_utiltest sr3_cpump sr_cachetest sr_cache_save.test
-	@rm -rf build sr_version.h
+	@rm -rf build sr_version.h sr3c_rhel7.spec
 
 trust_but_verify: all
 	./sr_configtest test_post.conf 
