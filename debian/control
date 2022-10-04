@@ -1,4 +1,4 @@
-Source: sr3c
+Source: metpx-sr3c
 Priority: optional
 Maintainer: Shared Services Canada Supercomputing <ssc.hpc-chp.spc@canada.ca>
 Build-Depends: debhelper (>=9), librabbitmq4 ( >= 0.8 ), librabbitmq-dev ( >= 0.8 ), libssl-dev, libjson-c-dev

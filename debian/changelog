@@ -1,4 +1,4 @@
-sr3c (3.22.09p2) unstable; urgency=medium
+metpx-sr3c (3.22.09p2) unstable; urgency=medium
 
   * changed v03 format (for symlinks, rename, remove cases.)
   * #85 fix for infinite loop on_exit.
