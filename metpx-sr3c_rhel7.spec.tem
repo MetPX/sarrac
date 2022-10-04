@@ -16,12 +16,12 @@
 #
 
 
-Name:           sr3c
+Name:           metpx-sr3c
 Version:        __sarra_version__
 Release:        0
 Summary:        C implementation of Sarracenia (partial)
 License:        GPL-2.0
-Source:         %{_sourcedir}/sr3c.tar.gz
+Source:         %{_sourcedir}/metpx-sr3c.tar.gz
 BuildRequires:  gcc make openssl-devel json-c-devel librabbitmq-devel
 Requires:	openssl json-c librabbitmq
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -30,15 +30,15 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Summary: C implementation of Sarracenia (devel files)
 
 %description
-MetPX-sr3 is a message queueing protocol application that manages continuous file transfers.
-For mor information on sarracenia see: https://metpx.github.io/sarracenia
+MetPX-sr3c is a message queueing protocol application that manages continuous file transfers.
+For more information on Sarracenia see: https://metpx.github.io/sarracenia
 libsr3, the main messaging API, CLI binaries, and the shim library for very high speed transfers.
 
 %description devel
 include files to make calls to the libsr3 library from your application.
 
 %prep
-%setup -q -n sr3c
+%setup -q -n metpx-sr3c
 
 %build
 make %{?_smp_mflags}

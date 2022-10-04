@@ -90,18 +90,18 @@ install:
 	fi;
 
 rpm_suse15:
-	rpmbuild --build-in-place -bb sr3c_suse15.spec 
+	rpmbuild --build-in-place -bb metpx-sr3c_suse15.spec 
 
-sr3c_rhel7.spec: sr_version.h sr3c_rhel7.spec.tem
-	 sed 's/__sarra_version__/'`head -1 debian/changelog| sed 's/.*(//' | sed 's/).*//'`'/' <sr3c_rhel7.spec.tem >sr3c_rhel7.spec
+metpx-sr3c_rhel7.spec: sr_version.h metpx-sr3c_rhel7.spec.tem
+	 sed 's/__sarra_version__/'`head -1 debian/changelog| sed 's/.*(//' | sed 's/).*//'`'/' <metpx-sr3c_rhel7.spec.tem >metpx-sr3c_rhel7.spec
 
-rpm_rhel7: sr3c_rhel7.spec
+rpm_rhel7: metpx-sr3c_rhel7.spec
 	rpmdev-setuptree
 	echo "%_unpackaged_files_terminate_build      0" > ~/.rpmmacros
 	echo "%_binaries_in_noarch_packages_terminate_build   0" >> ~/.rpmmacros
-	tar -czvf /tmp/sr3c.tar.gz ../sr3c
-	cp -p /tmp/sr3c.tar.gz `rpm --eval "%{_sourcedir}"`
-	rpmbuild -bb sr3c_rhel7.spec
+	tar -czvf /tmp/metpx-sr3c.tar.gz ../sr3c
+	cp -p /tmp/metpx-sr3c.tar.gz `rpm --eval "%{_sourcedir}"`
+	rpmbuild -bb metpx-sr3c_rhel7.spec
 
 format:
 	@indent -linux -l100 *.c *.h
@@ -109,7 +109,7 @@ format:
 
 clean:
 	@rm -f *.o *.gcno *.so *.so.* sr3_cpost sr_configtest sr_utiltest sr3_cpump sr_cachetest sr_cache_save.test
-	@rm -rf build sr_version.h sr3c_rhel7.spec
+	@rm -rf build sr_version.h metpx-sr3c_rhel7.spec
 
 trust_but_verify: all
 	./sr_configtest test_post.conf 
