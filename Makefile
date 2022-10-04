@@ -99,7 +99,7 @@ rpm_rhel7: metpx-sr3c_rhel7.spec
 	rpmdev-setuptree
 	echo "%_unpackaged_files_terminate_build      0" > ~/.rpmmacros
 	echo "%_binaries_in_noarch_packages_terminate_build   0" >> ~/.rpmmacros
-	tar -czvf /tmp/metpx-sr3c.tar.gz ../sr3c
+	tar -czvf /tmp/metpx-sr3c.tar.gz ../metpx-sr3c
 	cp -p /tmp/metpx-sr3c.tar.gz `rpm --eval "%{_sourcedir}"`
 	rpmbuild -bb metpx-sr3c_rhel7.spec
 
