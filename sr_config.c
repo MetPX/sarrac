@@ -303,22 +303,22 @@ static struct sr_broker_s *broker_uri_parse(char *src)
 	save = buf + 7 + (b->ssl);
 	d = strchr(save, '@');
 	if (!d) {
-        b->user = strdup("anonymous");
-        b->password = strdup("anonymous");
-        c=save;
+	        b->user = strdup("anonymous");
+       		b->password = strdup("anonymous");
+	        c=save;
 	} else {
- 	    // save points at user string, null terminated.
-    	*d = '\0';
-    	c = d + 1;		// continuation point.
-    	d = strchr(save, ':');
-    	if (d) {
-    		*d = '\0';
-    		d++;
-    		b->password = strdup(d);
-    	} else
-    		b->password = NULL;
-	    b->user = strdup(save);
-    }
+ 	    	// save points at user string, null terminated.
+	    	*d = '\0';
+    		c = d + 1;		// continuation point.
+	    	d = strchr(save, ':');
+	    	if (d) {
+	    		*d = '\0';
+	    		d++;
+	    		b->password = strdup(d);
+    		} else
+	    		b->password = NULL;
+	    	b->user = strdup(save);
+	}
 
 	// c points at hostname
 	save = c;
@@ -346,7 +346,7 @@ static struct sr_broker_s *broker_uri_parse(char *src)
 	b->started = 1;
 	b->last_delivery_tag = 0;
 
-	// fprintf( stderr, "FIXME: broker ssl=%d, host: +%s+ , port: %d, user: +%s+ password: _%s_\n", 
+	//fprintf( stderr, "FIXME: broker ssl=%d, host: +%s+ , port: %d, user: +%s+ password: _%s_\n", 
 	//   b->ssl, b->hostname, b->port, b->user, b->password );
 	return (b);
 }
@@ -732,8 +732,10 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		}
 
 	} else if (!strcmp(option, "broker") || !strcmp(option, "b")) {
-		if (sr_cfg->broker)
+		if (sr_cfg->broker) {
 			broker_free(sr_cfg->broker);
+			sr_cfg->broker = NULL;
+		}
 		brokerstr = sr_credentials_fetch(argument);
 		if (brokerstr == NULL) {
 			sr_cfg->broker = broker_uri_parse(argument);
@@ -995,8 +997,10 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (1 + (val & 1));
 
 	} else if (!strcmp(option, "post_broker") || !strcmp(option, "pb")) {
-		if (sr_cfg->post_broker)
+		if (sr_cfg->post_broker) {
 			broker_free(sr_cfg->post_broker);
+			sr_cfg->post_broker=NULL;
+		}
 		brokerstr = sr_credentials_fetch(argument);
 		if (brokerstr == NULL) {
 			sr_log_msg(LOG_NOTICE,
@@ -1188,38 +1192,55 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 
 	if (sr_cfg->action)
 		free(sr_cfg->action);
+	sr_cfg->action=NULL;
 	if (sr_cfg->configname)
 		free(sr_cfg->configname);
+	sr_cfg->configname=NULL;
 	if (sr_cfg->directory)
 		free(sr_cfg->directory);
+	sr_cfg->directory=NULL;
 	if (sr_cfg->post_base_dir)
 		free(sr_cfg->post_base_dir);
+	sr_cfg->post_base_dir=NULL;
 	if (sr_cfg->exchange)
 		free(sr_cfg->exchange);
+	sr_cfg->exchange=NULL;
 	if (sr_cfg->exchange_suffix)
 		free(sr_cfg->exchange_suffix);
+	sr_cfg->exchange_suffix=NULL;
 	if (sr_cfg->last_matched)
 		free(sr_cfg->last_matched);
+	sr_cfg->last_matched=NULL;
 	if (sr_cfg->queuename)
 		free(sr_cfg->queuename);
+	sr_cfg->queuename=NULL;
 	if (sr_cfg->outlet)
 		free(sr_cfg->outlet);
+	sr_cfg->outlet=NULL;
 	if (sr_cfg->pidfile)
 		free(sr_cfg->pidfile);
+	sr_cfg->pidfile=NULL;
 	if (sr_cfg->post_exchange)
 		free(sr_cfg->post_exchange);
+	sr_cfg->post_exchange=NULL;
 	if (sr_cfg->post_exchange_suffix)
 		free(sr_cfg->post_exchange_suffix);
+	sr_cfg->post_exchange_suffix=NULL;
 	if (sr_cfg->progname)
 		free(sr_cfg->progname);
+	sr_cfg->progname=NULL;
 	if (sr_cfg->randid)
 		free(sr_cfg->randid);
+	sr_cfg->randid=NULL;
 	if (sr_cfg->source)
 		free(sr_cfg->source);
+	sr_cfg->source=NULL;
 	if (sr_cfg->to)
 		free(sr_cfg->to);
+	sr_cfg->to=NULL;
 	if (sr_cfg->post_base_url)
 		free(sr_cfg->post_base_url);
+	sr_cfg->post_base_url=NULL;
 
 	if (sr_cfg->broker)
 		broker_free(sr_cfg->broker);
@@ -1229,7 +1250,7 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 	sr_cfg->post_broker = NULL;
 	if (sr_cfg->vip)
 		free(sr_cfg->vip);
-
+        sr_cfg->vip=NULL;
 	while (sr_cfg->masks) {
 		e = sr_cfg->masks;
 		sr_cfg->masks = e->next;
@@ -1264,11 +1285,13 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 	sr_credentials_cleanup();
 	sr_log_cleanup();
 	free(sr_cfg->logfn);
+	sr_cfg->logfn=NULL;
 
 	sr_cache_close(sr_cfg->cachep);
 	sr_cfg->cachep = NULL;
 	if (sr_cfg->cache_basis)
 		free(sr_cfg->cache_basis);
+	sr_cfg->cache_basis=NULL;
 
 }
 
