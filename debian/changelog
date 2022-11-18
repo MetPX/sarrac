@@ -1,3 +1,9 @@
+metpx-sr3c (3.22.11) UNRELEASED; urgency=medium
+
+  * fix for #103
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Thu, 17 Nov 2022 19:28:34 -0500
+
 metpx-sr3c (3.22.09p2) unstable; urgency=medium
 
   * changed v03 format (for symlinks, rename, remove cases.)
