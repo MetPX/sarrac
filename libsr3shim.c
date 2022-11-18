@@ -235,10 +235,14 @@ void srshim_initialize(const char *progname)
 {
 
 	static int config_read = 0;
+	static int init_in_progress=0;
 	char *setstr;
 	int finalize_good;
 
-	//sr_log_msg( LOG_DEBUG, "FIXME srshim_initialize %s starting..\n", progname);
+	if (init_in_progress)
+		return;
+	init_in_progress=1;
+	sr_log_msg( LOG_DEBUG, "FIXME srshim_initialize %s starting..\n", progname);
 	if (sr_c)
 		return;
 
@@ -247,6 +251,7 @@ void srshim_initialize(const char *progname)
 	if (setstr == NULL)
 		return;
 
+	
 	//sr_log_msg( LOG_DEBUG, "FIXME srshim_initialize 2 %s setstr=%p\n", progname, setstr);
 
 	// skip many FD to try to avoid stepping over stdout stderr, for logs & broker connection.
@@ -287,6 +292,7 @@ void srshim_initialize(const char *progname)
 
 	sr_c = sr_context_init_config(&sr_cfg, 1);
 
+	init_in_progress=0;
 	errno = 0;
 }
 
