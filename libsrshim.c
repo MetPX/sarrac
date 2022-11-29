@@ -436,8 +436,7 @@ int shimpost(const char *path, int status)
 		srshim_initialize("shim");
 
 		if (path[0] == '/') {
-			if (getenv("SR_SHIMDEBUG"))
-				sr_shimdebug_msg( "absolute 1 shimpost %s, status=%d\n", path, status);
+			sr_shimdebug_msg( "absolute 1 shimpost %s, status=%d\n", path, status);
 			srshim_realpost(path);
 		} else {
 			cwd = get_current_dir_name();
@@ -446,8 +445,7 @@ int shimpost(const char *path, int status)
 			strcpy(real_path, cwd);
 			strcat(real_path, "/");
 			strcat(real_path, path);
-			if (getenv("SR_SHIMDEBUG"))
-				sr_shimdebug_msg( "relative 2 shimpost %s status=%d\n", real_path, status);
+			sr_shimdebug_msg( "relative 2 shimpost %s status=%d\n", real_path, status);
 			srshim_realpost(real_path);
 			free(real_path);
 			free(cwd);
@@ -498,8 +496,7 @@ int symlink(const char *target, const char *linkpath)
 {
 	int status;
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( "symlink %s %s\n", target, linkpath);
+	sr_shimdebug_msg( "symlink %s %s\n", target, linkpath);
 	if (!symlink_init_done) {
 		setup_exit();
 		symlink_fn_ptr = (symlink_fn) dlsym(RTLD_NEXT, "symlink");
@@ -540,8 +537,7 @@ int symlinkat(const char *target, int dirfd, const char *linkpath)
 	status = symlinkat_fn_ptr(target, dirfd, linkpath);
 
 	if (shim_disabled) {
-	        if (getenv("SR_SHIMDEBUG"))
-		      sr_shimdebug_msg( "symlinkat %s %s\n", target, linkpath);
+		sr_shimdebug_msg( "symlinkat %s %s\n", target, linkpath);
 		return (status);
         }
 	clerror(status);
@@ -561,8 +557,7 @@ int symlinkat(const char *target, int dirfd, const char *linkpath)
 	snprintf(fdpath, 32, "/proc/self/fd/%d", dirfd);
 	real_return = realpath(fdpath, real_path);
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( "4 symlinkat real_path=%s target=%s linkpath=%s\n", real_path, target, linkpath );
+	sr_shimdebug_msg( "4 symlinkat real_path=%s target=%s linkpath=%s\n", real_path, target, linkpath );
 
 	clerror(status);
 	if (!real_return) {
@@ -590,8 +585,7 @@ int unlinkat(int dirfd, const char *path, int flags)
 	char real_path[PATH_MAX + 1];
 	char *real_return;
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( "unlinkat %s dirfd=%i\n", path, dirfd);
+	sr_shimdebug_msg( "unlinkat %s dirfd=%i\n", path, dirfd);
 	if (!unlinkat_init_done) {
 		setup_exit();
 		unlinkat_fn_ptr = (unlinkat_fn) dlsym(RTLD_NEXT, "unlinkat");
@@ -610,8 +604,7 @@ int unlinkat(int dirfd, const char *path, int flags)
 
 	snprintf(fdpath, 32, "/proc/self/fd/%d", dirfd);
 	real_return = realpath(fdpath, real_path);
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " unlinkat relative directory %s real_return=%p\n", fdpath, real_return);
+	sr_shimdebug_msg( " unlinkat relative directory %s real_return=%p\n", fdpath, real_return);
 	strcat(real_path, "/");
 	strcat(real_path, path);
 
@@ -619,8 +612,7 @@ int unlinkat(int dirfd, const char *path, int flags)
 	if (!real_return)
 		return (status);
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " unlinkat realpath %s\n", real_path);
+	sr_shimdebug_msg( " unlinkat realpath %s\n", real_path);
 
 	return (shimpost(real_path, status));
 }
@@ -633,8 +625,7 @@ int unlink(const char *path)
 {
 	int status;
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " unlink %s\n", path);
+	sr_shimdebug_msg( " unlink %s\n", path);
 	if (!unlink_init_done) {
 		setup_exit();
 		unlink_fn_ptr = (unlink_fn) dlsym(RTLD_NEXT, "unlink");
@@ -644,8 +635,7 @@ int unlink(const char *path)
 	if (shim_disabled)
 		return (status);
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " unlink 2 %s status=%d\n", path, status);
+	sr_shimdebug_msg( " unlink 2 %s status=%d\n", path, status);
 
 	if (status == -1)
 		return status;
@@ -687,8 +677,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 	char oreal_path[PATH_MAX + 1];
 	char *oreal_return;
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " renameorlink %s %s\n", oldpath, newpath);
+	sr_shimdebug_msg( " renameorlink %s %s\n", oldpath, newpath);
 
 	if (!renameat2_init_done) {
 		setup_exit();
@@ -734,10 +723,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		return (status);
 
 	if (status == -1) {
-		if (getenv("SR_SHIMDEBUG"))
-			sr_shimdebug_msg(
-				" renameorlink %s %s failed, no post\n",
-				oldpath, newpath);
+		sr_shimdebug_msg( " renameorlink %s %s failed, no post\n", oldpath, newpath);
 		return (status);
 	}
 
@@ -778,8 +764,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		strcat(real_path, "/");
 		strcat(real_path, newpath);
 	}
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg(
+	sr_shimdebug_msg(
 			" renameorlink sr_c=%p, oreal_path=%s, real_path=%s\n",
 			sr_c, oreal_path, real_path);
 
@@ -805,34 +790,32 @@ int dup2(int oldfd, int newfd)
 	char *real_return;
 	int status;
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " dup2 oldfd %d newfd %d\n", oldfd, newfd);
+	sr_shimdebug_msg( " dup2 oldfd %d newfd %d\n", oldfd, newfd);
 
 	if (!dup2_init_done) {
 		setup_exit();
 		dup2_fn_ptr = (dup2_fn) dlsym(RTLD_NEXT, "dup2");
 		dup2_init_done = 1;
-		if (getenv("SR_POST_READS"))
-			srshim_initialize("shim");
+		srshim_initialize("shim");
 	}
 
 	errno = 0;
 
 	if (shim_disabled || (oldfd == newfd)) {
-		//if (getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " dup2 NO POST oldfd = newfd \n" );
+		//sr_shimdebug_msg(  " dup2 NO POST oldfd = newfd \n" );
 		return dup2_fn_ptr(oldfd, newfd);
 	}
 
 	fdstat = fcntl(newfd, F_GETFL);
 
 	if (fdstat == -1) {
-		//if (getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " dup2 NO POST not valid fd !\n" );
+		//sr_shimdebug_msg(  " dup2 NO POST not valid fd !\n" );
 		errno = 0;
 		return dup2_fn_ptr(oldfd, newfd);
 	}
 
 	if ((fdstat & O_ACCMODE) == O_RDONLY) {
-		//if (getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " dup2 NO POST read mode !\n" );
+		//sr_shimdebug_msg(  " dup2 NO POST read mode !\n" );
 		errno = 0;
 		return dup2_fn_ptr(oldfd, newfd);
 	}
@@ -841,13 +824,13 @@ int dup2(int oldfd, int newfd)
 	real_return = realpath(fdpath, real_path);
 
 	if (!real_return) {
-		//if (getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " dup2 NO POST no path from fd !\n" );
+		//sr_shimdebug_msg(  " dup2 NO POST no path from fd !\n" );
 		errno = 0;
 		return dup2_fn_ptr(oldfd, newfd);
 	}
 
 	if (!strncmp(real_path, "/dev/", 5) || !strncmp(real_path, "/proc/", 6)) {
-		//if (getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " dup2 NO POST path device or proc !\n" );
+		//sr_shimdebug_msg(  " dup2 NO POST path device or proc !\n" );
 		errno = 0;
 		return dup2_fn_ptr(oldfd, newfd);
 	}
@@ -859,8 +842,7 @@ int dup2(int oldfd, int newfd)
 	if (status == -1)
 		return status;
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " dup2 posting %s status=%d\n", real_path, status);
+	sr_shimdebug_msg( " dup2 posting %s status=%d\n", real_path, status);
 
 	// because shimpost posts when:    if (!status)
 	// we use a tmpstatus and call shimpost with status=0
@@ -884,9 +866,7 @@ int dup3(int oldfd, int newfd, int flags)
 	char *real_return;
 	int status;
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg(
-			" dup3 oldfd %d newfd %d flags %d\n", oldfd, newfd, flags);
+	sr_shimdebug_msg(" dup3 oldfd %d newfd %d flags %d\n", oldfd, newfd, flags);
 
 	if (!dup3_init_done) {
 		setup_exit();
@@ -897,7 +877,7 @@ int dup3(int oldfd, int newfd, int flags)
 	}
 
 	if (shim_disabled || (oldfd == newfd)) {
-		//if (getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " dup3 NO POST oldfd = newfd \n" );
+		//sr_shimdebug_msg(  " dup3 NO POST oldfd = newfd \n" );
 		errno = 0;
 		return dup3_fn_ptr(oldfd, newfd, flags);
 	}
@@ -905,13 +885,13 @@ int dup3(int oldfd, int newfd, int flags)
 	fdstat = fcntl(newfd, F_GETFL);
 
 	if (fdstat == -1) {
-		//if (getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " dup3 NO POST not valid fd !\n" );
+		//sr_shimdebug_msg(  " dup3 NO POST not valid fd !\n" );
 		errno = 0;
 		return dup3_fn_ptr(oldfd, newfd, flags);
 	}
 
 	if ((fdstat & O_ACCMODE) == O_RDONLY) {
-		//if (getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " dup3 NO POST read mode !\n" );
+		//sr_shimdebug_msg(  " dup3 NO POST read mode !\n" );
 		errno = 0;
 		return dup3_fn_ptr(oldfd, newfd, flags);
 	}
@@ -920,13 +900,13 @@ int dup3(int oldfd, int newfd, int flags)
 	real_return = realpath(fdpath, real_path);
 
 	if (!real_return) {
-		//if (getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " dup3 NO POST no path from fd !\n" );
+		//sr_shimdebug_msg(  " dup3 NO POST no path from fd !\n" );
 		errno = 0;
 		return dup3_fn_ptr(oldfd, newfd, flags);
 	}
 
 	if (!strncmp(real_path, "/dev/", 5) || !strncmp(real_path, "/proc/", 6)) {
-		//if (getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " dup3 NO POST path device or proc !\n" );
+		//sr_shimdebug_msg(  " dup3 NO POST path device or proc !\n" );
 		errno = 0;
 		return dup3_fn_ptr(oldfd, newfd, flags);
 	}
@@ -939,8 +919,7 @@ int dup3(int oldfd, int newfd, int flags)
 	if (status == -1)
 		return status;
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " dup3 posting %s %d\n", real_path, status);
+	sr_shimdebug_msg( " dup3 posting %s %d\n", real_path, status);
 
 	// because shimpost posts when:    if (!status)
 	// we use a tmpstatus and call shimpost with status=0
@@ -966,8 +945,7 @@ void exit_cleanup_posts()
 	DIR *fddir = NULL;
 	struct dirent *fdde;
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( "exit_cleanup_posts, context=%p\n", sr_c);
+	sr_shimdebug_msg( "exit_cleanup_posts, context=%p\n", sr_c);
 
 	if (exit_cleanup_posts_ran || shim_disabled || !getenv("SR_POST_CONFIG"))
 		return;
@@ -980,8 +958,7 @@ void exit_cleanup_posts()
 
 	if (fddir) {
 		while ((fdde = readdir(fddir))) {
-	                //if (getenv("SR_SHIMDEBUG"))
-                     	//	sr_shimdebug_msg( "exit_cleanup_posts, readdir fdde->d_name=%s\n", fdde->d_name);
+                     	//sr_shimdebug_msg( "exit_cleanup_posts, readdir fdde->d_name=%s\n", fdde->d_name);
 			if (fdde->d_name[0] == '.')
 				continue;
 
@@ -1004,8 +981,7 @@ void exit_cleanup_posts()
 
 			found = 0;
 			for (int i = 0; (i < last_pfo); i++) {
-	                        //if (getenv("SR_SHIMDEBUG"))
-                     		//         sr_shimdebug_msg( "exit_cleanup_posts, last_pfo i=%d open_file=%s\n", 
+                     		//sr_shimdebug_msg( "exit_cleanup_posts, last_pfo i=%d open_file=%s\n", 
 				//		 i, parent_files_open[i]);
 				if (!strcmp(real_path, parent_files_open[i])) {
 					found = 1;
@@ -1018,16 +994,14 @@ void exit_cleanup_posts()
 
 			fsync(fd);	// ensure data is flushed to disk before post occurs.
 
-			if (getenv("SR_SHIMDEBUG"))
-				sr_shimdebug_msg( " exit posting %s\n", real_path);
+			sr_shimdebug_msg( " exit posting %s\n", real_path);
 
 			shimpost(real_path, 0);
 		}
 		closedir(fddir);
 	}
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " exit posting... deferred posting start.\n" );
+	sr_shimdebug_msg( " exit posting... deferred posting start.\n" );
 
 	/* execute deferred/remembered posts, FIXME: embarrasing n**2 algo, should do better later */
 	for (int i = 0; i < remembered_count; i++) {
@@ -1047,7 +1021,7 @@ void exit_cleanup_posts()
 			sr_post(sr_c, (*remembered_filenames)[i].name, NULL);
 		} else {
 			if (S_ISLNK(sb.st_mode)) {
-				//if ( getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " exit reading link: %s\n", (*remembered_filenames)[i].name );
+				//sr_shimdebug_msg(  " exit reading link: %s\n", (*remembered_filenames)[i].name );
 				statres =
 				    readlink((*remembered_filenames)[i].name, real_path, PATH_MAX);
 				if (statres) {
@@ -1058,7 +1032,7 @@ void exit_cleanup_posts()
 			sr_post(sr_c, (*remembered_filenames)[i].name, &sb);
 		}
 	}
-	if ( getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  "exit closing context sr_c=%p\n", sr_c );
+	sr_shimdebug_msg(  "exit closing context sr_c=%p\n", sr_c );
 	if (sr_c)
 		sr_context_close(sr_c);
 
@@ -1108,7 +1082,7 @@ void exit_group(int status)
 {
     static exit_fn exit_group_fn_ptr = NULL;
 
-    if ( getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  "exit_group 0, context=%p\n", sr_c );
+    sr_shimdebug_msg(  "exit_group 0, context=%p\n", sr_c );
 
     exit_group_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit_group");
 
@@ -1122,15 +1096,13 @@ void exit_group(int status)
 
 int link(const char *target, const char *linkpath)
 {
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " link %s %s\n", target, linkpath);
+	sr_shimdebug_msg( " link %s %s\n", target, linkpath);
 	return (renameorlink(AT_FDCWD, target, AT_FDCWD, linkpath, 0, 1));
 }
 
 int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags)
 {
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg(
+	sr_shimdebug_msg(
 			"linkat olddirfd=%d, oldname=%s newdirfd=%d newname=%s flags=%d\n",
 			olddirfd, oldpath, newdirfd, newpath, flags);
 	return (renameorlink(olddirfd, oldpath, newdirfd, newpath, flags, 1));
@@ -1138,16 +1110,14 @@ int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath,
 
 int rename(const char *oldpath, const char *newpath)
 {
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( "rename %s %s\n", oldpath, newpath);
+	sr_shimdebug_msg( "rename %s %s\n", oldpath, newpath);
 
 	return (renameorlink(AT_FDCWD, oldpath, AT_FDCWD, newpath, 0, 0));
 }
 
 int renameat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath)
 {
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( "renameat %s %s\n", oldpath, newpath);
+	sr_shimdebug_msg( "renameat %s %s\n", oldpath, newpath);
 
 	return (renameorlink(olddirfd, oldpath, newdirfd, newpath, 0, 0));
 }
@@ -1155,8 +1125,7 @@ int renameat(int olddirfd, const char *oldpath, int newdirfd, const char *newpat
 int renameat2(int olddirfd, const char *oldpath, int newdirfd,
 	      const char *newpath, unsigned int flags)
 {
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( "renameat2 %s %s\n", oldpath, newpath);
+	sr_shimdebug_msg( "renameat2 %s %s\n", oldpath, newpath);
 
 	return (renameorlink(olddirfd, oldpath, newdirfd, newpath, flags, 0));
 }
@@ -1186,8 +1155,7 @@ ssize_t sendfile(int out_fd, int in_fd, off_t * offset, size_t count)
 	snprintf(fdpath, 32, "/proc/self/fd/%d", out_fd);
 	real_return = realpath(fdpath, real_path);
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( " sendfile to %s\n", real_path);
+	sr_shimdebug_msg( " sendfile to %s\n", real_path);
 
 	clerror(status);
 	if (!real_return)
@@ -1227,8 +1195,7 @@ ssize_t copy_file_range(int fd_in, loff_t * off_in, int fd_out,
 	snprintf(fdpath, 32, "/proc/self/fd/%d", fd_out);
 	real_return = realpath(fdpath, real_path);
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( "copy_file_range to %s\n", real_path);
+	sr_shimdebug_msg( "copy_file_range to %s\n", real_path);
 
 	if (!real_return)
 		return (status);
@@ -1265,7 +1232,7 @@ int close(int fd)
 	fdstat = fcntl(fd, F_GETFL);
 
 	if (fdstat == -1) {
-		//if (getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " close NO POST not valid fd !\n" );
+		//sr_shimdebug_msg(  " close NO POST not valid fd !\n" );
 		errno = 0;
 		return close_fn_ptr(fd);
 	}
@@ -1289,8 +1256,7 @@ int close(int fd)
 	if (!real_return)
 		return status;
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( "close %s fd=%d\n", real_path, fd);
+	sr_shimdebug_msg( "close %s fd=%d\n", real_path, fd);
 
 	if (!strncmp(real_path, "/dev/", 5)) {
 		clerror(status);
@@ -1336,16 +1302,16 @@ int fclose(FILE * f)
 
 	fdstat = fcntl(fd, F_GETFL);
 
-	//if ( getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " fclose %p fd=%i starting\n", f, fdstat );
+	//sr_shimdebug_msg(  " fclose %p fd=%i starting\n", f, fdstat );
 
 	if (fdstat == -1) {
-		//if (getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " fclose NO POST not valid fd !\n" );
+		//sr_shimdebug_msg(  " fclose NO POST not valid fd !\n" );
 		errno = 0;
 		return fclose_fn_ptr(f);
 	}
 
 	if ((fdstat & O_ACCMODE) == O_RDONLY) {
-		//if (getenv("SR_SHIMDEBUG")) sr_shimdebug_msg(  " fclose NO POST read-only. \n" );
+		//sr_shimdebug_msg(  " fclose NO POST read-only. \n" );
 		errno = 0;
 		return fclose_fn_ptr(f);
 	}
@@ -1370,8 +1336,7 @@ int fclose(FILE * f)
 		return (status);
 	}
 
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( "fclose %p %s status=%d\n", f, real_path, status);
+	sr_shimdebug_msg( "fclose %p %s status=%d\n", f, real_path, status);
 
 	return shimpost(real_path, status);
 }
@@ -1394,8 +1359,7 @@ FILE* fopen(const char *pathname, const char *mode)
 			srshim_initialize("shim");
         setup_exit();
 	}
-	if (getenv("SR_SHIMDEBUG"))
-		sr_shimdebug_msg( "fopen %s %s\n", pathname, mode);
+	sr_shimdebug_msg( "fopen %s %s\n", pathname, mode);
 
 	return( fopen_fn_ptr(pathname,mode) );
 }
