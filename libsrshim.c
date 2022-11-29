@@ -134,7 +134,7 @@ void setup_pfo()
 		}
 		closedir(fddir);
 	}
-	sr_log_msg(LOG_DEBUG, "setup pfo done.\n");
+	sr_shimdebug_msg("setup pfo done.\n");
 }
 
 static struct sr_context *sr_c = NULL;
@@ -187,13 +187,13 @@ int should_not_post(const char *fn)
 			    ((*remembered_filenames)[i].ts.tv_sec +
 			     (*remembered_filenames)[i].ts.tv_nsec / 1e9);
 			if (interval < sr_cfg.shim_post_minterval) {
-				sr_log_msg(LOG_DEBUG,
+				sr_shimdebug_msg(
 					"suppress repeated post of %s (count=%d) (only: %g seconds ago, minterval is: %g)\n",
 					fn, remembered_count, interval, sr_cfg.shim_post_minterval);
 				(*remembered_filenames)[i].clean = 0;
 				return (1);
 			} else {
-				sr_log_msg(LOG_DEBUG,
+				sr_shimdebug_msg(
 					"shim_post_minterval (%g) exceeded (%g), repeat post of %s (count=%d) \n",
 					sr_cfg.shim_post_minterval, interval, fn, remembered_count);
 				(*remembered_filenames)[i].ts = ts;
@@ -224,7 +224,7 @@ int should_not_post(const char *fn)
 	(*remembered_filenames)[remembered_count].ts = ts;
 	(*remembered_filenames)[remembered_count++].name = strdup(fn);
 
-	sr_log_msg(LOG_DEBUG, "remembering post of %s (count=%d) \n", fn, remembered_count);
+	sr_shimdebug_msg( "remembering post of %s (count=%d) \n", fn, remembered_count);
 	return (0);
 
 }
@@ -242,7 +242,7 @@ void srshim_initialize(const char *progname)
 	if (init_in_progress)
 		return;
 	init_in_progress=1;
-	sr_log_msg( LOG_DEBUG, "FIXME srshim_initialize %s starting..\n", progname);
+	sr_shimdebug_msg( "FIXME srshim_initialize %s starting..\n", progname);
 	if (sr_c)
 		return;
 
@@ -252,7 +252,7 @@ void srshim_initialize(const char *progname)
 		return;
 
 	
-	//sr_log_msg( LOG_DEBUG, "FIXME srshim_initialize 2 %s setstr=%p\n", progname, setstr);
+	//sr_shimdebug_msg( "FIXME srshim_initialize 2 %s setstr=%p\n", progname, setstr);
 
 	// skip many FD to try to avoid stepping over stdout stderr, for logs & broker connection.
 	if (config_read == 0) {
@@ -329,20 +329,20 @@ char *stubborn_realpath( const char *path, char *resolved_path )
 
 	if (res) return(res);
 
-	//sr_log_msg(LOG_INFO, "sr_%s stubborn_realpath 2: failed initial realpath of %s\n", sr_cfg.progname, path);
+	//sr_shimdebug_msg( "sr_%s stubborn_realpath 2: failed initial realpath of %s\n", sr_cfg.progname, path);
 
         strcpy(path_buffer,path);
         last_slash=rindex(path_buffer,'/');
 	*last_slash='\0';
 	res = realpath(path_buffer, resolved_path);
 
-	//sr_log_msg(LOG_INFO, "sr_%s stubborn_realpath 3: tried realpath: %s result: %s\n", sr_cfg.progname, path_buffer, res);
+	//sr_shimdebug_msg("sr_%s stubborn_realpath 3: tried realpath: %s result: %s\n", sr_cfg.progname, path_buffer, res);
         if (!res) {
 		strcpy( resolved_path, path );
         } else { 
                 *last_slash='/';
 	        strcat( resolved_path, last_slash );
-	        //sr_log_msg(LOG_INFO, "sr_%s stubborn_realpath 4: after parent result: %s\n", sr_cfg.progname, resolved_path);
+	        //sr_shimdebug_msg("sr_%s stubborn_realpath 4: after parent result: %s\n", sr_cfg.progname, resolved_path);
         }
         return(resolved_path);
 }
@@ -359,17 +359,17 @@ void srshim_realpost(const char *path)
 	char fn[PATH_MAX + 1];
 	char fnreal[PATH_MAX + 1];
 
-	//sr_log_msg( LOG_DEBUG, "FIXME realpost 1 PATH %s src=%p\n", path, sr_c);
+	//sr_shimdebug_msg( "FIXME realpost 1 PATH %s src=%p\n", path, sr_c);
 
 	if (!path || !sr_c)
 		return;
 
-	//sr_log_msg( LOG_DEBUG, "FIXME realpost 2 PATH %s\n", path);
+	//sr_shimdebug_msg( "FIXME realpost 2 PATH %s\n", path);
 
 	statres = lstat(path, &sb);
 
 	if (!statres && !S_ISREG(sb.st_mode) && !S_ISLNK(sb.st_mode)) {
-	        //sr_log_msg( LOG_DEBUG, "FIXME realpost 2.2 returning statres=%d, mode=%o , S_IFREG=%o, S_IFLNK=%o \n", 
+	        //sr_shimdebug_msg( "FIXME realpost 2.2 returning statres=%d, mode=%o , S_IFREG=%o, S_IFLNK=%o \n", 
                 //    statres, sb.st_mode, S_IFREG, S_IFLNK );
 		return;
         }
@@ -389,14 +389,14 @@ void srshim_realpost(const char *path)
 	}
 
 	if ((mask && !(mask->accepting)) || (!mask && !(sr_cfg.accept_unmatched))) {	//reject.
-		sr_log_msg(LOG_DEBUG,
+		sr_shimdebug_msg(
 			"mask: %p, mask->accepting=%d accept_unmatched=%d\n",
 			mask, mask->accepting, sr_cfg.accept_unmatched);
 		if (sr_cfg.log_reject)
 			sr_log_msg(LOG_INFO, "sr_%s rejecting pattern: %s\n", sr_cfg.progname, fn);
 		return;
 	}
-	sr_log_msg(LOG_DEBUG, "accepted... %s now\n", fn);
+	sr_shimdebug_msg( "accepted... %s now\n", fn);
 
 	if (should_not_post(fn))
 		return;
@@ -408,7 +408,7 @@ void srshim_realpost(const char *path)
 		return;
 
 	if (statres) {
-		sr_log_msg(LOG_DEBUG, "should be really posting %s now sr_c=%p\n", fn, sr_c);
+		sr_shimdebug_msg( "should be really posting %s now sr_c=%p\n", fn, sr_c);
 		sr_post(sr_c, fn, NULL);
 		return;
 	}
