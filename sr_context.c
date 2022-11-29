@@ -314,7 +314,7 @@ void sr_broker_close(struct sr_broker_s *broker)
 	signed int status;
 
 	if (!(broker->conn)) {
-		sr_log_msg(LOG_DEBUG, "amqp broker close: no connection present.\n");
+		//sr_log_msg(LOG_DEBUG, "amqp broker close: no connection present.\n");
 		return;
 	}
 	reply = amqp_channel_close(broker->conn, 1, AMQP_REPLY_SUCCESS);
