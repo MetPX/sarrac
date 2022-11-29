@@ -966,12 +966,13 @@ void exit_cleanup_posts()
 	DIR *fddir = NULL;
 	struct dirent *fdde;
 
-        exit_cleanup_posts_ran = 1;
 	if (getenv("SR_SHIMDEBUG"))
 		sr_shimdebug_msg( "exit_cleanup_posts, context=%p\n", sr_c);
 
 	if (exit_cleanup_posts_ran || shim_disabled || !getenv("SR_POST_CONFIG"))
 		return;
+
+        exit_cleanup_posts_ran = 1;
 
 	// In the current process, find files which are not opened by the parent
 	// that need posting.
