@@ -242,7 +242,8 @@ void srshim_initialize(const char *progname)
 	if (init_in_progress)
 		return;
 	init_in_progress=1;
-	sr_shimdebug_msg( "FIXME srshim_initialize %s starting..\n", progname);
+
+	sr_log_msg(LOG_INFO, "Deprecated: v2? please use libsr3shim instead of libsrshim %s starting..\n", progname);
 	if (sr_c)
 		return;
 
