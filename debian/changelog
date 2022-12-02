@@ -1,4 +1,13 @@
-sarrac (2.22.11) UNRELEASED; urgency=medium
+sarrac (2.22.12) unstable; urgency=medium
+
+  * deprecation message in favour of sr3 version.
+  * removed some debug prints
+  * fix: #68 wgrib2 will not post (via libsrshim.) (regression in 3.22.07 now fixed.)
+  * support sr3 rename case. add v2compatRenameDoublePost support
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Thu, 02 Dec 2022 21:59:31 -0500
+
+sarrac (2.22.11) unstable; urgency=medium
 
   * fix for #103
 
