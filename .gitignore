@@ -1,6 +1,7 @@
 *.o
 *.gcno
 *.so.*
+*.so
 *.swp
 *.tmp
 build
@@ -9,4 +10,6 @@ sr_cachetest
 sr_cache_save.test
 sr_configtest
 sr_utiltest
+sr_cpost
+sr_cpump
 test
