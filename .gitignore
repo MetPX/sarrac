@@ -3,6 +3,7 @@
 *.so.*
 *.swp
 *.tmp
+*.spec
 build
 sr_version.h
 sr_cachetest
