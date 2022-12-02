@@ -1386,7 +1386,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->topics = NULL;
 	sr_cfg->post_base_url = NULL;
 
-	sr_cfg->v2compatRenameDoublePost = 0;
+	sr_cfg->v2compatRenameDoublePost = 1;
 	sr_cfg->vip = NULL;
 	sr_cfg->xattr_cc = 0;
 
