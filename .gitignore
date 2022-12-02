@@ -11,3 +11,4 @@ sr_cache_save.test
 sr_configtest
 sr_utiltest
 test
+*.spec
