@@ -1,4 +1,12 @@
-metpx-sr3c (3.22.11) UNRELEASED; urgency=medium
+metpx-sr3c (3.22.12) UNRELEASED; urgency=medium
+
+  * removed some debug prints
+  * fix: #68 wgrib2 will not post (via libsrshim.) (regression in 3.22.07 now fixed.)
+  * now only post once for rename case. add v2compatRenameDoublePost support
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Fri, 02 Dec 2022 15:17:53 -0500
+
+metpx-sr3c (3.22.11) unstable; urgency=medium
 
   * fix for #103
 
