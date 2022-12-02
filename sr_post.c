@@ -931,29 +931,32 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	first_user_header.next = sr_c->cfg->user_headers;
 	sr_c->cfg->user_headers = &first_user_header;
 
-	first_user_header.key = strdup("newname");
-	first_user_header.value = strdup(newname);
+        if (sr_c->cfg->v2compatRenameDoublePost) {
+		first_user_header.key = strdup("newname");
+		first_user_header.value = strdup(newname);
 
-	if (sr_c->cfg->realpath_filter) {
-		mask = sr_isMatchingPattern(sr_c->cfg, oldreal);
-	} else {
-		mask = sr_isMatchingPattern(sr_c->cfg, oldname);
-	}
-	if ((mask && !(mask->accepting))
-	    || (!mask && !(sr_c->cfg->accept_unmatched))) {
-		if (sr_c->cfg->log_reject)
-			sr_log_msg(LOG_INFO, "rejecting oldname: %s\n", oldname);
-	} else {
-		if (!access(oldname, F_OK)
-		    && (S_ISREG(sb.st_mode) || S_ISLNK(sb.st_mode))) {
-			sr_post(sr_c, oldname, &sb);
+		if (sr_c->cfg->realpath_filter) {
+			mask = sr_isMatchingPattern(sr_c->cfg, oldreal);
 		} else {
-			sr_post(sr_c, oldname, NULL);
+			mask = sr_isMatchingPattern(sr_c->cfg, oldname);
 		}
-	}
+		if ((mask && !(mask->accepting))
+		    || (!mask && !(sr_c->cfg->accept_unmatched))) {
+			if (sr_c->cfg->log_reject)
+				sr_log_msg(LOG_INFO, "rejecting oldname: %s\n", oldname);
+		} else {
+			if (!access(oldname, F_OK)
+			    && (S_ISREG(sb.st_mode) || S_ISLNK(sb.st_mode))) {
+				sr_post(sr_c, oldname, &sb);
+			} else {
+				sr_post(sr_c, oldname, NULL);
+			}
+		}
 
-	free(first_user_header.key);
-	free(first_user_header.value);
+		free(first_user_header.key);
+		free(first_user_header.value);
+        }
+
 	first_user_header.key = strdup("oldname");
 	first_user_header.value = strdup(oldname);
 

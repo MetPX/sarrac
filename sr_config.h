@@ -229,6 +229,7 @@ struct sr_config_s {
 	char post_topic_prefix[AMQP_MAX_SS];   /**< the topic prefix to post to.*/
 	struct sr_header_s *user_headers;
 				    /**< list of arbitrary user headers for extensions and upward compatibility.*/
+        int  v2compatRenameDoublePost;
 	char *vip;	  /**< virtual ip address ... only act, if host has this address.*/
 	int xattr_cc;		/**<boolean flag to determine whether or not xattr checksum caching should be used.*/
 };
