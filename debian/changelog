@@ -1,4 +1,4 @@
-metpx-sr3c (3.22.12) UNRELEASED; urgency=medium
+metpx-sr3c (3.22.12) unstable; urgency=medium
 
   * removed some debug prints
   * fix: #68 wgrib2 will not post (via libsrshim.) (regression in 3.22.07 now fixed.)
