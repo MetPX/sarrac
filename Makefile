@@ -104,16 +104,16 @@ rpm_rhel7: metpx-sr3c_rhel7.spec
 	rpmbuild -bb metpx-sr3c_rhel7.spec
 
 format:
-	@indent -linux -l100 *.c *.h
-	@rm *.c~ *.h~
+	indent -linux -l100 *.c *.h
+	rm *.c~ *.h~
 
 clean:
-	@rm -f *.o *.gcno *.so *.so.* sr3_cpost sr_configtest sr_utiltest sr3_cpump sr_cachetest sr_cache_save.test
-	@rm -rf build sr_version.h metpx-sr3c_rhel7.spec
+	rm -f *.o *.gcno *.so *.so.* sr3_cpost sr_configtest sr_utiltest sr3_cpump sr_cachetest sr_cache_save.test
+	rm -rf build sr_version.h metpx-sr3c_rhel7.spec
 
 trust_but_verify: all
 	./sr_configtest test_post.conf 
 	./sr_utiltest 
 	./sr_cachetest
-	@valgrind --show-reachable=yes --track-origins=yes ./sr3_cpost -c local_post.conf uthash.h
+	valgrind --show-reachable=yes --track-origins=yes ./sr3_cpost -c local_post.conf uthash.h
 
