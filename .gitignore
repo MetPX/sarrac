@@ -13,3 +13,4 @@ sr_utiltest
 sr_cpost
 sr_cpump
 test
+*.spec
