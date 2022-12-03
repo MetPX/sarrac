@@ -11,11 +11,11 @@ are performance concerns that this implementation would help with..
  - in some environments getting python3 environment installed is hard
    (example: cray linux environment is a software environment from circa 2009)
 
- - in-process invocation of sr_post on file closes (libsr3shim.)
+ - in-process invocation of sr3_post on file closes (libsr3shim.)
 
 Detailed use case:
 
-  https://github.com/MetPX/sarracenia/blob/master/doc/hpc_mirroring_use_case.rst
+  https://metpx.github.io/sarracenia/Explanation/History/HPC_Mirroring_Use_Case.html
 
 .. Contents::
 
@@ -28,7 +28,7 @@ use the PPA on Launchpad.net::
 
   sudo add-apt-repository ppa:ssc-hpc-chp-spc/metpx
   sudo apt-get update
-  sudo apt-get install sarrac
+  sudo apt-get install metpx-sr3c
 
 if on another debian derived OS, then assuming build dependencies are taken 
 care of::
@@ -45,23 +45,25 @@ Use
 
 A library, libsarra is built, with external interfaces one can access from C 
 using the entry points and data structures documented in sr_context.h, 
-sr_post.h, and sr_consume.h files. The library uses sr_subscribe(1) style config
-files (see Limitations). A sample usage of the libraries is a command line
+sr_post.h, and sr_consume.h files. The library uses `sr3 options(7) <https://metpx.github.io/sarracenia/Reference/sr3_options.7.html>`_
+style config files (see Limitations). A sample usage of the libraries is a command line
 binary, that can call the library::
 
    sr3_cpost
 
 This function takes the same options as 
-`sr_post <https://github.com/MetPX/sarracenia/blob/master/doc/sr_post.1.rst>`_, 
+`sr3_post <https://metpx.github.io/sarracenia/Reference/sr3_post.1.html>`_.
+
 but the *sleep* argument, when supplied causes it to loop, checking for new 
-items every *sleep* seconds (equivalent to sr_watch.) There is also a sample consumer::
+items every *sleep* seconds (equivalent to sr3_watch.) There is also a sample consumer::
 
   sr3_cpump
 
 which obtains messages and, by default, prints them to standard output in json
 format identical the the format used by the python implementation for 
 save/restore. 
-`sr_cpump <https://github.com/MetPX/sarracenia/blob/master/doc/sr_cpump.1.rst>`_, 
+
+`sr3_cpump <https://metpx.github.io/sarracenia/Reference/sr3_cpump.1.html>`_.
 
 In order to have a complete downloader, one needs a script to
 parse the json output and invoke an appropriate binary downloader. One can
@@ -71,13 +73,13 @@ json:
   the default format, json compatible with python save/restore.
 
 post:
-  turns sr_cpump into an sr_shovel, if cache is on, then it is a winnow.
+  turns sr_cpump into an sr3 shovel, if cache is on, then it is a winnow.
 
 url: 
   just print out the retrieval urls, rather than the entire message
 
 There is also an LD_PRELOAD shim library. (libsr3shim.c) that uses the posting
-API, this is to be used in `very high volume use cases <https://github.com/MetPX/sarracenia/blob/master/doc/hpc_mirroring_use_case.rst>`_
+API, this is to be used in `very high volume use cases <https://github.com/MetPX/sarracenia/blob/main/doc/hpc_mirroring_use_case.rst>`_
 
 Sample usage::
 
@@ -116,6 +118,15 @@ files during process execution, (potentially posting the same file
 multiple times.) the shim library will accumulate file names, and only 
 post when the process exits. An opposite approach::
 
+   shim_post_minterval
+
+The *shim_post_minterval* setting (default: 5 seconds) establishes the minimum
+time interval between repeated posts of the same file.  when a file
+is being rapidly re-written multiple times, it is unproductive to post
+an advertisement about a file whose state will be different by the time
+a client can download it. defines the maximum frequency a single
+file will be posted::
+
    shim_post_once 
 
 When set, The shim_post_once (default: False) does duplicate suppression 
@@ -130,7 +141,6 @@ The shim_skip_parent_open_files (default: True) option means that a
 process checks whether the parent process has the same file open, and 
 does not post if that is the case, sinc the parent will take care
 of it eventually.
-
 
 
  
@@ -245,7 +255,7 @@ of rabbitmq-c can be obtained ::
 
   . ssmuse-sh -d /fs/ssm/main/opt/rabbitmqc/rabbitmqc-0.8.0
  
-To load sr_cpost::
+To load sr3_cpost::
 
   . ssmuse-sh -d /fs/ssm/hpco/exp/sarrac-2.18.05b4
  
