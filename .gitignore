@@ -5,6 +5,10 @@
 *.tmp
 *.spec
 build
+sr3_cpump
+sr3_cpost
+libsr3cshim.so
+libsr3c.so
 sr_version.h
 sr_cachetest
 sr_cache_save.test
