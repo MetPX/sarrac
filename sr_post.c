@@ -768,20 +768,19 @@ struct sr_message_s *sr_file2message_seq(struct sr_context *sr_c,
   return the adjusted prototype message.  (requires reading part of the file to checksum it.)
  */
 {
+  char *sumstr;
 	m->parts_num = seq;
 
-	strcpy(m->sum,
-	       sr_set_sumstr(m->sum[0], m->sum[2], pathspec, NULL, m->link,
-			  m->parts_blksz, m->parts_blkcount, m->parts_rem,
-			  m->parts_num, sr_c->cfg->xattr_cc)
-	    );
+	sumstr = sr_set_sumstr(m->sum[0], m->sum[2], pathspec, NULL, m->link, m->parts_blksz, m->parts_blkcount, 
+       m->parts_rem, m->parts_num, sr_c->cfg->xattr_cc);
 
-	if (!(m->sum)) {
+	if (!(sumstr)) {
 		sr_log_msg(LOG_ERROR,
 			"file2message_seq unable to generate %c checksum for: %s\n",
 			m->parts_s, pathspec);
 		return (NULL);
 	}
+	strcpy(m->sum, sumstr );
 	return (m);
 }
 
