@@ -3,10 +3,10 @@
 C-Implementation of a Sarracenia Client
 ---------------------------------------
 
-This C functionality is not intended to be a complete
-implementation, it is just a few pieces meant to provide interoperability for
-cases where either a python3 environment is either impractical, or where there
-are performance concerns that this implementation would help with..
+This C functionality is not a complete implementation, only a few pieces meant 
+to provide interoperability for cases where either a python3 environment is 
+either impractical, or where there are performance concerns that this 
+implementation would help with:
 
  - in some environments getting python3 environment installed is hard
    (example: cray linux environment is a software environment from circa 2009)
@@ -23,7 +23,7 @@ Detailed use case:
 Installation
 ------------
 
-easiest way to obtain it, if you are on Ubuntu >= 14.04, is to
+easiest way to obtain it, if you are on Ubuntu >= 18.04, is to
 use the PPA on Launchpad.net::
 
   sudo add-apt-repository ppa:ssc-hpc-chp-spc/metpx
@@ -41,7 +41,6 @@ to install the bits yourself.
 
 Use
 ---
-
 
 A library, libsarra is built, with external interfaces one can access from C 
 using the entry points and data structures documented in sr_context.h, 
@@ -73,7 +72,7 @@ json:
   the default format, json compatible with python save/restore.
 
 post:
-  turns sr_cpump into an sr3 shovel, if cache is on, then it is a winnow.
+  turns sr3_cpump into an sr3 shovel, if cache is on, then it is a winnow.
 
 url: 
   just print out the retrieval urls, rather than the entire message
@@ -249,7 +248,7 @@ are sent to standard error instead, include::
 Dorval Computing Centre
 -----------------------
 
-If you are in the Dorval computing centre environment, then 
+If you are in some Dorval computing centre environments, then 
 `SSM <https://expl.info/display/SSM>`_ is available and a compatible version
 of rabbitmq-c can be obtained ::
 
@@ -259,6 +258,8 @@ To load sr3_cpost::
 
   . ssmuse-sh -d /fs/ssm/hpco/exp/sarrac-2.18.05b4
  
+or it may be installed in the system locations (/usr/bin, etc...)
+
 
 Release Process
 ---------------

@@ -1,3 +1,11 @@
+metpx-sr3c (3.22.12p1) UNRELEASED; urgency=medium
+
+  * backported overlooked patch from v2 for SSL errors on redhat 8
+  * fix coredump on specification of unknown checksum algorithm
+  * README updated (was unchanged from v2.)
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 06 Dec 2022 13:18:37 -0500
+
 metpx-sr3c (3.22.12) unstable; urgency=medium
 
   * removed some debug prints
