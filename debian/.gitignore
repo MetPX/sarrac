@@ -1,11 +1,11 @@
 .debhelper
 files
-libsarrac-dev/*
-libsarrac/*
+metpx-libsr3c-dev/*
+metpx-libsr3c/*
 debhelper-build-stamp
 *.substvars
 *.log
-sarrac
-sarrac/*
+metpx-sr3c
+metpx-sr3c/*
 sarrac-server.substvars
     
