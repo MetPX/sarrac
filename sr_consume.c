@@ -218,6 +218,40 @@ static void assign_field(const char *key, char *value)
 	}
 }
 
+
+const char *sum2integrity( char sum )
+{
+   switch (sum) {
+       case '0': return( "random" );
+       case 'a': return( "arbitrary" );
+       case 'd': return( "md5" );
+       case 'n': return( "md5name" );
+       case 'p': return( "sha512name" );
+       case 's': return( "sha512" );
+       case 'L': return( "link" );
+       case 'R': return( "remove" );
+       case 'z': return( "cod" );
+       default: return( "unknown" );
+   }
+
+}
+
+char *v03integrity( struct sr_message_s *m )
+{
+   static char istr[1024];
+   const char *value;
+
+   switch (m->sum[0]) {
+       case 'n' : case 'L' : case 'R' : return(NULL); break;
+       case 'd' : case 's' : value = sr_hex2base64( &(m->sum[2]) ); break;
+       case 'z' : value = sum2integrity(m->sum[2]); break;
+       case '0' : case 'a' : default : value = &(m->sum[2]); break;
+   }
+   sprintf( istr, " \"method\" : \"%s\", \"value\" : \"%s\" ", sum2integrity( m->sum[0] ), value );
+   return(istr);
+
+}
+
 #ifdef HAVE_JSONC
 
 static void v03assign_field(const char *key, json_object *jso_v)
@@ -466,33 +500,45 @@ static void json_dump_strheader(char *tag, char *value)
 char *sr_message_2log(struct sr_message_s *m)
 {
 	static char b[10240];	// FIXME!  need more than 10K for a log message? check?
+        char *ci;
 
-	sprintf(b, "%s %s %s topic=%s", m->datestamp, m->url, m->path, m->routing_key);
-	sprintf(strchr(b, '\0'), " sum=%s source=%s", m->sum, m->source);
-	sprintf(strchr(b, '\0'), " to_clusters=%s from_cluster=%s",
+	sprintf(b, "{ 'pubTime':'%s', 'baseUrl':'%s', 'relPath':'%s', 'topic':'%s'", m->datestamp, m->url, m->path, m->routing_key);
+
+
+        ci = v03integrity(m);
+        if (ci) {
+	     sprintf(strchr(b, '\0'), ", 'integrity':'{ %s }' ", ci );
+           
+        }
+	/* sprintf(strchr(b, '\0'), ", 'sum':'%s', 'source':'%s'", m->sum, m->source); */
+	/*sprintf(strchr(b, '\0'), ", 'to_clusters':'%s', 'from_cluster':'%s'",
 		m->to_clusters, m->from_cluster);
+         */
 
 	if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
-		sprintf(strchr(b, '\0'), " mtime=%s atime=%s", m->mtime, m->atime);
+		sprintf(strchr(b, '\0'), ", 'mtime':'%s', 'atime':'%s'", m->mtime, m->atime);
 
 		if (m->mode)
-			sprintf(strchr(b, '\0'), " mode=%04o", m->mode);
+			sprintf(strchr(b, '\0'), ", 'mode':'%04o'", m->mode);
 
-		sprintf(strchr(b, '\0'), " parts=%c,%ld,%ld,%ld,%ld",
-			m->parts_s, m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num);
+		sprintf(strchr(b, '\0'), ", 'size':'%ld'", m->parts_blksz );
 	}
 
 	if (m->sum[0] == 'L') {
-		sprintf(strchr(b, '\0'), " link=%s", m->link);
-	}
+		sprintf(strchr(b, '\0'), ", 'fileOp' : { 'link':'%s' }", m->link);
+	} else if (m->sum[0] == 'R') {
+		sprintf(strchr(b, '\0'), ", 'fileOp' : { 'remove':'' }" );
+        }
 
 	if (m->rename[0])
-		sprintf(strchr(b, '\0'), " rename=%s", m->rename);
+		sprintf(strchr(b, '\0'), ", 'fileOp' : { 'rename':'%s' }", m->rename);
 
 	for (struct sr_header_s * h = m->user_headers; h; h = h->next) 
-    {
-		sprintf(strchr(b, '\0'), " %s=%s", h->key, h->value);
-    }
+        {
+		sprintf(strchr(b, '\0'), ", '%s':'%s'", h->key, h->value);
+        }
+        sprintf(strchr(b, '\0'), "}" );
+      
 	return (b);
 }
 

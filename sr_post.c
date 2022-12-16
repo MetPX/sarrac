@@ -202,40 +202,6 @@ static unsigned long int set_blocksize(long int bssetting, size_t fsz)
 }
 
 
-const char *sum2integrity( char sum )
-{
-   switch (sum) {
-       case '0': return( "random" );
-       case 'a': return( "arbitrary" );
-       case 'd': return( "md5" );
-       case 'n': return( "md5name" );
-       case 'p': return( "sha512name" );
-       case 's': return( "sha512" );
-       case 'L': return( "link" );
-       case 'R': return( "remove" );
-       case 'z': return( "cod" );
-       default: return( "unknown" );
-   }
-
-}
-
-
-static char *v03integrity( struct sr_message_s *m ) 
-{
-   static char istr[1024]; 
-   const char *value;
-
-   switch (m->sum[0]) {
-       case 'n' : case 'L' : case 'R' : return(NULL); break;
-       case 'd' : case 's' : value = sr_hex2base64( &(m->sum[2]) ); break;
-       case 'z' : value = sum2integrity(m->sum[2]); break;
-       case '0' : case 'a' : default : value = &(m->sum[2]); break;
-   }
-   sprintf( istr, " \"method\" : \"%s\", \"value\" : \"%s\" ", sum2integrity( m->sum[0] ), value );
-   return(istr);
-
-}
-
 char *v03content( struct sr_message_s *m )
 {
         

@@ -68,6 +68,13 @@ struct sr_message_s {
 
 };
 
+
+
+char *v03integrity( struct sr_message_s *m );
+
+
+
+
 //extern struct sr_message_s msg;
 
 int sr_consume_setup(struct sr_context *sr_c);
