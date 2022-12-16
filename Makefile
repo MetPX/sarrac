@@ -117,3 +117,6 @@ trust_but_verify: all
 	./sr_cachetest
 	valgrind --show-reachable=yes --track-origins=yes ./sr3_cpost -c local_post.conf uthash.h
 
+test_shim: all
+	-./shim_test.sh >shim_test.log 2>&1
+	python3 ./check_shim_test.py shim_test.log
