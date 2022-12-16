@@ -1388,8 +1388,8 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->source = NULL;
 	sr_cfg->statehost = 0;
 	sr_cfg->strip = 0;
-	sr_cfg->sumalgo = 'd';
-	sr_cfg->sumalgoz = 'd';
+	sr_cfg->sumalgo = 's';
+	sr_cfg->sumalgoz = 's';
 	sr_cfg->to = NULL;
 	sr_cfg->user_headers = NULL;
 	strcpy(sr_cfg->topic_prefix, "v02.post");
