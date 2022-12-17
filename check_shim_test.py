@@ -9,12 +9,8 @@ tests=0
 
 # by default run through all and print summary at end.
 # with this option, exit on first failed test.
-exit_on_bad = sys.argv[2] == 'exit_on_bad'
 
-def finish_test():
-    global bad
-    global good
-
+exit_on_bad = ( len(sys.argv) >= 3 ) and sys.argv[2] == 'exit_on_bad'
 
 test_algo=None
 with open( sys.argv[1], 'r') as log:
@@ -34,15 +30,20 @@ with open( sys.argv[1], 'r') as log:
       if line[0] == '#test':
          tests += 1
          if test_algo:  # finish previous test...
+
+             if len(test_actual_posts) == 0:
+                print( f"RESULT: BAD! missing expected {test_post_count} for {test_description}" )
+                bad += 1
              for m in test_actual_posts:
-                if m in test_post_count and ( test_post_count[m]==test_actual_posts[m]):
+                if m in test_post_count and (test_post_count[m]==test_actual_posts[m]):
                      print( f"RESULT: Good! {test_post_count[m]} {m} posts from {test_description}. as expected" )
                      good += 1
                 else:
-                     print( f"RESULT: BAD! {test_actual_posts[m]} {m} posts from {test_description} as expected" )
-                     if exit_on_bad:
-                        sys.exit(1) 
+                     print( f"RESULT: BAD! {test_actual_posts[m]} {m} posts, expected: {test_post_count} for {test_description}" )
                      bad += 1
+
+             if bad and exit_on_bad:
+                 sys.exit(1) 
              
          print( f"setting: {line} " )
          test_algo=line[2]
