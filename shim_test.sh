@@ -26,7 +26,7 @@ grep lovely pyiotest
 
 echo "#test 1 sha512 cp command"
 cp libsr3shim.c ~/test/hoho_my_darling.txt
-echo "#test 1 n touch command"
+echo "#test 1 sha512 touch command"
 touch hihi
 echo "#test 1 link symlink command"
 ln -s hoho haha

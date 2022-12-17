@@ -17,7 +17,12 @@ with open( sys.argv[1], 'r') as log:
    l = log.readlines()
    #print(l)
    for i in l:
+
       line = i.split()
+
+      if (i[0] == '+') and line[1] != 'echo':
+            print(i)
+            continue
 
       if len(line) < 4:
          continue
@@ -45,7 +50,7 @@ with open( sys.argv[1], 'r') as log:
              if bad and exit_on_bad:
                  sys.exit(1) 
              
-         print( f"setting: {line} " )
+         #print( f"setting: {line} " )
          test_algo=line[2]
          
          test_post_count={}
