@@ -285,6 +285,11 @@ To note changes:
 Building RPMS
 -------------
 
+clone source to metpx-sr3c directory (needed by rpm build rules)::
+
+  git clone https://github.com/MetPX/sarrac metpx-sr3c
+  cd sr3c
+
 on Suse::
 
   zypper addrepo https://download.opensuse.org/repositories/network:messaging:amqp/openSUSE_Leap_15.1/network:messaging:amqp.repo
@@ -335,4 +340,4 @@ The code has a mix of comments is not entirely doxygen friendly just yet.  Feel 
 to improve.  Other than that... the kernel C guidelines are the rule.
 
 FIXME: We ran a code reformatter on it once... should probably repeat from time to time, would be 
-useful to document which one was used.   I believe it undoes for the pythonic exception.
+useful to document which one was used. I believe it undoes for the pythonic exception.
