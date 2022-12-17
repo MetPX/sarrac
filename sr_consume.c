@@ -502,40 +502,40 @@ char *sr_message_2log(struct sr_message_s *m)
 	static char b[10240];	// FIXME!  need more than 10K for a log message? check?
         char *ci;
 
-	sprintf(b, "{ 'pubTime':'%s', 'baseUrl':'%s', 'relPath':'%s', 'topic':'%s'", m->datestamp, m->url, m->path, m->routing_key);
+	sprintf(b, "{ \"pubTime\":\"%s\", \"baseUrl\":\"%s\", \"relPath\":\"%s\", \"topic\":\"%s\"", m->datestamp, m->url, m->path, m->routing_key);
 
 
         ci = v03integrity(m);
         if (ci) {
-	     sprintf(strchr(b, '\0'), ", 'integrity':'{ %s }' ", ci );
+	     sprintf(strchr(b, '\0'), ", \"integrity\":{ %s } ", ci );
            
         }
-	/* sprintf(strchr(b, '\0'), ", 'sum':'%s', 'source':'%s'", m->sum, m->source); */
-	/*sprintf(strchr(b, '\0'), ", 'to_clusters':'%s', 'from_cluster':'%s'",
+	/* sprintf(strchr(b, \"\0\"), ", \"sum\":\"%s\", \"source\":\"%s\"", m->sum, m->source); */
+	/*sprintf(strchr(b, \"\0\"), ", \"to_clusters\":\"%s\", \"from_cluster\":\"%s\"",
 		m->to_clusters, m->from_cluster);
          */
 
 	if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
-		sprintf(strchr(b, '\0'), ", 'mtime':'%s', 'atime':'%s'", m->mtime, m->atime);
+		sprintf(strchr(b, '\0'), ", \"mtime\":\"%s\", \"atime\":\"%s\"", m->mtime, m->atime);
 
 		if (m->mode)
-			sprintf(strchr(b, '\0'), ", 'mode':'%04o'", m->mode);
+			sprintf(strchr(b, '\0'), ", \"mode\":\"%04o\"", m->mode);
 
-		sprintf(strchr(b, '\0'), ", 'size':'%ld'", m->parts_blksz );
+		sprintf(strchr(b, '\0'), ", \"size\":\"%ld\"", m->parts_blksz );
 	}
 
 	if (m->sum[0] == 'L') {
-		sprintf(strchr(b, '\0'), ", 'fileOp' : { 'link':'%s' }", m->link);
+		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"link\":\"%s\" }", m->link);
 	} else if (m->sum[0] == 'R') {
-		sprintf(strchr(b, '\0'), ", 'fileOp' : { 'remove':'' }" );
+		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"remove\":\"\" }" );
         }
 
 	if (m->rename[0])
-		sprintf(strchr(b, '\0'), ", 'fileOp' : { 'rename':'%s' }", m->rename);
+		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"rename\":\"%s\" }", m->rename);
 
 	for (struct sr_header_s * h = m->user_headers; h; h = h->next) 
         {
-		sprintf(strchr(b, '\0'), ", '%s':'%s'", h->key, h->value);
+		sprintf(strchr(b, '\0'), ", \"%s\":\"%s\"", h->key, h->value);
         }
         sprintf(strchr(b, '\0'), "}" );
       
