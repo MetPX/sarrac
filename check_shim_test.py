@@ -67,7 +67,7 @@ with open(sys.argv[1], 'r') as log:
             test_actual_count = 0
             test_actual_posts = {}
 
-        if line[3] == 'published:':
+        if line[2] == "[INFO]" and line[3] == 'published:':
             print(i)
             # 2022-12-15 09:54:30,677 [INFO] published: 20221215145430.676464601 sftp://peter@localhost /home/peter/Sarracenia/metpx-sr3c/hoho topic=v03.post.home.peter.Sarracenia.metpx-sr3c sum=n,ac837d7b87a8ca12f0343401d66d081d source=tfeed to_clusters=localhost from_cluster=localhost mtime=20221215145430.67089267 atime=20221215145430.658892516 mode=0664 parts=1,5,1,0,0 toto=pig
 
