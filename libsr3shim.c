@@ -243,14 +243,16 @@ void srshim_initialize(const char *progname)
 		return;
 	init_in_progress=1;
 	sr_shimdebug_msg( "FIXME srshim_initialize %s starting..\n", progname);
-	if (sr_c)
+	if (sr_c) {
+	        sr_shimdebug_msg( "FIXME srshim_initialize %s already good.\n", progname);
 		return;
-
+        }
 	setstr = getenv("SR_POST_CONFIG");
 
-	if (setstr == NULL)
+	if (setstr == NULL) {
+	        sr_shimdebug_msg( "FIXME srshim_initialize %s null config\n", progname);
 		return;
-
+        }
 	
 	//sr_shimdebug_msg( "FIXME srshim_initialize 2 %s setstr=%p\n", progname, setstr);
 
@@ -284,6 +286,7 @@ void srshim_initialize(const char *progname)
 	if (!finalize_good) {
 		shim_disabled = 1;	// turn off the library so stuff works without it.
 		errno = 0;
+	        sr_shimdebug_msg( "FIXME srshim_initialize %s disabled, unable to finalize configuration.\n", progname);
 		return;
 	}
 
@@ -294,6 +297,7 @@ void srshim_initialize(const char *progname)
 
 	init_in_progress=0;
 	errno = 0;
+	sr_shimdebug_msg( "FIXME srshim_initialize %s setup completed.\n", progname);
 }
 
 int srshim_connect()
@@ -329,20 +333,20 @@ char *stubborn_realpath( const char *path, char *resolved_path )
 
 	if (res) return(res);
 
-	//sr_shimdebug_msg( "sr_%s stubborn_realpath 2: failed initial realpath of %s\n", sr_cfg.progname, path);
+	sr_shimdebug_msg( "sr_%s stubborn_realpath 2: failed initial realpath of %s\n", sr_cfg.progname, path);
 
         strcpy(path_buffer,path);
         last_slash=rindex(path_buffer,'/');
 	*last_slash='\0';
 	res = realpath(path_buffer, resolved_path);
 
-	//sr_shimdebug_msg("sr_%s stubborn_realpath 3: tried realpath: %s result: %s\n", sr_cfg.progname, path_buffer, res);
+	sr_shimdebug_msg("sr_%s stubborn_realpath 3: tried realpath: %s result: %s\n", sr_cfg.progname, path_buffer, res);
         if (!res) {
 		strcpy( resolved_path, path );
         } else { 
                 *last_slash='/';
 	        strcat( resolved_path, last_slash );
-	        //sr_shimdebug_msg("sr_%s stubborn_realpath 4: after parent result: %s\n", sr_cfg.progname, resolved_path);
+	        sr_shimdebug_msg("sr_%s stubborn_realpath 4: after parent result: %s\n", sr_cfg.progname, resolved_path);
         }
         return(resolved_path);
 }
@@ -359,18 +363,18 @@ void srshim_realpost(const char *path)
 	char fn[PATH_MAX + 1];
 	char fnreal[PATH_MAX + 1];
 
-	//sr_shimdebug_msg( "FIXME realpost 1 PATH %s src=%p\n", path, sr_c);
+	sr_shimdebug_msg( "srshim_realpost 1 PATH %s src=%p\n", path, sr_c);
 
 	if (!path || !sr_c)
 		return;
 
-	//sr_shimdebug_msg( "FIXME realpost 2 PATH %s\n", path);
+	sr_shimdebug_msg( "srshim_realpost 2 PATH %s\n", path);
 
 	statres = lstat(path, &sb);
 
 	if (!statres && !S_ISREG(sb.st_mode) && !S_ISLNK(sb.st_mode)) {
-	        //sr_shimdebug_msg( "FIXME realpost 2.2 returning statres=%d, mode=%o , S_IFREG=%o, S_IFLNK=%o \n", 
-                //    statres, sb.st_mode, S_IFREG, S_IFLNK );
+	        sr_shimdebug_msg( "srshim_realpost 2.2 returning statres=%d, mode=%o , S_IFREG=%o, S_IFLNK=%o \n", 
+                    statres, sb.st_mode, S_IFREG, S_IFLNK );
 		return;
         }
 	strcpy(fn, path);
@@ -390,25 +394,29 @@ void srshim_realpost(const char *path)
 
 	if ((mask && !(mask->accepting)) || (!mask && !(sr_cfg.accept_unmatched))) {	//reject.
 		sr_shimdebug_msg(
-			"mask: %p, mask->accepting=%d accept_unmatched=%d\n",
+			"srshim_realpost mask: %p, mask->accepting=%d accept_unmatched=%d\n",
 			mask, mask->accepting, sr_cfg.accept_unmatched);
 		if (sr_cfg.log_reject)
 			sr_log_msg(LOG_INFO, "sr_%s rejecting pattern: %s\n", sr_cfg.progname, fn);
 		return;
 	}
-	sr_shimdebug_msg( "accepted... %s now\n", fn);
+	sr_shimdebug_msg( "srshim_realpost accepted... %s now\n", fn);
 
-	if (should_not_post(fn))
+	if (should_not_post(fn)) {
+	        sr_shimdebug_msg( "srshim_realpost rejecting should_not_post... %s\n", fn);
 		return;
-
-	if (sr_c->cfg->shim_defer_posting_to_exit)
+        }
+	if (sr_c->cfg->shim_defer_posting_to_exit) {
+	        sr_shimdebug_msg( "srshim_realpost post deferred to exist ... %s\n", fn);
 		return;
+        }
 
-	if (!srshim_connect())
+	if (!srshim_connect()) {
+	        sr_shimdebug_msg( "srshim_realpost post unable to connect... %s\n", fn);
 		return;
-
+        }
 	if (statres) {
-		sr_shimdebug_msg( "should be really posting %s now sr_c=%p\n", fn, sr_c);
+		sr_shimdebug_msg( "srshim_realpost should be really posting %s now sr_c=%p\n", fn, sr_c);
 		sr_post(sr_c, fn, NULL);
 		return;
 	}
@@ -419,6 +427,7 @@ void srshim_realpost(const char *path)
 		strcpy(fn, path);
 	}
 
+	sr_shimdebug_msg( "srshim_realpost 9 PATH %s\n", fn);
 	sr_post(sr_c, fn, &sb);
 
 }
@@ -958,7 +967,7 @@ void exit_cleanup_posts()
 
 	if (fddir) {
 		while ((fdde = readdir(fddir))) {
-                     	//sr_shimdebug_msg( "exit_cleanup_posts, readdir fdde->d_name=%s\n", fdde->d_name);
+                     	sr_shimdebug_msg( "exit_cleanup_posts, readdir fdde->d_name=%s\n", fdde->d_name);
 			if (fdde->d_name[0] == '.')
 				continue;
 
@@ -981,8 +990,8 @@ void exit_cleanup_posts()
 
 			found = 0;
 			for (int i = 0; (i < last_pfo); i++) {
-                     		//sr_shimdebug_msg( "exit_cleanup_posts, last_pfo i=%d open_file=%s\n", 
-				//		 i, parent_files_open[i]);
+                     		sr_shimdebug_msg( "exit_cleanup_posts, last_pfo i=%d open_file=%s\n", 
+						 i, parent_files_open[i]);
 				if (!strcmp(real_path, parent_files_open[i])) {
 					found = 1;
 					break;
@@ -994,14 +1003,14 @@ void exit_cleanup_posts()
 
 			fsync(fd);	// ensure data is flushed to disk before post occurs.
 
-			sr_shimdebug_msg( " exit posting %s\n", real_path);
+			sr_shimdebug_msg( "exit_cleanup_posts posting %s\n", real_path);
 
 			shimpost(real_path, 0);
 		}
 		closedir(fddir);
 	}
 
-	sr_shimdebug_msg( " exit posting... deferred posting start.\n" );
+	sr_shimdebug_msg( "exit_cleanup_posting... deferred posting start.\n" );
 
 	/* execute deferred/remembered posts, FIXME: embarrasing n**2 algo, should do better later */
 	for (int i = 0; i < remembered_count; i++) {
@@ -1015,24 +1024,25 @@ void exit_cleanup_posts()
 		if (!srshim_connect())
 			continue;
 
+                sr_shimdebug_msg( "exit_cleanup_post, looking at: %s\n", (*remembered_filenames)[i].name );
 		statres = lstat((*remembered_filenames)[i].name, &sb);
 
 		if (statres) {
 			sr_post(sr_c, (*remembered_filenames)[i].name, NULL);
 		} else {
 			if (S_ISLNK(sb.st_mode)) {
-				//sr_shimdebug_msg(  " exit reading link: %s\n", (*remembered_filenames)[i].name );
+				sr_shimdebug_msg(  "exit_cleanup_post reading link: %s\n", (*remembered_filenames)[i].name );
 				statres =
 				    readlink((*remembered_filenames)[i].name, real_path, PATH_MAX);
 				if (statres) {
 					real_path[statres] = '\0';
 					sr_post(sr_c, real_path, &sb);
 				}
-			}
+			} 
 			sr_post(sr_c, (*remembered_filenames)[i].name, &sb);
 		}
 	}
-	sr_shimdebug_msg(  "exit closing context sr_c=%p\n", sr_c );
+	sr_shimdebug_msg(  "exit_cleanup_posting closing context sr_c=%p\n", sr_c );
 	if (sr_c)
 		sr_context_close(sr_c);
 
