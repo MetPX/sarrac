@@ -24,7 +24,8 @@ jobs:
       fail-fast: false
       matrix:
        which_test: [ shim ]
-       osver: [ "ubuntu-18.04", "ubuntu-20.04", "ubuntu-22.04" ]
+       #osver: [ "ubuntu-18.04", "ubuntu-20.04", "ubuntu-22.04" ]
+       osver: [ "ubuntu-22.04" ]
 
     runs-on: ${{ matrix.osver }}
   
@@ -47,10 +48,12 @@ jobs:
       - name: Setup ${{ matrix.which_test }} build binaries.
         run: |
           echo hoho
-          make trust_but_verify
-          make test_shim
+          make 
 
-      - name: Setup ${{ matrix.which_test }} run self-test
+      - name: Setup ${{ matrix.which_test }} run unit tests
         run: |
           make trust_but_verify
+
+      - name: Setup ${{ matrix.which_test }} run shim tests
+        run: |
           make test_shim

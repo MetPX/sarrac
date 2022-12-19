@@ -85,7 +85,7 @@ Sample usage::
    export SR_POST_CONFIG="mypost"
    export LD_PRELOAD=`pwd`/libsr3shim.so.1.0.0
    #export SR_POST_READS=true
-   #export SR_SHIMDEBUG=true 
+   #export SR_SHIMDEBUG=99
 
    cp libsr3shim.c ~/test/hoho_my_darling.txt
    ln -s hoho haha
@@ -147,9 +147,19 @@ process checks whether the parent process has the same file open, and
 does not post if that is the case, sinc the parent will take care
 of it eventually.
 
+If the SR_SHIMDEBUG variable is set to an integer value, progressively
+more verbose messaging will occur, the higher the integer. messages 
+from this setting look like so::
 
- 
-If the SR_SHIMDEBUG variable is set, rather verbose messaging will occur.
+  SR_SHIMDEBUG 2 504576 0.0270023 fclose 0x7fd053a8d780 /home/peter/Sarracenia/metpx-sr3c/shim_test.log status=0
+
+fields present:
+
+  * 2 the level of the message.
+  * 504576 pid of the process doing the logging.
+  * 0.0270023 elapsed wallclock time of the process since it started (in seconds.)
+
+
 
 Source Code Documentation
 -------------------------

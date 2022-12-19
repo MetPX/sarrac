@@ -18,6 +18,7 @@ if [ ${ssh_works} -gt 0 ]; then
        cp ~/.ssh/id_flow ~/.ssh/id_rsa
     else
        cat >>~/.ssh/config <<EOT
+UserKnownHostsFile=/dev/null
 Host localhost
   IdentitiesOnly Yes
   StrictHostKeyChecking No
