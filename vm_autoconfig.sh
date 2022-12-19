@@ -44,11 +44,11 @@ EOF
 ADMIN_PASSWORD=$(openssl rand -hex 6)
 OTHER_PASSWORD=$(openssl rand -hex 6)
 cat > ~/.config/sr3/credentials.conf << EOF
-amqp://bunnymaster:${ADMIN_PASSWORD}@localhost/
-amqp://tsource:${OTHER_PASSWORD}@localhost/
-amqp://tsub:${OTHER_PASSWORD}@localhost/
-amqp://tfeed:${OTHER_PASSWORD}@localhost/
-amqp://anonymous:${OTHER_PASSWORD}@localhost/
+amqp://bunnymaster:${ADMIN_PASSWORD}@localhost
+amqp://tsource:${OTHER_PASSWORD}@localhost
+amqp://tsub:${OTHER_PASSWORD}@localhost
+amqp://tfeed:${OTHER_PASSWORD}@localhost
+amqp://anonymous:${OTHER_PASSWORD}@localhost
 amqps://anonymous:anonymous@dd.weather.gc.ca
 amqps://anonymous:anonymous@dd1.weather.gc.ca
 amqps://anonymous:anonymous@dd2.weather.gc.ca
@@ -58,8 +58,8 @@ EOF
 
 cat > ~/.config/sr3/admin.conf << EOF
 cluster localhost
-admin amqp://bunnymaster@localhost/
-feeder amqp://tfeed@localhost/
+admin amqp://bunnymaster@localhost
+feeder amqp://tfeed@localhost
 declare source tsource
 declare subscriber tsub
 declare subscriber anonymous
@@ -101,7 +101,7 @@ sudo wget http://localhost:15672/cli/rabbitmqadmin
 sudo chmod 755 rabbitmqadmin
 popd 
 hash -r 
-which rabbitmqadmin
+echo "rabbitmqadmin is: `which rabbitmqadmin`"
 
 # Configure users
 echo "about to sr3 declare"
