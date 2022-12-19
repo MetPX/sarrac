@@ -78,6 +78,7 @@ void setup_exit()
 	if (!exit_cleanup_posts_setup) {
 		atexit(exit_cleanup_posts);
 		exit_cleanup_posts_setup = 1;
+                sr_shimdebug_msg( "setup_exit done.\n" );
 	}
 }
 
@@ -1229,6 +1230,7 @@ int close(int fd)
 	char *real_return;
 	int status;
 
+	sr_shimdebug_msg(  " close fd=%d!\n", fd );
 	if (!close_init_done) {
 		setup_exit();
 		close_fn_ptr = (close_fn) dlsym(RTLD_NEXT, "close");
@@ -1236,19 +1238,21 @@ int close(int fd)
 		if (getenv("SR_POST_READS"))
 			srshim_initialize("shim");
 	}
-	if (shim_disabled)
+	if (shim_disabled) {
+                sr_shimdebug_msg(  " close fd=%d shim_disabled, passing to built-in.\n", fd );
 		return close_fn_ptr(fd);
-
+        }
 	fdstat = fcntl(fd, F_GETFL);
 
 	if (fdstat == -1) {
-		//sr_shimdebug_msg(  " close NO POST not valid fd !\n" );
+		sr_shimdebug_msg(  " close NO POST not valid fd !\n" );
 		errno = 0;
 		return close_fn_ptr(fd);
 	}
 
 	if ((fdstat & O_ACCMODE) == O_RDONLY) {
 		errno = 0;
+                sr_shimdebug_msg(  " close fd=%d read-only, so no post, passing to built-in.\n", fd );
 		return close_fn_ptr(fd);
 	}
 	snprintf(fdpath, 32, "/proc/self/fd/%d", fd);
@@ -1259,13 +1263,15 @@ int close(int fd)
 
 	errno = 0;
 	status = close_fn_ptr(fd);
-	if (status == -1)
+	if (status == -1) {
+                sr_shimdebug_msg(  " close fd=%d - %s, failed, returning without post.\n", fd, real_path );
 		return status;
-
+        }
 	clerror(status);
-	if (!real_return)
+	if (!real_return) {
+                sr_shimdebug_msg(  " close fd=%d - %s real_returning... no post.\n", fd, real_path );
 		return status;
-
+        }
 	sr_shimdebug_msg( "close %s fd=%d\n", real_path, fd);
 
 	if (!strncmp(real_path, "/dev/", 5)) {
