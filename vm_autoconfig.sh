@@ -65,7 +65,7 @@ declare subscriber tsub
 declare subscriber anonymous
 EOF
 
-echo
+echo "pwd is: `pwd`"
 
 check_wsl=$(ps --no-headers -o comm 1)
 
@@ -95,11 +95,11 @@ else
 	sudo systemctl restart rabbitmq-server
 fi
 
-cd /usr/local/bin
+pushd /usr/local/bin
 sudo mv rabbitmqadmin rabbitmqadmin.1
 sudo wget http://localhost:15672/cli/rabbitmqadmin
 sudo chmod 755 rabbitmqadmin
-cd 
+popd 
 
 # Configure users
 sr3 --users declare
