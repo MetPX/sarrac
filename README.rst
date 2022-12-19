@@ -115,7 +115,13 @@ perhaps we will see what the best values are and eliminate the options::
 When shim_defer_posting_to_exit is set (default: False), instead of posting 
 files during process execution, (potentially posting the same file 
 multiple times.) the shim library will accumulate file names, and only 
-post when the process exits. An opposite approach::
+post when the process exits. 
+
+This option does not work with some built-in executables such as cp
+and ln, since they seem to use _exit() system call which does not call
+any programmed exit processing.
+
+An opposite approach::
 
    shim_post_minterval
 
