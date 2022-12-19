@@ -29,9 +29,9 @@ for PKG in amqp appdirs dateparser watchdog netifaces humanize jsonpickle paho-m
 done
 
 # Setup basic configs
-mkdir -p ~/.config/sarra ~/.config/sr3
+mkdir -p ~/.config/sr3
 
-cat > ~/.config/sarra/default.conf << EOF
+cat > ~/.config/sr3/default.conf << EOF
 expire 7h
 declare env FLOWBROKER=localhost
 declare env SFTPUSER=${USER}
@@ -40,12 +40,10 @@ declare env MQP=amqp
 declare env several=3
 logEvents after_accept,after_work,on_housekeeping,post,after_post
 EOF
-cp ~/.config/sarra/default.conf ~/.config/sr3
-
 
 ADMIN_PASSWORD=$(openssl rand -hex 6)
 OTHER_PASSWORD=$(openssl rand -hex 6)
-cat > ~/.config/sarra/credentials.conf << EOF
+cat > ~/.config/sr3/credentials.conf << EOF
 amqp://bunnymaster:${ADMIN_PASSWORD}@localhost/
 amqp://tsource:${OTHER_PASSWORD}@localhost/
 amqp://tsub:${OTHER_PASSWORD}@localhost/
@@ -57,9 +55,8 @@ amqps://anonymous:anonymous@dd2.weather.gc.ca
 amqps://anonymous:anonymous@hpfx.collab.science.gc.ca
 ftp://anonymous:anonymous@localhost:2121/
 EOF
-cp ~/.config/sarra/credentials.conf ~/.config/sr3
 
-cat > ~/.config/sarra/admin.conf << EOF
+cat > ~/.config/sr3/admin.conf << EOF
 cluster localhost
 admin amqp://bunnymaster@localhost/
 feeder amqp://tfeed@localhost/
@@ -67,7 +64,6 @@ declare source tsource
 declare subscriber tsub
 declare subscriber anonymous
 EOF
-cp ~/.config/sarra/admin.conf ~/.config/sr3
 
 echo
 
@@ -105,10 +101,8 @@ sudo wget http://localhost:15672/cli/rabbitmqadmin
 sudo chmod 755 rabbitmqadmin
 cd 
 
-echo
-
 # Configure users
 sr3 --users declare
-echo "dir: +${PWD}+"
-git clone https://github.com/MetPX/sr_insects
 
+mkdir -p ~/.config/sr3/cpost
+cp local_post.conf ~/.config/sr3/cpost
