@@ -100,9 +100,13 @@ sudo mv rabbitmqadmin rabbitmqadmin.1
 sudo wget http://localhost:15672/cli/rabbitmqadmin
 sudo chmod 755 rabbitmqadmin
 popd 
+hash -r 
+which rabbitmqadmin
 
 # Configure users
+echo "about to sr3 declare"
 sr3 --debug --users declare
+echo "done sr3 declare"
 
 mkdir -p ~/.config/sr3/cpost
 cp local_post.conf ~/.config/sr3/cpost
