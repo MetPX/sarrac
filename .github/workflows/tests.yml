@@ -1,4 +1,4 @@
-name: sr_insects Flow Tests.
+name: self tests
 
 on:
   pull_request:

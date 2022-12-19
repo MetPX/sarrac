@@ -10,9 +10,10 @@ sudo add-apt-repository -y ppa:ssc-hpc-chp-spc/metpx-daily
 sudo apt-get update
 sudo apt -y install python3-setuptools
 sudo apt -y install erlang-nox erlang-diameter erlang-eldap findutils git librabbitmq4 net-tools openssh-client openssh-server python3-pip rabbitmq-server xattr wget 
+sudo apt -y install librabbitmq4 librabbitmq-dev
 
 pip3 install -U pip
-pip3 install -e .
+pip3 install metpx-sr3[amqp,mqtt,vip,ftppoll]
 pip3 install pyftpdlib paramiko net-tools
 
 # The dependencies that are installed using apt are only available to system default Python versions (e.g. Python 3.8 on Ubuntu 20.04)
