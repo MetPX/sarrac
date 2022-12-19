@@ -102,7 +102,7 @@ sudo chmod 755 rabbitmqadmin
 popd 
 
 # Configure users
-sr3 --users declare
+sr3 --debug --users declare
 
 mkdir -p ~/.config/sr3/cpost
 cp local_post.conf ~/.config/sr3/cpost
