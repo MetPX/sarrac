@@ -44,8 +44,13 @@ jobs:
         if: ${{ github.event.inputs.debug_enabled }}
         #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
 
-      - name: Setup ${{ matrix.which_test }} test.
+      - name: Setup ${{ matrix.which_test }} build binaries.
         run: |
           echo hoho
+          make trust_but_verify
+          make test_shim
+
+      - name: Setup ${{ matrix.which_test }} run self-test
+        run: |
           make trust_but_verify
           make test_shim

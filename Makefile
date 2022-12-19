@@ -112,10 +112,10 @@ clean:
 	rm -rf build sr_version.h metpx-sr3c_rhel7.spec
 
 trust_but_verify: all
-	./sr_configtest test_post.conf 
-	./sr_utiltest 
-	./sr_cachetest
-	valgrind --show-reachable=yes --track-origins=yes ./sr3_cpost -c local_post.conf uthash.h
+	export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}; ./sr_configtest test_post.conf 
+	export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}; ./sr_utiltest 
+	export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}; ./sr_cachetest
+	export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}; valgrind --show-reachable=yes --track-origins=yes ./sr3_cpost -c local_post.conf uthash.h
 
 test_shim: all
 	-./shim_test.sh >shim_test.log 2>&1
