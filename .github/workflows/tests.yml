@@ -36,8 +36,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          ./flow_autoconfig.sh
-          ./ssh_localhost.sh
+          ./vm_autoconfig.sh
+          ./vm_ssh_localhost.sh
          
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
