@@ -280,13 +280,16 @@ or it may be installed in the system locations (/usr/bin, etc...)
 Branches
 --------
 
+The main repository of sarrac is: https://github.com/MetPX/sarrac
+As of 2022/12, development is on v3 compatible version of sarrac.
+The customer switched to sr3, so there is no need to continue with v2.
 The existing git branches and their roles:
 
-* main ... v03 release branch, tracks v03 punctually.
-* v03 ... development branch.
-* v2_stable ... v2 release branch, tracks v2 punctually.
-* v2 ... v2 development branch.
-
+* v03 ... the default development branch, launchpad.net daily packages built from here.
+* main ... v03 release branch, tracks v03 punctually. launchpad.net stable packages built from here.
+* v2_stable ... v2 release branch, tracks v2 punctually. (legacy)
+* v2 ... v2 development branch. (legacy)
+* issueXXX ... branch developed to address a particular issue.
 
 
 Release Process
