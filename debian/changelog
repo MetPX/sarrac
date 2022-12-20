@@ -1,4 +1,11 @@
-metpx-sr3c (3.22.12p1) UNRELEASED; urgency=medium
+metpx-sr3c (3.22.12p2) UNRELEASED; urgency=medium
+
+  * added CI/CD testing. 
+  * 
+
+ -- Peter Silva <peter@bsqt.homeip.net>  Mon, 19 Dec 2022 22:44:00 -0500
+
+metpx-sr3c (3.22.12p1) unstable; urgency=medium
 
   * backported overlooked patch from v2 for SSL errors on redhat 8
   * fix coredump on specification of unknown checksum algorithm
