@@ -277,6 +277,18 @@ To load sr3_cpost::
 or it may be installed in the system locations (/usr/bin, etc...)
 
 
+Branches
+--------
+
+The existing git branches and their roles:
+
+* main ... v03 release branch, tracks v03 punctually.
+* v03 ... development branch.
+* v2_stable ... v2 release branch, tracks v2 punctually.
+* v2 ... v2 development branch.
+
+
+
 Release Process
 ---------------
 
