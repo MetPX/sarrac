@@ -196,7 +196,8 @@ int should_not_post(const char *fn)
 			return (1);
 
 	/* if already seen, then return (either too soon, or OK!) */
-	for (int i = 0; i < remembered_count; i++)
+	for (int i = 0; i < remembered_count; i++) {
+                sr_shimdebug_msg( 5, "looking at remembered files %d\n", i );
 		if (!strcmp((*remembered_filenames)[i].name, fn)) {
 			interval = (ts.tv_sec + ts.tv_nsec / 1e9) -
 			    ((*remembered_filenames)[i].ts.tv_sec +
@@ -217,7 +218,7 @@ int should_not_post(const char *fn)
 				return (0);
 			}
 		}
-
+        }
 	/* lengthen list, if necessary */
 	if (remembered_count >= remembered_max) {
 		if (!remembered_filenames) {
@@ -455,7 +456,9 @@ int shimpost(const char *path, int status)
 	if (shim_disabled)
 		return (status);
 
+        // disable shim library during post operations (to avoid forever recursion.)
 	shim_disabled = 1;
+	sr_shimdebug_msg( 3, "shim disabled during post of %s\n", path );
 	if (!status) {
 		srshim_initialize("shim");
 
@@ -476,6 +479,7 @@ int shimpost(const char *path, int status)
 		}
 	}
 	shim_disabled = 0;
+	sr_shimdebug_msg( 3, "shim re-enabled afer post of %s\n", path );
 
 	clerror(status);
 	return (status);
@@ -826,20 +830,20 @@ int dup2(int oldfd, int newfd)
 	errno = 0;
 
 	if (shim_disabled || (oldfd == newfd)) {
-		//sr_shimdebug_msg( 1, " dup2 NO POST oldfd = newfd \n" );
+		sr_shimdebug_msg( 4, " dup2 NO POST oldfd = newfd \n" );
 		return dup2_fn_ptr(oldfd, newfd);
 	}
 
 	fdstat = fcntl(newfd, F_GETFL);
 
 	if (fdstat == -1) {
-		//sr_shimdebug_msg( 1, " dup2 NO POST not valid fd !\n" );
+		sr_shimdebug_msg( 4, " dup2 NO POST not valid fd !\n" );
 		errno = 0;
 		return dup2_fn_ptr(oldfd, newfd);
 	}
 
 	if ((fdstat & O_ACCMODE) == O_RDONLY) {
-		//sr_shimdebug_msg( 1, " dup2 NO POST read mode !\n" );
+		sr_shimdebug_msg( 4, " dup2 NO POST read mode !\n" );
 		errno = 0;
 		return dup2_fn_ptr(oldfd, newfd);
 	}
@@ -848,13 +852,13 @@ int dup2(int oldfd, int newfd)
 	real_return = realpath(fdpath, real_path);
 
 	if (!real_return) {
-		//sr_shimdebug_msg( 1, " dup2 NO POST no path from fd !\n" );
+		sr_shimdebug_msg( 4, " dup2 NO POST no path from fd !\n" );
 		errno = 0;
 		return dup2_fn_ptr(oldfd, newfd);
 	}
 
 	if (!strncmp(real_path, "/dev/", 5) || !strncmp(real_path, "/proc/", 6)) {
-		//sr_shimdebug_msg( 1, " dup2 NO POST path device or proc !\n" );
+		sr_shimdebug_msg( 4, " dup2 NO POST path device or proc !\n" );
 		errno = 0;
 		return dup2_fn_ptr(oldfd, newfd);
 	}
@@ -901,7 +905,7 @@ int dup3(int oldfd, int newfd, int flags)
 	}
 
 	if (shim_disabled || (oldfd == newfd)) {
-		//sr_shimdebug_msg( 1, " dup3 NO POST oldfd = newfd \n" );
+		sr_shimdebug_msg( 4, " dup3 NO POST oldfd = newfd \n" );
 		errno = 0;
 		return dup3_fn_ptr(oldfd, newfd, flags);
 	}
@@ -909,13 +913,13 @@ int dup3(int oldfd, int newfd, int flags)
 	fdstat = fcntl(newfd, F_GETFL);
 
 	if (fdstat == -1) {
-		//sr_shimdebug_msg( 1, " dup3 NO POST not valid fd !\n" );
+		sr_shimdebug_msg( 4, " dup3 NO POST not valid fd !\n" );
 		errno = 0;
 		return dup3_fn_ptr(oldfd, newfd, flags);
 	}
 
 	if ((fdstat & O_ACCMODE) == O_RDONLY) {
-		//sr_shimdebug_msg( 1, " dup3 NO POST read mode !\n" );
+		sr_shimdebug_msg( 4, " dup3 NO POST read mode !\n" );
 		errno = 0;
 		return dup3_fn_ptr(oldfd, newfd, flags);
 	}
@@ -924,13 +928,13 @@ int dup3(int oldfd, int newfd, int flags)
 	real_return = realpath(fdpath, real_path);
 
 	if (!real_return) {
-		//sr_shimdebug_msg( 1, " dup3 NO POST no path from fd !\n" );
+		sr_shimdebug_msg( 4, " dup3 NO POST no path from fd !\n" );
 		errno = 0;
 		return dup3_fn_ptr(oldfd, newfd, flags);
 	}
 
 	if (!strncmp(real_path, "/dev/", 5) || !strncmp(real_path, "/proc/", 6)) {
-		//sr_shimdebug_msg( 1, " dup3 NO POST path device or proc !\n" );
+		sr_shimdebug_msg( 4, " dup3 NO POST path device or proc !\n" );
 		errno = 0;
 		return dup3_fn_ptr(oldfd, newfd, flags);
 	}
@@ -976,6 +980,7 @@ void exit_cleanup_posts()
 
         exit_cleanup_posts_ran = 1;
 
+	sr_shimdebug_msg( 4, "exit_cleanup_posts, scan /proc/self/fd\n");
 	// In the current process, find files which are not opened by the parent
 	// that need posting.
 	fddir = opendir("/proc/self/fd");
@@ -1030,6 +1035,7 @@ void exit_cleanup_posts()
 	/* execute deferred/remembered posts, FIXME: embarrasing n**2 algo, should do better later */
 	for (int i = 0; i < remembered_count; i++) {
 		// if a file was already posted and hasn't been written since.
+                sr_shimdebug_msg( 8, "exit_cleanup_post, i=%d\n", i );
 		if (!(sr_cfg.shim_defer_posting_to_exit)
 		    && (*remembered_filenames)[i].clean)
 			continue;
