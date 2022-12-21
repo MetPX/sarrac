@@ -78,6 +78,9 @@ with open(sys.argv[1], 'r') as log:
                 sum_algo = line[12].replace('"', '').replace(':', '').replace(
                     "'", '').replace(',', '')
 
+            if sum_algo[0:4] == 'link':
+                sum_algo='link'
+
             #sum_algo=line[8][4]
             if sum_algo in test_actual_posts:
                 test_actual_posts[sum_algo] += 1

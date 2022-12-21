@@ -875,7 +875,8 @@ int dup2(int oldfd, int newfd)
 	// because shimpost posts when:    if (!status)
 	// we use a tmpstatus and call shimpost with status=0
 
-	shimpost(real_path, 0);
+        //pas 2022/12/21 commenting this out... dup is like open... not close...
+	//shimpost(real_path, 0);
 
 	clerror(status);
 
