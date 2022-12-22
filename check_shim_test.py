@@ -91,11 +91,12 @@ with open(sys.argv[1], 'r') as log:
 
     print(f"posts: {post_count}")
 
+    tests -= 1
     print(f"RESULT: summary: good: {good}, bad {bad}, total {tests}")
 
     if bad:
         sys.exit(bad)
-    if good < tests:
+    if good < (tests):
         sys.exit(tests - good)
 
     sys.exit(0)

@@ -49,7 +49,7 @@ mv haha hihi
 
 echo "#test 1 rename hardlink to a symlink"
 ln hihi hoohoo
-echo "#test 1 sha512 moving a file. "
+echo "#test 1 rename moving a file. "
 mv ~/test/hoho_my_darling.txt ~/test/hoho2.log
 echo "#test 1 remove removing a file. "
 rm hihi
