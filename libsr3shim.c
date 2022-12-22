@@ -310,10 +310,9 @@ void srshim_initialize(const char *progname)
 		setup_pfo();
 
 	sr_c = sr_context_init_config(&sr_cfg, 1);
-
 	init_in_progress=0;
 	errno = 0;
-	sr_shimdebug_msg( 3, "FIXME srshim_initialize %s setup completed.\n", progname);
+	sr_shimdebug_msg( 3, "FIXME srshim_initialize setup completed.\n" );
 }
 
 int srshim_connect()
@@ -323,7 +322,7 @@ int srshim_connect()
 		sr_c = sr_context_connect(sr_c);
 		if (sr_c)
 			sr_connected = 1;
-
+        	sr_post_init(sr_c);
 		errno = 0;
 	}
 	return (sr_connected);
