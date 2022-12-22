@@ -248,7 +248,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 
 	// FIXME BUG: pattern to match is supposed to be complete URL, not just path...
 
-	if (sr_c->cfg->realpath_filter) {
+	if (sr_c->cfg->realpathFilter) {
 
 		if (lstat(fn, &sb) < 0) {
 			strcpy(tmpname, fn);

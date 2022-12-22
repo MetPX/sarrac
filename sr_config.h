@@ -208,8 +208,8 @@ struct sr_config_s {
 	int post_rate_limit;	 /**< limit maximum number of posts per second */
 	char *queuename;	 /**< the name of the queue for a consumer.*/
 	char *randid;	      /**< a random id, typically used in queue name generation.*/
-	int realpath;		/**< flag to indicate whether realpath should be applied before posting.*/
-	int realpath_filter;	       /**< flag to say use the realpath for matching, but publish the original.*/
+	int realpathPost;		/**< flag to indicate whether realpath should be applied before posting.*/
+	int realpathFilter;	       /**< flag to say use the realpath for matching, but publish the original.*/
 	int recursive;		 /**< always set to on now, walk entire tree (FIXME, remove option?)*/
 	float sanity_log_dead;	       /**< how many seconds old should a log be before the component is presumed dead.*/
 	int shim_defer_posting_to_exit;		  /**< flag to have the shim library only post on process exit.*/

@@ -395,14 +395,14 @@ void srshim_realpost(const char *path)
         }
 	strcpy(fn, path);
 
-	if (sr_cfg.realpath || sr_cfg.realpath_filter) 
+	if (sr_cfg.realpathPost || sr_cfg.realpathFilter) 
 		stubborn_realpath(path,fnreal);
 
-	if (sr_cfg.realpath) {
+	if (sr_cfg.realpathPost) {
 		strcpy(fn, fnreal);
         }
 
-	if (sr_cfg.realpath_filter) {
+	if (sr_cfg.realpathFilter) {
 		mask = sr_isMatchingPattern(&sr_cfg, fnreal);
 	} else {
 		mask = sr_isMatchingPattern(&sr_cfg, fn);

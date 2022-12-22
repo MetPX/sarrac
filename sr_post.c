@@ -579,7 +579,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
     }
 
 		/* realpath stuff when it exists  sb */
-		if (sb && sr_c->cfg->realpath) {
+		if (sb && sr_c->cfg->realpathPost) {
 			sr_log_msg(LOG_DEBUG, "applying realpath 1 to relpath %s\n", pathspec);
 			if (!realpath_dir(linkstr, fn)) {
 				strcpy(fn, linkstr);
@@ -854,7 +854,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	strcpy(oldname, o);
 	strcpy(newname, n);
 
-	if (sr_c->cfg->realpath || sr_c->cfg->realpath_filter) {
+	if (sr_c->cfg->realpathPost || sr_c->cfg->realpathFilter) {
 		strcpy(tmpname, o);
 		s = rindex(tmpname, '/');
 		if (s) {
@@ -872,7 +872,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 		sr_log_msg(LOG_DEBUG, "applying realpath to new: %s -> %s\n", n, newreal);
 	}
 
-	if (sr_c->cfg->realpath) {
+	if (sr_c->cfg->realpathPost) {
 		strcpy(oldname, oldreal);
 		strcpy(newname, newreal);
 	}
@@ -903,7 +903,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 		first_user_header.key = strdup("newname");
 		first_user_header.value = strdup(newname);
 
-		if (sr_c->cfg->realpath_filter) {
+		if (sr_c->cfg->realpathFilter) {
 			mask = sr_isMatchingPattern(sr_c->cfg, oldreal);
 		} else {
 			mask = sr_isMatchingPattern(sr_c->cfg, oldname);
@@ -928,7 +928,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	first_user_header.key = strdup("oldname");
 	first_user_header.value = strdup(oldname);
 
-	if (sr_c->cfg->realpath_filter) {
+	if (sr_c->cfg->realpathFilter) {
 		mask = sr_isMatchingPattern(sr_c->cfg, newreal);
 	} else {
 		mask = sr_isMatchingPattern(sr_c->cfg, newname);
