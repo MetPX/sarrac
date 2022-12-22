@@ -31,7 +31,7 @@ echo "#test 1 sha512 c program run."
 truncate --size=2 ./hoho
 
 echo "#test 1 sha512 python program run"
-/usr/bin/python2.7 pyiotest
+/usr/bin/python3 pyiotest
 
 grep lovely pyiotest
 
