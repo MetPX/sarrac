@@ -530,12 +530,17 @@ char *sr_message_2log(struct sr_message_s *m)
 		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"remove\":\"\" }" );
         }
 
-	if (m->rename[0])
+	/*if (m->rename)
 		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"rename\":\"%s\" }", m->rename);
+         */
 
 	for (struct sr_header_s * h = m->user_headers; h; h = h->next) 
         {
-		sprintf(strchr(b, '\0'), ", \"%s\":\"%s\"", h->key, h->value);
+                if (!strcmp(h->key,"oldname")) {
+			sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"rename\":\"%s\" }", h->value);
+                } else {
+			sprintf(strchr(b, '\0'), ", \"%s\":\"%s\"", h->key, h->value);
+                }
         }
         sprintf(strchr(b, '\0'), "}" );
       
