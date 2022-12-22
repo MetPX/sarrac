@@ -44,10 +44,10 @@ touch hihi
 echo "#test 1 link symlink command"
 ln -s hoho haha
 
-echo "#test 1 link moving a symlink"
+echo "#test 1 rename moving a symlink"
 mv haha hihi
 
-echo "#test 1 hardlink hardlink to a symlink"
+echo "#test 1 rename hardlink to a symlink"
 ln hihi hoohoo
 echo "#test 1 sha512 moving a file. "
 mv ~/test/hoho_my_darling.txt ~/test/hoho2.log
@@ -66,9 +66,9 @@ mkdir dirone/dirtwo
 echo "#test 1 sha512 stdout redirection in a subsubdir"
 echo "filetwo" >>dirone/dirtwo/filetwo
 
-echo "#test 1 sha512 renaming subdirs should cause file rename events."
+echo "#test 2 rename renaming subdirs should cause file rename events."
 mv dirone dirthree
-echo "#test 1 sha512 removing a whole tree events."
+echo "#test 2 remove removing a whole tree events."
 rm -rf dirthree
 echo "#test 2 remove removing two files"
 rm hoho hoohoo
