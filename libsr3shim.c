@@ -608,6 +608,8 @@ static unlinkat_fn unlinkat_fn_ptr = unlinkat;
 int unlinkat(int dirfd, const char *path, int flags)
 {
 	int status;
+        int stat_failed;
+        struct stat sb;
 	char fdpath[PATH_MAX + 1];
 	char real_path[PATH_MAX + 1];
 	char *real_return;
@@ -618,14 +620,21 @@ int unlinkat(int dirfd, const char *path, int flags)
 		unlinkat_fn_ptr = (unlinkat_fn) dlsym(RTLD_NEXT, "unlinkat");
 		unlinkat_init_done = 1;
 	}
+       
+        stat_failed = fstatat( dirfd, path, &sb, 0);
+	sr_shimdebug_msg( 1, "unlinkat %s dirfd=%i stat returned: %d\n", path, dirfd, stat_failed);
 
 	status = unlinkat_fn_ptr(dirfd, path, flags);
 	if (shim_disabled)
-		return (status);
+		return status;
 	clerror(status);
 	if (status == -1)
 		return status;
 
+        if (!stat_failed && S_ISDIR(sb.st_mode)) {
+	 	sr_shimdebug_msg( 1, "unlinkat %s dirfd=%i skipping directory\n", path, dirfd);
+                return status;
+        }
 	if (dirfd == AT_FDCWD)
 		return (shimpost(path, status));
 
