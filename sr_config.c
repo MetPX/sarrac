@@ -805,12 +805,16 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 	} else if (!strcmp(option, "declare")) {
 		retval = sr_add_decl(sr_cfg, argument, argument2);
 
-	} else if (!strcmp(option, "declare_exchange")||!strcmp(option,"de")||!strcmp(option,"dx")) {
+	} else if (!strcmp(option, "declare_exchange")
+                || !strcmp(option,"de")||!strcmp(option,"dx")
+                || !strcmp(option,"exchangeDeclare")||!strcmp(option,"ed")
+                ) {
 		val = StringIsTrue(argument);
 		sr_cfg->declare_exchange = val & 2;
 		retval = (1 + (val & 1));
 
-	} else if (!strcmp(option, "declare_queue")||!strcmp(option,"dq")) {
+	} else if (!strcmp(option, "declare_queue")||!strcmp(option,"dq")
+	          ||!strcmp(option, "queueDeclare")||!strcmp(option,"qd")) {
 		val = StringIsTrue(argument);
 		sr_cfg->declare_queue = val & 2;
 		retval = (1 + (val & 1));
@@ -876,7 +880,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (2);
 
 	} else if (!strcmp(option, "exchange_suffix") || !strcmp(option, "exs")
-		   || !strcmp(option, "xs")) {
+		   || !strcmp(option,"exchangeSuffix") || !strcmp(option, "xs")) {
 		if (sr_cfg->exchange_suffix)
 			free(sr_cfg->exchange_suffix);
 		sr_cfg->exchange_suffix = argument;
@@ -917,13 +921,9 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (1 + (val & 1));
 
 	} else if (!strcmp(option, "logrotate") || !strcmp(option, "lr")
-	       || !strcmp(option, "logRotateCount")
+	           || !strcmp(option, "logRotateCount")
 		   || !strcmp(option, "logdays") || !strcmp(option, "ld")) {
-		if (!strcmp(option, "logdays") || !strcmp(option, "ld")) {
-			printf
-			    ("Option %s is deprecated: please use logrotate or lr instead\n",
-			     option);
-		}
+
 		sr_cfg->logrotate = atoi(argument);
 		retval = (2);
 
