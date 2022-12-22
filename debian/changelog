@@ -2,6 +2,7 @@ metpx-sr3c (3.22.12p2) UNRELEASED; urgency=medium
 
   * added CI/CD testing. 
   * print format now looks like v03 messages instead of v2
+  * fix for #94 (not sure if it covers all cases.)
 
  -- Peter Silva <peter@bsqt.homeip.net>  Mon, 19 Dec 2022 22:44:00 -0500
 

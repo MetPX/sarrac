@@ -1,18 +1,17 @@
 
-if [ ! -d ~/test ]; then
-  mkdir ~/test
-fi
-
-echo "ignore rm errors.. cleaning before start"
-rm hihi 
-rm hoho 
-rm haha 
-rm ~/test/hoho_my_darling.txt 
-rm hoohoo
-
-set -x
 
 if [ ! "${SR_POST_CONFIG}" ]; then
+   if [ ! -d ~/test ]; then
+     mkdir ~/test
+   fi
+
+   echo "ignore rm errors.. cleaning before start"
+   rm hihi 
+   rm hoho 
+   rm haha 
+   rm ~/test/hoho_my_darling.txt 
+   rm hoohoo
+
    export SR_POST_CONFIG=`pwd`/local_post.conf
    export LD_PRELOAD=`pwd`/libsr3shim.so.1.0.0
    export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
@@ -20,6 +19,7 @@ if [ ! "${SR_POST_CONFIG}" ]; then
    exec $0
 fi
 
+set -x
 
 which bash
 

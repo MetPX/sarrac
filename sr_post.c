@@ -881,13 +881,20 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 		sr_c->cfg->progname, __sarra_version__, oldname, newname);
 
 	if (lstat(newname, &sb)) {
-        es=strerror_r( errno, error_buf, EBUFLEN );
+        	es=strerror_r( errno, error_buf, EBUFLEN );
 		sr_log_msg(LOG_ERROR, "sr_%s rename cannot stat %s: %s\n", sr_c->cfg->progname, newname, es);
 		return;
 	}
 	if (S_ISDIR(sb.st_mode)) {
 		sr_post_rename_dir(sr_c, oldname, newname);
 	}
+       /*
+	if (S_ISLNK(sb.st_mode)) {
+		sr_log_msg(LOG_INFO, "sr_%s rename... new %s points to a link: %s\n", sr_c->cfg->progname, newname);
+        } else {
+		sr_log_msg(LOG_INFO, "sr_%s rename... new %s NOT link: %s\n", sr_c->cfg->progname, newname);
+        }
+        */
 
 	first_user_header.next = sr_c->cfg->user_headers;
 	sr_c->cfg->user_headers = &first_user_header;
