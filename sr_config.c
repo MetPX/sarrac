@@ -1376,7 +1376,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 		sprintf(c, "%x", rand() % 16);
 
 	sr_cfg->realpathPost = 0;
-	sr_cfg->realpathFilter = 0;
+	sr_cfg->realpathFilter = 1;
 	sr_cfg->recursive = 1;
 	sr_cfg->sanity_log_dead = 0.0;
 	sr_cfg->shim_defer_posting_to_exit = 0;
