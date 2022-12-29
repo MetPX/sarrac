@@ -1,8 +1,10 @@
 # Flow Test Autoconfig for redhat 8 / Centos 8
 #
 # Script not meant to be run on personal machines (may break some configs)
-# Intended use case is a fresh sys (tested on ubuntu18.04desktop)
-# which can easily be run in a virtualbox VM.
+# Intended use case is a fresh sys (tested on redhat/rockylinux/almalinux/fedora )
+# which can easily be run in a 
+
+# STATUS: not yet tested!
 
 # Install and configure dependencies
 sudo dnf upgrade --refresh -y

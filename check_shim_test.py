@@ -38,10 +38,14 @@ with open(sys.argv[1], 'r') as log:
             if test_algo:  # finish previous test...
 
                 if len(test_actual_posts) == 0:
-                    print(
-                        f"RESULT: BAD! missing expected {test_post_count} for {test_description}"
-                    )
-                    bad += 1
+
+                    if 'comment' in test_post_count:
+                        print ( f"RESULT: comment {test_description}" )
+                    else:
+                        print(
+                            f"RESULT: BAD! missing expected {test_post_count} for {test_description}"
+                        )
+                        bad += 1
                 for m in test_actual_posts:
                     if m in test_post_count and (test_post_count[m]
                                                  == test_actual_posts[m]):

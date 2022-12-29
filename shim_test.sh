@@ -23,6 +23,7 @@ set -x
 
 which bash
 
+echo "#test 0 comment shim test posting start"
 echo "FIXME: KNOWN ISSUE redirection close does not get posted!"
 echo "#test 1 sha512 capturing stdout"
 bash -c 'echo "hoho" >> ./hoho'
@@ -72,4 +73,5 @@ echo "#test 2 remove removing a whole tree events."
 rm -rf dirthree
 echo "#test 2 remove removing two files"
 rm hoho hoohoo
-echo "#test 0 last test to ensure previous completes"
+echo "#test 0 comment shim test posting end"
+echo "#test 0 comment test to ensure previous completes"
