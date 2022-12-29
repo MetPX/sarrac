@@ -118,9 +118,9 @@ trust_but_verify: all
 	export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}; valgrind --show-reachable=yes --track-origins=yes ./sr3_cpost -c local_post.conf uthash.h
 
 test_shim_post: all
-	-./shim_test.sh >shim_test.log 2>&1
-	#python3 ./check_shim_test.py shim_test.log exit_on_bad
-	python3 ./check_shim_test.py shim_test.log | grep RESULT
+	-./shim_post.sh >shim_post.log 2>&1
+	#python3 ./check_shim_post.py shim_post.log exit_on_bad
+	python3 ./check_shim_test.py shim_post.log | grep RESULT
 
 test_shim_copy:
 	-./shim_copy.sh >shim_copy.log 2>&1
