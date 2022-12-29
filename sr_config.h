@@ -163,14 +163,14 @@ struct sr_config_s {
 	mode_t chmod_log;	 /**< permission mode bits to use for the log files.*/
 	char *configname;	  /**< the configuration being run (name of the main configuration file.)*/
 	int debug;	     /**< turn on debug output.*/
-        int declare_exchange; //**< declare exchange before use */
-        int declare_queue; //**< declare queue before use */
+        int exchangeDeclare; //**< declare exchange before use */
+        int queueDeclare; //**< declare queue before use */
 	int delete;	      /**< flag to mark that files downloaded should be deleted (unimplemented)*/
 	char *directory;	 /**< the current directory setting (used when building masks)*/
 	int durable;	       /**< flag to pass to broker to set corresponding Queue property*/
 	sr_event_s events;    /**< set of events to produce/monitor (create/delete, etc...)*/
 	char *exchange;		 /**< the exchange to subscribe to.*/
-	char *exchange_suffix;		/**< something to append to the exchange.*/
+	char *exchangeSuffix;		/**< something to append to the exchange.*/
 	float expire;	      /**< a time (in seconds) passed to the broker as queue lifetime.*/
 	int follow_symlinks;	       /**< flag to indicate whether one should visit the destination of symlinks.*/
 	int force_polling;	     /**< flag to switch watch algorithms , either brute polling or Inotify*/
@@ -198,13 +198,13 @@ struct sr_config_s {
 	struct sr_path_s *paths;
 			     /**< the list of configurations or files given on the command line.*/
 	int pipe;	     /**< pipe mode, read file names from standard input*/
-	char *post_base_dir;	     /**< the local directory at the root of the url tree.*/
-	char *post_base_url;	     /**< the url that corresponds to the base directory.*/
+	char *post_baseDir;	     /**< the local directory at the root of the url tree.*/
+	char *post_baseUrl;	     /**< the url that corresponds to the base directory.*/
 	struct sr_broker_s *post_broker;
 				   /**< the broker to post to.*/
 	char *post_exchange;	     /**< the exchange to post to on the post broker.*/
 	int post_exchange_split;	   /**< the count of  a team of similar exchanges.*/
-	char *post_exchange_suffix;	    /**< appended to an exchange name.*/
+	char *post_exchangeSuffix;	    /**< appended to an exchange name.*/
 	int post_rate_limit;	 /**< limit maximum number of posts per second */
 	char *queuename;	 /**< the name of the queue for a consumer.*/
 	char *randid;	      /**< a random id, typically used in queue name generation.*/
@@ -225,8 +225,8 @@ struct sr_config_s {
 	char *to;	  /**< indicates destination cluster(s) for a post.*/
 	struct sr_topic_s *topics;
 			      /**< list of sub-topics to subscribe to.*/
-	char topic_prefix[AMQP_MAX_SS];		 /**< the topic prefix to subscribe to.*/
-	char post_topic_prefix[AMQP_MAX_SS];   /**< the topic prefix to post to.*/
+	char topicPrefix[AMQP_MAX_SS];		 /**< the topic prefix to subscribe to.*/
+	char post_topicPrefix[AMQP_MAX_SS];   /**< the topic prefix to post to.*/
 	struct sr_header_s *user_headers;
 				    /**< list of arbitrary user headers for extensions and upward compatibility.*/
         int  v2compatRenameDoublePost;

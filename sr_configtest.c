@@ -57,8 +57,8 @@ int main(int argc, char *const *argv)
 	printf("posting events= 0x%02x \n", sr_cfg.events);
 	printf("posting post_exchange=%s \n", sr_cfg.post_exchange);
 	printf("posting queue_name=%s \n", sr_cfg.queuename);
-	printf("posting post_base_url=%s \n", sr_cfg.post_base_url);
-	printf("posting post_base_dir=%s \n", sr_cfg.post_base_dir);
+	printf("posting post_baseUrl=%s \n", sr_cfg.post_baseUrl);
+	printf("posting post_baseDir=%s \n", sr_cfg.post_baseDir);
 	printf("posting sumalgo=%c \n", sr_cfg.sumalgo);
 
 	exit(0);

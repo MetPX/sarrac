@@ -119,7 +119,7 @@ int sr_consume_setup(struct sr_context *sr_c)
 	msg.user_headers = NULL;
 
 	//amqp_queue_declare_ok_t *r = 
-        if ( sr_c->cfg->declare_queue ) {
+        if ( sr_c->cfg->queueDeclare ) {
   		amqp_queue_declare(sr_c->cfg->broker->conn,
 			   1,
 			   amqp_cstring_bytes(sr_c->cfg->queuename),

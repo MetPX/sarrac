@@ -251,7 +251,7 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
 	struct sr_header_s *uh;
 
         // convert routing key, if necessary.
-        // FIXME: a generic conversion replacing topic_prefix by post_topic_prefix
+        // FIXME: a generic conversion replacing topicPrefix by post_topicPrefix
         //        would be much better, but this >99% answer is good enough for now.
         if ( m->routing_key[2] != '3' )
                 m->routing_key[2] = '3' ;
@@ -406,7 +406,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 	}
 	//  resume posting
 	while (1) {
-         if ( !strncmp("v02.", sr_c->cfg->post_topic_prefix, 4 ) ) {
+         if ( !strncmp("v02.", sr_c->cfg->post_topicPrefix, 4 ) ) {
     		strcpy(message_body, m->datestamp);
     		strcat(message_body, " ");
     		strcat(message_body, m->url);
@@ -622,11 +622,11 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	*c = '\0';
 	//strcpy( m->path, fn );
 
-	if (sr_c->cfg->post_base_dir) {
-		drfound = strstr(fn, sr_c->cfg->post_base_dir);
+	if (sr_c->cfg->post_baseDir) {
+		drfound = strstr(fn, sr_c->cfg->post_baseDir);
 
 		if (drfound) {
-			drfound += strlen(sr_c->cfg->post_base_dir);
+			drfound += strlen(sr_c->cfg->post_baseDir);
 			strcpy(m->path, drfound);
 		}
 	}
@@ -647,7 +647,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		free(d);
 	}
 	// use tmprk variable to fix  255 AMQP_SS_LEN limit
-	strcpy(tmprk, sr_c->cfg->post_topic_prefix);
+	strcpy(tmprk, sr_c->cfg->post_topicPrefix);
 	strcat(tmprk, ".");
 	strcat(tmprk, m->path + (*(m->path) == '/'));
 
@@ -657,7 +657,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	strcpy(m->routing_key, tmprk);
 
 	lasti = 0;
-	for (int i = strlen(sr_c->cfg->post_topic_prefix); i < strlen(m->routing_key); i++) {
+	for (int i = strlen(sr_c->cfg->post_topicPrefix); i < strlen(m->routing_key); i++) {
 		if (m->routing_key[i] == '/') {
 			if (lasti > 0) {
 				m->routing_key[lasti] = '.';
@@ -765,7 +765,7 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 	strcpy(m.to_clusters, sr_c->cfg->to);
 	strcpy(m.from_cluster, sr_c->cfg->post_broker->hostname);
 	strcpy(m.source, sr_c->cfg->source);
-	set_url(m.url, sr_c->cfg->post_base_url);
+	set_url(m.url, sr_c->cfg->post_baseUrl);
 	m.user_headers = sr_c->cfg->user_headers;
 
 	// report...
@@ -983,7 +983,7 @@ int sr_post_init(struct sr_context *sr_c)
 	char exchange[256];
 	amqp_rpc_reply_t reply;
 
-        if ( ! sr_c->cfg->declare_exchange ) {
+        if ( ! sr_c->cfg->exchangeDeclare ) {
             return(1);
         }
 	if (sr_c->cfg->post_broker->exchange_split) {

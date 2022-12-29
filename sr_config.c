@@ -128,7 +128,7 @@ void sr_add_topic(struct sr_config_s *sr_cfg, const char *sub)
 		return;
 	}
 	t->next = NULL;
-	strcpy(t->topic, sr_cfg->topic_prefix);
+	strcpy(t->topic, sr_cfg->topicPrefix);
 	strcat(t->topic, ".");
 	strcat(t->topic, sub);
 
@@ -810,13 +810,13 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
                 || !strcmp(option,"exchangeDeclare")||!strcmp(option,"ed")
                 ) {
 		val = StringIsTrue(argument);
-		sr_cfg->declare_exchange = val & 2;
+		sr_cfg->exchangeDeclare = val & 2;
 		retval = (1 + (val & 1));
 
 	} else if (!strcmp(option, "declare_queue")||!strcmp(option,"dq")
 	          ||!strcmp(option, "queueDeclare")||!strcmp(option,"qd")) {
 		val = StringIsTrue(argument);
-		sr_cfg->declare_queue = val & 2;
+		sr_cfg->queueDeclare = val & 2;
 		retval = (1 + (val & 1));
 
 	} else if (!strcmp(option, "delete")) {
@@ -837,24 +837,24 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		   || !strcmp(option, "post_documentRoot")
 		   || !strcmp(option, "dr")) {
 		sr_log_msg(LOG_WARNING,
-			"please replace (deprecated) [post_]document_root with base_dir: %s.\n",
+			"please replace (deprecated) [post_]document_root with post_baseDir: %s.\n",
 			argument);
-		if (sr_cfg->post_base_dir)
-			free(sr_cfg->post_base_dir);
-		sr_cfg->post_base_dir = argument;
+		if (sr_cfg->post_baseDir)
+			free(sr_cfg->post_baseDir);
+		sr_cfg->post_baseDir = argument;
 		argument = NULL;
 
-	} else if (!strcmp(option, "post_base_dir") || !strcmp(option, "pbd")
+	} else if (!strcmp(option, "post_baseDir") || !strcmp(option, "pbd")
 	       ||  !strcmp(option, "post_baseDir") ||  !strcmp(option, "post_basedir") ) {
-		if (sr_cfg->post_base_dir)
-			free(sr_cfg->post_base_dir);
-		sr_cfg->post_base_dir = argument;
+		if (sr_cfg->post_baseDir)
+			free(sr_cfg->post_baseDir);
+		sr_cfg->post_baseDir = argument;
 		argument = NULL;
 		retval = 2;
 
     } else if (!strcmp(option, "post_topic_prefix") || !strcmp(option, "ptp" )
            || !strcmp(option, "post_topicPrefix" )) {
-        strcpy( sr_cfg->post_topic_prefix, argument );
+        strcpy( sr_cfg->post_topicPrefix, argument );
         retval = 2;
 
 	} else if (!strcmp(option, "durable")) {
@@ -881,9 +881,9 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 
 	} else if (!strcmp(option, "exchange_suffix") || !strcmp(option, "exs")
 		   || !strcmp(option,"exchangeSuffix") || !strcmp(option, "xs")) {
-		if (sr_cfg->exchange_suffix)
-			free(sr_cfg->exchange_suffix);
-		sr_cfg->exchange_suffix = argument;
+		if (sr_cfg->exchangeSuffix)
+			free(sr_cfg->exchangeSuffix);
+		sr_cfg->exchangeSuffix = argument;
 		argument = NULL;
 		retval = (2);
 
@@ -1025,8 +1025,8 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		sr_cfg->post_exchange_split = atoi(argument);
 		retval = (2);
 
-	} else if (!strcmp(option, "post_exchange_suffix")) {
-		sr_cfg->post_exchange_suffix = argument;
+	} else if (!strcmp(option, "post_exchangeSuffix") || !strcmp(option, "post_exchangeSuffix") ) {
+		sr_cfg->post_exchangeSuffix = argument;
 		argument = NULL;
 		retval = (2);
 
@@ -1139,22 +1139,22 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 
 	} else if (!strcmp(option, "topic_prefix") || !strcmp(option, "tp")
 	       || !strcmp(option, "topicPrefix")) {
-		strcpy(sr_cfg->topic_prefix, argument);
+		strcpy(sr_cfg->topicPrefix, argument);
 		retval = (2);
 
 	} else if (!strcmp(option, "url") || !strcmp(option, "u")) {
 		sr_log_msg(LOG_WARNING,
-			"please replace (deprecated) url with post_base_url: %s.\n", argument);
-		if (sr_cfg->post_base_url)
-			free(sr_cfg->post_base_url);
-		sr_cfg->post_base_url = argument;
+			"please replace (deprecated) url with post_baseUrl: %s.\n", argument);
+		if (sr_cfg->post_baseUrl)
+			free(sr_cfg->post_baseUrl);
+		sr_cfg->post_baseUrl = argument;
 		argument = NULL;
 		retval = (2);
 	} else if (!strcmp(option, "post_base_url") || !strcmp(option, "pbu")
 	       || !strcmp(option, "post_baseUrl")  || !strcmp(option, "post_baseurl")) {
-		if (sr_cfg->post_base_url)
-			free(sr_cfg->post_base_url);
-		sr_cfg->post_base_url = argument;
+		if (sr_cfg->post_baseUrl)
+			free(sr_cfg->post_baseUrl);
+		sr_cfg->post_baseUrl = argument;
 		argument = NULL;
 		retval = (2);
 
@@ -1203,15 +1203,15 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 	if (sr_cfg->directory)
 		free(sr_cfg->directory);
 	sr_cfg->directory=NULL;
-	if (sr_cfg->post_base_dir)
-		free(sr_cfg->post_base_dir);
-	sr_cfg->post_base_dir=NULL;
+	if (sr_cfg->post_baseDir)
+		free(sr_cfg->post_baseDir);
+	sr_cfg->post_baseDir=NULL;
 	if (sr_cfg->exchange)
 		free(sr_cfg->exchange);
 	sr_cfg->exchange=NULL;
-	if (sr_cfg->exchange_suffix)
-		free(sr_cfg->exchange_suffix);
-	sr_cfg->exchange_suffix=NULL;
+	if (sr_cfg->exchangeSuffix)
+		free(sr_cfg->exchangeSuffix);
+	sr_cfg->exchangeSuffix=NULL;
 	if (sr_cfg->last_matched)
 		free(sr_cfg->last_matched);
 	sr_cfg->last_matched=NULL;
@@ -1227,9 +1227,9 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 	if (sr_cfg->post_exchange)
 		free(sr_cfg->post_exchange);
 	sr_cfg->post_exchange=NULL;
-	if (sr_cfg->post_exchange_suffix)
-		free(sr_cfg->post_exchange_suffix);
-	sr_cfg->post_exchange_suffix=NULL;
+	if (sr_cfg->post_exchangeSuffix)
+		free(sr_cfg->post_exchangeSuffix);
+	sr_cfg->post_exchangeSuffix=NULL;
 	if (sr_cfg->progname)
 		free(sr_cfg->progname);
 	sr_cfg->progname=NULL;
@@ -1242,9 +1242,9 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 	if (sr_cfg->to)
 		free(sr_cfg->to);
 	sr_cfg->to=NULL;
-	if (sr_cfg->post_base_url)
-		free(sr_cfg->post_base_url);
-	sr_cfg->post_base_url=NULL;
+	if (sr_cfg->post_baseUrl)
+		free(sr_cfg->post_baseUrl);
+	sr_cfg->post_baseUrl=NULL;
 
 	if (sr_cfg->broker)
 		broker_free(sr_cfg->broker);
@@ -1324,16 +1324,16 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->chmod_log = 0600;
 	sr_cfg->configname = NULL;
 	sr_cfg->debug = 0;
-        sr_cfg->declare_exchange = 1;
-        sr_cfg->declare_queue = 1;
+        sr_cfg->exchangeDeclare = 1;
+        sr_cfg->queueDeclare = 1;
 	sr_cfg->delete = 0;
 	sr_cfg->directory = NULL;
-	sr_cfg->post_base_dir = NULL;
+	sr_cfg->post_baseDir = NULL;
 	sr_cfg->durable = 1;
 	sr_cfg->events = (SR_EVENT_CREATE | SR_EVENT_MODIFY | SR_EVENT_DELETE | SR_EVENT_LINK);
 	sr_cfg->expire = 3 * 60;
 	sr_cfg->exchange = NULL;
-	sr_cfg->exchange_suffix = NULL;
+	sr_cfg->exchangeSuffix = NULL;
 	sr_cfg->follow_symlinks = 0;
 	sr_cfg->force_polling = 0;
 	sr_cfg->instance = 1;
@@ -1356,7 +1356,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->post_exchange = NULL;
 	sr_cfg->post_exchange_split = 0;
 	sr_cfg->post_rate_limit = 0;
-	sr_cfg->post_exchange_suffix = NULL;
+	sr_cfg->post_exchangeSuffix = NULL;
 	sr_cfg->prefetch = 25;
 
 	if (progname) {		/* skip the sr_ prefix */
@@ -1392,10 +1392,10 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->sumalgoz = 's';
 	sr_cfg->to = NULL;
 	sr_cfg->user_headers = NULL;
-	strcpy(sr_cfg->topic_prefix, "v02.post");
-	strcpy(sr_cfg->post_topic_prefix, "v02.post");
+	strcpy(sr_cfg->topicPrefix, "v02.post");
+	strcpy(sr_cfg->post_topicPrefix, "v02.post");
 	sr_cfg->topics = NULL;
-	sr_cfg->post_base_url = NULL;
+	sr_cfg->post_baseUrl = NULL;
 
 	sr_cfg->v2compatRenameDoublePost = 0;
 	sr_cfg->vip = NULL;
@@ -1708,13 +1708,13 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			sr_cfg->events, sr_cfg->directory, sr_cfg->queuename,
 			sr_cfg->force_polling ? "on" : "off", sr_cfg->sumalgo, sr_cfg->statehost);
 		sr_log_msg(LOG_DEBUG,
-			"\tmessage_ttl=%g post_exchange=%s post_exchange_split=%d post_exchange_suffix=%s\n",
+			"\tmessage_ttl=%g post_exchange=%s post_exchange_split=%d post_exchangeSuffix=%s\n",
 			sr_cfg->message_ttl, sr_cfg->post_exchange,
-			sr_cfg->post_exchange_split, sr_cfg->post_exchange_suffix);
+			sr_cfg->post_exchange_split, sr_cfg->post_exchangeSuffix);
 		sr_log_msg(LOG_DEBUG,
-			"\tsource=%s to=%s post_base_url=%s topic_prefix=%s post_topic_prefix=%s, pid=%d\n",
-			sr_cfg->source, sr_cfg->to, sr_cfg->post_base_url,
-			sr_cfg->topic_prefix, sr_cfg->post_topic_prefix, sr_cfg->pid);
+			"\tsource=%s to=%s post_baseUrl=%s topicPrefix=%s post_topicPrefix=%s, pid=%d\n",
+			sr_cfg->source, sr_cfg->to, sr_cfg->post_baseUrl,
+			sr_cfg->topicPrefix, sr_cfg->post_topicPrefix, sr_cfg->pid);
 		sr_log_msg(LOG_DEBUG, "man sr_post(1) for more information\n");
 	}
 	// FIXME: Missing: topics, user_headers, 
@@ -1741,10 +1741,10 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			if (sr_cfg->exchange) {
 				sr_cfg->post_broker->exchange = strdup(sr_cfg->exchange);
 			} else {
-				if (sr_cfg->post_exchange_suffix)
+				if (sr_cfg->post_exchangeSuffix)
 					sprintf(q, "xs_%s_%s",
 						sr_cfg->post_broker->user,
-						sr_cfg->post_exchange_suffix);
+						sr_cfg->post_exchangeSuffix);
 				else
 					sprintf(q, "xs_%s", sr_cfg->post_broker->user);
 				sr_cfg->post_broker->exchange = strdup(q);
@@ -1773,8 +1773,8 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	if (sr_cfg->exchange) {
 		sr_cfg->broker->exchange = strdup(sr_cfg->exchange);
 	} else {
-		if (sr_cfg->exchange_suffix) {
-			sprintf(q, "xs_%s_%s", sr_cfg->broker->user, sr_cfg->exchange_suffix);
+		if (sr_cfg->exchangeSuffix) {
+			sprintf(q, "xs_%s_%s", sr_cfg->broker->user, sr_cfg->exchangeSuffix);
 			sr_cfg->broker->exchange = strdup(q);
 		} else
 			sr_cfg->broker->exchange = strdup("xpublic");

@@ -284,7 +284,7 @@ struct sr_context *sr_context_init_config(struct sr_config_s *sr_cfg, int must_a
 	// FIXME: if prog is post, then only post_broker is OK.
 	// sr_c->exchange = sr_cfg->exchange ;
 
-	sr_c->post_base_url = sr_cfg->post_base_url;
+	sr_c->post_baseUrl = sr_cfg->post_baseUrl;
 
 	if ((sr_c->cfg != NULL) && sr_c->cfg->debug) {
 		if (sr_c->cfg->broker)

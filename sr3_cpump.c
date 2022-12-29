@@ -52,7 +52,7 @@ void usage()
 		"\t\tsuppress duplicate announcements < *cache* seconds apart.  \"on\" means 15 minute caching (on=900).\n");
 	fprintf(stderr,
 		"\tsuppress_duplicates_basis|sdb|cache_basis|cb <data|name|path> (default: path)\n");
-	fprintf(stderr, "\ttopic_prefix <string> - AMQP topic prefix (default: v02.post )\n");
+	fprintf(stderr, "\ttopicPrefix <string> - AMQP topic prefix (default: v02.post )\n");
 	fprintf(stderr,
 		"\tto <destination> - clusters pump network should forward to (default: broker).\n");
 	fprintf(stderr, "\turl <url>[,<url>]... - retrieval base url in the posted files.\n");
@@ -371,7 +371,7 @@ int main(int argc, char **argv)
 		// outlet:
 		if (m) {
 			if (!strcmp(sr_cfg.outlet, "json")) {
-                            if ( !strncmp("v02.", sr_c->cfg->post_topic_prefix, 4 ) ) {
+                            if ( !strncmp("v02.", sr_c->cfg->post_topicPrefix, 4 ) ) {
 				sr_message_2json(m);
                             } else {
                                 v03encode( (char *)&raw_body, sr_c, m );

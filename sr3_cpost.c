@@ -663,7 +663,7 @@ void usage()
 	fprintf(stderr,
 		"\tpipe <boolean> - accept file names to post from stdin (default: off).\n");
 	fprintf(stderr,
-		"\tpost_base_url <url>[,<url>]... - retrieval base url in the posted files.\n");
+		"\tpost_baseUrl <url>[,<url>]... - retrieval base url in the posted files.\n");
 	fprintf(stderr,
 		"\t\t(a comma separated list of urls will result in alternation among multiple file postings.)\n");
 	fprintf(stderr, "\trealpath <boolean> - resolve paths before posting (default: off)\n");
@@ -677,7 +677,7 @@ void usage()
 	fprintf(stderr, "\tsuppress_duplicates|sd|cache|caching <on|off|integer> (default: off)\n");
 	fprintf(stderr,
 		"\t\tsuppress duplicate announcements < *cache* seconds apart.  \"on\" means 15 minute caching (on=900).\n");
-	fprintf(stderr, "\tpost_topic_prefix <string> - AMQP topic prefix (default: v02.post )\n");
+	fprintf(stderr, "\tpost_topicPrefix <string> - AMQP topic prefix (default: v02.post )\n");
 	fprintf(stderr,
 		"\tto <destination> - clusters pump network should forward to (default: broker).\n");
 	fprintf(stderr,
@@ -839,7 +839,7 @@ int main(int argc, char **argv)
 
 	sr_post_init(sr_c);
 
-	if (!sr_c->cfg->post_base_url) {
+	if (!sr_c->cfg->post_baseUrl) {
 		sr_log_msg(LOG_ERROR, "URL setting missing\n");
 		return (0);
 	}
