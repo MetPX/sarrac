@@ -844,7 +844,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		sr_cfg->post_baseDir = argument;
 		argument = NULL;
 
-	} else if (!strcmp(option, "post_baseDir") || !strcmp(option, "pbd")
+	} else if (!strcmp(option, "post_base_dir") || !strcmp(option, "pbd")
 	       ||  !strcmp(option, "post_baseDir") ||  !strcmp(option, "post_basedir") ) {
 		if (sr_cfg->post_baseDir)
 			free(sr_cfg->post_baseDir);
