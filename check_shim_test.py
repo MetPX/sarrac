@@ -14,18 +14,29 @@ tests = 0
 exit_on_bad = (len(sys.argv) >= 3) and sys.argv[2] == 'exit_on_bad'
 
 test_algo = None
+test_actual_posts={}
+
 with open(sys.argv[1], 'r') as log:
     l = log.readlines()
     #print(l)
     for i in l:
 
         line = i.split()
-
+      
         if (i[0] == '+') and line[1] != 'echo':
             print(i)
             continue
 
         if len(line) < 4:
+            continue
+
+        if line[0] == 'RESULT:' :
+            print(i)
+            if line[1] == 'Good!':
+                good += 1
+            else:
+                bad +=1
+
             continue
 
         # sample

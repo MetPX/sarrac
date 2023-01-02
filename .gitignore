@@ -1,3 +1,5 @@
+*.sums
+shim_dir*
 *.o
 *.gcno
 *.so.*
