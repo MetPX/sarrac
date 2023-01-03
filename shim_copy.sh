@@ -79,8 +79,7 @@ export SR_POST_CONFIG=`pwd`/local_post.conf
 export LD_PRELOAD=`pwd`/libsr3shim.so.1.0.0
 export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
 export SR_SHIMDEBUG=99
-cd shim_dirA
-../shim_copy_post.sh &
+./shim_copy_post.sh &
 unset SR_POST_CONFIG
 unset SR_SHIMDEBUG
 unset LD_PRELOAD
@@ -88,7 +87,6 @@ wait
 
 
 # job step 2... copy.
-cd  ..
 echo "waiting a few seconds for copies to complete"
 sleep 10
 sr3 remove cpost/local_post.conf

@@ -1,6 +1,7 @@
 # job step 1 - post...
 set -x
 
+cd shim_dirA
 which bash
 
 echo "FIXME: KNOWN ISSUE redirection close does not get posted!"
@@ -17,7 +18,7 @@ echo "#test 1 sha512 python program run"
 grep lovely pyiotest
 
 echo "#test 1 sha512 cp command"
-cp ../libsr3shim.c ~/test/hoho_my_darling.txt
+cp ../libsr3shim.c hoho_my_darling.txt
 
 #echo "#test 1 sha512 touch command"
 #touch hihi
@@ -31,10 +32,10 @@ cp ../libsr3shim.c ~/test/hoho_my_darling.txt
 #echo "#test 1 rename hardlink to a symlink"
 #ln hihi hoohoo
 #echo "#test 1 rename moving a file. "
-#mv ~/test/hoho_my_darling.txt ~/test/hoho2.log
+#mv hoho_my_darling.txt hoho2.log
 
 #echo "#test 1 remove removing a file." 
-#rm ~/test/hoho2.log
+#rm hoho2.log
 
 
 #mkdir dirone
