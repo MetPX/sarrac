@@ -501,6 +501,7 @@ char *sr_message_2log(struct sr_message_s *m)
 {
 	static char b[10240];	// FIXME!  need more than 10K for a log message? check?
         char *ci;
+	char *rename;
 
 	sprintf(b, "{ \"pubTime\":\"%s\", \"baseUrl\":\"%s\", \"relPath\":\"%s\", \"topic\":\"%s\"", m->datestamp, m->url, m->path, m->routing_key);
 
@@ -524,24 +525,37 @@ char *sr_message_2log(struct sr_message_s *m)
 		sprintf(strchr(b, '\0'), ", \"size\":\"%ld\"", m->parts_blksz );
 	}
 
-	if (m->sum[0] == 'L') {
-		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"link\":\"%s\" }", m->link);
-	} else if (m->sum[0] == 'R') {
-		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"remove\":\"\" }" );
-        }
-
 	/*if (m->rename)
 		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"rename\":\"%s\" }", m->rename);
          */
 
+	rename=NULL;
 	for (struct sr_header_s * h = m->user_headers; h; h = h->next) 
         {
                 if (!strcmp(h->key,"oldname")) {
-			sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"rename\":\"%s\" }", h->value);
+			rename=h->value;
                 } else {
 			sprintf(strchr(b, '\0'), ", \"%s\":\"%s\"", h->key, h->value);
                 }
         }
+	if (m->sum[0] == 'L') {
+		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"link\":\"%s\"", m->link);
+		if (rename) {
+			sprintf(strchr(b, '\0'), ", \"rename\" : \"%s\" }", rename );
+		} else {
+			sprintf(strchr(b, '\0'), "}" );
+		}
+	} else if (m->sum[0] == 'R') {
+		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"remove\":\"\"" );
+		if (rename) {
+			sprintf(strchr(b, '\0'), ", \"rename\" : \"%s\" }", rename );
+		} else {
+			sprintf(strchr(b, '\0'), "}" );
+		}
+        } else if (rename) {
+		sprintf(strchr(b, '\0'), ", \"fileOp\": { \"rename\" : \"%s\" }", rename );
+	}	
+
         sprintf(strchr(b, '\0'), "}" );
       
 	return (b);

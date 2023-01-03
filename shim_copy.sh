@@ -27,7 +27,7 @@ cat >~/.config/sr3/subscribe/local_copy.conf <<EOT
 
 broker ${BROKER}
 exchange ${EXCHANGE}
-
+messageDebugDump on
 topicPrefix v03.post
 subtopic #
 logReject on

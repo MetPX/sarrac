@@ -244,6 +244,7 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
 {
 	char *c;
         char *ci;
+	char *rename_value=NULL;
         char sep[8];
 	char smallbuf[256];
 	char largerbuf[PATH_MAX+10];
@@ -275,16 +276,6 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
 	        c += status ; 
         }
 
-        if (m->sum[0] == 'L')  {
-                strcpy( largerbuf, "{ \"link\" : \"" );
-                strcat( largerbuf, m->link );                 
-                strcat( largerbuf, "\" } " );
-                status = sprintf( c, ", \"fileOp\": %s", largerbuf );
-                c+=status;
-        } else if (m->sum[0] == 'R') {
-                status = sprintf( c, ", \"fileOp\": { \"remove\" : \"\"} " );
-	        c+=status;
-        }
 
     	if (sr_c->cfg->strip > 0) 
                  v03amqp_header_add( &c, "rename", m->rename );
@@ -326,17 +317,30 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
                     v03amqp_header_add( &c, "mtime", v03time( m->mtime ) );
         }
 
-
+        rename_value=NULL;
     	for (uh = m->user_headers; uh; uh = uh->next) {
                 if (!strcmp(uh->key,"oldname") ) {
-                        strcpy( largerbuf, "{ \"rename\" : \"" );
-                        strcat( largerbuf, uh->value );                 
-                        strcat( largerbuf, "\" } " );
-                	status = sprintf( c, ", \"fileOp\": %s", largerbuf );
-	                c+=status;
+			rename_value=uh->value;
                 } else {
                 	v03amqp_header_add( &c, uh->key, uh->value );
                 }
+        }
+        if (m->sum[0] == 'L')  {
+		if (rename_value) {
+                	status = sprintf( c, ", \"fileOp\": { \"link\":\"%s\", \"rename\": \"%s\"}", m->link, rename_value );
+                } else {
+                	status = sprintf( c, ", \"fileOp\": { \"link\":\"%s\" }", m->link );
+		}
+                c+=status;
+        } else if (m->sum[0] == 'R') {
+		if (rename_value) {
+                   status = sprintf( c, ", \"fileOp\": { \"remove\":\"\", \"rename\": \"%s\"}", rename_value );
+		} else {
+		   status = sprintf( c, ", \"fileOp\": { \"remove\" : \"\"} " );
+		}
+	        c+=status;
+        } else if (rename_value) {
+                status = sprintf( c, ", \"fileOp\": { \"rename\":\"%s\" }", rename_value );
         }
 
         sprintf( c, "%s}  \n", sep );
