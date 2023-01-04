@@ -1442,6 +1442,7 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 	char *option;
 	char *argument, *argument2;
 	char *c, *d;
+	char sufbuf[10];
 	int plen;
 	char p[PATH_MAX];
 	int ret;
@@ -1461,23 +1462,29 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 		sr_cfg->configname = strdup(c);
 		config_depth++;
 	}
+	/* append .conf if not already there.
+	 * FIXME MG  or not ending with .inc
+	 *           would be better to know that we are in "include" mode...
+	 *           and accept any filename under the config dir !!!
+	 */
+	plen = strlen(filename);
+        strcpy(sufbuf,"");
+	if (strcmp(&(filename[plen - 5]), ".conf")) {
+		if (strcmp(&(filename[plen - 4]), ".inc")) {
+			strcpy(sufbuf, ".conf");
+		} 
+	}
+
 	/* linux config location */
 	if (*filename != '/') {
-		sprintf(p, "%s/.config/%s/%s/%s", getenv("HOME"), sr_cfg->appname, 
-			strcmp(sr_cfg->progname, "shim") ? sr_cfg->progname : "post", filename);
+		sprintf(p, "%s/.config/%s/%s/%s%s", getenv("HOME"), sr_cfg->appname, 
+			strcmp(sr_cfg->progname, "shim") ? sr_cfg->progname : "cpost", filename, sufbuf);
+		if (access(p, F_OK)) {
+		    sprintf(p, "%s/.config/%s/%s/%s%s", getenv("HOME"), sr_cfg->appname, 
+			strcmp(sr_cfg->progname, "shim") ? sr_cfg->progname : "post", filename, sufbuf);
+                }
 	} else {
 		strcpy(p, filename);
-	}
-	/* append .conf if not already there.
-	 * FIX ME MG  or not ending with .inc
-	 *            would be better to know that we are in "include" mode...
-	 *            and accept any filename under the config dir !!!
-	 */
-	plen = strlen(p);
-	if (strcmp(&(p[plen - 5]), ".conf")) {
-		if (strcmp(&(p[plen - 4]), ".inc")) {
-			strcat(p, ".conf");
-		}
 	}
 	// absolute paths in the normal places...
 
