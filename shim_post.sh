@@ -6,11 +6,14 @@ if [ ! "${SR_POST_CONFIG}" ]; then
    fi
    mkdir -p ~/.config/sr3/cpost
 
+BROKER=amqp://tfeed@localhost
+EXCHANGE=xs_feed
+DIRECTORY=`pwd`
+
    cat >~/.config/sr3/cpost/local_post.conf  <<EOT
 
 post_broker ${BROKER}
 post_exchange ${EXCHANGE}
-
 vip 127.0.0.1
 realpath off
 logReject on
@@ -27,8 +30,8 @@ nodupe_ttl 0
 header toto=pig
 events modify,link,delete
 
-post_baseUrl file:`pwd`
-post_baseDir `pwd`
+post_baseUrl file:${DIRECTORY}
+post_baseDir ${DIRECTORY}
 
 post_topicPrefix v03.post
 
