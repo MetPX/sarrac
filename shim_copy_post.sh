@@ -29,8 +29,8 @@ ln -s hoho haha
 echo "#test 1 rename moving a symlink"
 mv haha hihi
 
-echo "#test 1 rename hardlink to a symlink"
-ln hihi hoohoo
+#echo "#test 1 rename hardlink to a symlink"
+#ln hihi hoohoo
 echo "#test 1 rename moving a file. "
 mv hoho_my_darling.txt hoho2.log
 

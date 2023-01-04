@@ -50,4 +50,4 @@ jobs:
 
       - name: Setup ${{ matrix.which_test }} run shim tests
         run: |
-          make test_shim
+          make test_shim_post

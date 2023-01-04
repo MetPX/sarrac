@@ -4,6 +4,37 @@ if [ ! "${SR_POST_CONFIG}" ]; then
    if [ ! -d ~/test ]; then
      mkdir ~/test
    fi
+   mkdir -p ~/.config/sr3/cpost
+
+   cat >~/.config/sr3/cpost/local_post.conf  <<EOT
+
+post_broker ${BROKER}
+post_exchange ${EXCHANGE}
+
+vip 127.0.0.1
+realpath off
+logReject on
+logLevel debug
+debug True
+exchangeDeclare True
+#integrity none
+shim_post_minterval 10
+#shim_skip_parent_open_files
+#shim_post_once
+#shim_defer_posting_to_exit
+expire 1d
+nodupe_ttl 0
+header toto=pig
+events modify,link,delete
+
+post_baseUrl file:`pwd`
+post_baseDir `pwd`
+
+post_topicPrefix v03.post
+
+accept .*
+EOT
+
 
    echo "ignore rm errors.. cleaning before start"
    rm hihi 
@@ -12,7 +43,7 @@ if [ ! "${SR_POST_CONFIG}" ]; then
    rm ~/test/hoho_my_darling.txt 
    rm hoohoo
 
-   export SR_POST_CONFIG=`pwd`/local_post.conf
+   export SR_POST_CONFIG=local_post.conf
    export LD_PRELOAD=`pwd`/libsr3shim.so.1.0.0
    export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
    export SR_SHIMDEBUG=99

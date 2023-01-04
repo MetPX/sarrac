@@ -38,6 +38,7 @@ nodupe_ttl 0
 logMessageDump on
 callback log
 
+mirror True
 directory `pwd`/shim_dirB
 accept .*
 
@@ -65,7 +66,8 @@ nodupe_ttl 0
 header toto=pig
 events modify,link,delete
 
-post_base_url file:/
+post_baseUrl file:`pwd`/shim_dirA
+post_baseDir `pwd`/shim_dirA
 post_topicPrefix v03.post
 
 accept .*
@@ -75,7 +77,7 @@ sr3 declare cpost/local_post
 sr3 declare subscribe/local_copy
 sr3 start subscribe/local_copy.conf
 
-export SR_POST_CONFIG=`pwd`/local_post.conf
+export SR_POST_CONFIG=local_post.conf
 export LD_PRELOAD=`pwd`/libsr3shim.so.1.0.0
 export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
 export SR_SHIMDEBUG=99

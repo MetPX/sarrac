@@ -90,7 +90,10 @@ with open(sys.argv[1], 'r') as log:
             #print( f"message is: {message} " )
 
             if 'fileOp' in message:
-                sum_algo = list(message['fileOp'].keys())[0] 
+                if 'rename' in message['fileOp']:
+                    sum_algo='rename'
+                else:
+                    sum_algo = list(message['fileOp'].keys())[0] 
             else:
                 sum_algo = message['integrity']['method']
 
