@@ -1,9 +1,12 @@
-metpx-sr3c (3.22.12p2) UNRELEASED; urgency=medium
+metpx-sr3c (3.21.01) UNRELEASED; urgency=medium
 
   * added CI/CD testing. 
   * print format now looks like v03 messages instead of v2
   * fix for #94 (not sure if it covers all cases.)
   * working on #101 moving symlinks results in file, instead of link (only with relpathPost set.)
+  * realpath_filter defaults to true now.
+  * mv symlink -> compound fileOp: { "rename":"toto", "link": "target" }, 
+  * dup memory added, so duped files are closed once.
 
  -- Peter Silva <peter@bsqt.homeip.net>  Mon, 19 Dec 2022 22:44:00 -0500
 
