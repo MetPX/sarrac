@@ -1436,6 +1436,7 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 {
 	static int config_depth = 0;
 	FILE *f;
+	char home[PATH_MAX/2];
 	char *option;
 	char *argument, *argument2;
 	char *c, *d;
@@ -1472,18 +1473,21 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 		} 
 	}
 
+	strcpy( home, secure_getenv("HOME"));
+	//sr_log_msg(LOG_DEBUG, "getenv(HOME): %s, progname: %s, filename: %s\n", secure_getenv("HOME"), sr_cfg->progname, filename );
 	/* linux config location */
 	if (*filename != '/') {
-		sprintf(p, "%s/.config/%s/%s/%s%s", getenv("HOME"), sr_cfg->appname, 
+		sprintf(p, "%s/.config/%s/%s/%s%s", home, sr_cfg->appname, 
 			strcmp(sr_cfg->progname, "shim") ? sr_cfg->progname : "cpost", filename, sufbuf);
 		if (access(p, F_OK)) {
-		    sprintf(p, "%s/.config/%s/%s/%s%s", getenv("HOME"), sr_cfg->appname, 
+		    sprintf(p, "%s/.config/%s/%s/%s%s", home, sr_cfg->appname, 
 			strcmp(sr_cfg->progname, "shim") ? sr_cfg->progname : "post", filename, sufbuf);
                 }
 	} else {
 		strcpy(p, filename);
 	}
 	// absolute paths in the normal places...
+	sr_log_msg(LOG_DEBUG, "sr_config_read about to open: %s\n", p);
 
 	f = fopen(p, "r");
 	if (f == NULL)		// drop the suffix
@@ -1553,6 +1557,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 {
 	char *d;
 	char *val;
+	char home[PATH_MAX/2];
 	char p[PATH_MAX];
 	char q[AMQP_MAX_SS];
 	FILE *f;
@@ -1587,16 +1592,17 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		sr_cfg->statehostval = strdup(val);
 
 	// if the state directory is missing, build it.
+	strcpy( home, secure_getenv("HOME"));
 	if (val) {
-		sprintf(p, "%s/.cache/%s/%s/%s/%s", getenv("HOME"), sr_cfg->appname, val,
+		sprintf(p, "%s/.cache/%s/%s/%s/%s", home, sr_cfg->appname, val,
 			sr_cfg->progname, sr_cfg->configname);
 	} else {
-		sprintf(p, "%s/.cache/%s/%s/%s", getenv("HOME"), sr_cfg->appname,
+		sprintf(p, "%s/.cache/%s/%s/%s", home, sr_cfg->appname,
 			sr_cfg->progname, sr_cfg->configname);
 	}
 	ret = stat(p, &sb);
 	if (ret) {
-		sprintf(p, "%s/.cache", getenv("HOME"));
+		sprintf(p, "%s/.cache", home);
 		mkdir(p, 0700);
 		strcat(p, "/");
 		strcat(p, sr_cfg->appname);
@@ -1615,13 +1621,13 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	}
 	// if the log directory is missing, build it.
 	if (val) {
-		sprintf(p, "%s/.cache/%s/%s/log", getenv("HOME"), sr_cfg->appname, val);
+		sprintf(p, "%s/.cache/%s/%s/log", home, sr_cfg->appname, val);
 	} else {
-		sprintf(p, "%s/.cache/%s/log", getenv("HOME"), sr_cfg->appname );
+		sprintf(p, "%s/.cache/%s/log", home, sr_cfg->appname );
 	}
 	ret = stat(p, &sb);
 	if (ret) {
-		sprintf(p, "%s/.cache/%s", getenv("HOME"), sr_cfg->appname );
+		sprintf(p, "%s/.cache/%s", home, sr_cfg->appname );
 		if (val) {
 			strcat(p, "/");
 			strcat(p, val);
@@ -1633,11 +1639,11 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	// logfn
 	if (val) {
 		sprintf(p, "%s/.cache/%s/%s/log/%s_%s_%02d.log",
-			getenv("HOME"), sr_cfg->appname, val, sr_cfg->progname,
+			home, sr_cfg->appname, val, sr_cfg->progname,
 			sr_cfg->configname, sr_cfg->instance);
 	} else {
 		sprintf(p, "%s/.cache/%s/log/%s_%s_%02d.log",
-			getenv("HOME"), sr_cfg->appname, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
+			home, sr_cfg->appname, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 
 	sr_cfg->logfn = strdup(p);
@@ -1652,12 +1658,12 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	}
 	// pidfn statehost
 	if (val) {
-		sprintf(p, "%s/.cache/%s/%s/%s/%s/i%03d.pid", getenv("HOME"), sr_cfg->appname, 
+		sprintf(p, "%s/.cache/%s/%s/%s/%s/i%03d.pid", home, sr_cfg->appname, 
 			val, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 	// pidfn default
 	else {
-		sprintf(p, "%s/.cache/%s/%s/%s/i%03d.pid", getenv("HOME"), sr_cfg->appname, 
+		sprintf(p, "%s/.cache/%s/%s/%s/i%03d.pid", home, sr_cfg->appname, 
 			sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 
@@ -1672,14 +1678,14 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	// cachefn statehost
 	if (val) {
 		sprintf(p, "%s/.cache/%s/%s/%s/%s/recent_files_%03d.cache",
-			getenv("HOME"), sr_cfg->appname, val, sr_cfg->progname,
+			home, sr_cfg->appname, val, sr_cfg->progname,
 			sr_cfg->configname, sr_cfg->instance);
 	}
 	// cachefn default
 	else {
 		// FIXME: open and read cache file if present. seek to end.
 		sprintf(p, "%s/.cache/%s/%s/%s/recent_files_%03d.cache",
-			getenv("HOME"), sr_cfg->appname, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
+			home, sr_cfg->appname, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 
 	if (sr_cfg->sanity_log_dead == 0.0)
@@ -1719,7 +1725,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			"\tsource=%s to=%s post_baseUrl=%s topicPrefix=%s post_topicPrefix=%s, pid=%d\n",
 			sr_cfg->source, sr_cfg->to, sr_cfg->post_baseUrl,
 			sr_cfg->topicPrefix, sr_cfg->post_topicPrefix, sr_cfg->pid);
-		sr_log_msg(LOG_DEBUG, "man sr_post(1) for more information\n");
+		sr_log_msg(LOG_DEBUG, "man sr3_cpost(1) for more information\n");
 	}
 	// FIXME: Missing: topics, user_headers, 
 	if (!strcmp(sr_cfg->progname, "post")
@@ -1791,7 +1797,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		sr_log_msg(LOG_ERROR, "incomplete configuration, cannot guess queue\n");
 		return (0);
 	}
-	sprintf(p, "%s/.cache/%s/%s/%s/%s.%s.%s.qname", getenv("HOME"), sr_cfg->appname,
+	sprintf(p, "%s/.cache/%s/%s/%s/%s.%s.%s.qname", home, sr_cfg->appname,
 		sr_cfg->progname, sr_cfg->configname, sr_cfg->progname,
 		sr_cfg->configname, sr_cfg->broker->user);
 	f = fopen(p, "r");
@@ -2069,8 +2075,9 @@ static void cp(const char *s, const char *d)
 
 char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one)
 {
-	static char oldp[512];
-	char one[256];
+	static char oldp[PATH_MAX];
+	char home[PATH_MAX/2];
+	char one[PATH_MAX];
 	int len_one;
 
 	//fprintf( stderr, " find_one, original_one: %s\n", original_one );
@@ -2086,41 +2093,41 @@ char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one)
 				one[len_one] = '\0';
 		}
 		//fprintf( stderr, " find_one, one: %s\n", one );
+	        strcpy( home, secure_getenv("HOME"));
 		if (!strcmp(one, "default")) {
-			sprintf(oldp, "%s/.config/%s/default.conf", getenv("HOME"), sr_cfg->appname );
+			sprintf(oldp, "%s/.config/%s/default.conf", home, sr_cfg->appname );
 			return (oldp);
 		}
 		if (!strcmp(one, "admin")) {
-			sprintf(oldp, "%s/.config/%s/admin.conf", getenv("HOME"), sr_cfg->appname );
+			sprintf(oldp, "%s/.config/%s/admin.conf", home, sr_cfg->appname );
 			return (oldp);
 		}
 		if (!strcmp(one, "credentials")) {
-			sprintf(oldp, "%s/.config/%s/credentials.conf", getenv("HOME"), sr_cfg->appname );
+			sprintf(oldp, "%s/.config/%s/credentials.conf", home, sr_cfg->appname );
 			return (oldp);
 		}
-
-		sprintf(oldp, "%s/.config/%s/%s/%s.inc", getenv("HOME"), sr_cfg->appname, sr_cfg->progname, one);
+		sprintf(oldp, "%s/.config/%s/%s/%s.inc", home, sr_cfg->appname, sr_cfg->progname, one);
 		if (!access(oldp, R_OK))
 			return (oldp);
 		else {
 			//fprintf(stderr, "not %s\n", oldp );
 
 			sprintf(oldp, "%s/.config/%s/%s/%s.conf",
-				getenv("HOME"), sr_cfg->appname, sr_cfg->progname, one);
+				home, sr_cfg->appname, sr_cfg->progname, one);
 
 			if (!access(oldp, R_OK))
 				return (oldp);
 			else {
 				//fprintf(stderr, "not %s\n", oldp );
 				sprintf(oldp, "%s/.config/%s/%s/%s",
-					getenv("HOME"), sr_cfg->appname, sr_cfg->progname, one);
+					home, sr_cfg->appname, sr_cfg->progname, one);
 				if (!access(oldp, R_OK))
 					return (oldp);
 				else {
 					//fprintf(stderr, "not %s\n", oldp );
 					sprintf(oldp,
 						"%s/.config/%s/%s/%s.conf.off",
-						getenv("HOME"), sr_cfg->appname, sr_cfg->progname, one);
+						home, sr_cfg->appname, sr_cfg->progname, one);
 					if (!access(oldp, R_OK))
 						return (oldp);
 					else {
