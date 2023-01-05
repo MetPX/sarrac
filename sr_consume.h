@@ -41,7 +41,6 @@ struct sr_message_s {
 	char atime[SR_TIMESTRLEN];
 	char datestamp[SR_TIMESTRLEN];
 	char exchange[AMQP_MAX_SS];
-	char from_cluster[AMQP_MAX_SS];
 	char link[PATH_MAXNUL];
 	int mode;
 	char mtime[SR_TIMESTRLEN];
@@ -56,7 +55,6 @@ struct sr_message_s {
 	char routing_key[AMQP_MAX_SS];
 	char source[AMQP_MAX_SS];
 	char sum[SR_SUMSTRLEN];
-	char to_clusters[AMQP_MAX_SS];
 	char url[PATH_MAXNUL];
 	struct sr_header_s *user_headers;
 

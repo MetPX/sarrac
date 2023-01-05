@@ -279,14 +279,8 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
     	if (sr_c->cfg->strip > 0) 
                  v03amqp_header_add( &c, "rename", m->rename );
 
-    	if (m->from_cluster && m->from_cluster[0]) 
-                 v03amqp_header_add( &c, "from_cluster", m->from_cluster );
-
     	if (m->source && m->source[0]) 
                 v03amqp_header_add( &c, "source", m->source );
-
-    	if (m->to_clusters && m->to_clusters[0]) 
-                v03amqp_header_add( &c, "to_clusters", m->to_clusters );
 
         if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
                 if ( m->parts_s != '1' ) {
@@ -422,9 +416,6 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
     		if (sr_c->cfg->strip > 0)
     			amqp_header_add("rename", m->rename);
 
-    		if (m->from_cluster && m->from_cluster[0])
-    			amqp_header_add("from_cluster", m->from_cluster);
-
     		if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
     			amqp_header_add("parts", sr_message_partstr(m));
 
@@ -446,9 +437,6 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 
     		amqp_header_add("sum", m->sum);
     
-    		if (m->to_clusters && m->to_clusters[0])
-    			amqp_header_add("to_clusters", m->to_clusters);
-
     		for (uh = m->user_headers; uh; uh = uh->next)
     			amqp_header_add(uh->key, uh->value);
 
@@ -671,7 +659,6 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	m->routing_key[lasti] = '\0';
 
 	strcpy(m->datestamp, sr_time2str(NULL));
-	strcpy(m->to_clusters, sr_c->cfg->to);
 
 	m->parts_blkcount = 1;
 	m->parts_rem = 0;
@@ -765,8 +752,6 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 			"file path \"%s\" not utf8 encoded, ignoring sr_post call\n", pathspec);
 		return;
 	}
-	strcpy(m.to_clusters, sr_c->cfg->to);
-	strcpy(m.from_cluster, sr_c->cfg->post_broker->hostname);
 	strcpy(m.source, sr_c->cfg->source);
 	set_url(m.url, sr_c->cfg->post_baseUrl);
 	m.user_headers = sr_c->cfg->user_headers;

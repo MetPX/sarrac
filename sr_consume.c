@@ -182,8 +182,6 @@ static void assign_field(const char *key, char *value)
 	//sr_log_msg( LOG_DEBUG, "parsing: \"%s\" : \"%s\"\n", key, value );
 	if (!strcmp(key, "atime")) {
 		strcpy(msg.atime, value);
-	} else if (!strcmp(key, "from_cluster")) {
-		strcpy(msg.from_cluster, value);
 	} else if (!strcmp(key, "mode")) {
 		msg.mode = strtoul(value, NULL, 8);
 	} else if (!strcmp(key, "mtime")) {
@@ -205,8 +203,6 @@ static void assign_field(const char *key, char *value)
 		strcpy(msg.source, value);
 	} else if (!strcmp(key, "sum")) {
 		strcpy(msg.sum, value);
-	} else if (!strcmp(key, "to_clusters")) {
-		strcpy(msg.to_clusters, value);
 	} else if (!strcmp(key, "url")) {
 		strcpy(msg.url, value);
 	} else {
@@ -319,12 +315,6 @@ static void v03assign_field(const char *key, json_object *jso_v)
 		} else {
 	       		sr_log_msg( LOG_ERROR, "malformed json: blocks/count should be an int, but is: %d\n", json_object_get_type(subvalue) );
        		} 
-	} else if (!strcmp(key, "from_cluster")) {
-	        if (!json_object_is_type(jso_v,json_type_string)) {
-		       sr_log_msg( LOG_ERROR, "malformed json: from_cluster should be string: %d\n", json_object_get_type(jso_v) );
-			return;
-		}
-		strcpy(msg.from_cluster, json_object_get_string(jso_v));
 	} else if (!strcmp(key, "mode")) {
         	if (!json_object_is_type(jso_v,json_type_string)) {
 	       		sr_log_msg( LOG_ERROR, "malformed json: mode should be string: %d\n", json_object_get_type(jso_v) );
@@ -471,12 +461,6 @@ static void v03assign_field(const char *key, json_object *jso_v)
 		        return;
 		}
 		strcpy(msg.source,  json_object_get_string(jso_v));
-	} else if (!strcmp(key, "to_clusters")) {
-		if (!json_object_is_type(jso_v,json_type_string)) {
-	       		sr_log_msg( LOG_ERROR, "malformed json: to_clusters should be string: %d\n", json_object_get_type(jso_v) );
-			return;
-		}
-		strcpy(msg.to_clusters,  json_object_get_string(jso_v));
 	} else {
 		h = (struct sr_header_s *)malloc(sizeof(struct sr_header_s));
 		h->key = strdup(key);
@@ -511,10 +495,6 @@ char *sr_message_2log(struct sr_message_s *m)
 	     sprintf(strchr(b, '\0'), ", \"integrity\":{ %s } ", ci );
            
         }
-	/* sprintf(strchr(b, \"\0\"), ", \"sum\":\"%s\", \"source\":\"%s\"", m->sum, m->source); */
-	/*sprintf(strchr(b, \"\0\"), ", \"to_clusters\":\"%s\", \"from_cluster\":\"%s\"",
-		m->to_clusters, m->from_cluster);
-         */
 
 	if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
 		sprintf(strchr(b, '\0'), ", \"mtime\":\"%s\", \"atime\":\"%s\"", m->mtime, m->atime);
@@ -576,13 +556,10 @@ void sr_message_2json(struct sr_message_s *m)
 	printf("\"parts\": \"%c,%ld,%ld,%ld,%ld\"",
 	       m->parts_s, m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num);
 	printf(", ");
-	json_dump_strheader("from_cluster", m->from_cluster);
-	printf(", ");
 	json_dump_strheader("source", m->source);
 	printf(", ");
 	json_dump_strheader("sum", m->sum);
 	printf(", ");
-	json_dump_strheader("to_clusters", m->to_clusters);
 
 	for (h = msg.user_headers; h; h = h->next) {
 		printf(", ");
