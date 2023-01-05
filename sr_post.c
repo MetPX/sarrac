@@ -247,7 +247,6 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
 	char *rename_value=NULL;
         char sep[8];
 	char smallbuf[256];
-	char largerbuf[PATH_MAX+10];
 	signed int status;
 	struct sr_header_s *uh;
 
@@ -892,18 +891,12 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	if (S_ISDIR(sb.st_mode)) {
 		sr_post_rename_dir(sr_c, oldname, newname);
 	}
-       /*
-	if (S_ISLNK(sb.st_mode)) {
-		sr_log_msg(LOG_INFO, "sr_%s rename... new %s points to a link: %s\n", sr_c->cfg->progname, newname);
-        } else {
-		sr_log_msg(LOG_INFO, "sr_%s rename... new %s NOT link: %s\n", sr_c->cfg->progname, newname);
-        }
-        */
 
 	first_user_header.next = sr_c->cfg->user_headers;
 	sr_c->cfg->user_headers = &first_user_header;
 
         if (sr_c->cfg->v2compatRenameDoublePost) {
+		sr_log_msg(LOG_INFO, "sr_%s v2compatible 2nd post rename... newname %s: %s\n", sr_c->cfg->progname, newname);
 		first_user_header.key = strdup("newname");
 		first_user_header.value = strdup(newname);
 

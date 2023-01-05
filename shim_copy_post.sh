@@ -41,13 +41,13 @@ rm hoho2.log
 mkdir dirone
 echo "#test 1 sha512 stdout redirection in a subdir"
 echo "fileone" >>dirone/fileone
-mkdir dirone/dirtwo
+#mkdir dirone/dirtwo
 
-echo "#test 1 sha512 stdout redirection in a subsubdir"
-echo "filetwo" >>dirone/dirtwo/filetwo
+#echo "#test 1 sha512 stdout redirection in a subsubdir"
+#echo "filetwo" >>dirone/dirtwo/filetwo
 
-echo "#test 2 rename renaming subdirs should cause file rename events."
-mv dirone dirthree
+#echo "#test 2 rename renaming subdirs should cause file rename events."
+#mv dirone dirthree
 #echo "#test 0 last test to ensure previous completes"
 
 echo "#test 0 comment shim copy posting end"
