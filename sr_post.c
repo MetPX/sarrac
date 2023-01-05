@@ -647,12 +647,10 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 
 	strcpy(m->routing_key, tmprk);
 
-	lasti = 0;
-	for (int i = strlen(sr_c->cfg->post_topicPrefix); i < strlen(m->routing_key); i++) {
+	lasti = strlen(sr_c->cfg->post_topicPrefix);
+	for (int i = lasti; i < strlen(m->routing_key); i++) {
 		if (m->routing_key[i] == '/') {
-			if (lasti > 0) {
-				m->routing_key[lasti] = '.';
-			}
+			m->routing_key[lasti] = '.';
 			lasti = i;
 		}
 	}
@@ -724,7 +722,7 @@ struct sr_message_s *sr_file2message_seq(struct sr_context *sr_c,
   return the adjusted prototype message.  (requires reading part of the file to checksum it.)
  */
 {
-  char *sumstr;
+	char *sumstr;
 	m->parts_num = seq;
 
 	sumstr = sr_set_sumstr(m->sum[0], m->sum[2], pathspec, NULL, m->link, m->parts_blksz, m->parts_blkcount, 
