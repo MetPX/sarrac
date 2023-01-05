@@ -1429,23 +1429,23 @@ int fclose(FILE * f)
                         duped_fds[i]=-1;
                         duped_fds[i-1]=-1;
                 }
-                sr_shimdebug_msg( 8, " fclose NO POST duped fd !\n" );
+                sr_shimdebug_msg( 8, " fclose NO POST duped fd=%d !\n", fd );
                 return fclose_fn_ptr(f);
             }
         };
 
 	fdstat = fcntl(fd, F_GETFL);
 
-	sr_shimdebug_msg(5, " fclose %p fd=%i starting\n", f, fdstat );
+	sr_shimdebug_msg(5, " fclose %p fd=%i fdstat=%d, starting\n", f, fd, fstat );
 
 	if (fdstat == -1) {
-		sr_shimdebug_msg(5, " fclose NO POST not valid fd !\n" );
+		sr_shimdebug_msg(5, " fclose NO POST not valid fd=%d !\n", fd );
 		errno = 0;
 		return fclose_fn_ptr(f);
 	}
 
 	if ((fdstat & O_ACCMODE) == O_RDONLY) {
-		sr_shimdebug_msg(5, " fclose NO POST read-only.\n" );
+		sr_shimdebug_msg(5, " fclose NO POST read-only. fd=%d\n", fd );
 		errno = 0;
 		return fclose_fn_ptr(f);
 	}
