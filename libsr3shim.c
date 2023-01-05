@@ -293,8 +293,16 @@ void srshim_initialize(const char *progname)
 	// skip many FD to try to avoid stepping over stdout stderr, for logs & broker connection.
 	if (config_read == 0) {
 		setstr = strdup(setstr);
+	        sr_shimdebug_msg( 9, "FIXME srshim_initialize %s about to sr_config_init\n", progname);
 		sr_config_init(&sr_cfg, progname);
+		if (srshim_debug_level > 0 ) {
+                    sr_cfg.loglevel = LOG_DEBUG;
+		    sr_cfg.debug = 1;
+                    sr_set_loglevel(LOG_DEBUG);
+		}
+	        sr_shimdebug_msg( 9, "FIXME srshim_initialize %s about to sr_config_read\n", progname);
 		config_read = sr_config_read(&sr_cfg, setstr, 1, 1);
+	        sr_shimdebug_msg( 9, "FIXME srshim_initialize %s back from sr_config_read\n", progname);
 		free(setstr);
 		if (!config_read) {
 			sr_log_msg(LOG_ERROR,
@@ -315,7 +323,9 @@ void srshim_initialize(const char *progname)
 	   worry that if we ever use a log file, then there might be a
 	   conflict where the log file uses one of the standard file descriptors.
 	 */
+	sr_shimdebug_msg( 9, "FIXME srshim_initialize %s about to sr_config_finalize\n", progname);
 	finalize_good = sr_config_finalize(&sr_cfg, 0);
+	sr_shimdebug_msg( 9, "FIXME srshim_initialize %s back from sr_config_finalize\n", progname);
 
 	if (!finalize_good) {
 		shim_disabled = 1;	// turn off the library so stuff works without it.
@@ -1424,8 +1434,6 @@ int fclose(FILE * f)
             }
         };
 
-
-
 	fdstat = fcntl(fd, F_GETFL);
 
 	sr_shimdebug_msg(5, " fclose %p fd=%i starting\n", f, fdstat );
@@ -1437,7 +1445,7 @@ int fclose(FILE * f)
 	}
 
 	if ((fdstat & O_ACCMODE) == O_RDONLY) {
-		sr_shimdebug_msg(5, " fclose NO POST read-only. \n" );
+		sr_shimdebug_msg(5, " fclose NO POST read-only.\n" );
 		errno = 0;
 		return fclose_fn_ptr(f);
 	}
