@@ -1402,25 +1402,22 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->xattr_cc = 0;
 
 	sprintf(p, "%s/.config", getenv("HOME"));
-	if (access(p, R_OK) == -1) 
-    {
+	if (access(p, R_OK) == -1) {
 		mkdir(p, 0700);
-    }
+	}
 	sprintf(p, "%s/.config/%s", getenv("HOME"), sr_cfg->appname );
-	if (access(p, R_OK) == -1 )
-    {
+	if (access(p, R_OK) == -1 ) {
 		mkdir(p, 0700);
-    }
+	}
 
 	if (!strcmp(progname, "shim")) {
 		sprintf(p, "%s/.config/%s/%s", getenv("HOME"), sr_cfg->appname, "post");
 	} else {
 		sprintf(p, "%s/.config/%s/%s", getenv("HOME"), sr_cfg->appname, progname);
 	}
-	if (access(p, R_OK) == -1) 
-    {
+	if (access(p, R_OK) == -1) {
 		mkdir(p, 0700);
-    }
+	}
 	sprintf(p, "%s/.config/%s/default.conf", getenv("HOME"), sr_cfg->appname );
 	sr_config_read(sr_cfg, p, 0, 0);
 
