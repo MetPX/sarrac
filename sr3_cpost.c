@@ -271,7 +271,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 	}
 
 	if ((mask && !(mask->accepting))
-	    || (!mask && !(sr_c->cfg->accept_unmatched))) {
+	    || (!mask && !(sr_c->cfg->acceptUnmatched))) {
 		if (sr_c->cfg->log_reject)
 			sr_log_msg(LOG_INFO, "rejecting pattern: %s\n", fn);
 		return;

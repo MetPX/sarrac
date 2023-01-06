@@ -892,7 +892,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 			mask = sr_isMatchingPattern(sr_c->cfg, oldname);
 		}
 		if ((mask && !(mask->accepting))
-		    || (!mask && !(sr_c->cfg->accept_unmatched))) {
+		    || (!mask && !(sr_c->cfg->acceptUnmatched))) {
 			if (sr_c->cfg->log_reject)
 				sr_log_msg(LOG_INFO, "rejecting oldname: %s\n", oldname);
 		} else {
@@ -917,7 +917,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 		mask = sr_isMatchingPattern(sr_c->cfg, newname);
 	}
 	if ((mask && !(mask->accepting))
-	    || (!mask && !(sr_c->cfg->accept_unmatched))) {
+	    || (!mask && !(sr_c->cfg->acceptUnmatched))) {
 		if (sr_c->cfg->log_reject)
 			sr_log_msg(LOG_INFO, "rejecting newname: %s\n", newname);
 	} else

@@ -708,11 +708,11 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		add_mask(sr_cfg, sr_cfg->directory, argument, 1);
 		retval = 2;
 
-	} else if (!strcmp(option, "accept_unmatch")
-		   || !strcmp(option, "accept_unmatched")
+	} else if (!strcmp(option, "accept_unmatch") || !strcmp(option,"accept_unmatched")
+		   || !strcmp(option, "acceptUnmatched")
 		   || !strcmp(option, "au")) {
 		val = StringIsTrue(argument);
-		sr_cfg->accept_unmatched = val & 2;
+		sr_cfg->acceptUnmatched = val & 2;
 		retval = (1 + (val & 1));
 
 	} else if (!strcmp(option, "action") || !strcmp(option, "a")) {
@@ -1306,7 +1306,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 
 	sr_credentials_init();
 	sr_cfg->action = strdup("foreground");
-	sr_cfg->accept_unmatched = 1;
+	sr_cfg->acceptUnmatched = 1;
         if ( getenv("SR_DEV_APPNAME" ) ) 
         {
              strcpy( sr_cfg->appname, getenv("SR_DEV_APPNAME") );
@@ -1712,7 +1712,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			sr_cfg->sleep, sr_cfg->expire, sr_cfg->heartbeat, sr_cfg->sanity_log_dead, sr_cfg->cache, 
                         sr_cfg->statehost ? "yes" : "no", sr_cfg->v2compatRenameDoublePost ? "yes": "no" );
 		sr_log_msg(LOG_DEBUG, "\tcache_file=%s accept_unmatch=%s post_rate_limit=%d\n",
-			sr_cfg->cachep ? p : "off", sr_cfg->accept_unmatched ? "on" : "off", sr_cfg->post_rate_limit );
+			sr_cfg->cachep ? p : "off", sr_cfg->acceptUnmatched ? "on" : "off", sr_cfg->post_rate_limit );
 		sr_log_msg(LOG_DEBUG,
 			"\tevents=%04x directory=%s queuename=%s force_polling=%s sum=%c statehost=%c\n",
 			sr_cfg->events, sr_cfg->directory, sr_cfg->queuename,

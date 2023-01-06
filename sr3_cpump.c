@@ -342,7 +342,7 @@ int main(int argc, char **argv)
 		// FIXME BUG: pattern to match is supposed to be complete URL, not just path...
 		mask = sr_isMatchingPattern(&sr_cfg, m->path);
 		if ((mask && !(mask->accepting))
-		    || (!mask && !(sr_cfg.accept_unmatched))) {
+		    || (!mask && !(sr_cfg.acceptUnmatched))) {
 			if (sr_cfg.log_reject)
 				sr_log_msg(LOG_INFO, "rejecting pattern: %s\n", m->path);
 			continue;
