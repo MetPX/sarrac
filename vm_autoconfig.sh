@@ -104,7 +104,39 @@ hash -r
 echo "rabbitmqadmin is: `which rabbitmqadmin`"
 
 mkdir -p ~/.config/sr3/cpost
-cp local_post.conf ~/.config/sr3/cpost
+
+BROKER=amqp://tfeed@localhost
+EXCHANGE=xs_feed
+
+cat >~/.config/sr3/cpost/local_post.conf  <<EOT
+
+post_broker ${BROKER}
+post_exchange ${EXCHANGE}
+
+vip 127.0.0.1
+realpath off
+logReject on
+logLevel debug
+debug True
+exchangeDeclare True
+#integrity none
+shim_post_minterval 10
+#shim_skip_parent_open_files
+#shim_post_once
+#shim_defer_posting_to_exit
+expire 1d
+nodupe_ttl 0
+header toto=pig
+events modify,link,delete
+
+post_baseUrl file:`pwd`/shim_dirA
+post_baseDir `pwd`/shim_dirA
+post_topicPrefix v03.post
+
+accept .*
+EOT
+
+#cp local_post.conf ~/.config/sr3/cpost
 
 # Configure users
 echo "about to sr3 declare"

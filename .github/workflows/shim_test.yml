@@ -48,10 +48,10 @@ jobs:
         run: |
           make 
 
-      - name: Setup ${{ matrix.which_test }} run shim tests
+      - name: Setup ${{ matrix.which_test }} run shim post test
         run: |
           make test_shim_post
 
-      - name: Setup ${{ matrix.which_test }} run shim tests
+      - name: Setup ${{ matrix.which_test }} run shim copy test
         run: |
           make test_shim_copy
