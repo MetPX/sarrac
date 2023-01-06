@@ -60,9 +60,7 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          sr3 stop --dangerWillRobinson
-          cd ${HOME}/.cache/sr3/
-          tar -czf ${HOME}/sr3c_logs.tar.gz ${HOME}/.cache/sr3 *.log
+          tar -czf ${HOME}/sr3c_logs.tar.gz ${HOME}/.cache/sr3 ${HOME}/.config/sr3 shim_post.log shim_copy.log
 
       - name: Save run artifacts
         if: always()
