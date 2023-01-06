@@ -120,11 +120,11 @@ trust_but_verify: all
 test_shim_post: all
 	-./shim_post.sh >shim_post.log 2>&1
 	#python3 ./check_shim_post.py shim_post.log exit_on_bad
-	python3 ./check_shim_test.py shim_post.log | grep -a RESULT
+	python3 ./check_shim_test.py shim_post.log | grep -a RESULT:
 
 test_shim_copy:
 	-./shim_copy.sh >shim_copy.log 2>&1
 	#python3 ./check_shim_test.py shim_copy.log exit_on_bad
-	python3 ./check_shim_test.py shim_copy.log | grep -a RESULT
+	python3 ./check_shim_test.py shim_copy.log | grep -a RESULT:
 
 test_shim: test_shim_post test_shim_copy

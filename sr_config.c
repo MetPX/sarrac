@@ -1771,6 +1771,9 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		if (sr_cfg->to == NULL) {
 			sr_cfg->to = strdup(sr_cfg->post_broker->hostname);
 		}
+		if ((!(sr_cfg->post_baseDir)) && ((sr_cfg->post_baseUrl) && !strncmp( sr_cfg->post_baseUrl, "file:", 5 ))) {
+		    sr_cfg->post_baseDir = strdup( sr_cfg->post_baseUrl+5 );	
+		}
 	}
 
 	if (!is_consumer)

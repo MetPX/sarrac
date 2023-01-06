@@ -67,7 +67,6 @@ header toto=pig
 events modify,link,delete
 
 post_baseUrl file:`pwd`/shim_dirA
-post_baseDir `pwd`/shim_dirA
 post_topicPrefix v03.post
 
 accept .*
