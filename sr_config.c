@@ -2077,7 +2077,7 @@ char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one)
 {
 	static char oldp[PATH_MAX];
 	char home[PATH_MAX/2];
-	char one[PATH_MAX];
+	char one[255];
 	int len_one;
 
 	//fprintf( stderr, " find_one, original_one: %s\n", original_one );
