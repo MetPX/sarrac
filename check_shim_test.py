@@ -15,6 +15,7 @@ exit_on_bad = (len(sys.argv) >= 3) and sys.argv[2] == 'exit_on_bad'
 
 test_algo = None
 test_actual_posts={}
+test_post_count = {}
 
 with open(sys.argv[1], 'r') as log:
     l = log.readlines()
@@ -49,14 +50,13 @@ with open(sys.argv[1], 'r') as log:
             if test_algo:  # finish previous test...
 
                 if len(test_actual_posts) == 0:
-
                     if 'comment' in test_post_count:
                         print ( f"RESULT: comment {test_description}" )
+                        tests -= 1
                     else:
-                        print(
-                            f"RESULT: BAD! missing expected {test_post_count} for {test_description}"
-                        )
+                        print( f"RESULT: BAD! missing expected {test_post_count} for {test_description}" )
                         bad += 1
+
                 for m in test_actual_posts:
                     if m in test_post_count and (test_post_count[m]
                                                  == test_actual_posts[m]):
@@ -109,7 +109,6 @@ with open(sys.argv[1], 'r') as log:
 
     print(f"posts: {post_count}")
 
-    tests -= 1
     print(f"RESULT: summary: good: {good}, bad {bad}, total {tests}")
 
     if bad:
