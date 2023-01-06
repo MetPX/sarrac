@@ -55,3 +55,20 @@ jobs:
       - name: Setup ${{ matrix.which_test }} run shim copy test
         run: |
           make test_shim_copy
+
+      - name: Compress log files for artifacts
+        if: always()
+        continue-on-error: true
+        run: |
+          sr3 stop --dangerWillRobinson
+          cd ${HOME}/.cache/sr3/
+          tar -czf ${HOME}/sr3c_logs.tar.gz ${HOME}/.cache/sr3 *.log
+
+      - name: Save run artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        continue-on-error: true
+        with:
+          name: sr3_${{ matrix.which_test }}_${{ matrix.osver }}_state_${{ github.sha }}
+          path: ~/sr3c_logs.tar.gz
+
