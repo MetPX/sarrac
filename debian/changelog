@@ -7,7 +7,7 @@ metpx-sr3c (3.23.01) UNRELEASED; urgency=medium
   * realpath_filter defaults to true now.
   * mv symlink -> compound fileOp: { "rename":"toto", "link": "target" }, 
   * dup memory added, so duped files are closed once.
-  * removed support for from_cluster, to_clusters
+  * removed support for from_cluster, to_cluster
   * new default: when post_baseUrl use file:/... use /... to set post_baseDir.
 
  -- Peter Silva <peter@bsqt.homeip.net>  Mon, 19 Dec 2022 22:44:00 -0500
