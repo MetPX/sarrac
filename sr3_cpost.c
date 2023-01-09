@@ -424,17 +424,17 @@ void dir_stack_check4events(struct sr_context *sr_c)
 			 * ... code requires serious refactoring, but this quick fix should do for now
 			 */
 			if (e->mask & IN_ISDIR)  {
-                if (e->mask & IN_DELETE) {
-   				    sr_log_msg(LOG_DEBUG,
-				    	"detected directory removal, removing from internal data structures");
-    				dir_stack_rm(fn);
-    				continue;
-                } else if ( e->mask & (IN_CREATE|IN_ATTRIB) ) {
+                		if (e->mask & IN_DELETE) {
+   				    	sr_log_msg(LOG_DEBUG,
+				    		"detected directory removal, removing from internal data structures");
+    					dir_stack_rm(fn);
+    					continue;
+                		} else if ( e->mask & (IN_CREATE|IN_ATTRIB) ) {
 					do1file(sr_c, fn);
-                }
+                		}
 			} else if ( (e->mask & IN_CREATE) && ! (sr_c->cfg->events & SR_EVENT_CREATE) ) {
-                continue; // should skip non-dir create events.
-            }
+		                continue; // should skip non-dir create events.
+		        }
 
 			/* rename processing
 			   rename arrives as two events, old name MOVE_FROM, new name MOVE_TO.
