@@ -865,9 +865,11 @@ int main(int argc, char **argv)
 	sr_log_msg(LOG_INFO, "%s %s config: %s, pid: %d, starting\n",
 		sr_cfg.progname, __sarra_version__, sr_cfg.configname, sr_cfg.pid);
 
-	pass = 0;		// when using inotify, have to walk the tree to set the watches initially.
+	pass = 0;		
+	// when using inotify, have to walk the tree to set the watches initially.
 	//latest_min_mtim.tv_sec = 0;
 	//latest_min_mtim.tv_nsec = 0;
+	
 	if (!sr_cfg.force_polling) {
 
         // IN_CREATE must be included always in order to add directories to inotfd when created.
@@ -887,7 +889,11 @@ int main(int argc, char **argv)
                     es=strerror_r( errno, error_buf, EBUFLEN );
 		    sr_log_msg(LOG_ERROR, "inot init failed: %s\n", es);
                 }
-	} 
+        	sr_log_msg(LOG_DEBUG,"sr_event_mask: %04x translated to inotify_event_mask: %04x\n", sr_cfg.events, inotify_event_mask );
+	} else {
+        	sr_log_msg(LOG_DEBUG,"force_polling active, so event masks not used.\n");
+	}
+
 
 	while (1) {
 
