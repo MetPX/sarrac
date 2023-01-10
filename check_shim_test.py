@@ -31,6 +31,10 @@ with open(sys.argv[1], 'r') as log:
         if len(line) < 4:
             continue
 
+        if 'core dumped' in i:
+            print ( f"RESULT: BAD! binary crashed. " )
+            bad += 1;
+
         if line[0] == 'RESULT:' :
             print(i)
             if line[1] == 'Good!':
