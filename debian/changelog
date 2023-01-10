@@ -1,14 +1,16 @@
 metpx-sr3c (3.23.01) UNRELEASED; urgency=medium
 
+  * working on #101 moving symlinks results in file, instead of link (only with relpathPost set.)
+  * fix for #94 (not sure if it covers all cases.)
+  * mv symlink -> compound fileOp: { "rename":"toto", "link": "target" }, 
   * added CI/CD testing. 
   * print format now looks like v03 messages instead of v2
-  * fix for #94 (not sure if it covers all cases.)
-  * working on #101 moving symlinks results in file, instead of link (only with relpathPost set.)
   * realpath_filter defaults to true now.
-  * mv symlink -> compound fileOp: { "rename":"toto", "link": "target" }, 
   * dup memory added, so duped files are closed once.
   * removed support for from_cluster, to_cluster
+  * some variable internal names updated to reflect v2->sr3
   * new default: when post_baseUrl use file:/... use /... to set post_baseDir.
+  * when SR_SHIMDEBUG is set, it automatically turns on logLevel Debug.
 
  -- Peter Silva <peter@bsqt.homeip.net>  Mon, 19 Dec 2022 22:44:00 -0500
 
