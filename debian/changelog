@@ -1,3 +1,10 @@
+metpx-sr3c (3.23.01p1) UNRELEASED; urgency=medium
+
+  * incrementing version away from published one.
+  * 
+
+ -- Peter <peter@bsqt.homeip.net>  Wed, 11 Jan 2023 13:50:21 -0500
+
 metpx-sr3c (3.23.01) unstable; urgency=medium
 
   * working on #101 moving symlinks results in file, instead of link (only with relpathPost set.)

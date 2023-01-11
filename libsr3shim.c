@@ -104,6 +104,8 @@ void setup_exit()
  * steps:
  *    - initialize all entries to -2.
  *    - when dupX is called, add the two file descriptos to the table.
+ *    - if the dup call is going to result in the newfd (being already open) being closed,
+ *      make sure to call shim's close, rather than libc close, to post if need be.
  *    - when closing an fd, check the table,
  *       - if found, remove both fd's from the table by setting entries to -1
  *                   do not post file.
@@ -121,7 +123,7 @@ void init_duped_fds() {
 void record_duped_fds( int oldfd, int newfd ) {
 	int duped_fd_index;
 
-	// look for an empty spot in duped_fds to add two new fds.
+	// look for an empty pair of spots in duped_fds to add two new fds.
 	for (duped_fd_index=0; (duped_fd_index<MAX_DUPED_FDS) ; duped_fd_index+=2 ) {
 	     if ((duped_fds[duped_fd_index] < 0 ) && (duped_fds[duped_fd_index+1] < 0 ))
 		     break;
@@ -141,7 +143,7 @@ void record_duped_fds( int oldfd, int newfd ) {
 }
 
 bool is_duped( int fd ) {
-	/* check against duped files */
+	/* see if current fd was duped to or from */
 	for (int i =0; (i < MAX_DUPED_FDS); i++ ) {
 
             if (duped_fds[i] == -2 ) break; // past last value ever used.
@@ -956,6 +958,7 @@ int dup2(int oldfd, int newfd)
 		srshim_initialize("shim");
 
 	// If newfd is open, then it will be closed by dup2, perhaps trigger post?
+	// recipe: https://stackoverflow.com/questions/12340695/how-to-check-if-a-given-file-descriptor-stored-in-a-variable-is-still-valid
 	if ( (fcntl(newfd, F_GETFD) != -1) || errno != EBADF) {
 		sr_shimdebug_msg( 4, " dup2 newfd is open, so close it explicitly to potentially post.\n" );
 		close(newfd);
