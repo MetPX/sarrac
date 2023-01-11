@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <dlfcn.h>
+#include <stdbool.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -112,6 +113,54 @@ void setup_exit()
 
 #define MAX_DUPED_FDS (20)
 signed int duped_fds[MAX_DUPED_FDS];
+
+void init_duped_fds() {
+        for (int i=0;i<MAX_DUPED_FDS;i++) duped_fds[i]=-2;
+}
+
+void record_duped_fds( int oldfd, int newfd ) {
+	int duped_fd_index;
+
+	// look for an empty spot in duped_fds to add two new fds.
+	for (duped_fd_index=0; (duped_fd_index<MAX_DUPED_FDS) ; duped_fd_index+=2 ) {
+	     if ((duped_fds[duped_fd_index] < 0 ) && (duped_fds[duped_fd_index+1] < 0 ))
+		     break;
+        }
+        if (duped_fd_index >= MAX_DUPED_FDS) {
+		sr_log_msg(LOG_ERROR, 
+			"srshim ran out of room to store duplicated file descriptors, recompile with MAX_DUPED_FDS (==%d) increased\n", 
+			MAX_DUPED_FDS 
+		);
+	} else {
+		duped_fds[duped_fd_index] = oldfd;
+		sr_shimdebug_msg( 16, "set duped_fds[%d]=%d\n", duped_fd_index, duped_fds[duped_fd_index] );
+		duped_fd_index++;
+		duped_fds[duped_fd_index] = newfd;
+		sr_shimdebug_msg( 16, "set duped_fds[%d]=%d\n", duped_fd_index, duped_fds[duped_fd_index] );
+	}
+}
+
+bool is_duped( int fd ) {
+	/* check against duped files */
+	for (int i =0; (i < MAX_DUPED_FDS); i++ ) {
+
+            if (duped_fds[i] == -2 ) break; // past last value ever used.
+					    
+	    if (duped_fds[i] == fd ) {
+                if (i%2 == 0) {
+                   	duped_fds[i]=-1;
+                   	duped_fds[i+1]=-1;
+		} else {
+                   	duped_fds[i]=-1;
+                   	duped_fds[i-1]=-1;
+		}
+		sr_shimdebug_msg( 16, " is_duped!\n" );
+		return true;
+            }
+	};
+        return false;
+}
+
 
 char **parent_files_open = NULL;
 int last_pfo = 0;
@@ -334,7 +383,7 @@ void srshim_initialize(const char *progname)
 		return;
 	}
 
-        for (int i=0;i<MAX_DUPED_FDS;i++) duped_fds[i]=-2;
+        init_duped_fds();
 
 	if (sr_cfg.shim_skip_parent_open_files)
 		setup_pfo();
@@ -844,6 +893,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 
 }
 
+
 static int dup2_init_done = 0;
 typedef int (*dup2_fn) (int, int);
 static dup2_fn dup2_fn_ptr = dup2;
@@ -851,7 +901,6 @@ static dup2_fn dup2_fn_ptr = dup2;
 int dup2(int oldfd, int newfd)
 {
 	int fdstat;
-	int duped_fd_index;
 	char fdpath[32];
 	char real_path[PATH_MAX + 1];
 	char *real_return;
@@ -906,36 +955,20 @@ int dup2(int oldfd, int newfd)
 	if (!getenv("SR_POST_READS"))
 		srshim_initialize("shim");
 
-	// FIXME: if newfd is open, then it will be closed by dup2, perhaps trigger post?
-	//
-	//
+	// If newfd is open, then it will be closed by dup2, perhaps trigger post?
+	if ( (fcntl(newfd, F_GETFD) != -1) || errno != EBADF) {
+		sr_shimdebug_msg( 4, " dup2 newfd is open, so close it explicitly to potentially post.\n" );
+		close(newfd);
+        }
+	
 	status = dup2_fn_ptr(oldfd, newfd);
 	if (status == -1)
 		return status;
 
-	// look for an empty spot in duped_fds to add two new fds.
-	for 	(duped_fd_index=0; 
-		(duped_fd_index<MAX_DUPED_FDS) && ((duped_fds[duped_fd_index] < 0 ) && (duped_fds[duped_fd_index+1] < 0 ));
-		duped_fd_index+=2 );
+        record_duped_fds( oldfd, newfd);
 
-        if (duped_fd_index >= MAX_DUPED_FDS) {
-		sr_log_msg(LOG_ERROR, 
-			"srshim ran out of room to store duplicated file descriptors, recompile with MAX_DUPED_FDS (==%d) increased\n", 
-			MAX_DUPED_FDS 
-		);
-	} else {
-		duped_fds[duped_fd_index] = oldfd;
-		duped_fds[duped_fd_index+1] = newfd;
-	}
-	
 	sr_shimdebug_msg( 1, " dup2 posting %s status=%d\n", real_path, status);
 
-
-	// because shimpost posts when:    if (!status)
-	// we use a tmpstatus and call shimpost with status=0
-
-        //pas 2022/12/21 commenting this out... dup is like open... not close...
-	//shimpost(real_path, 0);
 
 	clerror(status);
 
@@ -1002,10 +1035,18 @@ int dup3(int oldfd, int newfd, int flags)
 	if (!getenv("SR_POST_READS"))
 		srshim_initialize("shim");
 
+	// If newfd is open, then it will be closed by dup2, perhaps trigger post?
+	if ( (fcntl(newfd, F_GETFD) != -1) || errno != EBADF) {
+		sr_shimdebug_msg( 4, " dup3 newfd is open, so close it explicitly to potentially post.\n" );
+		close(newfd);
+        }
+	
 	errno = 0;
 	status = dup3_fn_ptr(oldfd, newfd, flags);
 	if (status == -1)
 		return status;
+
+	record_duped_fds( oldfd, newfd );
 
 	sr_shimdebug_msg( 1, " dup3 posting %s %d\n", real_path, status);
 
@@ -1054,20 +1095,25 @@ void exit_cleanup_posts()
 			fd = atoi(fdde->d_name);
 			fdstat = fcntl(fd, F_GETFL);
 
-			if (fdstat == -1)
+			if (fdstat == -1) {
+                     	        sr_shimdebug_msg( 16, "exit_cleanup_posts, fcntl failed, skipping\n" );
 				continue;
+                        }
 
-			if ((fdstat & O_ACCMODE) == O_RDONLY)
+			if ((fdstat & O_ACCMODE) == O_RDONLY) {
+                     	        sr_shimdebug_msg( 16, "exit_cleanup_posts, read-only, skipping\n" );
 				continue;
-
+                        }
 			snprintf(fdpath, 499, "/proc/self/fd/%s", fdde->d_name);
 			real_return = realpath(fdpath, real_path);
 
 			if ((!real_return) || (real_path[0] != '/') ||
 			    (!strncmp(real_path, "/dev/", 5))
-			    || (!strncmp(real_path, "/proc/", 6)))
+			    || (!strncmp(real_path, "/proc/", 6))) {
+                     	        sr_shimdebug_msg( 16, "exit_cleanup_posts, /proc or /dev, skipping\n" );
 				continue;
-
+                        }
+                     	sr_shimdebug_msg( 16, "exit_cleanup_posts, real_return=%s\n", real_path );
 			found = 0;
 			for (int i = 0; (i < last_pfo); i++) {
                      		sr_shimdebug_msg( 8, "exit_cleanup_posts, last_pfo i=%d open_file=%s\n", 
@@ -1078,9 +1124,10 @@ void exit_cleanup_posts()
 				}
 			}
 
-			if (found)
+			if (found) {
+                     	        sr_shimdebug_msg( 16, "exit_cleanup_posts, parent has file open, skipping\n" );
 				continue;
-
+                        }
 			fsync(fd);	// ensure data is flushed to disk before post occurs.
 
 			sr_shimdebug_msg( 8, "exit_cleanup_posts posting %s\n", real_path);
@@ -1308,7 +1355,6 @@ int close(int fd)
 	char fdpath[32];
 	char real_path[PATH_MAX + 1];
 	char *real_return;
-	int i;
 	int status;
 
 	sr_shimdebug_msg( 4, " close fd=%d!\n", fd );
@@ -1332,22 +1378,9 @@ int close(int fd)
 	}
 
 	/* check against duped files */
-	for (i =0; (i < MAX_DUPED_FDS); i++ ) {
-
-            if (duped_fds[i] == -2 ) break; // past last value ever used.
-					    
-	    if (duped_fds[i] == fd ) {
-                if (fd%2 == 0) {
-                   	duped_fds[i]=-1;
-                   	duped_fds[i+1]=-1;
-		} else {
-                   	duped_fds[i]=-1;
-                   	duped_fds[i-1]=-1;
-		}
-		sr_shimdebug_msg( 8, " close NO POST duped fd !\n" );
+	if (is_duped(fd)) {
 		return close_fn_ptr(fd);
-            }
-	};
+        }
 
 	if ((fdstat & O_ACCMODE) == O_RDONLY) {
 		errno = 0;
@@ -1416,23 +1449,10 @@ int fclose(FILE * f)
 		return fclose_fn_ptr(f);
 	}
 
-	/* unlikely to fclose a duped fd... but, just in case, check against duped files */
-        for (i =0; (i < MAX_DUPED_FDS); i++ ) {
-
-            if (duped_fds[i] == -2 ) break; // past last value ever used.
-
-            if (duped_fds[i] == fd ) {
-                if (fd%2 == 0) {
-                        duped_fds[i]=-1;
-                        duped_fds[i+1]=-1;
-                } else {
-                        duped_fds[i]=-1;
-                        duped_fds[i-1]=-1;
-                }
-                sr_shimdebug_msg( 8, " fclose NO POST duped fd=%d !\n", fd );
-                return fclose_fn_ptr(f);
-            }
-        };
+	/* check against duped files */
+	if (is_duped(fd)) {
+		return fclose_fn_ptr(f);
+        }
 
 	fdstat = fcntl(fd, F_GETFL);
 
