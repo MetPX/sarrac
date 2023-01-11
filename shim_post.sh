@@ -58,7 +58,6 @@ set -x
 which bash
 
 echo "#test 0 comment shim test posting start"
-echo "FIXME: KNOWN ISSUE redirection close does not get posted!"
 echo "#test 1 sha512 capturing stdout"
 bash -c 'echo "hoho" >> ./hoho'
 

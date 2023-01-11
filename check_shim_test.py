@@ -6,7 +6,7 @@ import sys
 bad = 0
 good = 0
 post_count = {}
-tests = 0
+tests = -1
 
 # by default run through all and print summary at end.
 # with this option, exit on first failed test.
@@ -110,6 +110,7 @@ with open(sys.argv[1], 'r') as log:
                 post_count[sum_algo] += 1
             else:
                 post_count[sum_algo] = 1
+
 
     print(f"posts: {post_count}")
 
