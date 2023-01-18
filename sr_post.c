@@ -314,7 +314,6 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
     	for (uh = m->user_headers; uh; uh = uh->next) {
                 if (!strcmp(uh->key,"oldname") ) {
 			rename_value=uh->value;
-	                sr_log_msg(LOG_ERROR, "found oldname: %s\n", rename_value );
                 } else {
                 	v03amqp_header_add( &c, uh->key, uh->value );
                 }
@@ -334,7 +333,6 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
 		}
 	        c+=status;
         } else if (rename_value) {
-	        sr_log_msg(LOG_ERROR, "adding fileOp rename: %s\n", rename_value );
                 status = sprintf( c, ", \"fileOp\": { \"rename\":\"%s\" }", rename_value );
                 c+=status;
         }
