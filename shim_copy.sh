@@ -40,7 +40,6 @@ callback log
 
 mirror True
 directory `pwd`/shim_dirB
-accept .*
 
 EOT
 

@@ -1,4 +1,4 @@
-# job step 1 - post...
+
 set -x
 
 cd shim_dirA
@@ -20,6 +20,8 @@ grep lovely pyiotest
 echo "#test 1 sha512 cp command"
 cp ../libsr3shim.c hoho_my_darling.txt
 
+echo "#test 1 sha512 cp command2"
+cp ../libsr3shim.c file_to_delete
 echo "#test 1 sha512 touch command"
 touch hihi
 
@@ -28,6 +30,11 @@ ln -s hoho haha
 
 echo "#test 1 rename moving a symlink"
 mv haha hihi
+
+# the testing framework cannot handle expecting two links of different types for one event.
+#  uncomment if you want to manually test this use case.
+#echo "#test 1 link symlink -f to existing file... creates two posts: symlink to tmp name, and subsquent rename"
+#ln -sf ../libsr3shim.c file_to_delete
 
 #echo "#test 1 rename hardlink to a symlink"
 #ln hihi hoohoo
