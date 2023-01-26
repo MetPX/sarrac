@@ -324,25 +324,28 @@ int main(int argc, char **argv)
 
 	while (1) {
 
-        if ( sr_cfg.vip && ( sr_has_vip(sr_cfg.vip) < 1) ) {
+	        if ( sr_cfg.vip && ( sr_has_vip(sr_cfg.vip) < 1) ) {
 			sleep(5);
 			continue;
-        }
+       		}
 		// inlet: from queue, json, tree.
 		m = sr_consume(sr_c);
 
 		if (!m) {
-            sr_c = force_good_connection_and_bindings(sr_c);
+            		sr_c = force_good_connection_and_bindings(sr_c);
 			continue;
-        }
+		} else if (sr_message_valid(m)) {
+			sr_log_msg(LOG_INFO, "received: %s\n", sr_message_2log(m));
+                } else {
+			sr_log_msg(LOG_ERROR, "discarding invalid message: %s\n", sr_message_2log(m) );
+			continue;
+                }
 
-		sr_log_msg(LOG_INFO, "received: %s\n", sr_message_2log(m));
 
 		/* apply the accept/reject clauses */
 		// FIXME BUG: pattern to match is supposed to be complete URL, not just path...
 		mask = sr_isMatchingPattern(&sr_cfg, m->path);
-		if ((mask && !(mask->accepting))
-		    || (!mask && !(sr_cfg.acceptUnmatched))) {
+		if ((mask && !(mask->accepting)) || (!mask && !(sr_cfg.acceptUnmatched))) {
 			if (sr_cfg.log_reject)
 				sr_log_msg(LOG_INFO, "rejecting pattern: %s\n", m->path);
 			continue;
@@ -359,9 +362,9 @@ int main(int argc, char **argv)
 						"%s : %s %s\n", 
                         (ret < 0) ? "cache problem":"rejecting duplicate", 
 						m->path, sr_message_partstr(m));
-            }
+       			}
  
-            if ( ret == 0 ) { 
+            		if ( ret == 0 ) { 
 				continue;	// cache hit.
 			}
 

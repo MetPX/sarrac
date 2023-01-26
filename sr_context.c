@@ -376,7 +376,7 @@ void sr_context_heartbeat(struct sr_context *sr_c)
 		getrusage(RUSAGE_SELF, &usage_before);
 
 		sr_log_msg(LOG_INFO, "heartbeat starting to clean cache\n");
-		sr_cache_clean(sr_c->cfg->cachep, sr_c->cfg->cache);
+		sr_cache_clean(sr_c->cfg->cachep, sr_c->cfg->nodupe_ttl);
 		sr_log_msg(LOG_DEBUG, "heartbeat cleaned, hashes left: %u\n",
 			HASH_COUNT(sr_c->cfg->cachep->data));
 		if (HASH_COUNT(sr_c->cfg->cachep->data) == 0) {

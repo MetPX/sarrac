@@ -757,10 +757,10 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		if isalpha
 			(*argument) {
 			val = StringIsTrue(argument);
-			sr_cfg->cache = (float)((val & 2) ? 900 : 0);
+			sr_cfg->nodupe_ttl = (float)((val & 2) ? 900 : 0);
 			retval = (1 + (val & 1));
 		} else {
-			sr_cfg->cache = seconds_from_duration_str(argument);
+			sr_cfg->nodupe_ttl = seconds_from_duration_str(argument);
 			retval = 2;
 		}
 	} else if (!strcmp(option, "suppress_duplicates_basis")
@@ -1318,7 +1318,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
         }
 	sr_cfg->blocksize = 1;
 	sr_cfg->broker = NULL;
-	sr_cfg->cache = 0;
+	sr_cfg->nodupe_ttl = 0;
 	sr_cfg->cachep = NULL;
 	sr_cfg->cache_basis = strdup("path");
 	sr_cfg->chmod_log = 0600;
@@ -1330,7 +1330,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->directory = NULL;
 	sr_cfg->post_baseDir = NULL;
 	sr_cfg->durable = 1;
-	sr_cfg->events = (SR_EVENT_CREATE | SR_EVENT_MODIFY | SR_EVENT_DELETE | SR_EVENT_LINK);
+	sr_cfg->events = (SR_EVENT_CREATE | SR_EVENT_MODIFY | SR_EVENT_DELETE | SR_EVENT_LINK | SR_EVENT_MKDIR | SR_EVENT_RMDIR );
 	sr_cfg->expire = 3 * 60;
 	sr_cfg->exchange = NULL;
 	sr_cfg->exchangeSuffix = NULL;
@@ -1693,7 +1693,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	if (sr_cfg->sanity_log_dead < 450)
 		sr_cfg->sanity_log_dead = 450.0;
 
-	if (sr_cfg->cache > 0) {
+	if (sr_cfg->nodupe_ttl > 0) {
 		sr_cfg->cachep = sr_cache_open(p);
 	} else {
 		if (!access(p, F_OK))
@@ -1708,8 +1708,8 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			sr_cfg->configname, sr_cfg->loglevel,
 			sr_cfg->follow_symlinks ? "yes" : "no", sr_cfg->realpathPost ? "yes" : "no");
 		sr_log_msg(LOG_DEBUG,
-			"\tsleep=%g expire=%g heartbeat=%g sanity_log_dead=%g cache=%g statehost=%s v2compatRenameDoublePost=%s\n",
-			sr_cfg->sleep, sr_cfg->expire, sr_cfg->heartbeat, sr_cfg->sanity_log_dead, sr_cfg->cache, 
+			"\tsleep=%g expire=%g heartbeat=%g sanity_log_dead=%g nodupe_ttl=%g statehost=%s v2compatRenameDoublePost=%s\n",
+			sr_cfg->sleep, sr_cfg->expire, sr_cfg->heartbeat, sr_cfg->sanity_log_dead, sr_cfg->nodupe_ttl, 
                         sr_cfg->statehost ? "yes" : "no", sr_cfg->v2compatRenameDoublePost ? "yes": "no" );
 		sr_log_msg(LOG_DEBUG, "\tcache_file=%s accept_unmatch=%s post_rate_limit=%d\n",
 			sr_cfg->cachep ? p : "off", sr_cfg->acceptUnmatched ? "on" : "off", sr_cfg->post_rate_limit );
@@ -1878,7 +1878,7 @@ int sr_config_activate(struct sr_config_s *sr_cfg)
 	} else
 		return (-1);
 
-	if (sr_cfg->cache > 0) {
+	if (sr_cfg->nodupe_ttl > 0) {
 		thecfg = sr_cfg;
 		if (signal(SIGTERM, stop_handler) == SIG_ERR)
 			sr_log_msg(LOG_ERROR, "unable to set SIGTERM handler\n");

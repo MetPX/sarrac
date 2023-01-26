@@ -110,4 +110,9 @@ void sr_message_2url(struct sr_message_s *m);
 
 struct sr_message_s *sr_consume(struct sr_context *sr_c);
 
+bool sr_message_valid(struct sr_message_s *m);
+/*
+ * return True if the message passes validity tests (so will be properly processed.)
+ * may print messages about formatting errors.
+ */
 #endif

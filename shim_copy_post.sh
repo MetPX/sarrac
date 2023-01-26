@@ -28,6 +28,9 @@ touch hihi
 echo "#test 1 link symlink command"
 ln -s hoho haha
 
+
+echo lovely day eh
+
 echo "#test 1 rename moving a symlink"
 mv haha hihi
 
@@ -45,16 +48,24 @@ echo "#test 1 remove removing a file."
 rm hoho2.log
 
 
+echo "#test 1 directory mkdir 1"
 mkdir dirone
+
+echo "#test 1 link symlink to directory"
+ln -s dirone link_to_dirone
+
 echo "#test 1 sha512 stdout redirection in a subdir"
-echo "fileone" >>dirone/fileone
-#mkdir dirone/dirtwo
+echo "fileone" >>link_to_dirone/fileone
 
-#echo "#test 1 sha512 stdout redirection in a subsubdir"
-#echo "filetwo" >>dirone/dirtwo/filetwo
+echo "#test 1 directory mkdir 2"
+mkdir dirone/dirtwo
 
-#echo "#test 2 rename renaming subdirs should cause file rename events."
-#mv dirone dirthree
-#echo "#test 0 last test to ensure previous completes"
+echo "#test 1 sha512 stdout redirection in a subsubdir"
+echo "filetwo" >>dirone/dirtwo/filetwo
+
+# sleep to allow copies to happen before renaming directory...
+sleep 5 
+echo "#test 1 rename renaming subdirs should cause file rename events."
+mv dirone dirthree
 
 echo "#test 0 comment shim copy posting end"

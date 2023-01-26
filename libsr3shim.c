@@ -45,6 +45,7 @@ SR_SHIM_CONFIG -- environment variable to set configuration file name
       - ordinary calls are dealt with... dunno that we need a separate 64 variety.
 
  */
+
 void exit_cleanup_posts();
 int exit_cleanup_posts_setup = 0;
 
@@ -468,7 +469,7 @@ void srshim_realpost(const char *path)
 
 	statres = lstat(path, &sb);
 
-	if (!statres && !S_ISREG(sb.st_mode) && !S_ISLNK(sb.st_mode)) {
+	if (!statres && !S_ISDIR(sb.st_mode) && !S_ISREG(sb.st_mode) && !S_ISLNK(sb.st_mode)) {
 	        sr_shimdebug_msg( 1, "srshim_realpost 2.2 returning statres=%d, mode=%o , S_IFREG=%o, S_IFLNK=%o \n", 
                     statres, sb.st_mode, S_IFREG, S_IFLNK );
 		return;
@@ -559,7 +560,7 @@ int shimpost(const char *path, int status)
 		}
 	}
 	shim_disabled = 0;
-	sr_shimdebug_msg( 3, "shim re-enabled afer post of %s\n", path );
+	sr_shimdebug_msg( 3, "shim re-enabled after post of %s\n", path );
 
 	clerror(status);
 	return (status);
@@ -595,6 +596,100 @@ int truncate(const char *path, off_t length)
 	return (shimpost(path, status));
 
 }
+
+
+static int mkdir_init_done = 0;
+typedef int (*mkdir_fn) (const char *, mode_t);
+static mkdir_fn mkdir_fn_ptr = mkdir;
+
+int mkdir(const char *pathname, mode_t mode)
+{
+	int status;
+
+	sr_shimdebug_msg( 1, "mkdir %s %4o\n", pathname, mode);
+	if (!mkdir_init_done) {
+		setup_exit();
+		mkdir_fn_ptr = (mkdir_fn) dlsym(RTLD_NEXT, "mkdir");
+		mkdir_init_done = 1;
+	}
+	status = mkdir_fn_ptr(pathname, mode);
+	if (shim_disabled)
+		return (status);
+
+	clerror(status);
+	if (status == -1)
+		return status;
+
+	if (!strncmp(pathname, "/dev/", 5))
+		return (status);
+	if (!strncmp(pathname, "/proc/", 6))
+		return (status);
+
+	return (shimpost(pathname, status));
+}
+
+static int mkdirat_init_done = 0;
+typedef int (*mkdirat_fn) (int, const char *, mode_t);
+static mkdirat_fn mkdirat_fn_ptr = mkdirat;
+
+int mkdirat(int dirfd, const char *pathname, mode_t mode)
+{
+	int status;
+
+	sr_shimdebug_msg( 1, "mkdirat %d %s %4o\n", dirfd, pathname, mode);
+	if (!mkdirat_init_done) {
+		setup_exit();
+		mkdirat_fn_ptr = (mkdirat_fn) dlsym(RTLD_NEXT, "mkdirat");
+		mkdirat_init_done = 1;
+	}
+	status = mkdirat_fn_ptr(dirfd, pathname, mode);
+	if (shim_disabled)
+		return (status);
+
+	clerror(status);
+	if (status == -1)
+		return status;
+
+	if (!strncmp(pathname, "/dev/", 5))
+		return (status);
+	if (!strncmp(pathname, "/proc/", 6))
+		return (status);
+
+	return (shimpost(pathname, status));
+}
+
+static int rmdir_init_done = 0;
+typedef int (*rmdir_fn) (const char *);
+static rmdir_fn rmdir_fn_ptr = rmdir;
+
+int rmdir(const char *pathname)
+{
+	int status;
+
+	sr_shimdebug_msg( 1, "rmdir %s\n", pathname);
+	if (!rmdir_init_done) {
+		setup_exit();
+		rmdir_fn_ptr = (rmdir_fn) dlsym(RTLD_NEXT, "rmdir");
+		rmdir_init_done = 1;
+	}
+	status = rmdir_fn_ptr(pathname);
+	if (shim_disabled)
+		return (status);
+
+	clerror(status);
+	if (status == -1)
+		return status;
+
+	if (!strncmp(pathname, "/dev/", 5))
+		return (status);
+	if (!strncmp(pathname, "/proc/", 6))
+		return (status);
+
+	rmdir_in_progress=1;
+	return (shimpost(pathname, status));
+}
+
+
 
 static int symlink_init_done = 0;
 typedef int (*symlink_fn) (const char *, const char *);
@@ -1429,7 +1524,6 @@ int fclose(FILE * f)
 {
 
 	int fd;
-	int i;
 	int fdstat;
 	char fdpath[32];
 	char real_path[PATH_MAX + 1];

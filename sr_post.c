@@ -96,6 +96,8 @@ static amqp_table_entry_t headers[HDRMAX];
 static int hdrcnt = 0;
 static int bad_hdrcnt = 0;
 
+int rmdir_in_progress = 0;
+
 static void header_reset()
 {
 	hdrcnt--;
@@ -282,7 +284,8 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
     	if (m->source && m->source[0]) 
                 v03amqp_header_add( &c, "source", m->source );
 
-        if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
+        if ((m->sum[0] != 'R') && (m->sum[0] != 'L') &&
+            (m->sum[0] != 'm') && (m->sum[0] != 'r'))	 {
                 if ( m->parts_s != '1' ) {
                     status = sprintf( c, 
                       ",%s\"blocks\" : { \"method\": \"%s\", \"size\" : "
@@ -301,13 +304,14 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
                     v03amqp_header_add( &c, "atime", v03time( m->atime ) );
                 }
 
+                if (m->mtime && m->mtime[0]) 
+                    v03amqp_header_add( &c, "mtime", v03time( m->mtime ) );
+        }
+        if ((m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'r'))	 {
                 if (m->mode > 0) {
                     sprintf( smallbuf, "%03o", m->mode );
                     v03amqp_header_add( &c, "mode", smallbuf );
                 }
-
-                if (m->mtime && m->mtime[0]) 
-                    v03amqp_header_add( &c, "mtime", v03time( m->mtime ) );
         }
 
         rename_value=NULL;
@@ -330,6 +334,20 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
                    status = sprintf( c, ", \"fileOp\": { \"remove\":\"\", \"rename\": \"%s\"}", rename_value );
 		} else {
 		   status = sprintf( c, ", \"fileOp\": { \"remove\" : \"\"} " );
+		}
+	        c+=status;
+        } else if (m->sum[0] == 'm') {
+		if (rename_value) {
+                   status = sprintf( c, ", \"fileOp\": { \"directory\":\"\", \"rename\": \"%s\"}", rename_value );
+		} else {
+		   status = sprintf( c, ", \"fileOp\": { \"directory\" : \"\"} " );
+		}
+	        c+=status;
+        } else if (m->sum[0] == 'r') {
+		if (rename_value) {
+                   status = sprintf( c, ", \"fileOp\": { \"remove\": \"\", \"directory\": \"\", \"rename\": \"%s\"}", rename_value );
+		} else {
+		   status = sprintf( c, ", \"fileOp\": { \"remove\" : \"\", \"directory\" : \"\"} " );
 		}
 	        c+=status;
         } else if (rename_value) {
@@ -377,6 +395,10 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
                 posted_this_second++;
         }
 
+	if (!sr_message_valid(m)) {
+		sr_log_msg(LOG_INFO, "invalid message. not posting\n" );
+                return;
+        }
 	// MG white space in filename
 	strcpy(fn, m->path);
 	c = strchr(m->path, ' ');
@@ -581,16 +603,18 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 
 		linkstr[0] = '\0';
 
-	if ((sr_c->cfg != NULL) && sr_c->cfg->debug) {
+	if ( (sr_c->cfg != NULL) && sr_c->cfg->debug) {
 		sr_log_msg(LOG_DEBUG,
 			"sr_%s file2message start with: %s sb=%p islnk=%d, isdir=%d, isreg=%d\n",
 			sr_c->cfg->progname, fn, sb,
 			sb ? S_ISLNK(sb->st_mode) : 0,
 			sb ? S_ISDIR(sb->st_mode) : 0, sb ? S_ISREG(sb->st_mode) : 0);
 	}
+/*
 	if (sb && S_ISDIR(sb->st_mode)) {
 		return (0);	// cannot post directories.
         }
+ */
 	/* copy filename to path, but inserting %20 for every space
 	 */
 	c = m->path;
@@ -673,9 +697,15 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	}
 
 	if (!sb) {
-		if (!((sr_c->cfg->events) & SR_EVENT_DELETE))
+		if ( !((sr_c->cfg->events) & SR_EVENT_DELETE) ||
+                     (!((sr_c->cfg->events) & SR_EVENT_RMDIR) && rmdir_in_progress)
+				) {
+		 	rmdir_in_progress=0;       
 			return (0);	// not posting deletes...
-		m->sum[0] = 'R';
+		}
+ 		m->sum[0] =  rmdir_in_progress ? 'r': 'R' ;
+		rmdir_in_progress=0;
+
 	} else if (S_ISLNK(sb->st_mode)) {
 		if (!((sr_c->cfg->events) & SR_EVENT_LINK))
 			return (0);	// not posting links...
@@ -690,6 +720,14 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		linkstr[linklen] = '\0';
 		strcpy(m->link, linkstr);
 
+	} else if (S_ISDIR(sb->st_mode)) {
+		if (!((sr_c->cfg->events) & SR_EVENT_MKDIR))
+			return (0);	// not posting links...
+
+		strcpy(m->atime, sr_time2str(&(sb->st_atim)));
+		strcpy(m->mtime, sr_time2str(&(sb->st_mtim)));
+		m->mode = sb->st_mode & 07777;
+		m->sum[0] = 'm';
 	} else if (S_ISREG(sb->st_mode)) {	/* regular files, add mode and determine block parameters */
 
 		if (!((sr_c->cfg->events) & (SR_EVENT_CREATE | SR_EVENT_MODIFY)))
@@ -760,7 +798,7 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 	numblks = sr_file2message_start(sr_c, pathspec, sb, &m);
 	for (int blk = 0; (blk < numblks); blk++) {
 		if (sr_file2message_seq(sr_c, pathspec, blk, &m)) {
-			if (sr_c->cfg->cache > 0) {
+			if (sr_c->cfg->nodupe_ttl > 0) {
 				status =
 				    sr_cache_check(sr_c->cfg->cachep,
 						   sr_c->cfg->cache_basis,
@@ -872,9 +910,11 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 		sr_log_msg(LOG_ERROR, "sr_%s rename cannot stat %s: %s\n", sr_c->cfg->progname, newname, es);
 		return;
 	}
+	/* 2023/01/20 - now that dirs have posts, just handle dirs normally.
 	if (S_ISDIR(sb.st_mode)) {
 		sr_post_rename_dir(sr_c, oldname, newname);
 	}
+	 */
 
 	first_user_header.next = sr_c->cfg->user_headers;
 	sr_c->cfg->user_headers = &first_user_header;

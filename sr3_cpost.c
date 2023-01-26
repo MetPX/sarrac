@@ -304,10 +304,10 @@ void do1file(struct sr_context *sr_c, char *fn)
 		}
 		//if (ts_newer( latest_min_mtim, sb.st_mtim ) ) return; // only the link was new.
 
-	}
-
-	if (S_ISDIR(sb.st_mode))	// process a directory.
+	} else if (S_ISDIR(sb.st_mode))	// process a directory.
 	{
+		sr_post(sr_c, fn, &sb );	/* post mkdir */
+
 		if (sr_c->cfg->debug)
 			sr_log_msg(LOG_DEBUG,
 				"info: opening directory: %s, first_call=%s, recursive=%s, follow_symlinks=%s\n",
@@ -320,8 +320,8 @@ void do1file(struct sr_context *sr_c, char *fn)
 
 		first_call = 0;
 
-		/* FIXME:  INOT 
-		 */
+		// FIXME:  INOT 
+
 		if (!sr_c->cfg->force_polling) {
 			w = inotify_add_watch(inot_fd, fn, inotify_event_mask);
 			if (w < 0) {
@@ -341,7 +341,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 
 		dir = opendir(fn);
 		if (!dir) {
-            es=strerror_r( errno, error_buf, EBUFLEN );
+            		es=strerror_r( errno, error_buf, EBUFLEN );
 			sr_log_msg(LOG_ERROR, "failed to open directory %s: %s\n", fn, es);
 			return;
 		}
@@ -795,7 +795,7 @@ int main(int argc, char **argv)
             }
           
         } else {
-	    if ( sr_cfg.cache > 0) {
+	    if ( sr_cfg.nodupe_ttl > 0) {
 		sr_log_msg(LOG_CRITICAL,
 			"cache > 0 cannot be used unless running as a daeemon. turn off to use for rapid parallel posting.\n");
                 return(4);

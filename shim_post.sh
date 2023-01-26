@@ -28,7 +28,7 @@ shim_post_minterval 10
 expire 1d
 nodupe_ttl 0
 header toto=pig
-events modify,link,delete
+events modify,link,delete,mkdir,rmdir
 
 post_baseUrl file:${DIRECTORY}
 post_baseDir ${DIRECTORY}
@@ -69,6 +69,16 @@ echo "#test 1 sha512 python program run"
 
 grep lovely pyiotest
 
+echo "#test 1 directory make directory"
+mkdir sub_dir1
+
+echo "#test 1 rename rename directory"
+mv sub_dir1 sub_dir2
+
+echo "#test 1 rmdir remove directory"
+rmdir sub_dir2
+
+
 echo "#test 1 sha512 cp command"
 cp libsr3shim.c ~/test/hoho_my_darling.txt
 
@@ -91,16 +101,19 @@ rm hihi
 echo "#test 1 remove removing a file." 
 rm ~/test/hoho2.log
 
+echo "#test 1 directory make second directory ."
 
 mkdir dirone
 echo "#test 1 sha512 stdout redirection in a subdir"
 echo "fileone" >>dirone/fileone
+
+echo "#test 1 directory make third directory."
 mkdir dirone/dirtwo
 
 echo "#test 1 sha512 stdout redirection in a subsubdir"
 echo "filetwo" >>dirone/dirtwo/filetwo
 
-echo "#test 2 rename renaming subdirs should cause file rename events."
+echo "#test 1 rename renaming subdirs should cause file rename events."
 mv dirone dirthree
 echo "#test 2 remove removing a whole tree events."
 rm -rf dirthree

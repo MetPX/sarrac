@@ -28,6 +28,14 @@ static void str2event(char *evstr, sr_event_s * evbm)
 		(*evbm) |= SR_EVENT_CREATE;
                 found=true;
         }
+	if (!strcmp(evstr, "mkdir")) {
+		(*evbm) |= SR_EVENT_MKDIR;
+                found=true;
+        }
+	if (!strcmp(evstr, "rmdir")) {
+		(*evbm) |= SR_EVENT_RMDIR;
+                found=true;
+        }
 	if (!strcmp(evstr, "attrib")) {
 		(*evbm) |= SR_EVENT_ATTRIB;
                 found=true;

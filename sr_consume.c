@@ -35,6 +35,7 @@
 #include <openssl/sha.h>
 #include <openssl/evp.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <amqp_tcp_socket.h>
 #include <amqp_ssl_socket.h>
@@ -162,7 +163,8 @@ char *sr_message_partstr(struct sr_message_s *m)
 {
 	static char smallbuf[255];
 
-	if ((m->sum[0] != 'R') && (m->sum[0] != 'L'))
+	if ((m->sum[0] != 'R') && (m->sum[0] != 'L') &&
+	    (m->sum[0] != 'm') && (m->sum[0] != 'r'))
 		sprintf(smallbuf, "%c,%ld,%ld,%ld,%ld", m->parts_s,
 			m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num);
 	else
@@ -226,6 +228,8 @@ const char *sum2integrity( char sum )
        case 's': return( "sha512" );
        case 'L': return( "link" );
        case 'R': return( "remove" );
+       case 'm': return( "directory" );
+       case 'r': return( "rmdir" );
        case 'z': return( "cod" );
        default: return( "unknown" );
    }
@@ -238,7 +242,7 @@ char *v03integrity( struct sr_message_s *m )
    const char *value;
 
    switch (m->sum[0]) {
-       case 'n' : case 'L' : case 'R' : return(NULL); break;
+       case 'n' : case 'L' : case 'R' : case 'm' : case 'r': return(NULL); break;
        case 'd' : case 's' : value = sr_hex2base64( &(m->sum[2]) ); break;
        case 'z' : value = sum2integrity(m->sum[2]); break;
        case '0' : case 'a' : default : value = &(m->sum[2]); break;
@@ -346,6 +350,10 @@ static void v03assign_field(const char *key, json_object *jso_v)
 		 	return;
         	}
 	        strcpy( msg.path, json_object_get_string(jso_v) );
+		if ( strlen(msg.path) == 0 ) {
+	       		sr_log_msg( LOG_ERROR, "malformed message: relPath is empty string.\n" ); 
+		 	return;
+                }
 	} else if (!strcmp(key, "pubTime")) {
        		if (!json_object_is_type(jso_v,json_type_string)) {
 			sr_log_msg( LOG_ERROR, "malformed json: pubTime not a string: %d\n", json_object_get_type(jso_v) );
@@ -360,8 +368,6 @@ static void v03assign_field(const char *key, json_object *jso_v)
 	        tlen -= 8 ;
        		memmove( &msg.datestamp[8], &msg.datestamp[9], tlen ); //eliminate "T".
 	} else if (!strcmp(key, "fileOp")) {
-                sr_log_msg( LOG_ERROR, "got a fileOp!\n" );
-       		//FIXME
 		if( json_object_get_type(jso_v) != json_type_object ) {
 	       		sr_log_msg( LOG_ERROR, "malformed json: integrity should be an object: %d\n", json_object_get_type(jso_v) );
 		        return;
@@ -388,7 +394,7 @@ static void v03assign_field(const char *key, json_object *jso_v)
 			return;
                 } else if ( json_object_object_get_ex(jso_v, "remove", &subvalue) ) { 
                         char *just_the_name;
-                        if (msg.path) {
+                        if (msg.path && strlen(msg.path) > 0) {
 				just_the_name = rindex(msg.path, '/') + 1;
 				just_the_name = just_the_name?just_the_name+1:msg.path;
                         } else {
@@ -402,6 +408,40 @@ static void v03assign_field(const char *key, json_object *jso_v)
 			EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 			EVP_DigestFinal_ex(ctx, sumhash, &hashlen );
 			sprintf( msg.sum, "R,%s", sr_hash2sumstr(sumhash) );
+		        return;   
+                } else if ( json_object_object_get_ex(jso_v, "directory", &subvalue) ) { 
+                        char *just_the_name;
+                        if (msg.path && strlen(msg.path) > 0) {
+				just_the_name = rindex(msg.path, '/') + 1;
+				just_the_name = just_the_name?just_the_name+1:msg.path;
+                        } else {
+                                // FIXME should defer to end of parse and find the real name.
+                                // This is a bug, but nobody does mirroring with v2 anyways.
+                                just_the_name = "placeholder";
+                        }
+			ctx = EVP_MD_CTX_create();
+			md = EVP_sha512();
+			EVP_DigestInit_ex(ctx, md, NULL );
+			EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
+			EVP_DigestFinal_ex(ctx, sumhash, &hashlen );
+			sprintf( msg.sum, "m,%s", sr_hash2sumstr(sumhash) );
+		        return;   
+                } else if ( json_object_object_get_ex(jso_v, "rmdir", &subvalue) ) { 
+                        char *just_the_name;
+                        if (msg.path && strlen(msg.path) > 0) {
+				just_the_name = rindex(msg.path, '/') + 1;
+				just_the_name = just_the_name?just_the_name+1:msg.path;
+                        } else {
+                                // FIXME should defer to end of parse and find the real name.
+                                // This is a bug, but nobody does mirroring with v2 anyways.
+                                just_the_name = "placeholder";
+                        }
+			ctx = EVP_MD_CTX_create();
+			md = EVP_sha512();
+			EVP_DigestInit_ex(ctx, md, NULL );
+			EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
+			EVP_DigestFinal_ex(ctx, sumhash, &hashlen );
+			sprintf( msg.sum, "r,%s", sr_hash2sumstr(sumhash) );
 		        return;   
                 } else if ( json_object_object_get_ex(jso_v, "rename", &subvalue) ) { 
 			const char *v = json_object_get_string(subvalue);
@@ -491,18 +531,18 @@ char *sr_message_2log(struct sr_message_s *m)
 
 
         ci = v03integrity(m);
-        if (ci) {
+        if (ci && !strchr("mrRL", m->sum[0]) ) {
 	     sprintf(strchr(b, '\0'), ", \"integrity\":{ %s } ", ci );
-           
         }
 
-	if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
+	if ((m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'r')) {
 		sprintf(strchr(b, '\0'), ", \"mtime\":\"%s\", \"atime\":\"%s\"", m->mtime, m->atime);
 
 		if (m->mode)
 			sprintf(strchr(b, '\0'), ", \"mode\":\"%04o\"", m->mode);
 
-		sprintf(strchr(b, '\0'), ", \"size\":\"%ld\"", m->parts_blksz );
+	        if (m->sum[0] != 'm') 
+		    sprintf(strchr(b, '\0'), ", \"size\":\"%ld\"", m->parts_blksz );
 	}
 
 	/*if (m->rename)
@@ -527,6 +567,20 @@ char *sr_message_2log(struct sr_message_s *m)
 		}
 	} else if (m->sum[0] == 'R') {
 		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"remove\":\"\"" );
+		if (rename) {
+			sprintf(strchr(b, '\0'), ", \"rename\" : \"%s\" }", rename );
+		} else {
+			sprintf(strchr(b, '\0'), "}" );
+		}
+	} else if (m->sum[0] == 'm') {
+		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"directory\":\"\"" );
+		if (rename) {
+			sprintf(strchr(b, '\0'), ", \"rename\" : \"%s\" }", rename );
+		} else {
+			sprintf(strchr(b, '\0'), "}" );
+		}
+	} else if (m->sum[0] == 'r') {
+		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"rmdir\":\"\"" );
 		if (rename) {
 			sprintf(strchr(b, '\0'), ", \"rename\" : \"%s\" }", rename );
 		} else {
@@ -879,4 +933,14 @@ after_headers:
     /* Can only happen when amqp_simple_wait_frame returns <= 0 */
     /* We break here to close the connection */
     return (&msg);
+}
+
+bool sr_message_valid( struct sr_message_s *m ) {
+
+	if (strlen(m->path) == 0 ) {
+                sr_log_msg( LOG_ERROR, "zero length relPath\n" );
+		return false;
+        }
+
+	return true;
 }

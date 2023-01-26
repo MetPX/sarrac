@@ -37,6 +37,7 @@ expire 10m
 nodupe_ttl 0
 logMessageDump on
 callback log
+batch 1
 
 mirror True
 directory `pwd`/shim_dirB
@@ -63,7 +64,7 @@ shim_post_minterval 10
 expire 1d
 nodupe_ttl 0
 header toto=pig
-events modify,link,delete
+events modify,link,delete,mkdir,rmdir
 
 post_baseUrl file:`pwd`/shim_dirA
 post_topicPrefix v03.post

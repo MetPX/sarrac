@@ -288,7 +288,8 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 			continue;
 		}
 
-		if ((sum[0] == 'L') || (sum[0] == 'R')) {
+		if ((sum[0] == 'L') || (sum[0] == 'R') || 
+		    (sum[0] == 'm') || (sum[0] == 'r')) {
 			partstr = NULL;
 		} else {
 			partstr = strtok(NULL, " \n");

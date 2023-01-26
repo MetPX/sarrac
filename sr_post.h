@@ -27,6 +27,11 @@
 #include "sr_context.h"
 #include "sr_consume.h"
 
+/* 
+ * um... set variable during rm' events to trigger an rmdir instead of a file unlink.
+ */
+extern int rmdir_in_progress;
+
 void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s *m );
 /* 
    fill the message body with a v03 encoded representation of the given message, in the given context.

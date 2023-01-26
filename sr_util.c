@@ -533,7 +533,9 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
     'd' - md5sum of block.
     'n' - md5sum of filename (fn).
     'L' - now sha512 sum of link value.
+    'm' - mkdir
     'p' - md5sum of filename (fn) + partstr.
+    'r' - rmdir
     'R' - no checksum, value is random. -> now same as N.
     's' - sha512 sum of block.
     'z' - downstream should recalculate with algo that is argument.
@@ -626,6 +628,28 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		}
 
                 EVP_DigestFinal_ex(ctx, sumhash+1, &hashlen);
+		sr_hash2sumstr(sumhash);
+		break;
+
+	case 'm': // mkdir
+		ctx = EVP_MD_CTX_create();
+                md = EVP_md5();
+                EVP_DigestInit_ex(ctx, md, NULL );
+
+                just_the_name = just_the_name?just_the_name+1:fn ;
+		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
+		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
+		sr_hash2sumstr(sumhash);
+		break;
+
+	case 'r': // rmdir
+		ctx = EVP_MD_CTX_create();
+                md = EVP_md5();
+                EVP_DigestInit_ex(ctx, md, NULL );
+
+                just_the_name = just_the_name?just_the_name+1:fn ;
+		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
+		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumhash);
 		break;
 
