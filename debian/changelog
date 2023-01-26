@@ -1,7 +1,6 @@
-metpx-sr3c (3.23.01p1) UNRELEASED; urgency=medium
+metpx-sr3c (3.23.01p1) unstable; urgency=medium
 
   * adding directory (mkdir, rmdir) event support  #104
-  * 
 
  -- Peter <peter@bsqt.homeip.net>  Wed, 11 Jan 2023 13:50:21 -0500
 
