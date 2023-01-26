@@ -920,7 +920,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	sr_c->cfg->user_headers = &first_user_header;
 
         if (sr_c->cfg->v2compatRenameDoublePost) {
-		sr_log_msg(LOG_INFO, "sr_%s v2compatible 2nd post rename... newname %s: %s\n", sr_c->cfg->progname, newname);
+		sr_log_msg(LOG_INFO, "sr_%s v2compatible 2nd post rename... newname: %s\n", sr_c->cfg->progname, newname);
 		first_user_header.key = strdup("newname");
 		first_user_header.value = strdup(newname);
 

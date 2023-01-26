@@ -160,6 +160,8 @@ void sr_log_cleanup()
 }
 
 static void log_set_fnts()
+	/* set logging file name time stamp.
+	 */
 {
 	char *p;
 	char b[PATH_MAX];
