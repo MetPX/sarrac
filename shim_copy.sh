@@ -20,8 +20,12 @@ mkdir -p ~/.config/sr3/cpost
 
 #cp local_copy.conf ~/.config/sr3/subscribe
 
-BROKER=amqp://tfeed@localhost
-EXCHANGE=xs_feed
+if [ ! "${BROKER}" ]; then
+    BROKER=amqp://tfeed@localhost
+fi
+if [ ! "${EXCHANGE}" ]; then
+    EXCHANGE=xs_feed
+fi
 
 cat >~/.config/sr3/subscribe/local_copy.conf <<EOT
 

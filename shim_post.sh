@@ -6,8 +6,14 @@ if [ ! "${SR_POST_CONFIG}" ]; then
    fi
    mkdir -p ~/.config/sr3/cpost
 
-BROKER=amqp://tfeedbobo@localhost
-EXCHANGE=xs_bobo
+if [ ! "${BROKER}" ]; then
+    BROKER=amqp://tfeed@localhost
+fi
+
+if [ ! "${EXCHANGE}" ]; then
+    EXCHANGE=xs_pastest
+fi
+
 DIRECTORY=`pwd`
 
    cat >~/.config/sr3/cpost/local_post.conf  <<EOT
