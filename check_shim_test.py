@@ -62,8 +62,7 @@ with open(sys.argv[1], 'r') as log:
                         bad += 1
 
                 for m in test_actual_posts:
-                    if m in test_post_count and (test_post_count[m]
-                                                 == test_actual_posts[m]):
+                    if m in test_post_count and (test_post_count[m] == test_actual_posts[m]):
                         print(
                             f"RESULT: Good! {test_post_count[m]} {m} posts from {test_description}. as expected"
                         )
@@ -78,10 +77,17 @@ with open(sys.argv[1], 'r') as log:
                     sys.exit(1)
 
             #print( f"setting: {line} " )
-            test_algo = line[2]
-
             test_post_count = {}
-            test_post_count[test_algo] = int(line[1])
+            test_algo = line[2].split(',')
+            test_count = line[1].split(',')
+            if len(test_algo) != len(test_count):
+                print( f"bad test specification {line} mismatch of count and method. ")
+                continue
+
+            i=0 
+            while i < len(test_count):
+                test_post_count[test_algo[i]] = int(test_count[i])
+                i+=1
 
             test_description = ' '.join(line[3:])
             test_actual_count = 0
