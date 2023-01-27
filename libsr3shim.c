@@ -392,6 +392,12 @@ void srshim_initialize(const char *progname)
 		setup_pfo();
 
 	sr_c = sr_context_init_config(&sr_cfg, 1);
+	if (!sr_c) {
+		sr_log_msg(LOG_ERROR, "srshim_initialize problem establishing context. library disabled\n");
+		shim_disabled = 1;	// turn off the library so stuff works without it.
+		errno = 0;
+		return;
+        }
 	init_in_progress=0;
 	errno = 0;
 	sr_shimdebug_msg( 3, "FIXME srshim_initialize setup completed.\n" );
@@ -402,9 +408,13 @@ int srshim_connect()
 	if (!sr_connected) {
 
 		sr_c = sr_context_connect(sr_c);
-		if (sr_c)
+		if (sr_c) {
 			sr_connected = 1;
-        	sr_post_init(sr_c);
+        		sr_post_init(sr_c);
+                } else {
+			sr_log_msg(LOG_ERROR, "srshim_connect problem establishing context. library disabled\n");
+			shim_disabled = 1;	// turn off the library so stuff works without it.
+                }
 		errno = 0;
 	}
 	return (sr_connected);
