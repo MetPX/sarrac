@@ -862,9 +862,17 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		sr_cfg->durable = val & 2;
 		retval = (1 + (val & 1));
 
-	} else if (!strcmp(option, "events") || !strcmp(option, "e") || !strcmp(option, "fileEvents")) {
+	} else if (!strcmp(option, "events") || !strcmp(option, "e") || !strcmp(option, "fileEvents") || !strcmp(option, "fe")) {
                 spare=strdup(argument);
-		sr_cfg->events = sr_parse_events(argument);
+                if ( !strcasecmp(argument,"None") ) {
+			sr_cfg->events = 0;
+		} else if (*argument == '+' ) {
+			sr_cfg->events = sr_cfg->events | sr_parse_events(argument+1);
+		} else if (*argument == '-' ) {
+			sr_cfg->events = sr_cfg->events & ~sr_parse_events(argument+1);
+		} else {
+			sr_cfg->events = sr_parse_events(argument);
+		}
                 if ( sr_cfg->events & SR_EVENT_ERROR ) {
 			sr_log_msg(LOG_ERROR, "Unrecognized event in: %s.\n", spare );
                 }

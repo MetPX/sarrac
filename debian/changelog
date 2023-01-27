@@ -1,6 +1,7 @@
-metpx-sr3c (3.23.01p2) UNRELEASED; urgency=medium
+metpx-sr3c (3.23.01p2) unstable; urgency=medium
 
   * fix for core dump in shim library on bad credentials.
+  * set argument parsing improved (now replaced, unless + prefix.)
 
  -- Peter <peter@bsqt.homeip.net>  Thu, 26 Jan 2023 22:02:06 -0500
 
