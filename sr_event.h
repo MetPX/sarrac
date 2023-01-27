@@ -13,6 +13,7 @@ typedef unsigned char sr_event_s;
 #define SR_EVENT_RMDIR       ((sr_event_s)(0x040))
 #define SR_EVENT_ERROR       ((sr_event_s)(0x400))
 #define SR_EVENT_NONEXISTENT ((sr_event_s)(0x800))
+#define SR_EVENT_ALL         ((sr_event_s)(0x0ff))
 
 sr_event_s sr_parse_events(char *);
 

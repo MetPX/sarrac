@@ -864,8 +864,10 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 
 	} else if (!strcmp(option, "events") || !strcmp(option, "e") || !strcmp(option, "fileEvents") || !strcmp(option, "fe")) {
                 spare=strdup(argument);
-                if ( !strcasecmp(argument,"None") ) {
+                if ( !strcasecmp(argument,"none") ) {
 			sr_cfg->events = 0;
+		} else if ( !strcasecmp(argument,"all") ) {
+			sr_cfg->events = SR_EVENT_ALL;
 		} else if (*argument == '+' ) {
 			sr_cfg->events = sr_cfg->events | sr_parse_events(argument+1);
 		} else if (*argument == '-' ) {
@@ -1722,7 +1724,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		sr_log_msg(LOG_DEBUG, "\tcache_file=%s accept_unmatch=%s post_rate_limit=%d\n",
 			sr_cfg->cachep ? p : "off", sr_cfg->acceptUnmatched ? "on" : "off", sr_cfg->post_rate_limit );
 		sr_log_msg(LOG_DEBUG,
-			"\tevents=%04x directory=%s queuename=%s force_polling=%s sum=%c statehost=%c\n",
+			"\tfileEvents=%04x directory=%s queuename=%s force_polling=%s sum=%c statehost=%c\n",
 			sr_cfg->events, sr_cfg->directory, sr_cfg->queuename,
 			sr_cfg->force_polling ? "on" : "off", sr_cfg->sumalgo, sr_cfg->statehost);
 		sr_log_msg(LOG_DEBUG,
