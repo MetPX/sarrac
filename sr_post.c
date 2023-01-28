@@ -892,17 +892,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	strcpy(newname, n);
 
 	if (sr_c->cfg->realpathPost || sr_c->cfg->realpathFilter) {
-		strcpy(tmpname, o);
-		s = rindex(tmpname, '/');
-		if (s) {
-			*s = '\0';
-			s++;
-		}
-		realpath(tmpname, oldreal);	// apply to directory, not final path entry.
-		if (s) {
-			strcat(oldreal, "/");
-			strcat(oldreal, s);
-		}
+		realpath_resolve( o, oldreal );
 		sr_log_msg(LOG_DEBUG, "applying realpath to old: %s -> %s\n", o, oldreal);
 
 		realpath(n, newreal);
