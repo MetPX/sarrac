@@ -571,23 +571,19 @@ void realpath_resolve(const char *input_path, char *output_path, signed int adju
     strcpy(mutable_input_path, input_path);
 
     if ( adjust < 0 ) {
-	    sr_log_msg(LOG_WARNING, "realpath_resolve adjust negative\n" );
        for(i=0; i > adjust; i-- ) {
 	   spare=end;
            end=strrchr(start,'/');
 	   if (end) {
-	       sr_log_msg(LOG_WARNING, "realpath_resolve found a slash i=%d, adjust=%d\n", i, adjust );
 	       if (spare) 
 		       *spare='/';
 	       *end='\0';
-	       sr_log_msg(LOG_WARNING, "realpath_resolve mutable should now be corrected to: %s\n", mutable_input_path );
 	   } else {
 	 	break;
 	   }
        }
     } else if (adjust > 0) {
-	    sr_log_msg(LOG_WARNING, "realpath_resolve adjust positive\n" );
-       for(i=0; i < adjust; i++ ) {
+       for(i=0; i <= adjust; i++ ) {
 	   spare=start;
            end=strchr(start,'/');
 	   if (end) {
@@ -605,17 +601,14 @@ void realpath_resolve(const char *input_path, char *output_path, signed int adju
     if (last_slash) {
     	*last_slash='\0';
 	return_value=realpath(mutable_input_path,output_path);
-        sr_log_msg(LOG_WARNING, "realpath_resolve i=%s, adj=%d, m=%s -> o=%s \n", input_path, adjust, mutable_input_path, output_path );
     	*last_slash='/';
 	if (return_value) {
         	strcat(output_path,last_slash); 
     	} else {
 		strcpy(output_path,input_path);
-                sr_log_msg(LOG_WARNING, "realpath_resolve no change: 2 no realpath %s adj:%d, %s\n", input_path, adjust, output_path );
         }
     } else {
 	strcpy(output_path,input_path);
-        sr_log_msg(LOG_WARNING, "realpath_resolve no change: 1 no slash %s adj:%d, %s\n", input_path, adjust, output_path );
     }
 
     return;
@@ -935,7 +928,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	strcpy(newname, n);
 
 	if (sr_c->cfg->realpathPost || sr_c->cfg->realpathFilter) {
-		realpath_resolve( o, oldreal, -1 );
+		realpath_resolve( o, oldreal, -1);
 		sr_log_msg(LOG_DEBUG, "applying realpath to old: %s -> %s\n", o, oldreal);
 
 		realpath(n, newreal);
