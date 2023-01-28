@@ -593,9 +593,14 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
     }
 
 		/* realpath stuff when it exists  sb */
-		if (sb && sr_c->cfg->realpathPost) {
+		if (sb && sr_c->cfg->realpathDirPost) {
 			sr_log_msg(LOG_DEBUG, "applying realpath 1 to relpath %s\n", pathspec);
 			if (!realpath_dir(linkstr, fn)) {
+				strcpy(fn, linkstr);
+			}
+		} else if (sb && sr_c->cfg->realpathPost) {
+			sr_log_msg(LOG_DEBUG, "applying realpath 1 to relpath %s\n", pathspec);
+			if (!realpath(linkstr, fn)) {
 				strcpy(fn, linkstr);
 			}
 		} else

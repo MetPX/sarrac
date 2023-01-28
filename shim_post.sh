@@ -25,6 +25,7 @@ realpath off
 logReject on
 logLevel debug
 debug True
+realpathDirPost True
 exchangeDeclare True
 #integrity none
 shim_post_minterval 10
