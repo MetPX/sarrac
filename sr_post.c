@@ -552,28 +552,73 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 	}
 }
 
-void realpath_resolve(const char *input_path, char *output_path) 
+void realpath_resolve(const char *input_path, char *output_path, signed int adjust) 
+ /* how to adjust the realpath resolution.
+  * 0 - use the whole thing.
+  * n < 0 - from the right work left...
+  * n > 0 - from the left, work right...
+  */
 {
     char *last_slash;
+    char *start, *spare, *end;
     char *return_value;
     char mutable_input_path[PATH_MAX];
+    int  i;
 
+    i=0;
+    end=NULL;
+    start=mutable_input_path;
     strcpy(mutable_input_path, input_path);
-    last_slash=rindex(mutable_input_path,'/');
+
+    if ( adjust < 0 ) {
+	    sr_log_msg(LOG_WARNING, "realpath_resolve adjust negative\n" );
+       for(i=0; i > adjust; i-- ) {
+	   spare=end;
+           end=strrchr(start,'/');
+	   if (end) {
+	       sr_log_msg(LOG_WARNING, "realpath_resolve found a slash i=%d, adjust=%d\n", i, adjust );
+	       if (spare) 
+		       *spare='/';
+	       *end='\0';
+	       sr_log_msg(LOG_WARNING, "realpath_resolve mutable should now be corrected to: %s\n", mutable_input_path );
+	   } else {
+	 	break;
+	   }
+       }
+    } else if (adjust > 0) {
+	    sr_log_msg(LOG_WARNING, "realpath_resolve adjust positive\n" );
+       for(i=0; i < adjust; i++ ) {
+	   spare=start;
+           end=strchr(start,'/');
+	   if (end) {
+	       start=end+1;
+	   } else {
+	 	break;
+           }
+       }
+       if (end) {
+	       *end='\0';
+       }
+    }
+
+    last_slash=end;
     if (last_slash) {
     	*last_slash='\0';
 	return_value=realpath(mutable_input_path,output_path);
+        sr_log_msg(LOG_WARNING, "realpath_resolve i=%s, adj=%d, m=%s -> o=%s \n", input_path, adjust, mutable_input_path, output_path );
     	*last_slash='/';
 	if (return_value) {
         	strcat(output_path,last_slash); 
     	} else {
 		strcpy(output_path,input_path);
+                sr_log_msg(LOG_WARNING, "realpath_resolve no change: 2 no realpath %s adj:%d, %s\n", input_path, adjust, output_path );
         }
     } else {
 	strcpy(output_path,input_path);
+        sr_log_msg(LOG_WARNING, "realpath_resolve no change: 1 no slash %s adj:%d, %s\n", input_path, adjust, output_path );
     }
 
-    return(return_value);
+    return;
 }
 
 
@@ -604,7 +649,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		/* realpath stuff when it exists  sb */
 		if (sb && sr_c->cfg->realpathDirPost) {
 			sr_log_msg(LOG_DEBUG, "applying realpath 1 to relpath %s\n", pathspec);
-			realpath_resolve(linkstr, fn);
+			realpath_resolve(linkstr, fn, -1);
 		} else if (sb && sr_c->cfg->realpathPost) {
 			sr_log_msg(LOG_DEBUG, "applying realpath 1 to relpath %s\n", pathspec);
 			if (!realpath(linkstr, fn)) {
@@ -881,18 +926,16 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	struct stat sb;
 	struct sr_header_s first_user_header;
 	struct sr_mask_s *mask;
-	char *s;
 	char oldname[PATH_MAX];
 	char oldreal[PATH_MAX];
 	char newname[PATH_MAX];
 	char newreal[PATH_MAX];
-	char tmpname[PATH_MAX];
 
 	strcpy(oldname, o);
 	strcpy(newname, n);
 
 	if (sr_c->cfg->realpathPost || sr_c->cfg->realpathFilter) {
-		realpath_resolve( o, oldreal );
+		realpath_resolve( o, oldreal, -1 );
 		sr_log_msg(LOG_DEBUG, "applying realpath to old: %s -> %s\n", o, oldreal);
 
 		realpath(n, newreal);
