@@ -37,6 +37,17 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
    fill the message body with a v03 encoded representation of the given message, in the given context.
  */
 
+void realpath_adjust(const char *input_path, char *output_path, signed int adjust);
+/*
+ * apply the realpath function as specified by the adjustment.
+ * == 0 - apply it to the whole path, but if that fails (say, for a broken link) the back retry with -1.
+ *
+ * when adjust is non-zero, examine a subset of elements in the path, denoted by a number of slashes. 
+ *  < 0 - negative values... start from the right, so -1 means the directory immediately containing the file.
+ *  > 0 - positive values... start from the left. so 3 means apply realpath to first three elements of the path.
+ *
+ */
+
 void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m);
 /* 
    post the given message using the established context.

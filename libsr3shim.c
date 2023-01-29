@@ -420,44 +420,6 @@ int srshim_connect()
 	return (sr_connected);
 }
 
-char *stubborn_realpath( const char *path, char *resolved_path ) 
-/*
- like realpath(3) except, it returned a "best" realpath in more cases.
-
-    if the last element of a realpath (such as in a broken link) does not exist, realpath(3) returns NULL.
-    in stubborn version, if last element does not exist, remove it, and try resolving the parent.
-    if the parent resolves, then append the filename to result of the resolved parent, and return that.
-
-    if neither resolves, then just copy input path to resolved path, so that it always returns a value,
-    rather than having to deal with that case separately.
- */
-{
-	char *res;
-        char *last_slash;
-	char path_buffer[PATH_MAX + 1];
-
-	res = realpath(path, resolved_path);
-
-	if (res) return(res);
-
-	sr_shimdebug_msg( 1, "sr_%s stubborn_realpath 2: failed initial realpath of %s\n", sr_cfg.progname, path);
-
-        strcpy(path_buffer,path);
-        last_slash=rindex(path_buffer,'/');
-	*last_slash='\0';
-	res = realpath(path_buffer, resolved_path);
-
-	sr_shimdebug_msg(1,"sr_%s stubborn_realpath 3: tried realpath: %s result: %s\n", sr_cfg.progname, path_buffer, res);
-        if (!res) {
-		strcpy( resolved_path, path );
-        } else { 
-                *last_slash='/';
-	        strcat( resolved_path, last_slash );
-	        sr_shimdebug_msg(1,"sr_%s stubborn_realpath 4: after parent result: %s\n", sr_cfg.progname, resolved_path);
-        }
-        return(resolved_path);
-}
-
 void srshim_realpost(const char *path)
 /*
   post using initialize sr_ context.
@@ -487,7 +449,7 @@ void srshim_realpost(const char *path)
 	strcpy(fn, path);
 
 	if (sr_cfg.realpathPost || sr_cfg.realpathFilter) 
-		stubborn_realpath(path,fnreal);
+		realpath_adjust(path,fnreal,sr_cfg.realpathAdjust);
 
 	if (sr_cfg.realpathPost) {
 		strcpy(fn, fnreal);
@@ -523,19 +485,13 @@ void srshim_realpost(const char *path)
 		return;
         }
 	if (statres) {
-		sr_shimdebug_msg( 1, "srshim_realpost should be really posting %s now sr_c=%p\n", fn, sr_c);
-		sr_post(sr_c, fn, NULL);
+		sr_shimdebug_msg( 1, "srshim_realpost should be really posting %s remove now sr_c=%p\n", path, sr_c);
+		sr_post(sr_c, path, NULL);
 		return;
 	}
 
-	/* if it is a link, sr_post uses the path of the link...  */
-
-	if (S_ISLNK(sb.st_mode)) {
-		strcpy(fn, path);
-	}
-
-	sr_shimdebug_msg( 1, "srshim_realpost 9 PATH %s\n", fn);
-	sr_post(sr_c, fn, &sb);
+	sr_shimdebug_msg( 1, "srshim_realpost 9 PATH %s\n", path);
+	sr_post(sr_c, path, &sb);
 
 }
 
