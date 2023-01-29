@@ -650,14 +650,8 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
     }
 
 		/* realpath stuff when it exists  sb */
-		if (sb && sr_c->cfg->realpathDirPost) {
-			sr_log_msg(LOG_DEBUG, "applying realpath 1 to relpath %s\n", pathspec);
+		if (sb && sr_c->cfg->realpathPost) {
 			realpath_adjust(linkstr, fn, sr_c->cfg->realpathAdjust );
-		} else if (sb && sr_c->cfg->realpathPost) {
-			sr_log_msg(LOG_DEBUG, "applying realpath 1 to relpath %s\n", pathspec);
-			if (!realpath(linkstr, fn)) {
-				strcpy(fn, linkstr);
-			}
 		} else
 			strcpy(fn, linkstr);
 
@@ -942,7 +936,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 		sr_log_msg(LOG_DEBUG, "applying realpath to old: %s -> %s\n", o, oldreal);
 
 		//realpath(n, newreal);
-		realpath_adjust( o, oldreal, sr_c->cfg->realpathAdjust );
+		realpath_adjust( n, newreal, sr_c->cfg->realpathAdjust );
 		sr_log_msg(LOG_DEBUG, "applying realpath to new: %s -> %s\n", n, newreal);
 	}
 
