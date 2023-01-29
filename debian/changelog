@@ -1,3 +1,9 @@
+metpx-sr3c (3.23.01p3) UNRELEASED; urgency=medium
+
+  * added realpathAdjust integer option 
+
+ -- Peter <peter@bsqt.homeip.net>  Sat, 28 Jan 2023 20:00:14 -0500
+
 metpx-sr3c (3.23.01p2) unstable; urgency=medium
 
   * fix for core dump in shim library on bad credentials.
