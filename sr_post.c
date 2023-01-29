@@ -552,7 +552,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 	}
 }
 
-void realpath_resolve(const char *input_path, char *output_path, signed int adjust) 
+void realpath_adjust(const char *input_path, char *output_path, signed int adjust) 
  /* how to adjust the realpath resolution.
   * 0 - use the whole thing.
   * n < 0 - from the right work left...
@@ -570,6 +570,15 @@ void realpath_resolve(const char *input_path, char *output_path, signed int adju
     start=mutable_input_path;
     strcpy(mutable_input_path, input_path);
 
+    if ( adjust == 0 ) {
+	return_value=realpath(input_path,output_path);
+	if (return_value) {
+		sr_log_msg( LOG_DEBUG, "realpath_adjust %d, %s -> %s \n", adjust, input_path, output_path);
+		return;
+	}
+        // fallback to checking a directory for last path element.
+        adjust = -1;
+    } 
     if ( adjust < 0 ) {
        for(i=0; i > adjust; i-- ) {
 	   spare=end;
@@ -595,12 +604,13 @@ void realpath_resolve(const char *input_path, char *output_path, signed int adju
        if (end) {
 	       *end='\0';
        }
-    }
+    } 
 
     last_slash=end;
     if (last_slash) {
     	*last_slash='\0';
 	return_value=realpath(mutable_input_path,output_path);
+	sr_log_msg( LOG_DEBUG, "realpath_adjust %d, %s -> %s \n", adjust, mutable_input_path, output_path);
     	*last_slash='/';
 	if (return_value) {
         	strcat(output_path,last_slash); 
@@ -642,7 +652,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		/* realpath stuff when it exists  sb */
 		if (sb && sr_c->cfg->realpathDirPost) {
 			sr_log_msg(LOG_DEBUG, "applying realpath 1 to relpath %s\n", pathspec);
-			realpath_resolve(linkstr, fn, -1);
+			realpath_adjust(linkstr, fn, sr_c->cfg->realpathAdjust );
 		} else if (sb && sr_c->cfg->realpathPost) {
 			sr_log_msg(LOG_DEBUG, "applying realpath 1 to relpath %s\n", pathspec);
 			if (!realpath(linkstr, fn)) {
@@ -928,10 +938,11 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	strcpy(newname, n);
 
 	if (sr_c->cfg->realpathPost || sr_c->cfg->realpathFilter) {
-		realpath_resolve( o, oldreal, -1);
+		realpath_adjust( o, oldreal, sr_c->cfg->realpathAdjust );
 		sr_log_msg(LOG_DEBUG, "applying realpath to old: %s -> %s\n", o, oldreal);
 
-		realpath(n, newreal);
+		//realpath(n, newreal);
+		realpath_adjust( o, oldreal, sr_c->cfg->realpathAdjust );
 		sr_log_msg(LOG_DEBUG, "applying realpath to new: %s -> %s\n", n, newreal);
 	}
 

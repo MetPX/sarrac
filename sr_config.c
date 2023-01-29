@@ -1050,6 +1050,10 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		sr_cfg->prefetch = atoi(argument);
 		retval = (2);
 
+	} else if (!strcmp(option, "realpathAdjust")) {
+		sr_cfg->realpathAdjust = atoi(argument);
+		retval = (2);
+
 	} else if (!strcmp(option, "realpathDirPost") ) {
 		val = StringIsTrue(argument);
 		sr_cfg->realpathDirPost = val & 2;
@@ -1390,6 +1394,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	for (c = sr_cfg->randid; c < (sr_cfg->randid + RANDID_LEN); ++c)
 		sprintf(c, "%x", rand() % 16);
 
+	sr_cfg->realpathAdjust = 0;
 	sr_cfg->realpathDirPost = 0;
 	sr_cfg->realpathPost = 0;
 	sr_cfg->realpathFilter = 1;
@@ -1719,10 +1724,10 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	// Since we check how old the log is, we ust not write to the log during startup in sanity mode.
 	if (strcmp(sr_cfg->action, "sanity")) {
 		sr_log_msg(LOG_DEBUG,
-			"sr_%s %s settings: action=%s hostname=%s config_name=%s log_level=%d follow_symlinks=%s realpath: Filter=%s DirPost=%s Post=%s\n",
+			"sr_%s %s settings: action=%s hostname=%s config_name=%s log_level=%d follow_symlinks=%s realpath: Adjust=%d Filter=%s DirPost=%s Post=%s\n",
 			sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_local_fqdn(), 
-			sr_cfg->configname, sr_cfg->loglevel,
-			sr_cfg->follow_symlinks ? "yes" : "no", 
+			sr_cfg->configname, sr_cfg->loglevel, 
+			sr_cfg->follow_symlinks ? "yes" : "no", sr_cfg->realpathAdjust,
 			sr_cfg->realpathFilter ? "yes" : "no",
 			sr_cfg->realpathDirPost ? "yes" : "no",
 			sr_cfg->realpathPost ? "yes" : "no"

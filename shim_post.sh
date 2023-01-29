@@ -25,6 +25,7 @@ realpath off
 logReject on
 logLevel debug
 debug True
+realpathAdjust -2
 realpathDirPost True
 exchangeDeclare True
 #integrity none
