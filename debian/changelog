@@ -1,3 +1,9 @@
+metpx-sr3c (3.23.02) UNRELEASED; urgency=medium
+
+  * adjust version.
+
+ -- Peter <peter@bsqt.homeip.net>  Sun, 29 Jan 2023 09:02:55 -0500
+
 metpx-sr3c (3.23.01p3) unstable; urgency=medium
 
   * added realpathAdjust integer option 
