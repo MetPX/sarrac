@@ -69,14 +69,14 @@ struct sr_path_s {
 };
 
 /**
- * struct sr_topic_s - topic arguments.
+ * struct sr_binding_s - topic arguments.
  */
 
-struct sr_topic_s {
+struct sr_binding_s {
 	char exchange[AMQP_MAX_SS];		 /**< the exchange part of the binding to.*/
 	char topic[AMQP_MAX_SS];
 			   /**< the topic itself. */
-	struct sr_topic_s *next;
+	struct sr_binding_s *next;
 			   /**< link to the next item in the singly linked list. */
 };
 
@@ -225,7 +225,7 @@ struct sr_config_s {
 	char sumalgoz;		/**< if algo is z what is the real checksum algorithm to apply.*/
 	char *source;	      /**< indicates the cluster of origin of a post.*/
 	char *to;	  /**< indicates destination cluster(s) for a post.*/
-	struct sr_topic_s *topics;
+	struct sr_binding_s *bindings;
 			      /**< list of sub-topics to subscribe to.*/
 	char topicPrefix[AMQP_MAX_SS];		 /**< the topic prefix to subscribe to.*/
 	char post_topicPrefix[AMQP_MAX_SS];   /**< the topic prefix to post to.*/
@@ -300,17 +300,18 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option,
 void sr_add_path(struct sr_config_s *sr_cfg, const char *path);
 
 /**
- * sr_add_topic() - add to the list of topics in an sr_cfg
+ * sr_add_binding() - add to the list of topics in an sr_cfg
  * \param sr_cfg: The configuration to be modified with the additional topic.
  * \param sub:    The subtopic to be appended to the list.
  * 
- * Add a topic to the list of bindings, based on the current topic prefix
+ * Add a topic to the list of bindings, based on the current topic prefix,
+ * and a best guess at the current exchange name derived from sr_cfg.
  * Add the given topic to the list of known ones for a sr_cfg.
  *
- * Return: the sr_cfg with the added (sub)topics.
+ * Return: the sr_cfg with the added bindings.
  */
 
-void sr_add_topic(struct sr_config_s *sr_cfg, const char *sub);
+void sr_add_binding(struct sr_config_s *sr_cfg, const char *sub);
 
 /**
  * sr_broker_uri - given an sr_broker_s, return a url string.

@@ -108,7 +108,7 @@ void sr_add_path(struct sr_config_s *sr_cfg, const char *option)
 }
 
 /**
- * sr_add_topic() - add to the list of topics in an sr_cfg
+ * sr_add_binding() - add to the list of topics in an sr_cfg
  * @sr_cfg: The configuration to be modified with the additional topic.
  * @sub:    The subtopic to be appended to the list.
  * 
@@ -117,26 +117,35 @@ void sr_add_path(struct sr_config_s *sr_cfg, const char *option)
  * Return: the sr_cfg with the added (sub)topics.
  */
 
-void sr_add_topic(struct sr_config_s *sr_cfg, const char *sub)
+void sr_add_binding(struct sr_config_s *sr_cfg, const char *sub)
 {
-	struct sr_topic_s *t;
-	struct sr_topic_s *n;
+	struct sr_binding_s *t;
+	struct sr_binding_s *n;
 
-	t = (struct sr_topic_s *)malloc(sizeof(struct sr_topic_s));
+	t = (struct sr_binding_s *)malloc(sizeof(struct sr_binding_s));
 	if (t == NULL) {
 		sr_log_msg(LOG_ERROR, "malloc of topic failed!\n");
 		return;
 	}
 	t->next = NULL;
-	strncpy(t->exchange, sr_cfg->exchange, AMQP_MAX_SS);
+
+	if (sr_cfg->exchange) {
+		strcpy( t->exchange, sr_cfg->exchange);
+	} else {
+		if (sr_cfg->exchangeSuffix) {
+			sprintf(t->exchange, "xs_%s_%s", sr_cfg->broker->user, sr_cfg->exchangeSuffix);
+		} else
+			strcpy(t->exchange, "xpublic");
+	}
+
 	strcpy(t->topic, sr_cfg->topicPrefix);
 	strcat(t->topic, ".");
 	strcat(t->topic, sub);
 
-	if (!sr_cfg->topics) {
-		sr_cfg->topics = t;
+	if (!sr_cfg->bindings) {
+		sr_cfg->bindings = t;
 	} else {
-		n = sr_cfg->topics;
+		n = sr_cfg->bindings;
 		while (n->next)
 			n = n->next;
 		n->next = t;
@@ -1107,7 +1116,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (2);
 
 	} else if (!strcmp(option, "subtopic") || !strcmp(option, "sub")) {
-		sr_add_topic(sr_cfg, argument);
+		sr_add_binding(sr_cfg, argument);
 		retval = (2);
 
 	} else if (!strcmp(option, "statehost") || !strcmp(option, "sh")) {
@@ -1287,10 +1296,10 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 		free(tmph);
 	}
 
-    while ( sr_cfg->topics ) {
-		struct sr_topic_s *tmpt;
-		tmpt = sr_cfg->topics;
-		sr_cfg->topics = sr_cfg->topics->next;
+    while ( sr_cfg->bindings ) {
+		struct sr_binding_s *tmpt;
+		tmpt = sr_cfg->bindings;
+		sr_cfg->bindings = sr_cfg->bindings->next;
 		free(tmpt);
     }
 	struct sr_path_s *p = sr_cfg->paths;
@@ -1410,7 +1419,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->user_headers = NULL;
 	strcpy(sr_cfg->topicPrefix, "v02.post");
 	strcpy(sr_cfg->post_topicPrefix, "v02.post");
-	sr_cfg->topics = NULL;
+	sr_cfg->bindings = NULL;
 	sr_cfg->post_baseUrl = NULL;
 
 	sr_cfg->v2compatRenameDoublePost = 0;

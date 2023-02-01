@@ -86,7 +86,7 @@ int sr_consume_setup(struct sr_context *sr_c)
 	amqp_boolean_t passive = 0;
 	amqp_boolean_t exclusive = 0;
 	amqp_boolean_t auto_delete = 0;
-	struct sr_topic_s *t;
+	struct sr_binding_s *t;
 	static amqp_basic_properties_t props;
 	static amqp_table_t table;
 	static amqp_table_entry_t table_entries[2];
@@ -137,12 +137,12 @@ int sr_consume_setup(struct sr_context *sr_c)
 	/*
 	   FIXME: topic bindings are not working properly...
 	 */
-	if (!sr_c->cfg->topics) {
-		sr_add_topic(sr_c->cfg, "#");
+	if (!sr_c->cfg->bindings) {
+		sr_add_binding(sr_c->cfg, "#");
 	}
-	sr_log_msg(LOG_DEBUG, "topics: %p, string=+%p+\n", sr_c->cfg->topics, sr_c->cfg->topics);
+	sr_log_msg(LOG_DEBUG, "bindings: %p, string=+%p+\n", sr_c->cfg->bindings, sr_c->cfg->bindings);
 
-	for (t = sr_c->cfg->topics; t; t = t->next) {
+	for (t = sr_c->cfg->bindings; t; t = t->next) {
 		amqp_queue_bind(sr_c->cfg->broker->conn, 1,
 				amqp_cstring_bytes(sr_c->cfg->queuename),
 				amqp_cstring_bytes(t->exchange),
