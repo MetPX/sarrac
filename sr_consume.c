@@ -145,7 +145,7 @@ int sr_consume_setup(struct sr_context *sr_c)
 	for (t = sr_c->cfg->topics; t; t = t->next) {
 		amqp_queue_bind(sr_c->cfg->broker->conn, 1,
 				amqp_cstring_bytes(sr_c->cfg->queuename),
-				amqp_cstring_bytes(sr_c->cfg->broker->exchange),
+				amqp_cstring_bytes(t->exchange),
 				amqp_cstring_bytes(t->topic), amqp_empty_table);
 
 		reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);

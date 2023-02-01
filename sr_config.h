@@ -73,6 +73,7 @@ struct sr_path_s {
  */
 
 struct sr_topic_s {
+	char exchange[AMQP_MAX_SS];		 /**< the exchange part of the binding to.*/
 	char topic[AMQP_MAX_SS];
 			   /**< the topic itself. */
 	struct sr_topic_s *next;

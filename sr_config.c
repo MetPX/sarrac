@@ -128,6 +128,7 @@ void sr_add_topic(struct sr_config_s *sr_cfg, const char *sub)
 		return;
 	}
 	t->next = NULL;
+	strncpy(t->exchange, sr_cfg->exchange, AMQP_MAX_SS);
 	strcpy(t->topic, sr_cfg->topicPrefix);
 	strcat(t->topic, ".");
 	strcat(t->topic, sub);
