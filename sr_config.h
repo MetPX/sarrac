@@ -205,7 +205,7 @@ struct sr_config_s {
 	char *post_exchange;	     /**< the exchange to post to on the post broker.*/
 	int post_exchange_split;	   /**< the count of  a team of similar exchanges.*/
 	char *post_exchangeSuffix;	    /**< appended to an exchange name.*/
-	int post_rate_limit;	 /**< limit maximum number of posts per second */
+	int messageRateMax;	 /**< limit maximum number of posts per second */
 	char *queuename;	 /**< the name of the queue for a consumer.*/
 	char *randid;	      /**< a random id, typically used in queue name generation.*/
 	int realpathAdjust;		/**< flag to indicate number of elements to trim postive from left, neative from right.*/

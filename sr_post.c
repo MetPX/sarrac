@@ -380,10 +380,10 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 
         // rate limiting.        
 
-        if ( sr_c->cfg->post_rate_limit > 0 )  {
+        if ( sr_c->cfg->messageRateMax > 0 )  {
 
-	        if (posted_this_second >= sr_c->cfg->post_rate_limit ) {
-			sr_log_msg(LOG_INFO, "post_rate_limit %d per second\n", sr_c->cfg->post_rate_limit);
+	        if (posted_this_second >= sr_c->cfg->messageRateMax ) {
+			sr_log_msg(LOG_INFO, "messageRateMax %d per second\n", sr_c->cfg->messageRateMax);
        		 	sleep(1);
        		}
 

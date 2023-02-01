@@ -1043,7 +1043,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 	} else if ( !strcmp(option, "post_rate_limit") || !strcmp(option, "pxs")
            || !strcmp(option, "message_rate_max") || !strcmp(option, "mrx")
            || !strcmp(option, "messageRateMax")) {
-		sr_cfg->post_rate_limit = atoi(argument);
+		sr_cfg->messageRateMax = atoi(argument);
 		retval = (2);
 
 	} else if (!strcmp(option, "prefetch")) {
@@ -1369,7 +1369,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->post_broker = NULL;
 	sr_cfg->post_exchange = NULL;
 	sr_cfg->post_exchange_split = 0;
-	sr_cfg->post_rate_limit = 0;
+	sr_cfg->messageRateMax = 0;
 	sr_cfg->post_exchangeSuffix = NULL;
 	sr_cfg->prefetch = 25;
 
@@ -1730,8 +1730,8 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			"\tsleep=%g expire=%g heartbeat=%g sanity_log_dead=%g nodupe_ttl=%g statehost=%s v2compatRenameDoublePost=%s\n",
 			sr_cfg->sleep, sr_cfg->expire, sr_cfg->heartbeat, sr_cfg->sanity_log_dead, sr_cfg->nodupe_ttl, 
                         sr_cfg->statehost ? "yes" : "no", sr_cfg->v2compatRenameDoublePost ? "yes": "no" );
-		sr_log_msg(LOG_DEBUG, "\tcache_file=%s accept_unmatch=%s post_rate_limit=%d\n",
-			sr_cfg->cachep ? p : "off", sr_cfg->acceptUnmatched ? "on" : "off", sr_cfg->post_rate_limit );
+		sr_log_msg(LOG_DEBUG, "\tcache_file=%s accept_unmatch=%s messageRateMax=%d\n",
+			sr_cfg->cachep ? p : "off", sr_cfg->acceptUnmatched ? "on" : "off", sr_cfg->messageRateMax );
 		sr_log_msg(LOG_DEBUG,
 			"\tfileEvents=%04x directory=%s queuename=%s force_polling=%s sum=%c statehost=%c\n",
 			sr_cfg->events, sr_cfg->directory, sr_cfg->queuename,
