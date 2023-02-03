@@ -221,6 +221,8 @@ struct sr_config_s {
 	char statehost;		  /**< flagish thing: '0','s','f' meaning no, short fqdn*/
 	char *statehostval;	     /**< actual hostname resulting from statehost.*/
 	int strip;	     /**< number of path elements to strip from posted path  */
+	char *strip_pattern;	     /**< pattern path elements to strip from posted path  */
+	regex_t strip_regex;	     /**< pattern path elements to strip from posted path  */
 	char sumalgo;	       /**< checksum algorithm to use.*/
 	char sumalgoz;		/**< if algo is z what is the real checksum algorithm to apply.*/
 	char *source;	      /**< indicates the cluster of origin of a post.*/
@@ -241,6 +243,21 @@ struct sr_config_s {
  * Return: static hostname character string.
  */
 char *sr_local_fqdn();
+
+
+#ifdef FORCE_LIBC_REGEX
+
+/**
+ * there are somtimes multiple regex libraries on systems, and the times when it finds the "wrong" one.
+ * when we need to force the right one, sr_config finds it, and sets up a pointer for use by other code.
+ */
+
+typedef int (*regexec_fn) (const regex_t * preg, const char *string,
+                           size_t nmatch, regmatch_t pmatch[], int eflags);
+
+extern regexec_fn regexec_fn_ptr;
+
+#endif
 
 /**
  * sr_isMatchingPattern() - return pointer to matched pattern, if there is one, NULL otherwise.

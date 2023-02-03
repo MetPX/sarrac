@@ -278,7 +278,7 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
         }
 
 
-    	if (sr_c->cfg->strip > 0) 
+    	if (sr_c->cfg->strip != 0) 
                  v03amqp_header_add( &c, "rename", m->rename );
 
     	if (m->source && m->source[0]) 
@@ -702,6 +702,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	}
 	// Strip option: remove prefix from path according to / #
 	//               include updated path tagged as "rename" in header
+	sr_log_msg(LOG_INFO, "FIXME strip:  m->strip: %d\n", sr_c->cfg->strip );
 	if (sr_c->cfg->strip > 0) {
 		i = sr_c->cfg->strip;
 		c = strdup(m->path);
@@ -715,7 +716,26 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		}
 		strcpy(m->rename, *c ? c : "/");
 		free(d);
-	}
+	} else if (sr_c->cfg->strip == -1) { // regex case.
+                regmatch_t pmatch[1];
+		//regoff_t off, len;
+		const char *s = m->path;
+
+#ifdef FORCE_LIBC_REGEX
+                if (regexec_fn_ptr(&(sr_c->cfg->strip_regex), s, sizeof(pmatch), pmatch, 0)) {
+#else
+                if (regexec(&(sr_c->cfg->strip_regex), s, sizeof(pmatch), pmatch, 0)) {
+#endif
+                        sr_log_msg(LOG_INFO, "FIXME strip: no match to: %s\n", sr_c->cfg->strip_pattern ); 
+		} else { // failure is matching case.	
+			//off = pmatch[0].rm_so + (s-m->path); 
+			//len = pmatch[0].rm_eo - pmatch[0].rm_so; 
+                        strncpy(m->rename, s, pmatch[0].rm_so ); // copy part before match starts.
+                        strcat(m->rename, s+pmatch[0].rm_eo ); // copy part after match ends
+		        sr_log_msg(LOG_DEBUG, "regexp strip: m->path: %s, m->rename: %s\n", m->path, m->rename );
+			s += pmatch[0].rm_eo;
+		}
+        }
 	// use tmprk variable to fix  255 AMQP_SS_LEN limit
 	strcpy(tmprk, sr_c->cfg->post_topicPrefix);
 	strcat(tmprk, ".");

@@ -157,10 +157,7 @@ void sr_add_binding(struct sr_config_s *sr_cfg, const char *sub)
 typedef int (*regcomp_fn) (regex_t * pregg, const char *regex, int clfags);
 static regcomp_fn regcomp_fn_ptr = NULL;
 
-typedef int (*regexec_fn) (const regex_t * preg, const char *string,
-			   size_t nmatch, regmatch_t pmatch[], int eflags);
-
-static regexec_fn regexec_fn_ptr = NULL;
+regexec_fn regexec_fn_ptr = NULL;
 
 #endif
 
@@ -203,12 +200,25 @@ struct sr_mask_s *sr_isMatchingPattern(struct sr_config_s *sr_cfg, const char *c
 	return (entry);
 }
 
+bool regcomp_fn_ptr_is_setup() {
+	void *handle;
+	if (!regcomp_fn_ptr) {
+		handle = dlopen(FORCE_LIBC_REGEX, RTLD_LAZY);
+
+		regcomp_fn_ptr = dlsym(handle, "regcomp");
+		regexec_fn_ptr = dlsym(handle, "regexec");
+		if (!regcomp_fn_ptr) {
+			return false;
+		}
+	}
+	return true;
+}
+
 static void add_mask(struct sr_config_s *sr_cfg, char *directory, char *option, int accept)
 {
 	struct sr_mask_s *new_entry;
 	struct sr_mask_s *next_entry;
 	int status;
-	void *handle;
 
 	//if ( (sr_cfg) && sr_cfg->debug )
 	//    fprintf( stderr, "adding mask: %s %s\n", accept?"accept":"reject", option );
@@ -220,18 +230,12 @@ static void add_mask(struct sr_config_s *sr_cfg, char *directory, char *option, 
 	new_entry->clause = strdup(option);
 
 #ifdef FORCE_LIBC_REGEX
-	if (!regcomp_fn_ptr) {
-		handle = dlopen(FORCE_LIBC_REGEX, RTLD_LAZY);
-
-		regcomp_fn_ptr = dlsym(handle, "regcomp");
-		regexec_fn_ptr = dlsym(handle, "regexec");
-		if (!regcomp_fn_ptr) {
-			sr_log_msg(LOG_CRITICAL,
-				"cannot find regcomp library function: regex %s ignored\n", option);
-			return;
-		}
+	if (regcomp_fn_ptr_is_setup()) {
+		status = regcomp_fn_ptr(&(new_entry->regexp), option, REG_EXTENDED | REG_NOSUB);
+	} else {
+		sr_log_msg(LOG_CRITICAL, "cannot find regcomp library function: regex %s ignored\n", option);
+		return;
 	}
-	status = regcomp_fn_ptr(&(new_entry->regexp), option, REG_EXTENDED | REG_NOSUB);
 #else
 	status = regcomp(&(new_entry->regexp), option, REG_EXTENDED | REG_NOSUB);
 #endif
@@ -696,6 +700,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 	char *brokerstr, *argument, *argument2, *spare;
 	int val;
 	int retval;
+       
 	//char p[PATH_MAX];
 
 	if (strcspn(option, " \t\n#") == 0)
@@ -1143,10 +1148,29 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 	} else if (!strcmp(option, "strip")) {
 		sr_cfg->strip = atoi(argument);
 		// Check if arg was a number, if not: REGEX
+		retval = 2;
+
 		if (sr_cfg->strip == 0 && argument[0] != '0') {
 			// REGEX processing...
+                        int regstat;
+			sr_cfg->strip_pattern = strdup(argument);
+		        sr_log_msg( LOG_INFO, "regex strip arg\n" ); 
+#ifdef FORCE_LIBC_REGEX
+        		if (regcomp_fn_ptr_is_setup()) {
+               			 regstat = regcomp_fn_ptr(&(sr_cfg->strip_regex), sr_cfg->strip_pattern, REG_EXTENDED );
+        		} else {
+				sr_log_msg(LOG_CRITICAL, "Failed to access regex library. ignored strip argument:  %s\n", argument );
+				return(retval);
+		        }
+#else
+        		regstat = regcomp(&(sr_cfg->strip_regex), sr_cfg->strip_pattern, REG_EXTENDED );
+#endif
+			if (regstat) {
+				sr_log_msg(LOG_ERROR, "invalid regular expression: %s. Ignored\n", argument);
+				return(retval);
+			}
+			sr_cfg->strip = -1 ; // flag to say look at regex rather than integer.
 		}
-		retval = (2);
 
 	} else if (!strcmp(option, "sum") || !strcmp(option, "integrity")) {
 		sr_cfg->sumalgo = argument[0];
