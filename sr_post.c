@@ -269,7 +269,7 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
 
         v03amqp_header_add( &c, "baseUrl", m->url );
 
-        v03amqp_header_add( &c, "relPath", m->path );
+        v03amqp_header_add( &c, "relPath", m->relPath );
 
         ci= v03integrity(m) ;
         if (ci) {
@@ -400,11 +400,11 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
                 return;
         }
 	// MG white space in filename
-	strcpy(fn, m->path);
-	c = strchr(m->path, ' ');
+	strcpy(fn, m->relPath);
+	c = strchr(m->relPath, ' ');
 	if (c != NULL) {
 		c = fn;
-		d = m->path;
+		d = m->relPath;
 		//while ( *d ) { if ( *d == ' ' ) { *c++='%'; *c++='2'; *c++='0'; } else *c++ = *d; d++; }
 
 		while (*d) {
@@ -670,7 +670,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
  */
 	/* copy filename to path, but inserting %20 for every space
 	 */
-	c = m->path;
+	c = m->relPath;
 	d = fn;
 	//while ( *d ) { if ( *d == ' ' ) { *c++='%'; *c++='2'; *c++='0'; } else *c++ = *d; d++; }
 	while (*d) {
@@ -689,14 +689,14 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		d++;
 	}
 	*c = '\0';
-	//strcpy( m->path, fn );
+	//strcpy( m->relPath, fn );
 
 	if (sr_c->cfg->post_baseDir) {
 		drfound = strstr(fn, sr_c->cfg->post_baseDir);
 
 		if (drfound) {
 			drfound += strlen(sr_c->cfg->post_baseDir);
-			strcpy(m->path, drfound);
+			strcpy(m->relPath, drfound);
 		}
 	}
 	// Strip option: remove prefix from path according to / #
@@ -704,7 +704,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	sr_log_msg(LOG_INFO, "FIXME strip:  m->strip: %d\n", sr_c->cfg->strip );
 	if (sr_c->cfg->strip > 0) {
 		i = sr_c->cfg->strip;
-		c = strdup(m->path);
+		c = strdup(m->relPath);
 		d = c;
 		while (i--) {
 			if (*c == '/')
@@ -718,7 +718,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	} else if (sr_c->cfg->strip == -1) { // regex case.
                 regmatch_t pmatch[1];
 		//regoff_t off, len;
-		const char *s = m->path;
+		const char *s = m->relPath;
 
 #define ARRAY_SIZE(arr) (sizeof((arr)) / sizeof((arr)[0]))
 
@@ -729,18 +729,18 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 #endif
                         sr_log_msg(LOG_INFO, "FIXME strip: no match to: %s\n", sr_c->cfg->strip_pattern ); 
 		} else { // failure is matching case.	
-			//off = pmatch[0].rm_so + (s-m->path); 
+			//off = pmatch[0].rm_so + (s-m->relPath); 
 			//len = pmatch[0].rm_eo - pmatch[0].rm_so; 
                         strncpy(m->rename, s, pmatch[0].rm_so ); // copy part before match starts.
                         strcat(m->rename, s+pmatch[0].rm_eo ); // copy part after match ends
-		        sr_log_msg(LOG_DEBUG, "regexp strip: m->path: %s, m->rename: %s\n", m->path, m->rename );
+		        sr_log_msg(LOG_DEBUG, "regexp strip: m->relPath: %s, m->rename: %s\n", m->relPath, m->rename );
 			s += pmatch[0].rm_eo;
 		}
         }
 	// use tmprk variable to fix  255 AMQP_SS_LEN limit
 	strcpy(tmprk, sr_c->cfg->post_topicPrefix);
 	strcat(tmprk, ".");
-	strcat(tmprk, m->path + (*(m->path) == '/'));
+	strcat(tmprk, m->relPath + (*(m->relPath) == '/'));
 
 	if (strlen(tmprk) > 255)
 		tmprk[255] = '\0';
@@ -879,14 +879,14 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 						   sr_c->cfg->cache_basis,
 						   m.sum[0],
 						   (unsigned char *)(m.sum),
-						   m.path, sr_message_partstr(&m));
+						   m.relPath, sr_message_partstr(&m));
 				sr_log_msg(LOG_DEBUG, "sr_post cache_check: %s\n",
 					status ? "not found" : "already there, no post");
 				if (!status) {
 					if (sr_c->cfg->log_reject)
 						sr_log_msg(LOG_INFO,
 							"rejecting duplicate: %s, %s\n",
-							m.path, sr_message_partstr(&m));
+							m.relPath, sr_message_partstr(&m));
 					continue;	// cache hit.
 				}
 			}

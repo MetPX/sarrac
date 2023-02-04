@@ -200,7 +200,7 @@ static void assign_field(const char *key, char *value)
 		s = strtok(NULL, ",");
 		msg.parts_num = atol(s);
 	} else if (!strcmp(key, "path")) {
-		strcpy(msg.path, value);
+		strcpy(msg.relPath, value);
 	} else if (!strcmp(key, "source")) {
 		strcpy(msg.source, value);
 	} else if (!strcmp(key, "sum")) {
@@ -349,8 +349,8 @@ static void v03assign_field(const char *key, json_object *jso_v)
 	       		sr_log_msg( LOG_ERROR, "malformed json: relPath should be string: %d\n", json_object_get_type(jso_v) );
 		 	return;
         	}
-	        strcpy( msg.path, json_object_get_string(jso_v) );
-		if ( strlen(msg.path) == 0 ) {
+	        strcpy( msg.relPath, json_object_get_string(jso_v) );
+		if ( strlen(msg.relPath) == 0 ) {
 	       		sr_log_msg( LOG_ERROR, "malformed message: relPath is empty string.\n" ); 
 		 	return;
                 }
@@ -394,9 +394,9 @@ static void v03assign_field(const char *key, json_object *jso_v)
 			return;
                 } else if ( json_object_object_get_ex(jso_v, "remove", &subvalue) ) { 
                         char *just_the_name;
-                        if (msg.path && strlen(msg.path) > 0) {
-				just_the_name = rindex(msg.path, '/') + 1;
-				just_the_name = just_the_name?just_the_name+1:msg.path;
+                        if (msg.relPath && strlen(msg.relPath) > 0) {
+				just_the_name = rindex(msg.relPath, '/') + 1;
+				just_the_name = just_the_name?just_the_name+1:msg.relPath;
                         } else {
                                 // FIXME should defer to end of parse and find the real name.
                                 // This is a bug, but nobody does mirroring with v2 anyways.
@@ -411,9 +411,9 @@ static void v03assign_field(const char *key, json_object *jso_v)
 		        return;   
                 } else if ( json_object_object_get_ex(jso_v, "directory", &subvalue) ) { 
                         char *just_the_name;
-                        if (msg.path && strlen(msg.path) > 0) {
-				just_the_name = rindex(msg.path, '/') + 1;
-				just_the_name = just_the_name?just_the_name+1:msg.path;
+                        if (msg.relPath && strlen(msg.relPath) > 0) {
+				just_the_name = rindex(msg.relPath, '/') + 1;
+				just_the_name = just_the_name?just_the_name+1:msg.relPath;
                         } else {
                                 // FIXME should defer to end of parse and find the real name.
                                 // This is a bug, but nobody does mirroring with v2 anyways.
@@ -428,9 +428,9 @@ static void v03assign_field(const char *key, json_object *jso_v)
 		        return;   
                 } else if ( json_object_object_get_ex(jso_v, "rmdir", &subvalue) ) { 
                         char *just_the_name;
-                        if (msg.path && strlen(msg.path) > 0) {
-				just_the_name = rindex(msg.path, '/') + 1;
-				just_the_name = just_the_name?just_the_name+1:msg.path;
+                        if (msg.relPath && strlen(msg.relPath) > 0) {
+				just_the_name = rindex(msg.relPath, '/') + 1;
+				just_the_name = just_the_name?just_the_name+1:msg.relPath;
                         } else {
                                 // FIXME should defer to end of parse and find the real name.
                                 // This is a bug, but nobody does mirroring with v2 anyways.
@@ -494,7 +494,7 @@ static void v03assign_field(const char *key, json_object *jso_v)
 			sr_log_msg( LOG_ERROR, "malformed json: relPath value should be string: %d\n", json_object_get_type(jso_v) );
        		    	return;
 	        }
-		strcpy(msg.path,  json_object_get_string(jso_v));
+		strcpy(msg.relPath,  json_object_get_string(jso_v));
 	} else if (!strcmp(key, "source")) {
 		if (!json_object_is_type(jso_v,json_type_string)) {
 			sr_log_msg( LOG_ERROR, "malformed json: source value should be string: %d\n", json_object_get_type(jso_v) );
@@ -527,7 +527,7 @@ char *sr_message_2log(struct sr_message_s *m)
         char *ci;
 	char *rename;
 
-	sprintf(b, "{ \"pubTime\":\"%s\", \"baseUrl\":\"%s\", \"relPath\":\"%s\", \"topic\":\"%s\"", m->datestamp, m->url, m->path, m->routing_key);
+	sprintf(b, "{ \"pubTime\":\"%s\", \"baseUrl\":\"%s\", \"relPath\":\"%s\", \"topic\":\"%s\"", m->datestamp, m->url, m->relPath, m->routing_key);
 
 
         ci = v03integrity(m);
@@ -619,13 +619,13 @@ void sr_message_2json(struct sr_message_s *m)
 		printf(", ");
 		json_dump_strheader(h->key, h->value);
 	}
-	printf(" } \"%s %s  %s\"", m->datestamp, m->url, m->path);
+	printf(" } \"%s %s  %s\"", m->datestamp, m->url, m->relPath);
 	printf("]\n");
 }
 
 void sr_message_2url(struct sr_message_s *m)
 {
-	printf("%s/%s\n", m->url, m->path);
+	printf("%s/%s\n", m->url, m->relPath);
 }
 
 struct sr_message_s *sr_consume(struct sr_context *sr_c)
@@ -883,7 +883,7 @@ after_headers:
     		strcpy(msg.url, tok);
     		tok = strtok(NULL, " ");
     		//fprintf( stdout, "\t\"path\" : \"%s\", \n", tok);
-    		strcpy(msg.path, tok);
+    		strcpy(msg.relPath, tok);
     		if (is_report) {
     			tok = strtok(NULL, " ");
     			//fprintf( stdout, "\t\"statuscode\" : \"%s\", \n", tok);
@@ -937,7 +937,7 @@ after_headers:
 
 bool sr_message_valid( struct sr_message_s *m ) {
 
-	if (strlen(m->path) == 0 ) {
+	if (strlen(m->relPath) == 0 ) {
                 sr_log_msg( LOG_ERROR, "zero length relPath\n" );
 		return false;
         }
