@@ -278,7 +278,7 @@ void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s
         }
 
 
-    	if (sr_c->cfg->strip != 0) 
+    	if (sr_c->cfg->strip != 0)  
                  v03amqp_header_add( &c, "rename", m->rename );
 
     	if (m->source && m->source[0]) 
@@ -640,22 +640,21 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	char linkstr[PATH_MAXNUL];
 	char tmprk[PATH_MAXNUL + 100];
 
-  	if (*pathspec != '/')	// need absolute path.
-  	{
+  	if (*pathspec != '/') {	// need absolute path.
   		getcwd(linkstr, PATH_MAX);
   		strcat(linkstr, "/");
   		strcat(linkstr, pathspec);
-    } else {
-      strcpy(linkstr, pathspec);
-    }
+        } else {
+      		strcpy(linkstr, pathspec);
+    	}
 
-		/* realpath stuff when it exists  sb */
-		if (sb && sr_c->cfg->realpathPost) {
-			realpath_adjust(linkstr, fn, sr_c->cfg->realpathAdjust );
-		} else
-			strcpy(fn, linkstr);
+	/* realpath stuff when it exists  sb */
+	if (sb && sr_c->cfg->realpathPost) {
+		realpath_adjust(linkstr, fn, sr_c->cfg->realpathAdjust );
+	} else
+		strcpy(fn, linkstr);
 
-		linkstr[0] = '\0';
+	linkstr[0] = '\0';
 
 	if ( (sr_c->cfg != NULL) && sr_c->cfg->debug) {
 		sr_log_msg(LOG_DEBUG,
@@ -721,10 +720,12 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		//regoff_t off, len;
 		const char *s = m->path;
 
+#define ARRAY_SIZE(arr) (sizeof((arr)) / sizeof((arr)[0]))
+
 #ifdef FORCE_LIBC_REGEX
-                if (regexec_fn_ptr(&(sr_c->cfg->strip_regex), s, sizeof(pmatch), pmatch, 0)) {
+                if (regexec_fn_ptr(&(sr_c->cfg->strip_regex), s, ARRAY_SIZE(pmatch), pmatch, 0)) {
 #else
-                if (regexec(&(sr_c->cfg->strip_regex), s, sizeof(pmatch), pmatch, 0)) {
+                if (regexec(&(sr_c->cfg->strip_regex), s, ARRAY_SIZE(pmatch), pmatch, 0)) {
 #endif
                         sr_log_msg(LOG_INFO, "FIXME strip: no match to: %s\n", sr_c->cfg->strip_pattern ); 
 		} else { // failure is matching case.	
