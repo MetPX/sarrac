@@ -1767,8 +1767,8 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		sr_log_msg(LOG_DEBUG, "\tcache_file=%s accept_unmatch=%s messageRateMax=%d\n",
 			sr_cfg->cachep ? p : "off", sr_cfg->acceptUnmatched ? "on" : "off", sr_cfg->messageRateMax );
 		sr_log_msg(LOG_DEBUG,
-			"\tfileEvents=%04x directory=%s queuename=%s force_polling=%s sum=%c statehost=%c\n",
-			sr_cfg->events, sr_cfg->directory, sr_cfg->queuename,
+			"\tfileEvents=%04x directory=%s queuename=%s logReject=%s force_polling=%s sum=%c statehost=%c\n",
+			sr_cfg->events, sr_cfg->directory, sr_cfg->queuename, sr_cfg->logReject ? "on" : "off", 
 			sr_cfg->force_polling ? "on" : "off", sr_cfg->sumalgo, sr_cfg->statehost);
 		sr_log_msg(LOG_DEBUG,
 			"\tmessage_ttl=%g post_exchange=%s post_exchange_split=%d post_exchangeSuffix=%s\n",
