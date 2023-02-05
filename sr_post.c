@@ -883,7 +883,7 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 				sr_log_msg(LOG_DEBUG, "sr_post cache_check: %s\n",
 					status ? "not found" : "already there, no post");
 				if (!status) {
-					if (sr_c->cfg->log_reject)
+					if (sr_c->cfg->logReject)
 						sr_log_msg(LOG_INFO,
 							"rejecting duplicate: %s, %s\n",
 							m.relPath, sr_message_partstr(&m));
@@ -995,7 +995,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 		}
 		if ((mask && !(mask->accepting))
 		    || (!mask && !(sr_c->cfg->acceptUnmatched))) {
-			if (sr_c->cfg->log_reject)
+			if (sr_c->cfg->logReject)
 				sr_log_msg(LOG_INFO, "rejecting oldname: %s\n", oldname);
 		} else {
 			if (!access(oldname, F_OK)
@@ -1020,7 +1020,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	}
 	if ((mask && !(mask->accepting))
 	    || (!mask && !(sr_c->cfg->acceptUnmatched))) {
-		if (sr_c->cfg->log_reject)
+		if (sr_c->cfg->logReject)
 			sr_log_msg(LOG_INFO, "rejecting newname: %s\n", newname);
 	} else
 		sr_post(sr_c, newname, &sb);

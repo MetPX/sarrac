@@ -346,7 +346,7 @@ int main(int argc, char **argv)
 		// FIXME BUG: pattern to match is supposed to be complete URL, not just path...
 		mask = sr_isMatchingPattern(&sr_cfg, m->relPath);
 		if ((mask && !(mask->accepting)) || (!mask && !(sr_cfg.acceptUnmatched))) {
-			if (sr_cfg.log_reject)
+			if (sr_cfg.logReject)
 				sr_log_msg(LOG_INFO, "rejecting pattern: %s\n", m->relPath);
 			continue;
 		}
@@ -357,7 +357,7 @@ int main(int argc, char **argv)
 					   m->parts_s, (unsigned char *)m->sum,
 					   m->relPath, sr_message_partstr(m));
 
-			if ( (ret <= 0) && ( sr_cfg.log_reject ) ) {
+			if ( (ret <= 0) && ( sr_cfg.logReject ) ) {
   				    sr_log_msg( ((ret < 0)?LOG_WARNING:LOG_INFO),
 						"%s : %s %s\n", 
                         (ret < 0) ? "cache problem":"rejecting duplicate", 

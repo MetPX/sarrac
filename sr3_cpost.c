@@ -272,7 +272,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 
 	if ((mask && !(mask->accepting))
 	    || (!mask && !(sr_c->cfg->acceptUnmatched))) {
-		if (sr_c->cfg->log_reject)
+		if (sr_c->cfg->logReject)
 			sr_log_msg(LOG_INFO, "rejecting pattern: %s\n", fn);
 		return;
 	}
@@ -333,7 +333,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 			w = 0;
 
 		if (!dir_stack_push(fn, w, sb.st_dev, sb.st_ino)) {
-			if (sr_c->cfg->log_reject)
+			if (sr_c->cfg->logReject)
 				sr_log_msg(LOG_INFO, "rejecting loop: %s\n", fn);
 			return;
 		}		//else 

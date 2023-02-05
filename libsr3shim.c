@@ -465,7 +465,7 @@ void srshim_realpost(const char *path)
 		sr_shimdebug_msg( 1,
 			"srshim_realpost mask: %p, mask->accepting=%d acceptUnmatched=%d\n",
 			mask, mask->accepting, sr_cfg.acceptUnmatched);
-		if (sr_cfg.log_reject)
+		if (sr_cfg.logReject)
 			sr_log_msg(LOG_INFO, "sr_%s rejecting pattern: %s\n", sr_cfg.progname, fn);
 		return;
 	}

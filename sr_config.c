@@ -984,7 +984,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 
 	} else if (!strcmp(option, "log_reject") || !strcmp(option, "logReject") ) {
 		val = StringIsTrue(argument);
-		sr_cfg->log_reject = val & 2;
+		sr_cfg->logReject = val & 2;
 		retval = (1 + (val & 1));
 
 	} else if (!strcmp(option, "message-ttl") || !strcmp(option, "msgttl")
@@ -1387,7 +1387,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->instance = 1;
 	sr_cfg->last_matched = NULL;
 	sr_cfg->log = 0;
-	sr_cfg->log_reject = 0;
+	sr_cfg->logReject = 0;
 	sr_cfg->logfn = NULL;
 	sr_cfg->logrotate = 5;
 	sr_cfg->logrotate_interval = 24 * 60 * 60;
