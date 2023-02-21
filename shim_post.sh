@@ -43,7 +43,9 @@ post_baseDir ${DIRECTORY}
 
 post_topicPrefix v03.post
 
-accept .*
+accept `realpath .`/.*
+accept `realpath ${HOME}/test`/.*
+reject .*
 EOT
 
 

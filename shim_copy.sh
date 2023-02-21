@@ -65,6 +65,9 @@ shim_post_minterval 10
 #shim_skip_parent_open_files
 #shim_post_once
 #shim_defer_posting_to_exit
+realpathFilter on
+realpathPost on
+realpathAdjust -1
 expire 1d
 nodupe_ttl 0
 header toto=pig
@@ -73,7 +76,9 @@ events modify,link,delete,mkdir,rmdir
 post_baseUrl file:`pwd`/shim_dirA
 post_topicPrefix v03.post
 
-accept .*
+accept `realpath .`/.*
+accept `realpath ${HOME}/test`/.*
+reject .*
 EOT
 
 sr3 declare cpost/local_post
@@ -81,8 +86,12 @@ sr3 declare subscribe/local_copy
 sr3 start subscribe/local_copy.conf
 
 export SR_POST_CONFIG=local_post.conf
-export LD_PRELOAD=`pwd`/libsr3shim.so.1.0.0
-export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
+if [ "${SYSTEM_SHIM_TEST}" ]; then
+   export LD_PRELOAD=libsr3shim.so.1.0.0
+else
+   export LD_PRELOAD=`pwd`/libsr3shim.so.1.0.0
+   export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
+fi
 export SR_SHIMDEBUG=99
 ./shim_copy_post.sh &
 unset SR_POST_CONFIG
@@ -94,9 +103,9 @@ wait
 # job step 2... copy.
 echo "waiting a few seconds for copies to complete"
 sleep 5
-sr3 remove cpost/local_post.conf
-sr3 stop subscribe/local_copy.conf
-sr3 remove subscribe/local_copy.conf
+#sr3 remove cpost/local_post.conf
+#sr3 stop subscribe/local_copy.conf
+#sr3 remove subscribe/local_copy.conf
 
 echo "#test 0 comment comparing trees"
     

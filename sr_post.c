@@ -571,11 +571,11 @@ void realpath_adjust(const char *input_path, char *output_path, signed int adjus
     strcpy(mutable_input_path, input_path);
 
     if ( adjust == 0 ) {
-	return_value=realpath(input_path,output_path);
-	if (return_value) {
-		sr_log_msg( LOG_DEBUG, "realpath_adjust %d, %s -> %s \n", adjust, input_path, output_path);
-		return;
-	}
+    	  return_value=realpath(input_path,output_path);
+      	if (return_value) {
+      		sr_log_msg( LOG_DEBUG, "realpath_adjust %d, %s -> %s \n", adjust, input_path, output_path);
+  	    	return;
+  	    }
         // fallback to checking a directory for last path element.
         adjust = -1;
     } 
@@ -609,16 +609,16 @@ void realpath_adjust(const char *input_path, char *output_path, signed int adjus
     last_slash=end;
     if (last_slash) {
     	*last_slash='\0';
-	return_value=realpath(mutable_input_path,output_path);
-	sr_log_msg( LOG_DEBUG, "realpath_adjust %d, %s -> %s \n", adjust, mutable_input_path, output_path);
+	    return_value=realpath(mutable_input_path,output_path);
+	    sr_log_msg( LOG_DEBUG, "realpath_adjust %d, %s -> %s \n", adjust, mutable_input_path, output_path);
     	*last_slash='/';
-	if (return_value) {
+    	if (return_value) {
         	strcat(output_path,last_slash); 
     	} else {
-		strcpy(output_path,input_path);
-        }
+	    	strcpy(output_path,input_path);
+      }
     } else {
-	strcpy(output_path,input_path);
+      	strcpy(output_path,input_path);
     }
 
     return;
@@ -949,16 +949,28 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	char newname[PATH_MAX];
 	char newreal[PATH_MAX];
 
-	strcpy(oldname, o);
-	strcpy(newname, n);
+  if ( *o == '/' ) {
+	     strcpy(oldname, o);
+  } else {
+       getcwd(oldname, PATH_MAX-strlen(o)-2);
+       strcat(oldname, "/" );
+       strcat(oldname, o);
+  }
+  if ( *n == '/' ) {
+     	 strcpy(newname, n);
+  } else {
+       getcwd(newname, PATH_MAX-strlen(n)-2);
+       strcat(newname, "/" );
+       strcat(newname, n);
+  }
 
 	if (sr_c->cfg->realpathPost || sr_c->cfg->realpathFilter) {
-		realpath_adjust( o, oldreal, sr_c->cfg->realpathAdjust );
-		sr_log_msg(LOG_DEBUG, "applying realpath to old: %s -> %s\n", o, oldreal);
+		realpath_adjust( oldname, oldreal, sr_c->cfg->realpathAdjust );
+		sr_log_msg(LOG_DEBUG, "applying realpath to old: %s -> %s\n", oldname, oldreal);
 
 		//realpath(n, newreal);
-		realpath_adjust( n, newreal, sr_c->cfg->realpathAdjust );
-		sr_log_msg(LOG_DEBUG, "applying realpath to new: %s -> %s\n", n, newreal);
+		realpath_adjust( newname, newreal, sr_c->cfg->realpathAdjust );
+		sr_log_msg(LOG_DEBUG, "applying realpath to new: %s -> %s\n", newname, newreal);
 	}
 
 	if (sr_c->cfg->realpathPost) {
@@ -1010,8 +1022,9 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 		free(first_user_header.value);
         }
 
+
 	first_user_header.key = strdup("oldname");
-	first_user_header.value = strdup(oldname);
+  first_user_header.value = strdup(o);
 
 	if (sr_c->cfg->realpathFilter) {
 		mask = sr_isMatchingPattern(sr_c->cfg, newreal);

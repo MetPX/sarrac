@@ -174,9 +174,9 @@ struct sr_mask_s *sr_isMatchingPattern(struct sr_config_s *sr_cfg, const char *c
 
 	entry = sr_cfg->masks;
 	while (entry) {
-		// if ( (sr_cfg) && sr_cfg->debug )
-		//     sr_log_msg( LOG_DEBUG,  "sr_isMatchingPattern, testing mask: %s %-30s next=%p\n", 
-		//          (entry->accepting)?"accept":"reject", entry->clause, (entry->next) );
+		 if ( (sr_cfg) && sr_cfg->debug )
+		     sr_log_msg( LOG_DEBUG,  "sr_isMatchingPattern, testing string: %s vs mask: %s %-30s next=%p\n", 
+		          chaine, (entry->accepting)?"accept":"reject", entry->clause, (entry->next) );
 
 #ifdef FORCE_LIBC_REGEX
 		if (!regexec_fn_ptr(&(entry->regexp), chaine, (size_t) 0, NULL, 0)) {
