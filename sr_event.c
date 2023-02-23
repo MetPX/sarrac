@@ -10,45 +10,45 @@
  */
 static void str2event(char *evstr, sr_event_s * evbm)
 {
-        bool found=false;
+	bool found = false;
 
 	if (!strcmp(evstr, "modify")) {
 		(*evbm) |= SR_EVENT_MODIFY;
-                found=true;
-        }
+		found = true;
+	}
 	if (!strcmp(evstr, "link")) {
 		(*evbm) |= SR_EVENT_LINK;
-                found=true;
-        }
+		found = true;
+	}
 	if (!strcmp(evstr, "delete")) {
 		(*evbm) |= SR_EVENT_DELETE;
-                found=true;
-        }
+		found = true;
+	}
 	if (!strcmp(evstr, "create")) {
 		(*evbm) |= SR_EVENT_CREATE;
-                found=true;
-        }
+		found = true;
+	}
 	if (!strcmp(evstr, "mkdir")) {
 		(*evbm) |= SR_EVENT_MKDIR;
-                found=true;
-        }
+		found = true;
+	}
 	if (!strcmp(evstr, "rmdir")) {
 		(*evbm) |= SR_EVENT_RMDIR;
-                found=true;
-        }
+		found = true;
+	}
 	if (!strcmp(evstr, "attrib")) {
 		(*evbm) |= SR_EVENT_ATTRIB;
-                found=true;
-        }
-    
+		found = true;
+	}
+
 	if (!strcmp(evstr, "nonexistent")) {
 		(*evbm) |= SR_EVENT_NONEXISTENT;
-                found=true;
-        }
-    
-        if (!found) {
-        	(*evbm) |= SR_EVENT_ERROR ;
-        }
+		found = true;
+	}
+
+	if (!found) {
+		(*evbm) |= SR_EVENT_ERROR;
+	}
 }
 
 sr_event_s sr_parse_events(char *el)

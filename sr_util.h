@@ -67,10 +67,9 @@ int sr_is_utf8(const char *string);
  * whatever those ipv6 address strings are called.
  */
 int sr_has_vip(char const *vip);
- 
+
 void sr_daemonize(int close_stdout);
 // executed to go from a management instance to a daemon working instance.
-
 
 /* sr_hex2base64 returns the base64 encoded string converted from a hex-encoded input 
    This is used to produce v03 integrity fields.
@@ -78,10 +77,10 @@ void sr_daemonize(int close_stdout);
    no dynamic allocation is done, space is allocated in a static buffer, so use immediately, not thread safe.
 
  */
-char *sr_hex2base64( const char *hstr );
+char *sr_hex2base64(const char *hstr);
 
 /* sr_base642hex returns a hex-coded string given a base64 one (reverse of sr_hex2base64) */
-char *sr_base642hex( const char *bstr );
+char *sr_base642hex(const char *bstr);
 
 #define SR_TIMESTRLEN (26)
 
@@ -114,9 +113,9 @@ int sr_get_sumhashlen(char algo);
   */
 
 char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
-		 char *linkstr, unsigned long block_size,
-		 unsigned long block_count, unsigned long block_rem,
-		 unsigned long block_num, int xattr_cc);
+		    char *linkstr, unsigned long block_size,
+		    unsigned long block_count, unsigned long block_rem,
+		    unsigned long block_num, int xattr_cc);
 
 unsigned char *sr_sumstr2hash(const char *s);
 

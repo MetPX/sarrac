@@ -120,11 +120,11 @@ int sr_consume_setup(struct sr_context *sr_c)
 	msg.user_headers = NULL;
 
 	//amqp_queue_declare_ok_t *r = 
-        if ( sr_c->cfg->queueDeclare ) {
-  		amqp_queue_declare(sr_c->cfg->broker->conn,
-			   1,
-			   amqp_cstring_bytes(sr_c->cfg->queuename),
-			   passive, sr_c->cfg->durable, exclusive, auto_delete, table);
+	if (sr_c->cfg->queueDeclare) {
+		amqp_queue_declare(sr_c->cfg->broker->conn,
+				   1,
+				   amqp_cstring_bytes(sr_c->cfg->queuename),
+				   passive, sr_c->cfg->durable, exclusive, auto_delete, table);
 		/* FIXME how to parse r for error? */
 
 		reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);
@@ -132,7 +132,7 @@ int sr_consume_setup(struct sr_context *sr_c)
 			sr_amqp_reply_print(reply, "queue declare failed");
 			return (0);
 		}
-        }
+	}
 
 	/*
 	   FIXME: topic bindings are not working properly...
@@ -140,7 +140,8 @@ int sr_consume_setup(struct sr_context *sr_c)
 	if (!sr_c->cfg->bindings) {
 		sr_add_binding(sr_c->cfg, "#");
 	}
-	sr_log_msg(LOG_DEBUG, "bindings: %p, string=+%p+\n", sr_c->cfg->bindings, sr_c->cfg->bindings);
+	sr_log_msg(LOG_DEBUG, "bindings: %p, string=+%p+\n", sr_c->cfg->bindings,
+		   sr_c->cfg->bindings);
 
 	for (t = sr_c->cfg->bindings; t; t = t->next) {
 		amqp_queue_bind(sr_c->cfg->broker->conn, 1,
@@ -154,7 +155,7 @@ int sr_consume_setup(struct sr_context *sr_c)
 			return (0);
 		}
 		sr_log_msg(LOG_INFO, "queue %s bound with topic %s to %s\n",
-			sr_c->cfg->queuename, t->topic, sr_broker_uri(sr_c->cfg->broker));
+			   sr_c->cfg->queuename, t->topic, sr_broker_uri(sr_c->cfg->broker));
 	}
 	return (1);
 }
@@ -163,8 +164,7 @@ char *sr_message_partstr(struct sr_message_s *m)
 {
 	static char smallbuf[255];
 
-	if ((m->sum[0] != 'R') && (m->sum[0] != 'L') &&
-	    (m->sum[0] != 'm') && (m->sum[0] != 'r'))
+	if ((m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'm') && (m->sum[0] != 'r'))
 		sprintf(smallbuf, "%c,%ld,%ld,%ld,%ld", m->parts_s,
 			m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num);
 	else
@@ -216,271 +216,324 @@ static void assign_field(const char *key, char *value)
 	}
 }
 
-
-const char *sum2integrity( char sum )
+const char *sum2integrity(char sum)
 {
-   switch (sum) {
-       case '0': return( "random" );
-       case 'a': return( "arbitrary" );
-       case 'd': return( "md5" );
-       case 'n': return( "md5name" );
-       case 'p': return( "sha512name" );
-       case 's': return( "sha512" );
-       case 'L': return( "link" );
-       case 'R': return( "remove" );
-       case 'm': return( "directory" );
-       case 'r': return( "rmdir" );
-       case 'z': return( "cod" );
-       default: return( "unknown" );
-   }
+	switch (sum) {
+	case '0':
+		return ("random");
+	case 'a':
+		return ("arbitrary");
+	case 'd':
+		return ("md5");
+	case 'n':
+		return ("md5name");
+	case 'p':
+		return ("sha512name");
+	case 's':
+		return ("sha512");
+	case 'L':
+		return ("link");
+	case 'R':
+		return ("remove");
+	case 'm':
+		return ("directory");
+	case 'r':
+		return ("rmdir");
+	case 'z':
+		return ("cod");
+	default:
+		return ("unknown");
+	}
 
 }
 
-char *v03integrity( struct sr_message_s *m )
+char *v03integrity(struct sr_message_s *m)
 {
-   static char istr[1024];
-   const char *value;
+	static char istr[1024];
+	const char *value;
 
-   switch (m->sum[0]) {
-       case 'n' : case 'L' : case 'R' : case 'm' : case 'r': return(NULL); break;
-       case 'd' : case 's' : value = sr_hex2base64( &(m->sum[2]) ); break;
-       case 'z' : value = sum2integrity(m->sum[2]); break;
-       case '0' : case 'a' : default : value = &(m->sum[2]); break;
-   }
-   sprintf( istr, " \"method\" : \"%s\", \"value\" : \"%s\" ", sum2integrity( m->sum[0] ), value );
-   return(istr);
+	switch (m->sum[0]) {
+	case 'n':
+	case 'L':
+	case 'R':
+	case 'm':
+	case 'r':
+		return (NULL);
+		break;
+	case 'd':
+	case 's':
+		value = sr_hex2base64(&(m->sum[2]));
+		break;
+	case 'z':
+		value = sum2integrity(m->sum[2]);
+		break;
+	case '0':
+	case 'a':
+	default:
+		value = &(m->sum[2]);
+		break;
+	}
+	sprintf(istr, " \"method\" : \"%s\", \"value\" : \"%s\" ", sum2integrity(m->sum[0]), value);
+	return (istr);
 
 }
 
 #ifdef HAVE_JSONC
 
-static void v03assign_field(const char *key, json_object *jso_v)
+static void v03assign_field(const char *key, json_object * jso_v)
  /* Assign the value of the field given by key to the corresponding member
     of the static msg struct.
   */
 {
-    static char unsupported[15];
-    struct sr_header_s *h;
-    size_t tlen;
-    json_object *subvalue;
+	static char unsupported[15];
+	struct sr_header_s *h;
+	size_t tlen;
+	json_object *subvalue;
 
-    strcpy(unsupported,"unsupported");
+	strcpy(unsupported, "unsupported");
 
 	if (!strcmp(key, "atime")) {
-		if (!json_object_is_type(jso_v,json_type_string)) {
-	       		sr_log_msg( LOG_ERROR, "malformed json: atime is not a string: %d\n", json_object_get_type(subvalue) );
-		return;
-        }
-	strcpy(msg.atime, json_object_get_string(jso_v));
-        tlen=strlen(msg.atime);
-        if ( tlen < 16 ) {
-		sr_log_msg( LOG_ERROR, "malformed json: atime should be string: %s\n", msg.atime );
-           	return;
-        }
-        tlen -= 8 ;
-        memmove( &msg.atime[8], &msg.atime[9], tlen ); //eliminate "T".
+		if (!json_object_is_type(jso_v, json_type_string)) {
+			sr_log_msg(LOG_ERROR, "malformed json: atime is not a string: %d\n",
+				   json_object_get_type(subvalue));
+			return;
+		}
+		strcpy(msg.atime, json_object_get_string(jso_v));
+		tlen = strlen(msg.atime);
+		if (tlen < 16) {
+			sr_log_msg(LOG_ERROR, "malformed json: atime should be string: %s\n",
+				   msg.atime);
+			return;
+		}
+		tlen -= 8;
+		memmove(&msg.atime[8], &msg.atime[9], tlen);	//eliminate "T".
 	} else if (!strcmp(key, "blocks")) {
 
-       		json_object_object_get_ex(jso_v, "method", &subvalue );
-		if (!strcmp(json_object_get_string(subvalue),"inplace")) {
-			msg.parts_s='i';
+		json_object_object_get_ex(jso_v, "method", &subvalue);
+		if (!strcmp(json_object_get_string(subvalue), "inplace")) {
+			msg.parts_s = 'i';
 		} else {
-			msg.parts_s='p';
-       		}
-       		json_object_object_get_ex(jso_v, "size", &subvalue );
-       		if (json_object_is_type(subvalue,json_type_string)) {
+			msg.parts_s = 'p';
+		}
+		json_object_object_get_ex(jso_v, "size", &subvalue);
+		if (json_object_is_type(subvalue, json_type_string)) {
 			msg.parts_blksz = atol(json_object_get_string(subvalue));
-       		} else if (json_object_is_type(subvalue,json_type_int)) {
-		   	msg.parts_blksz = json_object_get_int64(subvalue);
-       		} else {
-	       		sr_log_msg( LOG_ERROR, "malformed json: blocks/size should be an int, but is: %d\n", json_object_get_type(subvalue) );
-       		} 
-       		json_object_object_get_ex(jso_v, "remainder", &subvalue );
-       		if (json_object_is_type(subvalue,json_type_string)) {
-		   	msg.parts_rem = atol(json_object_get_string(subvalue));
-       		} else if (json_object_is_type(subvalue,json_type_int)) {
+		} else if (json_object_is_type(subvalue, json_type_int)) {
+			msg.parts_blksz = json_object_get_int64(subvalue);
+		} else {
+			sr_log_msg(LOG_ERROR,
+				   "malformed json: blocks/size should be an int, but is: %d\n",
+				   json_object_get_type(subvalue));
+		}
+		json_object_object_get_ex(jso_v, "remainder", &subvalue);
+		if (json_object_is_type(subvalue, json_type_string)) {
+			msg.parts_rem = atol(json_object_get_string(subvalue));
+		} else if (json_object_is_type(subvalue, json_type_int)) {
 			msg.parts_rem = json_object_get_int64(subvalue);
-       		} else {
-	       		sr_log_msg( LOG_ERROR, "malformed json: blocks/remainder should be an int, but is: %d\n", json_object_get_type(subvalue) );
-       		} 
-       		json_object_object_get_ex(jso_v, "number", &subvalue );
-		if (json_object_is_type(subvalue,json_type_string)) {
+		} else {
+			sr_log_msg(LOG_ERROR,
+				   "malformed json: blocks/remainder should be an int, but is: %d\n",
+				   json_object_get_type(subvalue));
+		}
+		json_object_object_get_ex(jso_v, "number", &subvalue);
+		if (json_object_is_type(subvalue, json_type_string)) {
 			msg.parts_num = atol(json_object_get_string(subvalue));
-		} else if (json_object_is_type(subvalue,json_type_int)) {
+		} else if (json_object_is_type(subvalue, json_type_int)) {
 			msg.parts_num = json_object_get_int64(subvalue);
 		} else {
-		       sr_log_msg( LOG_ERROR, "malformed json: blocks/number should be an int, but is: %d\n", json_object_get_type(subvalue) );
-       		} 
-       		json_object_object_get_ex(jso_v, "count", &subvalue );
-		if (json_object_is_type(subvalue,json_type_string)) {
+			sr_log_msg(LOG_ERROR,
+				   "malformed json: blocks/number should be an int, but is: %d\n",
+				   json_object_get_type(subvalue));
+		}
+		json_object_object_get_ex(jso_v, "count", &subvalue);
+		if (json_object_is_type(subvalue, json_type_string)) {
 			msg.parts_blkcount = atol(json_object_get_string(subvalue));
-		} else if (json_object_is_type(subvalue,json_type_int)) {
+		} else if (json_object_is_type(subvalue, json_type_int)) {
 			msg.parts_blkcount = json_object_get_int64(subvalue);
 		} else {
-	       		sr_log_msg( LOG_ERROR, "malformed json: blocks/count should be an int, but is: %d\n", json_object_get_type(subvalue) );
-       		} 
+			sr_log_msg(LOG_ERROR,
+				   "malformed json: blocks/count should be an int, but is: %d\n",
+				   json_object_get_type(subvalue));
+		}
 	} else if (!strcmp(key, "mode")) {
-        	if (!json_object_is_type(jso_v,json_type_string)) {
-	       		sr_log_msg( LOG_ERROR, "malformed json: mode should be string: %d\n", json_object_get_type(jso_v) );
-           		return;
-        	}
+		if (!json_object_is_type(jso_v, json_type_string)) {
+			sr_log_msg(LOG_ERROR, "malformed json: mode should be string: %d\n",
+				   json_object_get_type(jso_v));
+			return;
+		}
 		msg.mode = strtoul(json_object_get_string(jso_v), NULL, 8);
 	} else if (!strcmp(key, "mtime")) {
-		if (!json_object_is_type(jso_v,json_type_string)) {
-	       		sr_log_msg( LOG_ERROR, "malformed message: mtime value is not a string: %d\n", json_object_get_type(jso_v) );
+		if (!json_object_is_type(jso_v, json_type_string)) {
+			sr_log_msg(LOG_ERROR,
+				   "malformed message: mtime value is not a string: %d\n",
+				   json_object_get_type(jso_v));
 			return;
 		}
 		strcpy(msg.mtime, json_object_get_string(jso_v));
-	        tlen=strlen(msg.mtime);
-		if ( tlen < 16 ) {
-			       sr_log_msg( LOG_ERROR, "malformed json: mtime should be string: %s\n", msg.mtime );
-		           return;
-        	}
-		tlen -= 8 ;
-       		memmove( &msg.mtime[8], &msg.mtime[9], tlen ); //eliminate "T".
-	} else if (!strcmp(key, "baseUrl")) {
-		if (!json_object_is_type(jso_v,json_type_string)) {
-			sr_log_msg( LOG_ERROR, "malformed json: baseUrl should be string: %d\n", json_object_get_type(jso_v) );
+		tlen = strlen(msg.mtime);
+		if (tlen < 16) {
+			sr_log_msg(LOG_ERROR, "malformed json: mtime should be string: %s\n",
+				   msg.mtime);
 			return;
 		}
-	        strcpy( msg.url, json_object_get_string(jso_v) );
-	} else if (!strcmp(key, "relPath")) {
-       		if (!json_object_is_type(jso_v,json_type_string)) {
-	       		sr_log_msg( LOG_ERROR, "malformed json: relPath should be string: %d\n", json_object_get_type(jso_v) );
-		 	return;
-        	}
-	        strcpy( msg.relPath, json_object_get_string(jso_v) );
-		if ( strlen(msg.relPath) == 0 ) {
-	       		sr_log_msg( LOG_ERROR, "malformed message: relPath is empty string.\n" ); 
-		 	return;
-                }
-	} else if (!strcmp(key, "pubTime")) {
-       		if (!json_object_is_type(jso_v,json_type_string)) {
-			sr_log_msg( LOG_ERROR, "malformed json: pubTime not a string: %d\n", json_object_get_type(jso_v) );
+		tlen -= 8;
+		memmove(&msg.mtime[8], &msg.mtime[9], tlen);	//eliminate "T".
+	} else if (!strcmp(key, "baseUrl")) {
+		if (!json_object_is_type(jso_v, json_type_string)) {
+			sr_log_msg(LOG_ERROR, "malformed json: baseUrl should be string: %d\n",
+				   json_object_get_type(jso_v));
 			return;
-	        }
-       		strcpy( msg.datestamp, json_object_get_string(jso_v) );
-		tlen=strlen(msg.datestamp);
-	        if ( tlen < 16 ) {
-		       sr_log_msg( LOG_ERROR, "malformed json: pubTime value too short: %s\n", msg.datestamp );
-       		       return;
-	        }
-	        tlen -= 8 ;
-       		memmove( &msg.datestamp[8], &msg.datestamp[9], tlen ); //eliminate "T".
+		}
+		strcpy(msg.url, json_object_get_string(jso_v));
+	} else if (!strcmp(key, "relPath")) {
+		if (!json_object_is_type(jso_v, json_type_string)) {
+			sr_log_msg(LOG_ERROR, "malformed json: relPath should be string: %d\n",
+				   json_object_get_type(jso_v));
+			return;
+		}
+		strcpy(msg.relPath, json_object_get_string(jso_v));
+		if (strlen(msg.relPath) == 0) {
+			sr_log_msg(LOG_ERROR, "malformed message: relPath is empty string.\n");
+			return;
+		}
+	} else if (!strcmp(key, "pubTime")) {
+		if (!json_object_is_type(jso_v, json_type_string)) {
+			sr_log_msg(LOG_ERROR, "malformed json: pubTime not a string: %d\n",
+				   json_object_get_type(jso_v));
+			return;
+		}
+		strcpy(msg.datestamp, json_object_get_string(jso_v));
+		tlen = strlen(msg.datestamp);
+		if (tlen < 16) {
+			sr_log_msg(LOG_ERROR, "malformed json: pubTime value too short: %s\n",
+				   msg.datestamp);
+			return;
+		}
+		tlen -= 8;
+		memmove(&msg.datestamp[8], &msg.datestamp[9], tlen);	//eliminate "T".
 	} else if (!strcmp(key, "fileOp")) {
-		if( json_object_get_type(jso_v) != json_type_object ) {
-	       		sr_log_msg( LOG_ERROR, "malformed json: integrity should be an object: %d\n", json_object_get_type(jso_v) );
-		        return;
-       		}
-               
-       		EVP_MD_CTX *ctx;
-	        const EVP_MD *md;
+		if (json_object_get_type(jso_v) != json_type_object) {
+			sr_log_msg(LOG_ERROR, "malformed json: integrity should be an object: %d\n",
+				   json_object_get_type(jso_v));
+			return;
+		}
 
-                unsigned int hashlen = 0;
-                unsigned char sumhash[SR_SUMHASHLEN];
+		EVP_MD_CTX *ctx;
+		const EVP_MD *md;
 
-		if ( json_object_object_get_ex(jso_v, "link", &subvalue) ) { 
+		unsigned int hashlen = 0;
+		unsigned char sumhash[SR_SUMHASHLEN];
+
+		if (json_object_object_get_ex(jso_v, "link", &subvalue)) {
 			const char *v = json_object_get_string(subvalue);
-	       		sr_log_msg( LOG_ERROR, "link subvalue: %s\n", v );
-			strcpy(msg.link,v);
-	       		sr_log_msg( LOG_ERROR, "copied to msg.link: %s\n", msg.link );
+			sr_log_msg(LOG_ERROR, "link subvalue: %s\n", v);
+			strcpy(msg.link, v);
+			sr_log_msg(LOG_ERROR, "copied to msg.link: %s\n", msg.link);
 
 			ctx = EVP_MD_CTX_create();
 			md = EVP_sha512();
-			EVP_DigestInit_ex(ctx, md, NULL );
+			EVP_DigestInit_ex(ctx, md, NULL);
 			EVP_DigestUpdate(ctx, v, strlen(v));
 			EVP_DigestFinal_ex(ctx, sumhash, &hashlen);
-		    	sprintf( msg.sum, "L,%s", sr_hash2sumstr(sumhash) );
+			sprintf(msg.sum, "L,%s", sr_hash2sumstr(sumhash));
 			return;
-                } else if ( json_object_object_get_ex(jso_v, "remove", &subvalue) ) { 
-                        char *just_the_name;
-                        if (msg.relPath && strlen(msg.relPath) > 0) {
+		} else if (json_object_object_get_ex(jso_v, "remove", &subvalue)) {
+			char *just_the_name;
+			if (msg.relPath && strlen(msg.relPath) > 0) {
 				just_the_name = rindex(msg.relPath, '/') + 1;
-				just_the_name = just_the_name?just_the_name+1:msg.relPath;
-                        } else {
-                                // FIXME should defer to end of parse and find the real name.
-                                // This is a bug, but nobody does mirroring with v2 anyways.
-                                just_the_name = "placeholder";
-                        }
+				just_the_name = just_the_name ? just_the_name + 1 : msg.relPath;
+			} else {
+				// FIXME should defer to end of parse and find the real name.
+				// This is a bug, but nobody does mirroring with v2 anyways.
+				just_the_name = "placeholder";
+			}
 			ctx = EVP_MD_CTX_create();
 			md = EVP_sha512();
-			EVP_DigestInit_ex(ctx, md, NULL );
+			EVP_DigestInit_ex(ctx, md, NULL);
 			EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
-			EVP_DigestFinal_ex(ctx, sumhash, &hashlen );
-			sprintf( msg.sum, "R,%s", sr_hash2sumstr(sumhash) );
-		        return;   
-                } else if ( json_object_object_get_ex(jso_v, "directory", &subvalue) ) { 
-                        char *just_the_name;
-                        if (msg.relPath && strlen(msg.relPath) > 0) {
+			EVP_DigestFinal_ex(ctx, sumhash, &hashlen);
+			sprintf(msg.sum, "R,%s", sr_hash2sumstr(sumhash));
+			return;
+		} else if (json_object_object_get_ex(jso_v, "directory", &subvalue)) {
+			char *just_the_name;
+			if (msg.relPath && strlen(msg.relPath) > 0) {
 				just_the_name = rindex(msg.relPath, '/') + 1;
-				just_the_name = just_the_name?just_the_name+1:msg.relPath;
-                        } else {
-                                // FIXME should defer to end of parse and find the real name.
-                                // This is a bug, but nobody does mirroring with v2 anyways.
-                                just_the_name = "placeholder";
-                        }
+				just_the_name = just_the_name ? just_the_name + 1 : msg.relPath;
+			} else {
+				// FIXME should defer to end of parse and find the real name.
+				// This is a bug, but nobody does mirroring with v2 anyways.
+				just_the_name = "placeholder";
+			}
 			ctx = EVP_MD_CTX_create();
 			md = EVP_sha512();
-			EVP_DigestInit_ex(ctx, md, NULL );
+			EVP_DigestInit_ex(ctx, md, NULL);
 			EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
-			EVP_DigestFinal_ex(ctx, sumhash, &hashlen );
-			sprintf( msg.sum, "m,%s", sr_hash2sumstr(sumhash) );
-		        return;   
-                } else if ( json_object_object_get_ex(jso_v, "rmdir", &subvalue) ) { 
-                        char *just_the_name;
-                        if (msg.relPath && strlen(msg.relPath) > 0) {
+			EVP_DigestFinal_ex(ctx, sumhash, &hashlen);
+			sprintf(msg.sum, "m,%s", sr_hash2sumstr(sumhash));
+			return;
+		} else if (json_object_object_get_ex(jso_v, "rmdir", &subvalue)) {
+			char *just_the_name;
+			if (msg.relPath && strlen(msg.relPath) > 0) {
 				just_the_name = rindex(msg.relPath, '/') + 1;
-				just_the_name = just_the_name?just_the_name+1:msg.relPath;
-                        } else {
-                                // FIXME should defer to end of parse and find the real name.
-                                // This is a bug, but nobody does mirroring with v2 anyways.
-                                just_the_name = "placeholder";
-                        }
+				just_the_name = just_the_name ? just_the_name + 1 : msg.relPath;
+			} else {
+				// FIXME should defer to end of parse and find the real name.
+				// This is a bug, but nobody does mirroring with v2 anyways.
+				just_the_name = "placeholder";
+			}
 			ctx = EVP_MD_CTX_create();
 			md = EVP_sha512();
-			EVP_DigestInit_ex(ctx, md, NULL );
+			EVP_DigestInit_ex(ctx, md, NULL);
 			EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
-			EVP_DigestFinal_ex(ctx, sumhash, &hashlen );
-			sprintf( msg.sum, "r,%s", sr_hash2sumstr(sumhash) );
-		        return;   
-                } else if ( json_object_object_get_ex(jso_v, "rename", &subvalue) ) { 
+			EVP_DigestFinal_ex(ctx, sumhash, &hashlen);
+			sprintf(msg.sum, "r,%s", sr_hash2sumstr(sumhash));
+			return;
+		} else if (json_object_object_get_ex(jso_v, "rename", &subvalue)) {
 			const char *v = json_object_get_string(subvalue);
-                	h = (struct sr_header_s *)malloc(sizeof(struct sr_header_s));
-	                h->key = strdup("oldname");
-       			h->value = strdup(v);
+			h = (struct sr_header_s *)malloc(sizeof(struct sr_header_s));
+			h->key = strdup("oldname");
+			h->value = strdup(v);
 			h->next = msg.user_headers;
 			msg.user_headers = h;
- 		}
+		}
 	} else if (!strcmp(key, "integrity")) {
 
-       		//FIXME
-		if( json_object_get_type(jso_v) != json_type_object ) {
-	       		sr_log_msg( LOG_ERROR, "malformed json: integrity should be an object: %d\n", json_object_get_type(jso_v) );
-		        return;
-       		}
+		//FIXME
+		if (json_object_get_type(jso_v) != json_type_object) {
+			sr_log_msg(LOG_ERROR, "malformed json: integrity should be an object: %d\n",
+				   json_object_get_type(jso_v));
+			return;
+		}
 		json_object_object_get_ex(jso_v, "method", &subvalue);
 		const char *v3m = json_object_get_string(subvalue);
 		char s;
-		s='u';
-		if ( !strcmp( v3m, "random" ) ) s='0';
-		if ( !strcmp( v3m, "arbitrary" ) ) s='a';
-		if ( !strcmp( v3m, "md5" ) ) s='d';
-		if ( !strcmp( v3m, "md5name" ) ) s='n';
-		if ( !strcmp( v3m, "sha512name" ) ) s='p';
-		if ( !strcmp( v3m, "sha512" ))  s='s';
-		if ( !strcmp( v3m, "cod" ) ) s='z';
-		if ( s == 'u' ) {
-		       sr_log_msg( LOG_ERROR, "unknown checksum specified: %s\n", v3m );
-	           return;
+		s = 'u';
+		if (!strcmp(v3m, "random"))
+			s = '0';
+		if (!strcmp(v3m, "arbitrary"))
+			s = 'a';
+		if (!strcmp(v3m, "md5"))
+			s = 'd';
+		if (!strcmp(v3m, "md5name"))
+			s = 'n';
+		if (!strcmp(v3m, "sha512name"))
+			s = 'p';
+		if (!strcmp(v3m, "sha512"))
+			s = 's';
+		if (!strcmp(v3m, "cod"))
+			s = 'z';
+		if (s == 'u') {
+			sr_log_msg(LOG_ERROR, "unknown checksum specified: %s\n", v3m);
+			return;
 		}
 		json_object_object_get_ex(jso_v, "value", &subvalue);
 		const char *v = json_object_get_string(subvalue);
-       
-		if ( ! strchr("0az",s) ) {
+
+		if (!strchr("0az", s)) {
 			v = sr_base642hex(v);
 		}
-		sprintf( msg.sum, "%c,%s", s, v );
-		return;   
+		sprintf(msg.sum, "%c,%s", s, v);
+		return;
 
 	} else if (!strcmp(key, "size")) {
 		//FIXME: no error checking, invalid parts header will cause a bobo.
@@ -490,24 +543,27 @@ static void v03assign_field(const char *key, json_object *jso_v)
 		msg.parts_rem = 0;
 		msg.parts_num = 0;
 	} else if (!strcmp(key, "relPath")) {
-	        if (!json_object_is_type(jso_v,json_type_string)) {
-			sr_log_msg( LOG_ERROR, "malformed json: relPath value should be string: %d\n", json_object_get_type(jso_v) );
-       		    	return;
-	        }
-		strcpy(msg.relPath,  json_object_get_string(jso_v));
-	} else if (!strcmp(key, "source")) {
-		if (!json_object_is_type(jso_v,json_type_string)) {
-			sr_log_msg( LOG_ERROR, "malformed json: source value should be string: %d\n", json_object_get_type(jso_v) );
-		        return;
+		if (!json_object_is_type(jso_v, json_type_string)) {
+			sr_log_msg(LOG_ERROR,
+				   "malformed json: relPath value should be string: %d\n",
+				   json_object_get_type(jso_v));
+			return;
 		}
-		strcpy(msg.source,  json_object_get_string(jso_v));
+		strcpy(msg.relPath, json_object_get_string(jso_v));
+	} else if (!strcmp(key, "source")) {
+		if (!json_object_is_type(jso_v, json_type_string)) {
+			sr_log_msg(LOG_ERROR, "malformed json: source value should be string: %d\n",
+				   json_object_get_type(jso_v));
+			return;
+		}
+		strcpy(msg.source, json_object_get_string(jso_v));
 	} else {
 		h = (struct sr_header_s *)malloc(sizeof(struct sr_header_s));
 		h->key = strdup(key);
-	        if (json_object_is_type(jso_v,json_type_string)) {
+		if (json_object_is_type(jso_v, json_type_string)) {
 			h->value = strdup(json_object_get_string(jso_v));
-        	} else {
-			h->value = strdup(unsupported) ;
+		} else {
+			h->value = strdup(unsupported);
 		}
 		h->next = msg.user_headers;
 		msg.user_headers = h;
@@ -524,74 +580,74 @@ static void json_dump_strheader(char *tag, char *value)
 char *sr_message_2log(struct sr_message_s *m)
 {
 	static char b[10240];	// FIXME!  need more than 10K for a log message? check?
-        char *ci;
+	char *ci;
 	char *rename;
 
-	sprintf(b, "{ \"pubTime\":\"%s\", \"baseUrl\":\"%s\", \"relPath\":\"%s\", \"topic\":\"%s\"", m->datestamp, m->url, m->relPath, m->routing_key);
+	sprintf(b, "{ \"pubTime\":\"%s\", \"baseUrl\":\"%s\", \"relPath\":\"%s\", \"topic\":\"%s\"",
+		m->datestamp, m->url, m->relPath, m->routing_key);
 
-
-        ci = v03integrity(m);
-        if (ci && !strchr("mrRL", m->sum[0]) ) {
-	     sprintf(strchr(b, '\0'), ", \"integrity\":{ %s } ", ci );
-        }
+	ci = v03integrity(m);
+	if (ci && !strchr("mrRL", m->sum[0])) {
+		sprintf(strchr(b, '\0'), ", \"integrity\":{ %s } ", ci);
+	}
 
 	if ((m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'r')) {
-		sprintf(strchr(b, '\0'), ", \"mtime\":\"%s\", \"atime\":\"%s\"", m->mtime, m->atime);
+		sprintf(strchr(b, '\0'), ", \"mtime\":\"%s\", \"atime\":\"%s\"", m->mtime,
+			m->atime);
 
 		if (m->mode)
 			sprintf(strchr(b, '\0'), ", \"mode\":\"%04o\"", m->mode);
 
-	        if (m->sum[0] != 'm') 
-		    sprintf(strchr(b, '\0'), ", \"size\":\"%ld\"", m->parts_blksz );
+		if (m->sum[0] != 'm')
+			sprintf(strchr(b, '\0'), ", \"size\":\"%ld\"", m->parts_blksz);
 	}
 
 	/*if (m->rename)
-		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"rename\":\"%s\" }", m->rename);
-         */
+	   sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"rename\":\"%s\" }", m->rename);
+	 */
 
-	rename=NULL;
-	for (struct sr_header_s * h = m->user_headers; h; h = h->next) 
-        {
-                if (!strcmp(h->key,"oldname")) {
-			rename=h->value;
-                } else {
+	rename = NULL;
+	for (struct sr_header_s * h = m->user_headers; h; h = h->next) {
+		if (!strcmp(h->key, "oldname")) {
+			rename = h->value;
+		} else {
 			sprintf(strchr(b, '\0'), ", \"%s\":\"%s\"", h->key, h->value);
-                }
-        }
+		}
+	}
 	if (m->sum[0] == 'L') {
 		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"link\":\"%s\"", m->link);
 		if (rename) {
-			sprintf(strchr(b, '\0'), ", \"rename\" : \"%s\" }", rename );
+			sprintf(strchr(b, '\0'), ", \"rename\" : \"%s\" }", rename);
 		} else {
-			sprintf(strchr(b, '\0'), "}" );
+			sprintf(strchr(b, '\0'), "}");
 		}
 	} else if (m->sum[0] == 'R') {
-		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"remove\":\"\"" );
+		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"remove\":\"\"");
 		if (rename) {
-			sprintf(strchr(b, '\0'), ", \"rename\" : \"%s\" }", rename );
+			sprintf(strchr(b, '\0'), ", \"rename\" : \"%s\" }", rename);
 		} else {
-			sprintf(strchr(b, '\0'), "}" );
+			sprintf(strchr(b, '\0'), "}");
 		}
 	} else if (m->sum[0] == 'm') {
-		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"directory\":\"\"" );
+		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"directory\":\"\"");
 		if (rename) {
-			sprintf(strchr(b, '\0'), ", \"rename\" : \"%s\" }", rename );
+			sprintf(strchr(b, '\0'), ", \"rename\" : \"%s\" }", rename);
 		} else {
-			sprintf(strchr(b, '\0'), "}" );
+			sprintf(strchr(b, '\0'), "}");
 		}
 	} else if (m->sum[0] == 'r') {
-		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"rmdir\":\"\"" );
+		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"rmdir\":\"\"");
 		if (rename) {
-			sprintf(strchr(b, '\0'), ", \"rename\" : \"%s\" }", rename );
+			sprintf(strchr(b, '\0'), ", \"rename\" : \"%s\" }", rename);
 		} else {
-			sprintf(strchr(b, '\0'), "}" );
+			sprintf(strchr(b, '\0'), "}");
 		}
-        } else if (rename) {
-		sprintf(strchr(b, '\0'), ", \"fileOp\": { \"rename\" : \"%s\" }", rename );
-	}	
+	} else if (rename) {
+		sprintf(strchr(b, '\0'), ", \"fileOp\": { \"rename\" : \"%s\" }", rename);
+	}
 
-        sprintf(strchr(b, '\0'), "}" );
-      
+	sprintf(strchr(b, '\0'), "}");
+
 	return (b);
 }
 
@@ -711,30 +767,33 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 	result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
 	if (result < 0) {
-	    sr_log_msg( LOG_ERROR, "wait_frame bad result: %d. aborting connection.\n", result);
+		sr_log_msg(LOG_ERROR, "wait_frame bad result: %d. aborting connection.\n", result);
 		return (NULL);
 	}
 
 	if (frame.frame_type != AMQP_FRAME_METHOD) {
-	    sr_log_msg( LOG_ERROR, "bad FRAME_METHOD: %d. aborting connection.\n", frame.frame_type);
+		sr_log_msg(LOG_ERROR, "bad FRAME_METHOD: %d. aborting connection.\n",
+			   frame.frame_type);
 		return (NULL);
 	}
 	if (frame.payload.method.id != AMQP_BASIC_DELIVER_METHOD) {
-	    sr_log_msg( LOG_ERROR, "bad payload method: %d. aborting connection.\n", frame.payload.method.id );
+		sr_log_msg(LOG_ERROR, "bad payload method: %d. aborting connection.\n",
+			   frame.payload.method.id);
 		return (NULL);
 	}
 
 	d = (amqp_basic_deliver_t *) frame.payload.method.decoded;
 
-	sr_log_msg( LOG_DEBUG, "Frame type %d, channel %d Method %s consumer_tag: %s, delivery_tag: %ld\n",
-        frame.frame_type, frame.channel, amqp_method_name(frame.payload.method.id), 
-    		(char *)d->consumer_tag.bytes, (long)(d->delivery_tag));
+	sr_log_msg(LOG_DEBUG,
+		   "Frame type %d, channel %d Method %s consumer_tag: %s, delivery_tag: %ld\n",
+		   frame.frame_type, frame.channel, amqp_method_name(frame.payload.method.id),
+		   (char *)d->consumer_tag.bytes, (long)(d->delivery_tag));
 
 	sr_c->cfg->broker->last_delivery_tag = d->delivery_tag;
 
-	sr_log_msg( LOG_DEBUG, "exchange: \"%.*s\", routingkey: \"%.*s\",\n",
-	   (int) d->exchange.len, (char *) d->exchange.bytes,
-	   (int) d->routing_key.len, (char *) d->routing_key.bytes);
+	sr_log_msg(LOG_DEBUG, "exchange: \"%.*s\", routingkey: \"%.*s\",\n",
+		   (int)d->exchange.len, (char *)d->exchange.bytes,
+		   (int)d->routing_key.len, (char *)d->routing_key.bytes);
 
 	sprintf(msg.exchange, "%.*s", (int)d->exchange.len, (char *)d->exchange.bytes);
 	sprintf(msg.routing_key, "%.*s", (int)d->routing_key.len, (char *)d->routing_key.bytes);
@@ -745,202 +804,225 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 
 	if (result < 0) {
 		sr_log_msg(LOG_ERROR, "error receiving frame! aborting connection.");
-		return(NULL);
-    }
+		return (NULL);
+	}
 
 	if (frame.frame_type != AMQP_FRAME_HEADER) {
 		sr_log_msg(LOG_ERROR, "Expected header! aborting connection.");
-		return(NULL);
+		return (NULL);
 	}
 
 	p = (amqp_basic_properties_t *) frame.payload.properties.decoded;
 
-    /* FIXME */
-    if (p->_flags & AMQP_BASIC_CONTENT_TYPE_FLAG) {
-	      sr_log_msg(LOG_DEBUG, "Content-type: %.*s  frame.payload.properties.class_id: %d body_size: %ld\n", 
-              (int)p->content_type.len, (char *)p->content_type.bytes, frame.payload.properties.class_id,
-                 (long)frame.payload.properties.body_size );
-    }
+	/* FIXME */
+	if (p->_flags & AMQP_BASIC_CONTENT_TYPE_FLAG) {
+		sr_log_msg(LOG_DEBUG,
+			   "Content-type: %.*s  frame.payload.properties.class_id: %d body_size: %ld\n",
+			   (int)p->content_type.len, (char *)p->content_type.bytes,
+			   frame.payload.properties.class_id,
+			   (long)frame.payload.properties.body_size);
+	}
 
-    if (p->_flags & AMQP_BASIC_HEADERS_FLAG) { 
-        sr_log_msg(LOG_DEBUG, "AMQP_BASIC_HEADERS_FLAG set. %d headers in message\n", p->headers.num_entries );
-    	for (int i = 0; i < p->headers.num_entries; i++) {
-    
-            // FIXME: bug where num_entries==2, and entries=2 instead of a pointer.... very odd.
-            //        We have no idea why this shows up, this is just a work-around, around the problem.
-            if ( (unsigned long)(p->headers.entries) < 1024 )  {
-    			sr_log_msg(LOG_ERROR, 
-                     "corrupted message, num_entries > 0 (%d), but entries close to NULL (%p).\n", 
-                     p->headers.num_entries, (p->headers.entries) );
-                goto after_headers;
-            } else switch (p->headers.entries[i].value.kind) {
-                case AMQP_FIELD_KIND_I8:
-                    sr_log_msg(LOG_WARNING, "skipping I8 header %d value:%d\n", i, (p->headers.entries[i].value.value.i8) );
-                    goto after_headers;
-                    break;
-    
-                case AMQP_FIELD_KIND_TIMESTAMP:
-                    sr_log_msg(LOG_WARNING, "skipping TIMESTAMP header %d value:%lld\n", i, (long long unsigned)(p->headers.entries[i].value.value.u64) );
-                    break;
-    
-                case AMQP_FIELD_KIND_UTF8:
-        			sprintf(tag, "%.*s",
-        				(int)p->headers.entries[i].key.len,
-        				(char *)p->headers.entries[i].key.bytes);
-        
-        			sprintf(value, "%.*s",
-        				(int)p->headers.entries[i].value.value.bytes.len,
-        				(char *)p->headers.entries[i].value.value.bytes.bytes);
-        
-        			assign_field(tag, value);
-        
-        			/*
-        			   sr_log_msg( stdout, "\t\"%.*s\": \"%.*s\",\n",
-        			   (int) p->headers.entries[i].key.len, 
-        			   (char *) p->headers.entries[i].key.bytes,
-        			   (int) p->headers.entries[i].value.value.bytes.len,
-        			   (char *) p->headers.entries[i].value.value.bytes.bytes
-        			   );
-        			 */
-                    break;
-    
-                case AMQP_FIELD_KIND_U64:
-    		    sr_log_msg(LOG_WARNING, "skipping U64 header %d value:%lld\n", i, (long long unsigned)(p->headers.entries[i].value.value.u64) );
-                    goto after_headers;
-                    break;
-    
-    
-                case AMQP_FIELD_KIND_ARRAY:
-    		    sr_log_msg(LOG_WARNING, "skipping ARRAY header index: %d\n", i );
-                    goto after_headers;
-                    break;
-    
-    
-                case AMQP_FIELD_KIND_I64:
-    		    sr_log_msg(LOG_WARNING, "skipping I64  header %d: value:%lld\n", i, (long long)(p->headers.entries[i].value.value.i64) );
-                    goto after_headers;
-                    break;
-    
-                default:
-    			    sr_log_msg(LOG_WARNING, "skipping non UTF8 headers: amount: %d, this one: %d, kind:%d\n", 
-                          p->headers.num_entries, i, p->headers.entries[i].value.kind );
-                    goto after_headers;
-                    
-            }
-    	}
-    } else {
-        sr_log_msg( LOG_DEBUG, "message has no headers. Good.\n" );
-    }
+	if (p->_flags & AMQP_BASIC_HEADERS_FLAG) {
+		sr_log_msg(LOG_DEBUG, "AMQP_BASIC_HEADERS_FLAG set. %d headers in message\n",
+			   p->headers.num_entries);
+		for (int i = 0; i < p->headers.num_entries; i++) {
 
-after_headers:
+			// FIXME: bug where num_entries==2, and entries=2 instead of a pointer.... very odd.
+			//        We have no idea why this shows up, this is just a work-around, around the problem.
+			if ((unsigned long)(p->headers.entries) < 1024) {
+				sr_log_msg(LOG_ERROR,
+					   "corrupted message, num_entries > 0 (%d), but entries close to NULL (%p).\n",
+					   p->headers.num_entries, (p->headers.entries));
+				goto after_headers;
+			} else
+				switch (p->headers.entries[i].value.kind) {
+				case AMQP_FIELD_KIND_I8:
+					sr_log_msg(LOG_WARNING, "skipping I8 header %d value:%d\n",
+						   i, (p->headers.entries[i].value.value.i8));
+					goto after_headers;
+					break;
+
+				case AMQP_FIELD_KIND_TIMESTAMP:
+					sr_log_msg(LOG_WARNING,
+						   "skipping TIMESTAMP header %d value:%lld\n", i,
+						   (long long unsigned)(p->headers.entries[i].value.
+									value.u64));
+					break;
+
+				case AMQP_FIELD_KIND_UTF8:
+					sprintf(tag, "%.*s",
+						(int)p->headers.entries[i].key.len,
+						(char *)p->headers.entries[i].key.bytes);
+
+					sprintf(value, "%.*s",
+						(int)p->headers.entries[i].value.value.bytes.len,
+						(char *)p->headers.entries[i].value.value.bytes.
+						bytes);
+
+					assign_field(tag, value);
+
+					/*
+					   sr_log_msg( stdout, "\t\"%.*s\": \"%.*s\",\n",
+					   (int) p->headers.entries[i].key.len, 
+					   (char *) p->headers.entries[i].key.bytes,
+					   (int) p->headers.entries[i].value.value.bytes.len,
+					   (char *) p->headers.entries[i].value.value.bytes.bytes
+					   );
+					 */
+					break;
+
+				case AMQP_FIELD_KIND_U64:
+					sr_log_msg(LOG_WARNING,
+						   "skipping U64 header %d value:%lld\n", i,
+						   (long long unsigned)(p->headers.entries[i].value.
+									value.u64));
+					goto after_headers;
+					break;
+
+				case AMQP_FIELD_KIND_ARRAY:
+					sr_log_msg(LOG_WARNING, "skipping ARRAY header index: %d\n",
+						   i);
+					goto after_headers;
+					break;
+
+				case AMQP_FIELD_KIND_I64:
+					sr_log_msg(LOG_WARNING,
+						   "skipping I64  header %d: value:%lld\n", i,
+						   (long long)(p->headers.entries[i].value.value.
+							       i64));
+					goto after_headers;
+					break;
+
+				default:
+					sr_log_msg(LOG_WARNING,
+						   "skipping non UTF8 headers: amount: %d, this one: %d, kind:%d\n",
+						   p->headers.num_entries, i,
+						   p->headers.entries[i].value.kind);
+					goto after_headers;
+
+				}
+		}
+	} else {
+		sr_log_msg(LOG_DEBUG, "message has no headers. Good.\n");
+	}
+
+ after_headers:
 	body_target = frame.payload.properties.body_size;
 	body_received = 0;
 
-    if (body_target >= SR_SARRAC_MAXIMUM_MESSAGE_LEN) {
-			sr_log_msg(LOG_CRITICAL, "Message too big! received: (%ld bytes) max: %d",
-                 (long)body_target, SR_SARRAC_MAXIMUM_MESSAGE_LEN );
-			abort();
-    }
+	if (body_target >= SR_SARRAC_MAXIMUM_MESSAGE_LEN) {
+		sr_log_msg(LOG_CRITICAL, "Message too big! received: (%ld bytes) max: %d",
+			   (long)body_target, SR_SARRAC_MAXIMUM_MESSAGE_LEN);
+		abort();
+	}
 
 	while (body_received < body_target) {
 		result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
 		if (result < 0) {
-	        sr_log_msg(LOG_WARNING, "broken message received: wait_frame returned %d. aborting connection.\n",  result );
+			sr_log_msg(LOG_WARNING,
+				   "broken message received: wait_frame returned %d. aborting connection.\n",
+				   result);
 			return (NULL);
-        }
+		}
 		if (frame.frame_type != AMQP_FRAME_BODY) {
 			sr_log_msg(LOG_CRITICAL, "Expected body! aborting connection.");
 			abort();
 		}
 
-		strncpy( &(buf[body_received]), (char *)frame.payload.body_fragment.bytes,
-			(int)frame.payload.body_fragment.len );
+		strncpy(&(buf[body_received]), (char *)frame.payload.body_fragment.bytes,
+			(int)frame.payload.body_fragment.len);
 
 		body_received += frame.payload.body_fragment.len;
-	        sr_log_msg(LOG_DEBUG, "message body frame received: %lu bytes \n", (unsigned long)frame.payload.body_fragment.len );
+		sr_log_msg(LOG_DEBUG, "message body frame received: %lu bytes \n",
+			   (unsigned long)frame.payload.body_fragment.len);
 
 		buf[body_received] = '\0';
-    }
+	}
 
-    if (body_received != body_target) {
-	    sr_log_msg(LOG_ERROR, "incomplete message, received: %lu bytes, expected: %lu bytes.\n",  (long)body_received, (long)body_target );
+	if (body_received != body_target) {
+		sr_log_msg(LOG_ERROR,
+			   "incomplete message, received: %lu bytes, expected: %lu bytes.\n",
+			   (long)body_received, (long)body_target);
 		return (NULL);
-    } else {
-	    sr_log_msg(LOG_DEBUG, "complete message, received: %lu bytes \n",  (unsigned long)body_received );
-    }
+	} else {
+		sr_log_msg(LOG_DEBUG, "complete message, received: %lu bytes \n",
+			   (unsigned long)body_received);
+	}
 	//amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
 
 	/* Can only happen when amqp_simple_wait_frame returns <= 0 */
 	/* We break here to close the connection */
 
-    if ( buf[0] != '{' ) { // v02.
-   		    tok = strtok(buf, " ");
-    		//fprintf( stdout, "\t\"datestamp\" : \"%s\",\n", tok);
-    		strcpy(msg.datestamp, tok);
-    		tok = strtok(NULL, " ");
-    		//fprintf( stdout, "\t\"url\" : \"%s\", \n", tok);
-    		strcpy(msg.url, tok);
-    		tok = strtok(NULL, " ");
-    		//fprintf( stdout, "\t\"path\" : \"%s\", \n", tok);
-    		strcpy(msg.relPath, tok);
-    		if (is_report) {
-    			tok = strtok(NULL, " ");
-    			//fprintf( stdout, "\t\"statuscode\" : \"%s\", \n", tok);
-    			msg.statuscode = atoi(tok);
-    			tok = strtok(NULL, " ");
-    			//fprintf( stdout, "\t\"consumingurl\" : \"%s\", \n", tok);
-    			strcpy(msg.consumingurl, tok);
-    			tok = strtok(NULL, " ");
-    			//fprintf( stdout, "\t\"consuminguser\" : \"%s\", \n", tok);
-    			strcpy(msg.consuminguser, tok);
-    			tok = strtok(NULL, " ");
-    			//fprintf( stdout, "\t\"duration\" : \"%s\", \n", tok);
-    			msg.duration = (float)(atof(tok));
-    		} else {
-    			msg.statuscode = 0;
-    			msg.consumingurl[0] = '\0';
-    			msg.consuminguser[0] = '\0';
-    			msg.duration = 0.0;
+	if (buf[0] != '{') {	// v02.
+		tok = strtok(buf, " ");
+		//fprintf( stdout, "\t\"datestamp\" : \"%s\",\n", tok);
+		strcpy(msg.datestamp, tok);
+		tok = strtok(NULL, " ");
+		//fprintf( stdout, "\t\"url\" : \"%s\", \n", tok);
+		strcpy(msg.url, tok);
+		tok = strtok(NULL, " ");
+		//fprintf( stdout, "\t\"path\" : \"%s\", \n", tok);
+		strcpy(msg.relPath, tok);
+		if (is_report) {
+			tok = strtok(NULL, " ");
+			//fprintf( stdout, "\t\"statuscode\" : \"%s\", \n", tok);
+			msg.statuscode = atoi(tok);
+			tok = strtok(NULL, " ");
+			//fprintf( stdout, "\t\"consumingurl\" : \"%s\", \n", tok);
+			strcpy(msg.consumingurl, tok);
+			tok = strtok(NULL, " ");
+			//fprintf( stdout, "\t\"consuminguser\" : \"%s\", \n", tok);
+			strcpy(msg.consuminguser, tok);
+			tok = strtok(NULL, " ");
+			//fprintf( stdout, "\t\"duration\" : \"%s\", \n", tok);
+			msg.duration = (float)(atof(tok));
+		} else {
+			msg.statuscode = 0;
+			msg.consumingurl[0] = '\0';
+			msg.consuminguser[0] = '\0';
+			msg.duration = 0.0;
 
-    		}
+		}
 
-
-    } else { // v03
+	} else {		// v03
 
 #ifdef HAVE_JSONC
-            json_object *jo = NULL;
+		json_object *jo = NULL;
 
-            jo = json_tokener_parse( buf );
+		jo = json_tokener_parse(buf);
 
-            if (jo == NULL) {
-			    sr_log_msg( LOG_ERROR, "failed to parse message body: %s", buf);
-                return(NULL);
-            } else {
-			    sr_log_msg( LOG_DEBUG, "successfully parsed message body: %s", buf);
-            }
-            json_object_object_foreach( jo, k, jso_kv ) {
-                v03assign_field(k, jso_kv);
-            }
-            json_object_put(jo); //attempting to free everything?
-            jo=NULL;
+		if (jo == NULL) {
+			sr_log_msg(LOG_ERROR, "failed to parse message body: %s", buf);
+			return (NULL);
+		} else {
+			sr_log_msg(LOG_DEBUG, "successfully parsed message body: %s", buf);
+		}
+		json_object_object_foreach(jo, k, jso_kv) {
+			v03assign_field(k, jso_kv);
+		}
+		json_object_put(jo);	//attempting to free everything?
+		jo = NULL;
 #else
-            sr_log_msg( LOG_ERROR, "v03 parsing not compiled in, recompile with libjson-c support\n" );
+		sr_log_msg(LOG_ERROR,
+			   "v03 parsing not compiled in, recompile with libjson-c support\n");
 #endif
 
-    }
+	}
 
-    /* Can only happen when amqp_simple_wait_frame returns <= 0 */
-    /* We break here to close the connection */
-    return (&msg);
+	/* Can only happen when amqp_simple_wait_frame returns <= 0 */
+	/* We break here to close the connection */
+	return (&msg);
 }
 
-bool sr_message_valid( struct sr_message_s *m ) {
+bool sr_message_valid(struct sr_message_s *m)
+{
 
-	if (strlen(m->relPath) == 0 ) {
-                sr_log_msg( LOG_ERROR, "zero length relPath\n" );
+	if (strlen(m->relPath) == 0) {
+		sr_log_msg(LOG_ERROR, "zero length relPath\n");
 		return false;
-        }
+	}
 
 	return true;
 }

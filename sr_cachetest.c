@@ -17,8 +17,8 @@ unsigned char *md5hash(char *str)
 
 	ctx = EVP_MD_CTX_create();
 	md = EVP_md5();
-	EVP_DigestInit_ex(ctx, md, NULL );
- 
+	EVP_DigestInit_ex(ctx, md, NULL);
+
 	EVP_DigestUpdate(ctx, str, strlen(str));
 	EVP_DigestFinal_ex(ctx, hash + 1, &hashlen);
 	hash[0] = 'd';
@@ -31,11 +31,10 @@ unsigned char *sha512hash(char *str)
 	const EVP_MD *md;
 	unsigned int hashlen = 0;
 
-
 	ctx = EVP_MD_CTX_create();
 	md = EVP_sha512();
-	EVP_DigestInit_ex(ctx, md, NULL );
- 
+	EVP_DigestInit_ex(ctx, md, NULL);
+
 	EVP_DigestUpdate(ctx, str, strlen(str));
 	EVP_DigestFinal_ex(ctx, hash + 1, &hashlen);
 

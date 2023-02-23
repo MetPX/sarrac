@@ -20,7 +20,7 @@
 
 #define EBUFLEN (127)
 static char *es;
-static char error_buf[EBUFLEN+1];
+static char error_buf[EBUFLEN + 1];
 
 #include <sys/types.h>
 #include <dirent.h>
@@ -112,9 +112,10 @@ int dir_stack_push(char *fn, int wd, dev_t dev, ino_t ino)
 	if (!present) {
 		t = (struct dir_stack *)(malloc(sizeof(struct dir_stack)));
 		if (!t) {
-            es=strerror_r( errno, error_buf, EBUFLEN );
+			es = strerror_r(errno, error_buf, EBUFLEN);
 			sr_log_msg(LOG_ERROR,
-				"ERROR: failed to malloc adding to dir_stack for%s: %s\n", fn, es);
+				   "ERROR: failed to malloc adding to dir_stack for%s: %s\n", fn,
+				   es);
 			return (0);
 		}
 
@@ -159,7 +160,8 @@ void dir_stack_rm(char *fn)
 		i = i->next;
 	if (i) {
 		j = i->next;
-		if (i->next) i->next = i->next->next;
+		if (i->next)
+			i->next = i->next->next;
 	}
 
  dir_stack_rm_exit:
@@ -285,8 +287,8 @@ void do1file(struct sr_context *sr_c, char *fn)
 	if (S_ISLNK(sb.st_mode)) {	// process a symbolic link.
 		if (sr_c->cfg->debug)
 			sr_log_msg(LOG_DEBUG,
-				"debug: %s is a symbolic link. (follow=%s) posting\n",
-				fn, (sr_c->cfg->follow_symlinks) ? "on" : "off");
+				   "debug: %s is a symbolic link. (follow=%s) posting\n",
+				   fn, (sr_c->cfg->follow_symlinks) ? "on" : "off");
 
 		//if (ts_newer( sb.st_mtim, latest_min_mtim ))
 		sr_post(sr_c, fn, &sb);	// post the link itself.
@@ -298,7 +300,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 			return;
 
 		if (stat(fn, &sb) < 0) {	// repeat the stat, but for the destination.
-            es=strerror_r( errno, error_buf, EBUFLEN );
+			es = strerror_r(errno, error_buf, EBUFLEN);
 			sr_log_msg(LOG_ERROR, "failed to stat %s: %s\n", fn, es);
 			return;
 		}
@@ -306,14 +308,14 @@ void do1file(struct sr_context *sr_c, char *fn)
 
 	} else if (S_ISDIR(sb.st_mode))	// process a directory.
 	{
-		sr_post(sr_c, fn, &sb );	/* post mkdir */
+		sr_post(sr_c, fn, &sb);	/* post mkdir */
 
 		if (sr_c->cfg->debug)
 			sr_log_msg(LOG_DEBUG,
-				"info: opening directory: %s, first_call=%s, recursive=%s, follow_symlinks=%s\n",
-				fn, first_call ? "on" : "off",
-				(sr_c->cfg->recursive) ? "on" : "off",
-				(sr_c->cfg->follow_symlinks) ? "on" : "off");
+				   "info: opening directory: %s, first_call=%s, recursive=%s, follow_symlinks=%s\n",
+				   fn, first_call ? "on" : "off",
+				   (sr_c->cfg->recursive) ? "on" : "off",
+				   (sr_c->cfg->follow_symlinks) ? "on" : "off");
 
 		if (!first_call && !(sr_c->cfg->recursive))
 			return;
@@ -325,8 +327,8 @@ void do1file(struct sr_context *sr_c, char *fn)
 		if (!sr_c->cfg->force_polling) {
 			w = inotify_add_watch(inot_fd, fn, inotify_event_mask);
 			if (w < 0) {
-                es=strerror_r( errno, error_buf, EBUFLEN );
-				sr_log_msg(LOG_ERROR, "failed to add_watch for %s: %s\n", fn, es );
+				es = strerror_r(errno, error_buf, EBUFLEN);
+				sr_log_msg(LOG_ERROR, "failed to add_watch for %s: %s\n", fn, es);
 				return;
 			}
 		} else
@@ -341,7 +343,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 
 		dir = opendir(fn);
 		if (!dir) {
-            		es=strerror_r( errno, error_buf, EBUFLEN );
+			es = strerror_r(errno, error_buf, EBUFLEN);
 			sr_log_msg(LOG_ERROR, "failed to open directory %s: %s\n", fn, es);
 			return;
 		}
@@ -411,30 +413,30 @@ void dir_stack_check4events(struct sr_context *sr_c)
 			sprintf(fn, "%s/%s", d->path, e->name);
 
 			sr_log_msg(LOG_DEBUG,
-				"bytes read: %d, sz ev: %ld, event: %04x %s: len=%d, fn=%s\n",
-				ret, (long)(sizeof(struct inotify_event) + e->len),
-				e->mask, inotify_event_2string(e->mask), e->len, fn);
+				   "bytes read: %d, sz ev: %ld, event: %04x %s: len=%d, fn=%s\n",
+				   ret, (long)(sizeof(struct inotify_event) + e->len),
+				   e->mask, inotify_event_2string(e->mask), e->len, fn);
 
 			if ((e->mask & IN_IGNORED)) {
-				sr_log_msg(LOG_DEBUG,"ignoring IGNORE event\n" );
+				sr_log_msg(LOG_DEBUG, "ignoring IGNORE event\n");
 				continue;
 			}
 			/*
 			 * directory removal processing
 			 * ... code requires serious refactoring, but this quick fix should do for now
 			 */
-			if (e->mask & IN_ISDIR)  {
-                		if (e->mask & IN_DELETE) {
-   				    	sr_log_msg(LOG_DEBUG,
-				    		"detected directory removal, removing from internal data structures");
-    					dir_stack_rm(fn);
-    					continue;
-                		} else if ( e->mask & (IN_CREATE|IN_ATTRIB) ) {
+			if (e->mask & IN_ISDIR) {
+				if (e->mask & IN_DELETE) {
+					sr_log_msg(LOG_DEBUG,
+						   "detected directory removal, removing from internal data structures");
+					dir_stack_rm(fn);
+					continue;
+				} else if (e->mask & (IN_CREATE | IN_ATTRIB)) {
 					do1file(sr_c, fn);
-                		}
-			} else if ( (e->mask & IN_CREATE) && ! (sr_c->cfg->events & SR_EVENT_CREATE) ) {
-		                continue; // should skip non-dir create events.
-		        }
+				}
+			} else if ((e->mask & IN_CREATE) && !(sr_c->cfg->events & SR_EVENT_CREATE)) {
+				continue;	// should skip non-dir create events.
+			}
 
 			/* rename processing
 			   rename arrives as two events, old name MOVE_FROM, new name MOVE_TO.
@@ -443,8 +445,8 @@ void dir_stack_check4events(struct sr_context *sr_c)
 			if (((e->mask & IN_MOVED_FROM) == IN_MOVED_FROM)
 			    || ((e->mask & IN_MOVED_TO) == IN_MOVED_TO)) {
 				sr_log_msg(LOG_DEBUG, "rename, %sname=%s\n",
-					((e->mask & IN_MOVED_TO) ==
-					 IN_MOVED_TO) ? "new" : "old", fn);
+					   ((e->mask & IN_MOVED_TO) ==
+					    IN_MOVED_TO) ? "new" : "old", fn);
 				if (old_names) {
 					prevon = NULL;
 					for (on = old_names;
@@ -453,14 +455,14 @@ void dir_stack_check4events(struct sr_context *sr_c)
 					if (on) {
 						if (on->ofn) {
 							sr_log_msg(LOG_DEBUG,
-								"ok invoking rename ofn=%s %s\n",
-								on->ofn, fn);
+								   "ok invoking rename ofn=%s %s\n",
+								   on->ofn, fn);
 							sr_post_rename(sr_c, on->ofn, fn);
 							free(on->ofn);
 						} else {
 							sr_log_msg(LOG_DEBUG,
-								"ok invoking rename %s nfn=%s\n",
-								fn, on->nfn);
+								   "ok invoking rename %s nfn=%s\n",
+								   fn, on->nfn);
 							sr_post_rename(sr_c, fn, on->nfn);
 							free(on->nfn);
 						}
@@ -499,7 +501,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 			HASH_FIND_STR(entries_done, fn, tmpe);
 
 			sr_log_msg(LOG_DEBUG,
-				"looking in entries_done, for %s, result=%p\n", fn, tmpe);
+				   "looking in entries_done, for %s, result=%p\n", fn, tmpe);
 
 			if (!tmpe) {
 				new_entry = (struct hash_entry *)
@@ -508,13 +510,14 @@ void dir_stack_check4events(struct sr_context *sr_c)
 				HASH_ADD_KEYPTR(hh, entries_done, new_entry->fn,
 						strlen(new_entry->fn), new_entry);
 				sr_log_msg(LOG_DEBUG,
-					"e->mask=%04x from:  %04x  to: %04x \n",
-					e->mask, IN_MOVED_FROM, IN_MOVED_TO);
-				if (!(e->mask & (IN_ATTRIB|IN_MOVED_FROM|IN_MOVED_TO))) {
-		            if (  !( e->mask & IN_ATTRIB) || (sr_c->cfg->events & SR_EVENT_ATTRIB) ) {
-					    sr_log_msg(LOG_DEBUG, "do one file: %s\n", fn);
-					    do1file(sr_c, fn);
-                    }
+					   "e->mask=%04x from:  %04x  to: %04x \n",
+					   e->mask, IN_MOVED_FROM, IN_MOVED_TO);
+				if (!(e->mask & (IN_ATTRIB | IN_MOVED_FROM | IN_MOVED_TO))) {
+					if (!(e->mask & IN_ATTRIB)
+					    || (sr_c->cfg->events & SR_EVENT_ATTRIB)) {
+						sr_log_msg(LOG_DEBUG, "do one file: %s\n", fn);
+						do1file(sr_c, fn);
+					}
 				}
 			} else {
 				sr_log_msg(LOG_DEBUG, "entries_done hit! ignoring:%s\n", fn);
@@ -618,7 +621,8 @@ void usage()
 	fprintf(stderr,
 		"\t\tforeground - run as a foreground process logging to stderr (ideal for debugging.)\n");
 	fprintf(stderr,
-		"\tbroker amqps://<user>@host - required - to lookup in ~/.config/" SR_APPNAME "/credentials. MANDATORY\n");
+		"\tbroker amqps://<user>@host - required - to lookup in ~/.config/" SR_APPNAME
+		"/credentials. MANDATORY\n");
 	fprintf(stderr, "\tchmod_log <mode> - permissions to set on log files (default: 0600)\n");
 	fprintf(stderr, "\tconfig|c <name> - Configuration file (to store options) MANDATORY\n");
 	fprintf(stderr, "\tdebug <on|off> - more verbose output. (default: off) \n");
@@ -705,7 +709,7 @@ int main(int argc, char **argv)
 
 	i = 1;
 	while (i < argc) {
-		if ((strlen(argv[i]) >1) && (argv[i][0] == '-'))
+		if ((strlen(argv[i]) > 1) && (argv[i][0] == '-'))
 			consume = sr_config_parse_option(&sr_cfg, &(argv[i][(argv[i][1] == '-') ? 2 : 1]),	/* skip second hyphen if necessary */
 							 (argc > i) ? argv[i + 1] : NULL,
 							 (argc > i + 2) ? argv[i + 2] : NULL, 1);
@@ -781,31 +785,30 @@ int main(int argc, char **argv)
 		sr_config_log(&sr_cfg);
 		exit(0);
 	}
-
 	// if going to run as a daemon, Check if already running. (conflict in use of state files.)
-	if ( strcmp(sr_cfg.action, "foreground") || (sr_cfg.sleep > 0) ) {
- 	    ret = sr_config_startstop(&sr_cfg);
+	if (strcmp(sr_cfg.action, "foreground") || (sr_cfg.sleep > 0)) {
+		ret = sr_config_startstop(&sr_cfg);
 
-	    if (ret < 1) {
-		exit(abs(ret));
-	    }
-	    if ( sr_cfg.sleep > 0) {
-		sr_log_msg(LOG_INFO,
-			"sleep > 0 means run as a daemon, watching given paths.\n");
-            }
-          
-        } else {
-	    if ( sr_cfg.nodupe_ttl > 0) {
-		sr_log_msg(LOG_CRITICAL,
-			"cache > 0 cannot be used unless running as a daeemon. turn off to use for rapid parallel posting.\n");
-                return(4);
-            }
-        }
+		if (ret < 1) {
+			exit(abs(ret));
+		}
+		if (sr_cfg.sleep > 0) {
+			sr_log_msg(LOG_INFO,
+				   "sleep > 0 means run as a daemon, watching given paths.\n");
+		}
+
+	} else {
+		if (sr_cfg.nodupe_ttl > 0) {
+			sr_log_msg(LOG_CRITICAL,
+				   "cache > 0 cannot be used unless running as a daeemon. turn off to use for rapid parallel posting.\n");
+			return (4);
+		}
+	}
 
 	if ((sr_cfg.sleep <= 0.0) &&
 	    ((!strcmp(sr_cfg.action, "start")) || (!strcmp(sr_cfg.action, "restart")))) {
 		sr_log_msg(LOG_WARNING,
-			"start|restart with sleep <= 0 does nothing. exiting normally\n");
+			   "start|restart with sleep <= 0 does nothing. exiting normally\n");
 		return (0);
 	}
 	sr_c = sr_context_init_config(&sr_cfg, 0);
@@ -858,24 +861,24 @@ int main(int argc, char **argv)
 	// Assert: this is a working instance, not a launcher...
 	if (sr_config_activate(&sr_cfg)) {
 		sr_log_msg(LOG_WARNING,
-			"could not save pidfile %s: possible to run conflicting instances  \n",
-			sr_cfg.pidfile);
+			   "could not save pidfile %s: possible to run conflicting instances  \n",
+			   sr_cfg.pidfile);
 	}
 
 	sr_log_msg(LOG_INFO, "%s %s config: %s, pid: %d, starting\n",
-		sr_cfg.progname, __sarra_version__, sr_cfg.configname, sr_cfg.pid);
+		   sr_cfg.progname, __sarra_version__, sr_cfg.configname, sr_cfg.pid);
 
-	pass = 0;		
+	pass = 0;
 	// when using inotify, have to walk the tree to set the watches initially.
 	//latest_min_mtim.tv_sec = 0;
 	//latest_min_mtim.tv_nsec = 0;
-	
+
 	if (!sr_cfg.force_polling) {
 
-        // IN_CREATE must be included always in order to add directories to inotfd when created.
-		inotify_event_mask =  IN_DONT_FOLLOW| IN_CREATE | IN_ATTRIB  ;
+		// IN_CREATE must be included always in order to add directories to inotfd when created.
+		inotify_event_mask = IN_DONT_FOLLOW | IN_CREATE | IN_ATTRIB;
 
-		if (sr_cfg.events & SR_EVENT_CREATE)	
+		if (sr_cfg.events & SR_EVENT_CREATE)
 			inotify_event_mask |= IN_CREATE | IN_MOVED_FROM | IN_MOVED_TO;
 
 		if (sr_cfg.events & SR_EVENT_MODIFY)
@@ -886,21 +889,22 @@ int main(int argc, char **argv)
 
 		inot_fd = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
 		if (inot_fd < 0) {
-                    es=strerror_r( errno, error_buf, EBUFLEN );
-		    sr_log_msg(LOG_ERROR, "inot init failed: %s\n", es);
-                }
-        	sr_log_msg(LOG_DEBUG,"sr_event_mask: %04x translated to inotify_event_mask: %04x\n", sr_cfg.events, inotify_event_mask );
+			es = strerror_r(errno, error_buf, EBUFLEN);
+			sr_log_msg(LOG_ERROR, "inot init failed: %s\n", es);
+		}
+		sr_log_msg(LOG_DEBUG,
+			   "sr_event_mask: %04x translated to inotify_event_mask: %04x\n",
+			   sr_cfg.events, inotify_event_mask);
 	} else {
-        	sr_log_msg(LOG_DEBUG,"force_polling active, so event masks not used.\n");
+		sr_log_msg(LOG_DEBUG, "force_polling active, so event masks not used.\n");
 	}
-
 
 	while (1) {
 
-		if ( ((sr_cfg.sleep > 0.0) && sr_cfg.vip ) && ( sr_has_vip(sr_cfg.vip) < 1 )) {
-   			sleep(5);
+		if (((sr_cfg.sleep > 0.0) && sr_cfg.vip) && (sr_has_vip(sr_cfg.vip) < 1)) {
+			sleep(5);
 			continue;
-        }
+		}
 		if (sr_cfg.force_polling || !pass) {
 			sr_log_msg(LOG_DEBUG, "starting polling loop pass: %d\n", pass);
 			for (struct sr_path_s * i = sr_cfg.paths; i; i = i->next) {
@@ -932,8 +936,8 @@ int main(int argc, char **argv)
 			nanosleep(&tsleep, NULL);
 		} else
 			sr_log_msg(LOG_WARNING,
-				"INFO: watch, one pass takes longer (%g) than sleep interval (%g), not sleeping at all\n",
-				elapsed, sr_cfg.sleep);
+				   "INFO: watch, one pass takes longer (%g) than sleep interval (%g), not sleeping at all\n",
+				   elapsed, sr_cfg.sleep);
 
 		pass++;
 	}
@@ -951,7 +955,7 @@ int main(int argc, char **argv)
 	sr_context_close(sr_c);
 	sr_config_deactivate(&sr_cfg);
 	free(sr_c);
-	sr_c=NULL;
+	sr_c = NULL;
 	sr_config_free(&sr_cfg);
 	dir_stack_free();
 	return (0);

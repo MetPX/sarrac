@@ -57,7 +57,7 @@ FIXME: posting partitioned parts Not yet implemented.
 #include <errno.h>
 #define EBUFLEN (127)
 static char *es;
-static char error_buf[EBUFLEN+1];
+static char error_buf[EBUFLEN + 1];
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -107,7 +107,7 @@ static void header_reset()
 		headers[hdrcnt].value.value.bytes = amqp_cstring_bytes("");
 	}
 	hdrcnt = 0;
-    bad_hdrcnt = 0;
+	bad_hdrcnt = 0;
 }
 
 static void amqp_header_add(char *tag, const char *value)
@@ -116,16 +116,18 @@ static void amqp_header_add(char *tag, const char *value)
 	/* check utf8 compliance of tag and value for message headers */
 	if (!sr_is_utf8(tag) || !sr_is_utf8(value)) {
 		sr_log_msg(LOG_ERROR,
-			"amqp header (tag, value)<>(%s,%s) not utf8 encoded, Message corrupt.\n",
-			tag, value);
+			   "amqp header (tag, value)<>(%s,%s) not utf8 encoded, Message corrupt.\n",
+			   tag, value);
 		return;
 	}
 
 	char value2[AMQP_MAX_SS];
 
 	if (hdrcnt >= HDRMAX) {
-		sr_log_msg(LOG_ERROR, "too many headers! (only support %d) ignoring %s=%s Message corrupt.\n", HDRMAX, tag, value);
-        bad_hdrcnt++;
+		sr_log_msg(LOG_ERROR,
+			   "too many headers! (only support %d) ignoring %s=%s Message corrupt.\n",
+			   HDRMAX, tag, value);
+		bad_hdrcnt++;
 		return;
 	}
 	headers[hdrcnt].key = amqp_cstring_bytes(tag);
@@ -135,10 +137,10 @@ static void amqp_header_add(char *tag, const char *value)
 		strncpy(value2, value, AMQP_MAX_SS);
 		value2[AMQP_MAX_SS - 1] = '\0';
 		sr_log_msg(LOG_ERROR,
-			"header %s too long (%lu bytes), truncating to: %s. Message corrupt.\n",
-			tag, (unsigned long)strlen(value), value2);
+			   "header %s too long (%lu bytes), truncating to: %s. Message corrupt.\n",
+			   tag, (unsigned long)strlen(value), value2);
 		headers[hdrcnt].value.value.bytes = amqp_cstring_bytes(value2);
-        bad_hdrcnt++;
+		bad_hdrcnt++;
 	} else {
 		headers[hdrcnt].value.value.bytes = amqp_cstring_bytes(value);
 	}
@@ -203,23 +205,22 @@ static unsigned long int set_blocksize(long int bssetting, size_t fsz)
 
 }
 
-
-char *v03content( struct sr_message_s *m )
+char *v03content(struct sr_message_s *m)
 {
-        
-	sr_log_msg(LOG_ERROR, "Content inlinining not implemented. Faking it for now\n" );
+
+	sr_log_msg(LOG_ERROR, "Content inlinining not implemented. Faking it for now\n");
 	return "\"encoding\" : \"_encoding_\", \"value\" : \"_value_\"";
 }
 
-char *v03time( char *v02time )
+char *v03time(char *v02time)
 {
-   static char buf[128];
+	static char buf[128];
 
-   strncpy( buf, v02time, 8 );
-   buf[8]='T';
-   buf[9]='\0';
-   strcat( buf, v02time+8 );
-   return(buf);
+	strncpy(buf, v02time, 8);
+	buf[8] = 'T';
+	buf[9] = '\0';
+	strcat(buf, v02time + 8);
+	return (buf);
 }
 
 /*
@@ -227,143 +228,150 @@ char *v03time( char *v02time )
  * separator is hard-coded here (beginning of sprintf.)
  * FIXME: dumps core whenever this is used... something to fix.
  */
-static void v03amqp_header_add( char** c, const char* tag, const char *value ) 
+static void v03amqp_header_add(char **c, const char *tag, const char *value)
 {
-   int status;
+	int status;
 
-   /* check utf8 compliance of tag and value for message headers */
-   if (!sr_is_utf8(tag) || !sr_is_utf8(value)) {
-	   sr_log_msg(LOG_ERROR,
-		   "amqp header (tag, value)<>(%s,%s) not utf8 encoded, ignoring header\n",
-           tag, value);
-   } else {
-      status = sprintf( *c, ", \"%s\" : \"%s\"", tag, value );
-      (*c) += status ; 
-   }
+	/* check utf8 compliance of tag and value for message headers */
+	if (!sr_is_utf8(tag) || !sr_is_utf8(value)) {
+		sr_log_msg(LOG_ERROR,
+			   "amqp header (tag, value)<>(%s,%s) not utf8 encoded, ignoring header\n",
+			   tag, value);
+	} else {
+		status = sprintf(*c, ", \"%s\" : \"%s\"", tag, value);
+		(*c) += status;
+	}
 }
 
-void v03encode( char *message_body, struct sr_context *sr_c, struct sr_message_s *m ) 
+void v03encode(char *message_body, struct sr_context *sr_c, struct sr_message_s *m)
 {
 	char *c;
-        char *ci;
-	char *rename_value=NULL;
-        char sep[8];
+	char *ci;
+	char *rename_value = NULL;
+	char sep[8];
 	char smallbuf[256];
 	signed int status;
 	struct sr_header_s *uh;
 
-        // convert routing key, if necessary.
-        // FIXME: a generic conversion replacing topicPrefix by post_topicPrefix
-        //        would be much better, but this >99% answer is good enough for now.
-        if ( m->routing_key[2] != '3' )
-                m->routing_key[2] = '3' ;
+	// convert routing key, if necessary.
+	// FIXME: a generic conversion replacing topicPrefix by post_topicPrefix
+	//        would be much better, but this >99% answer is good enough for now.
+	if (m->routing_key[2] != '3')
+		m->routing_key[2] = '3';
 
-        strcpy( message_body, "{" );
-        c = message_body+1;
+	strcpy(message_body, "{");
+	c = message_body + 1;
 
-        strncpy( sep, "\n\t", 8 );
-        strncpy( sep, " ", 8 );
+	strncpy(sep, "\n\t", 8);
+	strncpy(sep, " ", 8);
 
-        status = sprintf( c, "%s\"pubTime\" : \"%s\"", sep, v03time( m->datestamp ) );
-        c += status ; 
+	status = sprintf(c, "%s\"pubTime\" : \"%s\"", sep, v03time(m->datestamp));
+	c += status;
 
-        v03amqp_header_add( &c, "baseUrl", m->url );
+	v03amqp_header_add(&c, "baseUrl", m->url);
 
-        v03amqp_header_add( &c, "relPath", m->relPath );
+	v03amqp_header_add(&c, "relPath", m->relPath);
 
-        ci= v03integrity(m) ;
-        if (ci) {
-        	status = sprintf( c, ",%s\"integrity\" : { %s }", sep, v03integrity(m) );
-	        c += status ; 
-        }
+	ci = v03integrity(m);
+	if (ci) {
+		status = sprintf(c, ",%s\"integrity\" : { %s }", sep, v03integrity(m));
+		c += status;
+	}
 
+	if (sr_c->cfg->strip != 0)
+		v03amqp_header_add(&c, "rename", m->rename);
 
-    	if (sr_c->cfg->strip != 0)  
-                 v03amqp_header_add( &c, "rename", m->rename );
+	if (m->source && m->source[0])
+		v03amqp_header_add(&c, "source", m->source);
 
-    	if (m->source && m->source[0]) 
-                v03amqp_header_add( &c, "source", m->source );
-
-        if ((m->sum[0] != 'R') && (m->sum[0] != 'L') &&
-            (m->sum[0] != 'm') && (m->sum[0] != 'r'))	 {
-                if ( m->parts_s != '1' ) {
-                    status = sprintf( c, 
-                      ",%s\"blocks\" : { \"method\": \"%s\", \"size\" : "
-                      "\"%0ld\", \"count\": \"%ld\", \"remainder\": \"%ld\", "
-                      "\"number\" : \"%ld\" }",
-                      sep, (m->parts_s=='i')?"inplace":"partitioned", 
-                      m->parts_blksz, m->parts_blkcount, m->parts_rem, 
-                      m->parts_num  );
-                    c += status ; 
-                } else {
-                    sprintf( smallbuf, "%ld", m->parts_blksz );
-                    v03amqp_header_add( &c, "size", smallbuf );
-                }
-
-                if (m->atime && m->atime[0]) {
-                    v03amqp_header_add( &c, "atime", v03time( m->atime ) );
-                }
-
-                if (m->mtime && m->mtime[0]) 
-                    v03amqp_header_add( &c, "mtime", v03time( m->mtime ) );
-        }
-        if ((m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'r'))	 {
-                if (m->mode > 0) {
-                    sprintf( smallbuf, "%03o", m->mode );
-                    v03amqp_header_add( &c, "mode", smallbuf );
-                }
-        }
-
-        rename_value=NULL;
-    	for (uh = m->user_headers; uh; uh = uh->next) {
-                if (!strcmp(uh->key,"oldname") ) {
-			rename_value=uh->value;
-                } else {
-                	v03amqp_header_add( &c, uh->key, uh->value );
-                }
-        }
-        if (m->sum[0] == 'L')  {
-		if (rename_value) {
-                	status = sprintf( c, ", \"fileOp\": { \"link\":\"%s\", \"rename\": \"%s\"}", m->link, rename_value );
-                } else {
-                	status = sprintf( c, ", \"fileOp\": { \"link\":\"%s\" }", m->link );
-		}
-                c+=status;
-        } else if (m->sum[0] == 'R') {
-		if (rename_value) {
-                   status = sprintf( c, ", \"fileOp\": { \"remove\":\"\", \"rename\": \"%s\"}", rename_value );
+	if ((m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'm') && (m->sum[0] != 'r')) {
+		if (m->parts_s != '1') {
+			status = sprintf(c,
+					 ",%s\"blocks\" : { \"method\": \"%s\", \"size\" : "
+					 "\"%0ld\", \"count\": \"%ld\", \"remainder\": \"%ld\", "
+					 "\"number\" : \"%ld\" }",
+					 sep, (m->parts_s == 'i') ? "inplace" : "partitioned",
+					 m->parts_blksz, m->parts_blkcount, m->parts_rem,
+					 m->parts_num);
+			c += status;
 		} else {
-		   status = sprintf( c, ", \"fileOp\": { \"remove\" : \"\"} " );
+			sprintf(smallbuf, "%ld", m->parts_blksz);
+			v03amqp_header_add(&c, "size", smallbuf);
 		}
-	        c+=status;
-        } else if (m->sum[0] == 'm') {
-		if (rename_value) {
-                   status = sprintf( c, ", \"fileOp\": { \"directory\":\"\", \"rename\": \"%s\"}", rename_value );
-		} else {
-		   status = sprintf( c, ", \"fileOp\": { \"directory\" : \"\"} " );
-		}
-	        c+=status;
-        } else if (m->sum[0] == 'r') {
-		if (rename_value) {
-                   status = sprintf( c, ", \"fileOp\": { \"remove\": \"\", \"directory\": \"\", \"rename\": \"%s\"}", rename_value );
-		} else {
-		   status = sprintf( c, ", \"fileOp\": { \"remove\" : \"\", \"directory\" : \"\"} " );
-		}
-	        c+=status;
-        } else if (rename_value) {
-                status = sprintf( c, ", \"fileOp\": { \"rename\":\"%s\" }", rename_value );
-                c+=status;
-        }
 
-        sprintf( c, "%s}  \n", sep );
-        c += status ; 
+		if (m->atime && m->atime[0]) {
+			v03amqp_header_add(&c, "atime", v03time(m->atime));
+		}
+
+		if (m->mtime && m->mtime[0])
+			v03amqp_header_add(&c, "mtime", v03time(m->mtime));
+	}
+	if ((m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'r')) {
+		if (m->mode > 0) {
+			sprintf(smallbuf, "%03o", m->mode);
+			v03amqp_header_add(&c, "mode", smallbuf);
+		}
+	}
+
+	rename_value = NULL;
+	for (uh = m->user_headers; uh; uh = uh->next) {
+		if (!strcmp(uh->key, "oldname")) {
+			rename_value = uh->value;
+		} else {
+			v03amqp_header_add(&c, uh->key, uh->value);
+		}
+	}
+	if (m->sum[0] == 'L') {
+		if (rename_value) {
+			status =
+			    sprintf(c, ", \"fileOp\": { \"link\":\"%s\", \"rename\": \"%s\"}",
+				    m->link, rename_value);
+		} else {
+			status = sprintf(c, ", \"fileOp\": { \"link\":\"%s\" }", m->link);
+		}
+		c += status;
+	} else if (m->sum[0] == 'R') {
+		if (rename_value) {
+			status =
+			    sprintf(c, ", \"fileOp\": { \"remove\":\"\", \"rename\": \"%s\"}",
+				    rename_value);
+		} else {
+			status = sprintf(c, ", \"fileOp\": { \"remove\" : \"\"} ");
+		}
+		c += status;
+	} else if (m->sum[0] == 'm') {
+		if (rename_value) {
+			status =
+			    sprintf(c, ", \"fileOp\": { \"directory\":\"\", \"rename\": \"%s\"}",
+				    rename_value);
+		} else {
+			status = sprintf(c, ", \"fileOp\": { \"directory\" : \"\"} ");
+		}
+		c += status;
+	} else if (m->sum[0] == 'r') {
+		if (rename_value) {
+			status =
+			    sprintf(c,
+				    ", \"fileOp\": { \"remove\": \"\", \"directory\": \"\", \"rename\": \"%s\"}",
+				    rename_value);
+		} else {
+			status =
+			    sprintf(c, ", \"fileOp\": { \"remove\" : \"\", \"directory\" : \"\"} ");
+		}
+		c += status;
+	} else if (rename_value) {
+		status = sprintf(c, ", \"fileOp\": { \"rename\":\"%s\" }", rename_value);
+		c += status;
+	}
+
+	sprintf(c, "%s}  \n", sep);
+	c += status;
 }
-
 
 void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 {
 	char fn[PATH_MAXNUL];
-	char message_body[1024*1024];
+	char message_body[1024 * 1024];
 	char smallbuf[256];
 	char thisexchange[256];
 	char *c, *d;
@@ -374,31 +382,32 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 	signed int status;
 	struct sr_header_s *uh;
 	time_t to_sleep = 1;
-        static time_t this_second = 0;
-        static time_t new_second = 0;
-        static int posted_this_second = 0;
+	static time_t this_second = 0;
+	static time_t new_second = 0;
+	static int posted_this_second = 0;
 
-        // rate limiting.        
+	// rate limiting.        
 
-        if ( sr_c->cfg->messageRateMax > 0 )  {
+	if (sr_c->cfg->messageRateMax > 0) {
 
-	        if (posted_this_second >= sr_c->cfg->messageRateMax ) {
-			sr_log_msg(LOG_INFO, "messageRateMax %d per second\n", sr_c->cfg->messageRateMax);
-       		 	sleep(1);
-       		}
+		if (posted_this_second >= sr_c->cfg->messageRateMax) {
+			sr_log_msg(LOG_INFO, "messageRateMax %d per second\n",
+				   sr_c->cfg->messageRateMax);
+			sleep(1);
+		}
 
-	        new_second = time(NULL);
-       		if (new_second > this_second ) {
-                        this_second = new_second;
-               		posted_this_second = 0;
-        	}
-                posted_this_second++;
-        }
+		new_second = time(NULL);
+		if (new_second > this_second) {
+			this_second = new_second;
+			posted_this_second = 0;
+		}
+		posted_this_second++;
+	}
 
 	if (!sr_message_valid(m)) {
-		sr_log_msg(LOG_INFO, "invalid message. not posting\n" );
-                return;
-        }
+		sr_log_msg(LOG_INFO, "invalid message. not posting\n");
+		return;
+	}
 	// MG white space in filename
 	strcpy(fn, m->relPath);
 	c = strchr(m->relPath, ' ');
@@ -426,106 +435,104 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 	}
 	//  resume posting
 	while (1) {
-         if ( !strncmp("v02.", sr_c->cfg->post_topicPrefix, 4 ) ) {
-    		strcpy(message_body, m->datestamp);
-    		strcat(message_body, " ");
-    		strcat(message_body, m->url);
-    		strcat(message_body, " ");
-    		strcat(message_body, fn);
-    		strcat(message_body, " \n");
+		if (!strncmp("v02.", sr_c->cfg->post_topicPrefix, 4)) {
+			strcpy(message_body, m->datestamp);
+			strcat(message_body, " ");
+			strcat(message_body, m->url);
+			strcat(message_body, " ");
+			strcat(message_body, fn);
+			strcat(message_body, " \n");
 
-    		header_reset();
+			header_reset();
 
-    		if (sr_c->cfg->strip > 0)
-    			amqp_header_add("rename", m->rename);
+			if (sr_c->cfg->strip > 0)
+				amqp_header_add("rename", m->rename);
 
-    		if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
-    			amqp_header_add("parts", sr_message_partstr(m));
+			if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
+				amqp_header_add("parts", sr_message_partstr(m));
 
-    			if (m->atime && m->atime[0])
-    				amqp_header_add("atime", m->atime);
+				if (m->atime && m->atime[0])
+					amqp_header_add("atime", m->atime);
 
-    			if (m->mode > 0) {
-    				sprintf(smallbuf, "%03o", m->mode);
-    				amqp_header_add("mode", smallbuf);
-    			}
+				if (m->mode > 0) {
+					sprintf(smallbuf, "%03o", m->mode);
+					amqp_header_add("mode", smallbuf);
+				}
 
-    			if (m->mtime && m->mtime[0])
-    				amqp_header_add("mtime", m->mtime);
-    		}
+				if (m->mtime && m->mtime[0])
+					amqp_header_add("mtime", m->mtime);
+			}
 
-    		if (m->sum[0] == 'L') {
-    			amqp_header_add("link", m->link);
-    		}
+			if (m->sum[0] == 'L') {
+				amqp_header_add("link", m->link);
+			}
 
-    		amqp_header_add("sum", m->sum);
-    
-    		for (uh = m->user_headers; uh; uh = uh->next)
-    			amqp_header_add(uh->key, uh->value);
+			amqp_header_add("sum", m->sum);
 
-    		table.num_entries = hdrcnt;
-    		table.entries = headers;
+			for (uh = m->user_headers; uh; uh = uh->next)
+				amqp_header_add(uh->key, uh->value);
 
-    		props._flags =
-                AMQP_BASIC_CONTENT_ENCODING_FLAG | AMQP_BASIC_HEADERS_FLAG |
-                AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG ;
-		    props.content_encoding = amqp_cstring_bytes("utf-8");
-		    props.content_type = amqp_cstring_bytes("text/plain");
-		    props.delivery_mode = 2;	/* persistent delivery mode */
-            props.headers = table;
+			table.num_entries = hdrcnt;
+			table.entries = headers;
 
-		    strcpy(thisexchange, sr_c->cfg->post_broker->exchange);
+			props._flags =
+			    AMQP_BASIC_CONTENT_ENCODING_FLAG | AMQP_BASIC_HEADERS_FLAG |
+			    AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
+			props.content_encoding = amqp_cstring_bytes("utf-8");
+			props.content_type = amqp_cstring_bytes("text/plain");
+			props.delivery_mode = 2;	/* persistent delivery mode */
+			props.headers = table;
 
-		    if (sr_c->cfg->post_broker->exchange_split > 0) {
-		    	sprintf(strchr(thisexchange, '\0'), "%02d",
-		    		m->sum[sr_get_sumhashlen(m->sum[0]) -
-		    		       1] % sr_c->cfg->post_broker->exchange_split);
-		    }
-            if ( bad_hdrcnt == 0 ) 
-		        status =
-		            amqp_basic_publish(sr_c->cfg->post_broker->conn, 1,
-				       amqp_cstring_bytes(thisexchange),
-				       amqp_cstring_bytes(m->routing_key), 0, 0,
-				       &props, amqp_cstring_bytes(message_body));
-        } else { /* v03 */
-            v03encode( message_body, sr_c, m );
-            sr_log_msg( LOG_DEBUG, "v03 body=%s\n", message_body );
+			strcpy(thisexchange, sr_c->cfg->post_broker->exchange);
 
-    		props._flags = AMQP_BASIC_CONTENT_ENCODING_FLAG | 
-                AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
-		    props.content_encoding = amqp_cstring_bytes("utf-8");
-		    props.content_type = amqp_cstring_bytes("application/json");
-		    props.delivery_mode = 2;	/* persistent delivery mode */
-    		table.num_entries = 0;
-    		table.entries = 0;
+			if (sr_c->cfg->post_broker->exchange_split > 0) {
+				sprintf(strchr(thisexchange, '\0'), "%02d",
+					m->sum[sr_get_sumhashlen(m->sum[0]) -
+					       1] % sr_c->cfg->post_broker->exchange_split);
+			}
+			if (bad_hdrcnt == 0)
+				status =
+				    amqp_basic_publish(sr_c->cfg->post_broker->conn, 1,
+						       amqp_cstring_bytes(thisexchange),
+						       amqp_cstring_bytes(m->routing_key), 0, 0,
+						       &props, amqp_cstring_bytes(message_body));
+		} else {	/* v03 */
+			v03encode(message_body, sr_c, m);
+			sr_log_msg(LOG_DEBUG, "v03 body=%s\n", message_body);
 
-		    strcpy(thisexchange, sr_c->cfg->post_broker->exchange);
+			props._flags = AMQP_BASIC_CONTENT_ENCODING_FLAG |
+			    AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
+			props.content_encoding = amqp_cstring_bytes("utf-8");
+			props.content_type = amqp_cstring_bytes("application/json");
+			props.delivery_mode = 2;	/* persistent delivery mode */
+			table.num_entries = 0;
+			table.entries = 0;
 
-		    if (sr_c->cfg->post_broker->exchange_split > 0) {
-		    	sprintf(strchr(thisexchange, '\0'), "%02d",
-		    		m->sum[sr_get_sumhashlen(m->sum[0]) -
-		    		       1] % sr_c->cfg->post_broker->exchange_split);
-		    }
-		    status =
-		        amqp_basic_publish(sr_c->cfg->post_broker->conn, 1,
-				       amqp_cstring_bytes(thisexchange),
-				       amqp_cstring_bytes(m->routing_key), 0, 0,
-				       &props, amqp_cstring_bytes(message_body));
-        }
+			strcpy(thisexchange, sr_c->cfg->post_broker->exchange);
+
+			if (sr_c->cfg->post_broker->exchange_split > 0) {
+				sprintf(strchr(thisexchange, '\0'), "%02d",
+					m->sum[sr_get_sumhashlen(m->sum[0]) -
+					       1] % sr_c->cfg->post_broker->exchange_split);
+			}
+			status =
+			    amqp_basic_publish(sr_c->cfg->post_broker->conn, 1,
+					       amqp_cstring_bytes(thisexchange),
+					       amqp_cstring_bytes(m->routing_key), 0, 0,
+					       &props, amqp_cstring_bytes(message_body));
+		}
 
 		if (status < 0) {
 			sr_log_msg(LOG_WARNING,
-				"sr_%s: publish of message for  %s%s failed.\n",
-				sr_c->cfg->progname, m->url, fn);
+				   "sr_%s: publish of message for  %s%s failed.\n",
+				   sr_c->cfg->progname, m->url, fn);
 			goto restart;
 		}
-	        reply = amqp_get_rpc_reply(sr_c->cfg->post_broker->conn);
-                if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-                        sr_amqp_reply_print(reply,
-                                    "basic publish failed AMQP get_rpc_reply:");
-                        goto restart;
-                }
-
+		reply = amqp_get_rpc_reply(sr_c->cfg->post_broker->conn);
+		if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
+			sr_amqp_reply_print(reply, "basic publish failed AMQP get_rpc_reply:");
+			goto restart;
+		}
 
 		commit_status = amqp_tx_commit(sr_c->cfg->post_broker->conn, 1);
 		if (!commit_status) {
@@ -546,84 +553,86 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 		sleep(to_sleep);
 		if (to_sleep < 60)
 			to_sleep <<= 1;
-		sr_log_msg(LOG_WARNING, "publish failed. Slept: %ld seconds. Retrying...\n", to_sleep);
+		sr_log_msg(LOG_WARNING, "publish failed. Slept: %ld seconds. Retrying...\n",
+			   to_sleep);
 		sr_context_connect(sr_c);
 
 	}
 }
 
-void realpath_adjust(const char *input_path, char *output_path, signed int adjust) 
+void realpath_adjust(const char *input_path, char *output_path, signed int adjust)
  /* how to adjust the realpath resolution.
   * 0 - use the whole thing.
   * n < 0 - from the right work left...
   * n > 0 - from the left, work right...
   */
 {
-    char *last_slash;
-    char *start, *spare, *end;
-    char *return_value;
-    char mutable_input_path[PATH_MAX];
-    int  i;
+	char *last_slash;
+	char *start, *spare, *end;
+	char *return_value;
+	char mutable_input_path[PATH_MAX];
+	int i;
 
-    i=0;
-    end=NULL;
-    start=mutable_input_path;
-    strcpy(mutable_input_path, input_path);
+	i = 0;
+	end = NULL;
+	start = mutable_input_path;
+	strcpy(mutable_input_path, input_path);
 
-    if ( adjust == 0 ) {
-    	  return_value=realpath(input_path,output_path);
-      	if (return_value) {
-      		sr_log_msg( LOG_DEBUG, "realpath_adjust %d, %s -> %s \n", adjust, input_path, output_path);
-  	    	return;
-  	    }
-        // fallback to checking a directory for last path element.
-        adjust = -1;
-    } 
-    if ( adjust < 0 ) {
-       for(i=0; i > adjust; i-- ) {
-	   spare=end;
-           end=strrchr(start,'/');
-	   if (end) {
-	       if (spare) 
-		       *spare='/';
-	       *end='\0';
-	   } else {
-	 	break;
-	   }
-       }
-    } else if (adjust > 0) {
-       for(i=0; i <= adjust; i++ ) {
-	   spare=start;
-           end=strchr(start,'/');
-	   if (end) {
-	       start=end+1;
-	   } else {
-	 	break;
-           }
-       }
-       if (end) {
-	       *end='\0';
-       }
-    } 
+	if (adjust == 0) {
+		return_value = realpath(input_path, output_path);
+		if (return_value) {
+			sr_log_msg(LOG_DEBUG, "realpath_adjust %d, %s -> %s \n", adjust, input_path,
+				   output_path);
+			return;
+		}
+		// fallback to checking a directory for last path element.
+		adjust = -1;
+	}
+	if (adjust < 0) {
+		for (i = 0; i > adjust; i--) {
+			spare = end;
+			end = strrchr(start, '/');
+			if (end) {
+				if (spare)
+					*spare = '/';
+				*end = '\0';
+			} else {
+				break;
+			}
+		}
+	} else if (adjust > 0) {
+		for (i = 0; i <= adjust; i++) {
+			spare = start;
+			end = strchr(start, '/');
+			if (end) {
+				start = end + 1;
+			} else {
+				break;
+			}
+		}
+		if (end) {
+			*end = '\0';
+		}
+	}
 
-    last_slash=end;
-    if (last_slash) {
-    	*last_slash='\0';
-	    return_value=realpath(mutable_input_path,output_path);
-	    sr_log_msg( LOG_DEBUG, "realpath_adjust %d, %s -> %s \n", adjust, mutable_input_path, output_path);
-    	*last_slash='/';
-    	if (return_value) {
-        	strcat(output_path,last_slash); 
-    	} else {
-	    	strcpy(output_path,input_path);
-      }
-    } else {
-      	strcpy(output_path,input_path);
-    }
+	last_slash = end;
+	if (last_slash) {
+		*last_slash = '\0';
+		return_value = realpath(mutable_input_path, output_path);
+		sr_log_msg(LOG_DEBUG, "realpath_adjust %d, %s -> %s \n", adjust, mutable_input_path,
+			   output_path);
+		*last_slash = '/';
+		if (return_value) {
+			strcat(output_path, last_slash);
+		} else {
+			strcpy(output_path, input_path);
+		}
+	} else {
+		strcpy(output_path, input_path);
+	}
 
-    return;
+	return;
 }
-
 
 int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 			  struct stat *sb, struct sr_message_s *m)
@@ -640,28 +649,28 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	char linkstr[PATH_MAXNUL];
 	char tmprk[PATH_MAXNUL + 100];
 
-  	if (*pathspec != '/') {	// need absolute path.
-  		getcwd(linkstr, PATH_MAX);
-  		strcat(linkstr, "/");
-  		strcat(linkstr, pathspec);
-        } else {
-      		strcpy(linkstr, pathspec);
-    	}
+	if (*pathspec != '/') {	// need absolute path.
+		getcwd(linkstr, PATH_MAX);
+		strcat(linkstr, "/");
+		strcat(linkstr, pathspec);
+	} else {
+		strcpy(linkstr, pathspec);
+	}
 
 	/* realpath stuff when it exists  sb */
 	if (sb && sr_c->cfg->realpathPost) {
-		realpath_adjust(linkstr, fn, sr_c->cfg->realpathAdjust );
+		realpath_adjust(linkstr, fn, sr_c->cfg->realpathAdjust);
 	} else
 		strcpy(fn, linkstr);
 
 	linkstr[0] = '\0';
 
-	if ( (sr_c->cfg != NULL) && sr_c->cfg->debug) {
+	if ((sr_c->cfg != NULL) && sr_c->cfg->debug) {
 		sr_log_msg(LOG_DEBUG,
-			"sr_%s file2message start with: %s sb=%p islnk=%d, isdir=%d, isreg=%d\n",
-			sr_c->cfg->progname, fn, sb,
-			sb ? S_ISLNK(sb->st_mode) : 0,
-			sb ? S_ISDIR(sb->st_mode) : 0, sb ? S_ISREG(sb->st_mode) : 0);
+			   "sr_%s file2message start with: %s sb=%p islnk=%d, isdir=%d, isreg=%d\n",
+			   sr_c->cfg->progname, fn, sb,
+			   sb ? S_ISLNK(sb->st_mode) : 0,
+			   sb ? S_ISDIR(sb->st_mode) : 0, sb ? S_ISREG(sb->st_mode) : 0);
 	}
 /*
 	if (sb && S_ISDIR(sb->st_mode)) {
@@ -701,7 +710,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	}
 	// Strip option: remove prefix from path according to / #
 	//               include updated path tagged as "rename" in header
-	sr_log_msg(LOG_INFO, "FIXME strip:  m->strip: %d\n", sr_c->cfg->strip );
+	sr_log_msg(LOG_INFO, "FIXME strip:  m->strip: %d\n", sr_c->cfg->strip);
 	if (sr_c->cfg->strip > 0) {
 		i = sr_c->cfg->strip;
 		c = strdup(m->relPath);
@@ -715,28 +724,30 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		}
 		strcpy(m->rename, *c ? c : "/");
 		free(d);
-	} else if (sr_c->cfg->strip == -1) { // regex case.
-                regmatch_t pmatch[1];
+	} else if (sr_c->cfg->strip == -1) {	// regex case.
+		regmatch_t pmatch[1];
 		//regoff_t off, len;
 		const char *s = m->relPath;
 
 #define ARRAY_SIZE(arr) (sizeof((arr)) / sizeof((arr)[0]))
 
 #ifdef FORCE_LIBC_REGEX
-                if (regexec_fn_ptr(&(sr_c->cfg->strip_regex), s, ARRAY_SIZE(pmatch), pmatch, 0)) {
+		if (regexec_fn_ptr(&(sr_c->cfg->strip_regex), s, ARRAY_SIZE(pmatch), pmatch, 0)) {
 #else
-                if (regexec(&(sr_c->cfg->strip_regex), s, ARRAY_SIZE(pmatch), pmatch, 0)) {
+		if (regexec(&(sr_c->cfg->strip_regex), s, ARRAY_SIZE(pmatch), pmatch, 0)) {
 #endif
-                        sr_log_msg(LOG_INFO, "FIXME strip: no match to: %s\n", sr_c->cfg->strip_pattern ); 
-		} else { // failure is matching case.	
+			sr_log_msg(LOG_INFO, "FIXME strip: no match to: %s\n",
+				   sr_c->cfg->strip_pattern);
+		} else {	// failure is matching case.   
 			//off = pmatch[0].rm_so + (s-m->relPath); 
 			//len = pmatch[0].rm_eo - pmatch[0].rm_so; 
-                        strncpy(m->rename, s, pmatch[0].rm_so ); // copy part before match starts.
-                        strcat(m->rename, s+pmatch[0].rm_eo ); // copy part after match ends
-		        sr_log_msg(LOG_DEBUG, "regexp strip: m->relPath: %s, m->rename: %s\n", m->relPath, m->rename );
+			strncpy(m->rename, s, pmatch[0].rm_so);	// copy part before match starts.
+			strcat(m->rename, s + pmatch[0].rm_eo);	// copy part after match ends
+			sr_log_msg(LOG_DEBUG, "regexp strip: m->relPath: %s, m->rename: %s\n",
+				   m->relPath, m->rename);
 			s += pmatch[0].rm_eo;
 		}
-        }
+	}
 	// use tmprk variable to fix  255 AMQP_SS_LEN limit
 	strcpy(tmprk, sr_c->cfg->post_topicPrefix);
 	strcat(tmprk, ".");
@@ -772,14 +783,14 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	}
 
 	if (!sb) {
-		if ( !((sr_c->cfg->events) & SR_EVENT_DELETE) ||
-                     (!((sr_c->cfg->events) & SR_EVENT_RMDIR) && rmdir_in_progress)
-				) {
-		 	rmdir_in_progress=0;       
+		if (!((sr_c->cfg->events) & SR_EVENT_DELETE) ||
+		    (!((sr_c->cfg->events) & SR_EVENT_RMDIR) && rmdir_in_progress)
+		    ) {
+			rmdir_in_progress = 0;
 			return (0);	// not posting deletes...
 		}
- 		m->sum[0] =  rmdir_in_progress ? 'r': 'R' ;
-		rmdir_in_progress=0;
+		m->sum[0] = rmdir_in_progress ? 'r' : 'R';
+		rmdir_in_progress = 0;
 
 	} else if (S_ISLNK(sb->st_mode)) {
 		if (!((sr_c->cfg->events) & SR_EVENT_LINK))
@@ -839,16 +850,17 @@ struct sr_message_s *sr_file2message_seq(struct sr_context *sr_c,
 	char *sumstr;
 	m->parts_num = seq;
 
-	sumstr = sr_set_sumstr(m->sum[0], m->sum[2], pathspec, NULL, m->link, m->parts_blksz, m->parts_blkcount, 
-       m->parts_rem, m->parts_num, sr_c->cfg->xattr_cc);
+	sumstr =
+	    sr_set_sumstr(m->sum[0], m->sum[2], pathspec, NULL, m->link, m->parts_blksz,
+			  m->parts_blkcount, m->parts_rem, m->parts_num, sr_c->cfg->xattr_cc);
 
 	if (!(sumstr)) {
 		sr_log_msg(LOG_ERROR,
-			"file2message_seq unable to generate %c checksum for: %s\n",
-			m->parts_s, pathspec);
+			   "file2message_seq unable to generate %c checksum for: %s\n",
+			   m->parts_s, pathspec);
 		return (NULL);
 	}
-	strcpy(m->sum, sumstr );
+	strcpy(m->sum, sumstr);
 	return (m);
 }
 
@@ -861,7 +873,7 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 	/* check utf8 compliance of path */
 	if (!sr_is_utf8(pathspec)) {
 		sr_log_msg(LOG_ERROR,
-			"file path \"%s\" not utf8 encoded, ignoring sr_post call\n", pathspec);
+			   "file path \"%s\" not utf8 encoded, ignoring sr_post call\n", pathspec);
 		return;
 	}
 	strcpy(m.source, sr_c->cfg->source);
@@ -881,12 +893,12 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 						   (unsigned char *)(m.sum),
 						   m.relPath, sr_message_partstr(&m));
 				sr_log_msg(LOG_DEBUG, "sr_post cache_check: %s\n",
-					status ? "not found" : "already there, no post");
+					   status ? "not found" : "already there, no post");
 				if (!status) {
 					if (sr_c->cfg->logReject)
 						sr_log_msg(LOG_INFO,
-							"rejecting duplicate: %s, %s\n",
-							m.relPath, sr_message_partstr(&m));
+							   "rejecting duplicate: %s, %s\n",
+							   m.relPath, sr_message_partstr(&m));
 					continue;	// cache hit.
 				}
 			}
@@ -908,7 +920,7 @@ void sr_post_rename_dir(struct sr_context *sr_c, const char *oldname, const char
 	int newlen;
 
 	sr_log_msg(LOG_DEBUG, "sr_%s %s starting rename_dir: %s %s \n",
-		sr_c->cfg->progname, __sarra_version__, oldname, newname);
+		   sr_c->cfg->progname, __sarra_version__, oldname, newname);
 	dir = opendir(newname);
 	if (!dir)
 		return;
@@ -949,27 +961,27 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	char newname[PATH_MAX];
 	char newreal[PATH_MAX];
 
-  if ( *o == '/' ) {
-	     strcpy(oldname, o);
-  } else {
-       getcwd(oldname, PATH_MAX-strlen(o)-2);
-       strcat(oldname, "/" );
-       strcat(oldname, o);
-  }
-  if ( *n == '/' ) {
-     	 strcpy(newname, n);
-  } else {
-       getcwd(newname, PATH_MAX-strlen(n)-2);
-       strcat(newname, "/" );
-       strcat(newname, n);
-  }
+	if (*o == '/') {
+		strcpy(oldname, o);
+	} else {
+		getcwd(oldname, PATH_MAX - strlen(o) - 2);
+		strcat(oldname, "/");
+		strcat(oldname, o);
+	}
+	if (*n == '/') {
+		strcpy(newname, n);
+	} else {
+		getcwd(newname, PATH_MAX - strlen(n) - 2);
+		strcat(newname, "/");
+		strcat(newname, n);
+	}
 
 	if (sr_c->cfg->realpathPost || sr_c->cfg->realpathFilter) {
-		realpath_adjust( oldname, oldreal, sr_c->cfg->realpathAdjust );
+		realpath_adjust(oldname, oldreal, sr_c->cfg->realpathAdjust);
 		sr_log_msg(LOG_DEBUG, "applying realpath to old: %s -> %s\n", oldname, oldreal);
 
 		//realpath(n, newreal);
-		realpath_adjust( newname, newreal, sr_c->cfg->realpathAdjust );
+		realpath_adjust(newname, newreal, sr_c->cfg->realpathAdjust);
 		sr_log_msg(LOG_DEBUG, "applying realpath to new: %s -> %s\n", newname, newreal);
 	}
 
@@ -979,24 +991,26 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	}
 
 	sr_log_msg(LOG_DEBUG, "sr_%s %s starting rename: %s %s \n",
-		sr_c->cfg->progname, __sarra_version__, oldname, newname);
+		   sr_c->cfg->progname, __sarra_version__, oldname, newname);
 
 	if (lstat(newname, &sb)) {
-        	es=strerror_r( errno, error_buf, EBUFLEN );
-		sr_log_msg(LOG_ERROR, "sr_%s rename cannot stat %s: %s\n", sr_c->cfg->progname, newname, es);
+		es = strerror_r(errno, error_buf, EBUFLEN);
+		sr_log_msg(LOG_ERROR, "sr_%s rename cannot stat %s: %s\n", sr_c->cfg->progname,
+			   newname, es);
 		return;
 	}
 	/* 2023/01/20 - now that dirs have posts, just handle dirs normally.
-	if (S_ISDIR(sb.st_mode)) {
-		sr_post_rename_dir(sr_c, oldname, newname);
-	}
+	   if (S_ISDIR(sb.st_mode)) {
+	   sr_post_rename_dir(sr_c, oldname, newname);
+	   }
 	 */
 
 	first_user_header.next = sr_c->cfg->user_headers;
 	sr_c->cfg->user_headers = &first_user_header;
 
-        if (sr_c->cfg->v2compatRenameDoublePost) {
-		sr_log_msg(LOG_INFO, "sr_%s v2compatible 2nd post rename... newname: %s\n", sr_c->cfg->progname, newname);
+	if (sr_c->cfg->v2compatRenameDoublePost) {
+		sr_log_msg(LOG_INFO, "sr_%s v2compatible 2nd post rename... newname: %s\n",
+			   sr_c->cfg->progname, newname);
 		first_user_header.key = strdup("newname");
 		first_user_header.value = strdup(newname);
 
@@ -1020,11 +1034,10 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 
 		free(first_user_header.key);
 		free(first_user_header.value);
-        }
-
+	}
 
 	first_user_header.key = strdup("oldname");
-  first_user_header.value = strdup(o);
+	first_user_header.value = strdup(o);
 
 	if (sr_c->cfg->realpathFilter) {
 		mask = sr_isMatchingPattern(sr_c->cfg, newreal);
@@ -1049,13 +1062,14 @@ int sr_post_cleanup(struct sr_context *sr_c)
 	char exchange[256];
 	amqp_rpc_reply_t reply;
 
-    if (! sr_c->cfg->post_broker ) return(1);
+	if (!sr_c->cfg->post_broker)
+		return (1);
 
 	if (sr_c->cfg->post_broker->exchange_split) {
 		for (int i = 0; i < sr_c->cfg->post_broker->exchange_split; i++) {
 			sprintf(exchange, "%s%02d", sr_c->cfg->post_broker->exchange, i);
 			sr_log_msg(LOG_INFO, "deleting exchange %s%02d\n",
-				sr_broker_uri(sr_c->cfg->post_broker), i);
+				   sr_broker_uri(sr_c->cfg->post_broker), i);
 			amqp_exchange_delete(sr_c->cfg->post_broker->conn, 1,
 					     amqp_cstring_bytes(exchange), 0);
 			reply = amqp_get_rpc_reply(sr_c->cfg->post_broker->conn);
@@ -1065,7 +1079,8 @@ int sr_post_cleanup(struct sr_context *sr_c)
 			}
 		}
 	} else {
-		sr_log_msg(LOG_INFO, "deleting exchange %s\n", sr_broker_uri(sr_c->cfg->post_broker));
+		sr_log_msg(LOG_INFO, "deleting exchange %s\n",
+			   sr_broker_uri(sr_c->cfg->post_broker));
 		amqp_exchange_delete(sr_c->cfg->post_broker->conn, 1,
 				     amqp_cstring_bytes(sr_c->cfg->post_broker->exchange), 0);
 		reply = amqp_get_rpc_reply(sr_c->cfg->post_broker->conn);
@@ -1081,13 +1096,13 @@ int sr_post_init(struct sr_context *sr_c)
 	char exchange[256];
 	amqp_rpc_reply_t reply;
 
-        if ( ! sr_c->cfg->exchangeDeclare ) {
-            return(1);
-        }
+	if (!sr_c->cfg->exchangeDeclare) {
+		return (1);
+	}
 	if (sr_c->cfg->post_broker->exchange_split) {
 		for (int i = 0; i < sr_c->cfg->post_broker->exchange_split; i++) {
 			sr_log_msg(LOG_DEBUG, "declaring exchange %s%02d\n",
-				sr_broker_uri(sr_c->cfg->post_broker), i);
+				   sr_broker_uri(sr_c->cfg->post_broker), i);
 			sprintf(exchange, "%s%02d", sr_c->cfg->post_broker->exchange, i);
 			amqp_exchange_declare(sr_c->cfg->post_broker->conn, 1,
 					      amqp_cstring_bytes(exchange),
@@ -1101,7 +1116,7 @@ int sr_post_init(struct sr_context *sr_c)
 		}
 	} else {
 		sr_log_msg(LOG_DEBUG, "declaring exchange %s\n",
-			sr_broker_uri(sr_c->cfg->post_broker));
+			   sr_broker_uri(sr_c->cfg->post_broker));
 		amqp_exchange_declare(sr_c->cfg->post_broker->conn, 1,
 				      amqp_cstring_bytes(sr_c->cfg->post_broker->exchange),
 				      amqp_cstring_bytes("topic"), 0,

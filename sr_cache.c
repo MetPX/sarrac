@@ -55,9 +55,9 @@ int sr_cache_check(struct sr_cache_s *cachep, char *cache_basis, char algo,
 		path = strdup("data");
 	}
 
-    if ( (!partstr) || (strlen(partstr) == 0) ) {
-       return(-2);
-    }
+	if ((!partstr) || (strlen(partstr) == 0)) {
+		return (-2);
+	}
 	struct sr_cache_entry_s *c = NULL;
 	struct sr_cache_entry_path_s *p;
 	unsigned char keyhash[SR_SUMHASHLEN];
@@ -128,7 +128,7 @@ void sr_cache_clean(struct sr_cache_s *cachep, float max_age)
 	since.tv_nsec -= diff;
 
 	sr_log_msg(LOG_DEBUG, "cleaning out entries older than: %s value=%ld\n",
-		sr_time2str(&since), since.tv_sec);
+		   sr_time2str(&since), since.tv_sec);
 
 	HASH_ITER(hh, cachep->data, c, tmpc) {
 		//sr_log_msg( LOG_DEBUG, "hash, start\n" );
@@ -216,7 +216,8 @@ int sr_cache_save(struct sr_cache_s *cachep, int to_stdout)
 		fclose(cachep->fp);
 		f = fopen(cachep->fn, "w");
 		if (!f) {
-			sr_log_msg(LOG_ERROR, "failed to open cache file to save: %s\n", cachep->fn);
+			sr_log_msg(LOG_ERROR, "failed to open cache file to save: %s\n",
+				   cachep->fn);
 			return (0);
 		}
 	}
@@ -266,7 +267,7 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 
 		if (!sum) {
 			sr_log_msg(LOG_ERROR,
-				"corrupt line %d in cache file %s: %s\n", line_count, fn, buf);
+				   "corrupt line %d in cache file %s: %s\n", line_count, fn, buf);
 			continue;
 		}
 
@@ -274,8 +275,8 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 
 		if (!timestr) {
 			sr_log_msg(LOG_ERROR,
-				"no timestring, corrupt line %d in cache file %s: %s\n",
-				line_count, fn, buf);
+				   "no timestring, corrupt line %d in cache file %s: %s\n",
+				   line_count, fn, buf);
 			continue;
 		}
 
@@ -283,21 +284,20 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 
 		if (!path) {
 			sr_log_msg(LOG_ERROR,
-				"no path, corrupt line %d in cache file %s: %s\n",
-				line_count, fn, buf);
+				   "no path, corrupt line %d in cache file %s: %s\n",
+				   line_count, fn, buf);
 			continue;
 		}
 
-		if ((sum[0] == 'L') || (sum[0] == 'R') || 
-		    (sum[0] == 'm') || (sum[0] == 'r')) {
+		if ((sum[0] == 'L') || (sum[0] == 'R') || (sum[0] == 'm') || (sum[0] == 'r')) {
 			partstr = NULL;
 		} else {
 			partstr = strtok(NULL, " \n");
 
 			if (!partstr) {
 				sr_log_msg(LOG_ERROR,
-					"no partstr, corrupt line %d in cache file %s: %s\n",
-					line_count, fn, buf);
+					   "no partstr, corrupt line %d in cache file %s: %s\n",
+					   line_count, fn, buf);
 				continue;
 			}
 		}
@@ -314,8 +314,8 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 			    malloc(sizeof(struct sr_cache_entry_s));
 			if (!c) {
 				sr_log_msg(LOG_ERROR,
-					"out of memory reading cache file: %s, stopping at line: %s\n",
-					fn, buf);
+					   "out of memory reading cache file: %s, stopping at line: %s\n",
+					   fn, buf);
 				return (cache);
 			}
 			memset(c, 0, sizeof(struct sr_cache_entry_s));
@@ -341,8 +341,8 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 		    malloc(sizeof(struct sr_cache_entry_path_s));
 		if (!p) {
 			sr_log_msg(LOG_ERROR,
-				"out of memory 2, reading cache file: %s, stopping at line: %s\n",
-				fn, buf);
+				   "out of memory 2, reading cache file: %s, stopping at line: %s\n",
+				   fn, buf);
 			return (cache);
 		}
 		memset(p, 0, sizeof(struct sr_cache_entry_path_s));

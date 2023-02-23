@@ -35,7 +35,8 @@ void usage()
 		"usage: sr3_cpump %s <options> <action> <configuration>\n\n", __sarra_version__);
 	fprintf(stderr, "\t<options> - sr3_post compatible configuration file.\n");
 	fprintf(stderr,
-		"\tbroker amqps://<user>@host - required - to lookup in ~/.config/" SR_APPNAME "/credentials.\n");
+		"\tbroker amqps://<user>@host - required - to lookup in ~/.config/" SR_APPNAME
+		"/credentials.\n");
 	fprintf(stderr, "\tdebug <on|off> - more verbose output.\n");
 	fprintf(stderr, "\texchange <exchange> - required - name of exchange to bind to\n");
 	fprintf(stderr, "\taccept/reject <regex> - to filter files to post.\n");
@@ -83,7 +84,7 @@ int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
 	char cache_fil[PATH_MAX];
 	struct stat sb;
 	struct dirent *e;
-    char *s;
+	char *s;
 
 	// if running, warn no cleanup
 	if (sr_cfg->pid > 0) {
@@ -93,12 +94,12 @@ int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
 				"cannot cleanup : sr_cpump configuration %s is running\n",
 				sr_cfg->configname);
 			return (1);
-		} else if ( ret < 0  ) {
-            s = strerror_r( errno, cache_fil, PATH_MAX-1 );
-			fprintf(stderr, 
-               "cannot cleanup sr3_cpump configuration %s, failed to check pid ( %d ): %s ",
-               sr_cfg->configname, sr_cfg->pid, s );
-        }
+		} else if (ret < 0) {
+			s = strerror_r(errno, cache_fil, PATH_MAX - 1);
+			fprintf(stderr,
+				"cannot cleanup sr3_cpump configuration %s, failed to check pid ( %d ): %s ",
+				sr_cfg->configname, sr_cfg->pid, s);
+		}
 	}
 
 	sprintf(cache_dir, "%s/.cache/" SR_APPNAME "/%s/%s", getenv("HOME"),
@@ -146,31 +147,30 @@ int sr_cpump_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int do
 	return (0);
 }
 
-
 /* establish bindings, and teardown and reestablish connection until it works.
  */
-struct sr_context *force_good_connection_and_bindings(struct sr_context *sr_c) 
+struct sr_context *force_good_connection_and_bindings(struct sr_context *sr_c)
 {
-   struct sr_context *new_one;
-   int backoff=1;
+	struct sr_context *new_one;
+	int backoff = 1;
 
-   new_one = sr_c;
-   while(!sr_consume_setup(new_one)) 
-   { /* loop until success */
-      sr_log_msg(LOG_WARNING, "Due to failure, sleeping for %d seconds to try to re-connect.\n", backoff);
-      sr_context_close(new_one);
-      sleep(backoff);
-      if ( backoff < 60 ) backoff *= 2;
-         new_one = sr_context_connect(new_one);
-   }
-   return(new_one);
+	new_one = sr_c;
+	while (!sr_consume_setup(new_one)) {	/* loop until success */
+		sr_log_msg(LOG_WARNING,
+			   "Due to failure, sleeping for %d seconds to try to re-connect.\n",
+			   backoff);
+		sr_context_close(new_one);
+		sleep(backoff);
+		if (backoff < 60)
+			backoff *= 2;
+		new_one = sr_context_connect(new_one);
+	}
+	return (new_one);
 }
-
-
 
 int main(int argc, char **argv)
 {
-        char raw_body[1024*1024];
+	char raw_body[1024 * 1024];
 	struct sr_message_s *m;
 	struct sr_context *sr_c;
 	struct sr_config_s sr_cfg;
@@ -280,16 +280,16 @@ int main(int argc, char **argv)
 	// (just hangs when attempting to bind queue with cleaned up exchange)
 	if (strcmp(sr_cfg.action, "cleanup")) {
 
-        /*
-        while(!sr_consume_setup(sr_c)) { 
-		       sr_log_msg(LOG_ERROR, "Due to binding failure, sleeping for %d seconds to rety.\n", backoff);
-	           sr_context_close(sr_c);
-               sleep(backoff);
-               if ( backoff < 60 ) backoff *= 2;
-	           sr_c = sr_context_connect(sr_c);
-        }
-         */
-        sr_c = force_good_connection_and_bindings(sr_c);
+		/*
+		   while(!sr_consume_setup(sr_c)) { 
+		   sr_log_msg(LOG_ERROR, "Due to binding failure, sleeping for %d seconds to rety.\n", backoff);
+		   sr_context_close(sr_c);
+		   sleep(backoff);
+		   if ( backoff < 60 ) backoff *= 2;
+		   sr_c = sr_context_connect(sr_c);
+		   }
+		 */
+		sr_c = force_good_connection_and_bindings(sr_c);
 		if (!strcmp(sr_cfg.outlet, "post"))
 			sr_post_init(sr_c);
 	}
@@ -306,7 +306,8 @@ int main(int argc, char **argv)
 
 	if (strcmp(sr_cfg.action, "foreground")) {
 		if (!sr_cfg.outlet) {
-			sr_log_msg(LOG_CRITICAL, "must specify output file when running as daemon.\n");
+			sr_log_msg(LOG_CRITICAL,
+				   "must specify output file when running as daemon.\n");
 			return (1);
 		}
 		sr_daemonize(0);
@@ -314,33 +315,33 @@ int main(int argc, char **argv)
 	// Assert: this is a working instance, not a launcher...
 	if (sr_config_activate(&sr_cfg)) {
 		sr_log_msg(LOG_WARNING,
-			"could not save pidfile %s: possible to run conflicting instances  \n",
-			sr_cfg.pidfile);
+			   "could not save pidfile %s: possible to run conflicting instances  \n",
+			   sr_cfg.pidfile);
 	}
 	sr_log_msg(LOG_INFO,
-		"%s %s config: %s, pid: %d, queue: %s bound to exchange: %s starting\n",
-		sr_cfg.progname, __sarra_version__, sr_cfg.configname,
-		sr_cfg.pid, sr_cfg.queuename, sr_cfg.exchange);
+		   "%s %s config: %s, pid: %d, queue: %s bound to exchange: %s starting\n",
+		   sr_cfg.progname, __sarra_version__, sr_cfg.configname,
+		   sr_cfg.pid, sr_cfg.queuename, sr_cfg.exchange);
 
 	while (1) {
 
-	        if ( sr_cfg.vip && ( sr_has_vip(sr_cfg.vip) < 1) ) {
+		if (sr_cfg.vip && (sr_has_vip(sr_cfg.vip) < 1)) {
 			sleep(5);
 			continue;
-       		}
+		}
 		// inlet: from queue, json, tree.
 		m = sr_consume(sr_c);
 
 		if (!m) {
-            		sr_c = force_good_connection_and_bindings(sr_c);
+			sr_c = force_good_connection_and_bindings(sr_c);
 			continue;
 		} else if (sr_message_valid(m)) {
 			sr_log_msg(LOG_INFO, "received: %s\n", sr_message_2log(m));
-                } else {
-			sr_log_msg(LOG_ERROR, "discarding invalid message: %s\n", sr_message_2log(m) );
+		} else {
+			sr_log_msg(LOG_ERROR, "discarding invalid message: %s\n",
+				   sr_message_2log(m));
 			continue;
-                }
-
+		}
 
 		/* apply the accept/reject clauses */
 		// FIXME BUG: pattern to match is supposed to be complete URL, not just path...
@@ -357,14 +358,14 @@ int main(int argc, char **argv)
 					   m->parts_s, (unsigned char *)m->sum,
 					   m->relPath, sr_message_partstr(m));
 
-			if ( (ret <= 0) && ( sr_cfg.logReject ) ) {
-  				    sr_log_msg( ((ret < 0)?LOG_WARNING:LOG_INFO),
-						"%s : %s %s\n", 
-                        (ret < 0) ? "cache problem":"rejecting duplicate", 
-						m->relPath, sr_message_partstr(m));
-       			}
- 
-            		if ( ret == 0 ) { 
+			if ((ret <= 0) && (sr_cfg.logReject)) {
+				sr_log_msg(((ret < 0) ? LOG_WARNING : LOG_INFO),
+					   "%s : %s %s\n",
+					   (ret < 0) ? "cache problem" : "rejecting duplicate",
+					   m->relPath, sr_message_partstr(m));
+			}
+
+			if (ret == 0) {
 				continue;	// cache hit.
 			}
 
@@ -374,12 +375,12 @@ int main(int argc, char **argv)
 		// outlet:
 		if (m) {
 			if (!strcmp(sr_cfg.outlet, "json")) {
-                            if ( !strncmp("v02.", sr_c->cfg->post_topicPrefix, 4 ) ) {
-				sr_message_2json(m);
-                            } else {
-                                v03encode( (char *)&raw_body, sr_c, m );
-                                printf("%s\n", raw_body );
-                            }
+				if (!strncmp("v02.", sr_c->cfg->post_topicPrefix, 4)) {
+					sr_message_2json(m);
+				} else {
+					v03encode((char *)&raw_body, sr_c, m);
+					printf("%s\n", raw_body);
+				}
 			} else if (!strcmp(sr_cfg.outlet, "url"))
 				sr_message_2url(m);
 			else if (!strcmp(sr_cfg.outlet, "post"))

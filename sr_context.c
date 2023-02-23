@@ -82,23 +82,23 @@ void sr_amqp_reply_print(amqp_rpc_reply_t x, char const *context)
 				amqp_connection_close_t *m =
 				    (amqp_connection_close_t *) x.reply.decoded;
 				sr_log_msg(LOG_ERROR,
-					"%s: server connection error %uh, message: %.*s\n",
-					context, m->reply_code,
-					(int)m->reply_text.len, (char *)m->reply_text.bytes);
+					   "%s: server connection error %uh, message: %.*s\n",
+					   context, m->reply_code,
+					   (int)m->reply_text.len, (char *)m->reply_text.bytes);
 				break;
 			}
 		case AMQP_CHANNEL_CLOSE_METHOD:{
 				amqp_channel_close_t *m = (amqp_channel_close_t *) x.reply.decoded;
 				sr_log_msg(LOG_ERROR,
-					"%s: server channel error %uh, message: %.*s\n",
-					context, m->reply_code,
-					(int)m->reply_text.len, (char *)m->reply_text.bytes);
+					   "%s: server channel error %uh, message: %.*s\n",
+					   context, m->reply_code,
+					   (int)m->reply_text.len, (char *)m->reply_text.bytes);
 				break;
 			}
 		default:
 			sr_log_msg(LOG_ERROR,
-				"%s: unknown server error, method id 0x%08X\n",
-				context, x.reply.id);
+				   "%s: unknown server error, method id 0x%08X\n",
+				   context, x.reply.id);
 			break;
 		}
 		break;
@@ -151,8 +151,8 @@ struct sr_broker_s *sr_broker_connect(struct sr_broker_s *broker)
 		if (status < 0) {
 			sr_amqp_error_print(status, "failed opening AMQP socket");
 			sr_log_msg(LOG_ERROR,
-				"Failed to open AMQP socket host: %s, port: %d\n",
-				broker->hostname, broker->port);
+				   "Failed to open AMQP socket host: %s, port: %d\n",
+				   broker->hostname, broker->port);
 			goto have_socket;
 		}
 		reply =
@@ -203,7 +203,7 @@ struct sr_broker_s *sr_broker_connect(struct sr_broker_s *broker)
 
 		sleep(to_sleep);
 		sr_log_msg(LOG_DEBUG,
-			"broker_connect slept %ld seconds. Trying again now.\n", to_sleep);
+			   "broker_connect slept %ld seconds. Trying again now.\n", to_sleep);
 		if (to_sleep < 60)
 			to_sleep <<= 1;
 
@@ -232,8 +232,8 @@ struct sr_context *sr_context_connect(struct sr_context *sr_c)
 			return (NULL);
 		if ((sr_c->cfg != NULL) && sr_c->cfg->debug)
 			sr_log_msg(LOG_DEBUG,
-				"%s sr_context_connect to subscription broker succeeded!\n",
-				__sarra_version__);
+				   "%s sr_context_connect to subscription broker succeeded!\n",
+				   __sarra_version__);
 	}
 
 	if (sr_c->cfg->post_broker) {
@@ -241,7 +241,7 @@ struct sr_context *sr_context_connect(struct sr_context *sr_c)
 		if (!(sr_c->cfg->post_broker))
 			return (NULL);
 		sr_log_msg(LOG_DEBUG, "%s connected to post broker %s\n",
-			__sarra_version__, sr_broker_uri(sr_c->cfg->post_broker));
+			   __sarra_version__, sr_broker_uri(sr_c->cfg->post_broker));
 	}
 	if (sr_context_avoid_std_fds) {
 		for (int i = PSDUPMAX - 1; i >= 0; i--)
@@ -289,18 +289,18 @@ struct sr_context *sr_context_init_config(struct sr_config_s *sr_cfg, int must_a
 	if ((sr_c->cfg != NULL) && sr_c->cfg->debug) {
 		if (sr_c->cfg->broker)
 			sr_log_msg(LOG_DEBUG, "broker: amqp%s://%s:%s@%s:%d\n",
-				sr_cfg->broker->ssl ? "s" : "",
-				sr_cfg->broker->user,
-				(sr_cfg->broker->password) ? "<pw>" : "<null>",
-				sr_cfg->broker->hostname, sr_cfg->broker->port);
+				   sr_cfg->broker->ssl ? "s" : "",
+				   sr_cfg->broker->user,
+				   (sr_cfg->broker->password) ? "<pw>" : "<null>",
+				   sr_cfg->broker->hostname, sr_cfg->broker->port);
 
 		if (sr_c->cfg->post_broker)
 			sr_log_msg(LOG_DEBUG,
-				"post_broker: amqp%s://%s:%s@%s:%d\n",
-				sr_cfg->post_broker->ssl ? "s" : "",
-				sr_cfg->post_broker->user,
-				(sr_cfg->post_broker->password) ? "<pw>" : "<null>",
-				sr_cfg->post_broker->hostname, sr_cfg->post_broker->port);
+				   "post_broker: amqp%s://%s:%s@%s:%d\n",
+				   sr_cfg->post_broker->ssl ? "s" : "",
+				   sr_cfg->post_broker->user,
+				   (sr_cfg->post_broker->password) ? "<pw>" : "<null>",
+				   sr_cfg->post_broker->hostname, sr_cfg->post_broker->port);
 	}
 
 	return (sr_c);
@@ -356,7 +356,8 @@ void sr_context_close(struct sr_context *sr_c)
 		sr_log_msg(LOG_DEBUG, "%s subscription broker closed.\n", sr_c->cfg->progname);
 	}
 	if (sr_c->cfg->post_broker) {
-		sr_log_msg(LOG_DEBUG, "%d %s post broker closing.\n", getpid(), sr_c->cfg->progname);
+		sr_log_msg(LOG_DEBUG, "%d %s post broker closing.\n", getpid(),
+			   sr_c->cfg->progname);
 		sr_broker_close(sr_c->cfg->post_broker);
 		sr_log_msg(LOG_DEBUG, "%s post broker closed.\n", sr_c->cfg->progname);
 	}
@@ -378,7 +379,7 @@ void sr_context_heartbeat(struct sr_context *sr_c)
 		sr_log_msg(LOG_INFO, "heartbeat starting to clean cache\n");
 		sr_cache_clean(sr_c->cfg->cachep, sr_c->cfg->nodupe_ttl);
 		sr_log_msg(LOG_DEBUG, "heartbeat cleaned, hashes left: %u\n",
-			HASH_COUNT(sr_c->cfg->cachep->data));
+			   HASH_COUNT(sr_c->cfg->cachep->data));
 		if (HASH_COUNT(sr_c->cfg->cachep->data) == 0) {
 			sr_c->cfg->cachep->data = NULL;
 		}
@@ -388,8 +389,8 @@ void sr_context_heartbeat(struct sr_context *sr_c)
 
 //FIXME
 		sr_log_msg(LOG_INFO,
-			"heartbeat after cleaning, cache stores %d entries. (memory: %ld kB)\n",
-			cached_count, usage_after.ru_maxrss);
+			   "heartbeat after cleaning, cache stores %d entries. (memory: %ld kB)\n",
+			   cached_count, usage_after.ru_maxrss);
 	}
 	sr_log_msg(LOG_DEBUG, "heartbeat processing completed\n");
 }

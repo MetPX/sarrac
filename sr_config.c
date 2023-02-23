@@ -59,7 +59,8 @@ void sr_add_path(struct sr_config_s *sr_cfg, const char *option)
 	struct sr_path_s *p;
 	struct sr_path_s *n;
 
-        if (option == NULL) return;
+	if (option == NULL)
+		return;
 
 	if (!strcmp(option, "add")
 	    || !strcmp(option, "cleanup")
@@ -130,10 +131,11 @@ void sr_add_binding(struct sr_config_s *sr_cfg, const char *sub)
 	t->next = NULL;
 
 	if (sr_cfg->exchange) {
-		strcpy( t->exchange, sr_cfg->exchange);
+		strcpy(t->exchange, sr_cfg->exchange);
 	} else {
 		if (sr_cfg->exchangeSuffix) {
-			sprintf(t->exchange, "xs_%s_%s", sr_cfg->broker->user, sr_cfg->exchangeSuffix);
+			sprintf(t->exchange, "xs_%s_%s", sr_cfg->broker->user,
+				sr_cfg->exchangeSuffix);
 		} else
 			strcpy(t->exchange, "xpublic");
 	}
@@ -154,7 +156,7 @@ void sr_add_binding(struct sr_config_s *sr_cfg, const char *sub)
 
 #ifdef FORCE_LIBC_REGEX
 
-typedef int (*regcomp_fn) (regex_t * pregg, const char *regex, int clfags);
+typedef int (*regcomp_fn)(regex_t * pregg, const char *regex, int clfags);
 static regcomp_fn regcomp_fn_ptr = NULL;
 
 regexec_fn regexec_fn_ptr = NULL;
@@ -174,14 +176,16 @@ struct sr_mask_s *sr_isMatchingPattern(struct sr_config_s *sr_cfg, const char *c
 
 	entry = sr_cfg->masks;
 	while (entry) {
-		 if ( (sr_cfg) && sr_cfg->debug )
-		     sr_log_msg( LOG_DEBUG,  "sr_isMatchingPattern, testing string: %s vs mask: %s %-30s next=%p\n", 
-		          chaine, (entry->accepting)?"accept":"reject", entry->clause, (entry->next) );
+		if ((sr_cfg) && sr_cfg->debug)
+			sr_log_msg(LOG_DEBUG,
+				   "sr_isMatchingPattern, testing string: %s vs mask: %s %-30s next=%p\n",
+				   chaine, (entry->accepting) ? "accept" : "reject", entry->clause,
+				   (entry->next));
 
 #ifdef FORCE_LIBC_REGEX
-		if (!regexec_fn_ptr(&(entry->regexp), chaine, (size_t) 0, NULL, 0)) {
+		if (!regexec_fn_ptr(&(entry->regexp), chaine, (size_t)0, NULL, 0)) {
 #else
-		if (!regexec(&(entry->regexp), chaine, (size_t) 0, NULL, 0)) {
+		if (!regexec(&(entry->regexp), chaine, (size_t)0, NULL, 0)) {
 #endif
 			break;	// matched
 		}
@@ -190,17 +194,18 @@ struct sr_mask_s *sr_isMatchingPattern(struct sr_config_s *sr_cfg, const char *c
 	if ((sr_cfg) && sr_cfg->debug) {
 		if (entry)
 			sr_log_msg(LOG_DEBUG,
-				"sr_isMatchingPattern: %s matched mask: %s %s\n",
-				chaine, (entry->accepting) ? "accept" : "reject", entry->clause);
+				   "sr_isMatchingPattern: %s matched mask: %s %s\n",
+				   chaine, (entry->accepting) ? "accept" : "reject", entry->clause);
 		else
 			sr_log_msg(LOG_DEBUG,
-				"sr_isMatchingPattern: %s did not match any masks\n", chaine);
+				   "sr_isMatchingPattern: %s did not match any masks\n", chaine);
 	}
 	sr_cfg->match = entry;
 	return (entry);
 }
 
-bool regcomp_fn_ptr_is_setup() {
+bool regcomp_fn_ptr_is_setup()
+{
 	void *handle;
 	if (!regcomp_fn_ptr) {
 		handle = dlopen(FORCE_LIBC_REGEX, RTLD_LAZY);
@@ -233,7 +238,8 @@ static void add_mask(struct sr_config_s *sr_cfg, char *directory, char *option, 
 	if (regcomp_fn_ptr_is_setup()) {
 		status = regcomp_fn_ptr(&(new_entry->regexp), option, REG_EXTENDED | REG_NOSUB);
 	} else {
-		sr_log_msg(LOG_CRITICAL, "cannot find regcomp library function: regex %s ignored\n", option);
+		sr_log_msg(LOG_CRITICAL, "cannot find regcomp library function: regex %s ignored\n",
+			   option);
 		return;
 	}
 #else
@@ -308,7 +314,8 @@ static struct sr_broker_s *broker_uri_parse(char *src)
 	char buf[PATH_MAX];
 	char *c, *d, *save;
 
-	if (!src) return (NULL);
+	if (!src)
+		return (NULL);
 
 	b = (struct sr_broker_s *)malloc(sizeof(struct sr_broker_s));
 	strcpy(buf, src);
@@ -317,21 +324,21 @@ static struct sr_broker_s *broker_uri_parse(char *src)
 	save = buf + 7 + (b->ssl);
 	d = strchr(save, '@');
 	if (!d) {
-	        b->user = strdup("anonymous");
-       		b->password = strdup("anonymous");
-	        c=save;
+		b->user = strdup("anonymous");
+		b->password = strdup("anonymous");
+		c = save;
 	} else {
- 	    	// save points at user string, null terminated.
-	    	*d = '\0';
-    		c = d + 1;		// continuation point.
-	    	d = strchr(save, ':');
-	    	if (d) {
-	    		*d = '\0';
-	    		d++;
-	    		b->password = strdup(d);
-    		} else
-	    		b->password = NULL;
-	    	b->user = strdup(save);
+		// save points at user string, null terminated.
+		*d = '\0';
+		c = d + 1;	// continuation point.
+		d = strchr(save, ':');
+		if (d) {
+			*d = '\0';
+			d++;
+			b->password = strdup(d);
+		} else
+			b->password = NULL;
+		b->user = strdup(save);
 	}
 
 	// c points at hostname
@@ -557,8 +564,8 @@ char *sr_local_fqdn()
 
 	if ((gai_result = getaddrinfo(hostname, NULL, &hints, &info)) != 0) {
 		sr_log_msg(LOG_CRITICAL,
-			"cannot get hostname.  Getaddrinfo returned: %s\n",
-			gai_strerror(gai_result));
+			   "cannot get hostname.  Getaddrinfo returned: %s\n",
+			   gai_strerror(gai_result));
 		return (NULL);
 	}
 
@@ -643,7 +650,7 @@ static char *subarg(struct sr_config_s *sr_cfg, char *arg)
 		}
 		if (*e == '\0') {
 			sr_log_msg(LOG_WARNING,
-				"malformed argument: %s. returning unmodified.\n", arg);
+				   "malformed argument: %s. returning unmodified.\n", arg);
 			return (arg);
 		}
 		*e = '\0';
@@ -700,7 +707,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 	char *brokerstr, *argument, *argument2, *spare;
 	int val;
 	int retval;
-       
+
 	//char p[PATH_MAX];
 
 	if (strcspn(option, " \t\n#") == 0)
@@ -723,7 +730,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		add_mask(sr_cfg, sr_cfg->directory, argument, 1);
 		retval = 2;
 
-	} else if (!strcmp(option, "accept_unmatch") || !strcmp(option,"accept_unmatched")
+	} else if (!strcmp(option, "accept_unmatch") || !strcmp(option, "accept_unmatched")
 		   || !strcmp(option, "acceptUnmatched")
 		   || !strcmp(option, "au")) {
 		val = StringIsTrue(argument);
@@ -755,8 +762,8 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		if (brokerstr == NULL) {
 			sr_cfg->broker = broker_uri_parse(argument);
 			if (!sr_cfg->broker)
-			    sr_log_msg(LOG_ERROR, "unknown/invalid broker: %s.\n", argument);
-				retval = -2;
+				sr_log_msg(LOG_ERROR, "unknown/invalid broker: %s.\n", argument);
+			retval = -2;
 		} else {
 			sr_cfg->broker = broker_uri_parse(brokerstr);
 		}
@@ -764,11 +771,11 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = 2;
 
 	} else if (!strcmp(option, "cache") || !strcmp(option, "caching")
-	       || !strcmp(option, "no_duplicates")
+		   || !strcmp(option, "no_duplicates")
 		   || !strcmp(option, "noduplicates") || !strcmp(option, "nd")
 		   || !strcmp(option, "suppress_duplicates")
 		   || !strcmp(option, "sd")
-		   || !strcmp(option, "nodupe_ttl")){
+		   || !strcmp(option, "nodupe_ttl")) {
 		if isalpha
 			(*argument) {
 			val = StringIsTrue(argument);
@@ -785,11 +792,11 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		if (!strcmp(argument, "data") || !strcmp(argument, "name")
 		    || !strcmp(argument, "path")) {
 			sr_cfg->cache_basis = argument;
-            argument=NULL;
+			argument = NULL;
 		} else {
 			sr_log_msg(LOG_ERROR,
-				"unknown basis for duplicate suppression: %s (...using default: %s)\n",
-				argument, sr_cfg->cache_basis);
+				   "unknown basis for duplicate suppression: %s (...using default: %s)\n",
+				   argument, sr_cfg->cache_basis);
 		}
 		retval = (2);
 
@@ -799,16 +806,17 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 
 	} else if (!strcmp(option, "config") || !strcmp(option, "include")
 		   || !strcmp(option, "c")) {
-                if (argument) {
+		if (argument) {
 			val = sr_config_read(sr_cfg, argument, 1, master);
 			if (val < 0)
 				retval = -1;
 			else
 				retval = 2;
-                } else {
-			sr_log_msg(LOG_ERROR, "config option requires a file name argument, none given\n");
-                        retval=-1;
-                }
+		} else {
+			sr_log_msg(LOG_ERROR,
+				   "config option requires a file name argument, none given\n");
+			retval = -1;
+		}
 
 	} else if (!strcmp(option, "debug")) {
 		val = StringIsTrue(argument);
@@ -821,15 +829,15 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = sr_add_decl(sr_cfg, argument, argument2);
 
 	} else if (!strcmp(option, "declare_exchange")
-                || !strcmp(option,"de")||!strcmp(option,"dx")
-                || !strcmp(option,"exchangeDeclare")||!strcmp(option,"ed")
-                ) {
+		   || !strcmp(option, "de") || !strcmp(option, "dx")
+		   || !strcmp(option, "exchangeDeclare") || !strcmp(option, "ed")
+	    ) {
 		val = StringIsTrue(argument);
 		sr_cfg->exchangeDeclare = val & 2;
 		retval = (1 + (val & 1));
 
-	} else if (!strcmp(option, "declare_queue")||!strcmp(option,"dq")
-	          ||!strcmp(option, "queueDeclare")||!strcmp(option,"qd")) {
+	} else if (!strcmp(option, "declare_queue") || !strcmp(option, "dq")
+		   || !strcmp(option, "queueDeclare") || !strcmp(option, "qd")) {
 		val = StringIsTrue(argument);
 		sr_cfg->queueDeclare = val & 2;
 		retval = (1 + (val & 1));
@@ -852,49 +860,50 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		   || !strcmp(option, "post_documentRoot")
 		   || !strcmp(option, "dr")) {
 		sr_log_msg(LOG_WARNING,
-			"please replace (deprecated) [post_]document_root with post_baseDir: %s.\n",
-			argument);
+			   "please replace (deprecated) [post_]document_root with post_baseDir: %s.\n",
+			   argument);
 		if (sr_cfg->post_baseDir)
 			free(sr_cfg->post_baseDir);
 		sr_cfg->post_baseDir = argument;
 		argument = NULL;
 
 	} else if (!strcmp(option, "post_base_dir") || !strcmp(option, "pbd")
-	       ||  !strcmp(option, "post_baseDir") ||  !strcmp(option, "post_basedir") ) {
+		   || !strcmp(option, "post_baseDir") || !strcmp(option, "post_basedir")) {
 		if (sr_cfg->post_baseDir)
 			free(sr_cfg->post_baseDir);
 		sr_cfg->post_baseDir = argument;
 		argument = NULL;
 		retval = 2;
 
-    } else if (!strcmp(option, "post_topic_prefix") || !strcmp(option, "ptp" )
-           || !strcmp(option, "post_topicPrefix" )) {
-        strcpy( sr_cfg->post_topicPrefix, argument );
-        retval = 2;
+	} else if (!strcmp(option, "post_topic_prefix") || !strcmp(option, "ptp")
+		   || !strcmp(option, "post_topicPrefix")) {
+		strcpy(sr_cfg->post_topicPrefix, argument);
+		retval = 2;
 
 	} else if (!strcmp(option, "durable")) {
 		val = StringIsTrue(argument);
 		sr_cfg->durable = val & 2;
 		retval = (1 + (val & 1));
 
-	} else if (!strcmp(option, "events") || !strcmp(option, "e") || !strcmp(option, "fileEvents") || !strcmp(option, "fe")) {
-                spare=strdup(argument);
-                if ( !strcasecmp(argument,"none") ) {
+	} else if (!strcmp(option, "events") || !strcmp(option, "e")
+		   || !strcmp(option, "fileEvents") || !strcmp(option, "fe")) {
+		spare = strdup(argument);
+		if (!strcasecmp(argument, "none")) {
 			sr_cfg->events = 0;
-		} else if ( !strcasecmp(argument,"all") ) {
+		} else if (!strcasecmp(argument, "all")) {
 			sr_cfg->events = SR_EVENT_ALL;
-		} else if (*argument == '+' ) {
-			sr_cfg->events = sr_cfg->events | sr_parse_events(argument+1);
-		} else if (*argument == '-' ) {
-			sr_cfg->events = sr_cfg->events & ~sr_parse_events(argument+1);
+		} else if (*argument == '+') {
+			sr_cfg->events = sr_cfg->events | sr_parse_events(argument + 1);
+		} else if (*argument == '-') {
+			sr_cfg->events = sr_cfg->events & ~sr_parse_events(argument + 1);
 		} else {
 			sr_cfg->events = sr_parse_events(argument);
 		}
-                if ( sr_cfg->events & SR_EVENT_ERROR ) {
-			sr_log_msg(LOG_ERROR, "Unrecognized event in: %s.\n", spare );
-                }
-                free(spare);
-                spare=NULL;
+		if (sr_cfg->events & SR_EVENT_ERROR) {
+			sr_log_msg(LOG_ERROR, "Unrecognized event in: %s.\n", spare);
+		}
+		free(spare);
+		spare = NULL;
 		retval = (2);
 
 	} else if (!strcmp(option, "exchange") || !strcmp(option, "ex")) {
@@ -905,7 +914,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (2);
 
 	} else if (!strcmp(option, "exchange_suffix") || !strcmp(option, "exs")
-		   || !strcmp(option,"exchangeSuffix") || !strcmp(option, "xs")) {
+		   || !strcmp(option, "exchangeSuffix") || !strcmp(option, "xs")) {
 		if (sr_cfg->exchangeSuffix)
 			free(sr_cfg->exchangeSuffix);
 		sr_cfg->exchangeSuffix = argument;
@@ -933,7 +942,8 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		sr_cfg->force_polling = val & 2;
 		retval = (1 + (val & 1));
 
-	} else if (!strcmp(option, "heartbeat") || !strcmp(option, "hb") || !strcmp(option, "housekeeping") ) {
+	} else if (!strcmp(option, "heartbeat") || !strcmp(option, "hb")
+		   || !strcmp(option, "housekeeping")) {
 		sr_cfg->heartbeat = seconds_from_duration_str(argument);
 		retval = (2);
 
@@ -946,7 +956,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (1 + (val & 1));
 
 	} else if (!strcmp(option, "logrotate") || !strcmp(option, "lr")
-	           || !strcmp(option, "logRotateCount")
+		   || !strcmp(option, "logRotateCount")
 		   || !strcmp(option, "logdays") || !strcmp(option, "ld")) {
 
 		sr_cfg->logrotate = atoi(argument);
@@ -982,7 +992,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		sr_cfg->log = val & 2;
 		retval = (1 + (val & 1));
 
-	} else if (!strcmp(option, "log_reject") || !strcmp(option, "logReject") ) {
+	} else if (!strcmp(option, "log_reject") || !strcmp(option, "logReject")) {
 		val = StringIsTrue(argument);
 		sr_cfg->logReject = val & 2;
 		retval = (1 + (val & 1));
@@ -1024,12 +1034,12 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 	} else if (!strcmp(option, "post_broker") || !strcmp(option, "pb")) {
 		if (sr_cfg->post_broker) {
 			broker_free(sr_cfg->post_broker);
-			sr_cfg->post_broker=NULL;
+			sr_cfg->post_broker = NULL;
 		}
 		brokerstr = sr_credentials_fetch(argument);
 		if (brokerstr == NULL) {
 			sr_log_msg(LOG_NOTICE,
-				"no stored credential for post_broker: %s.\n", argument);
+				   "no stored credential for post_broker: %s.\n", argument);
 			sr_cfg->post_broker = broker_uri_parse(argument);
 		} else {
 			sr_cfg->post_broker = broker_uri_parse(brokerstr);
@@ -1050,14 +1060,14 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		sr_cfg->post_exchange_split = atoi(argument);
 		retval = (2);
 
-	} else if (!strcmp(option, "post_exchangeSuffix") || !strcmp(option, "post_exchangeSuffix") ) {
+	} else if (!strcmp(option, "post_exchangeSuffix") || !strcmp(option, "post_exchangeSuffix")) {
 		sr_cfg->post_exchangeSuffix = argument;
 		argument = NULL;
 		retval = (2);
 
-	} else if ( !strcmp(option, "post_rate_limit") || !strcmp(option, "pxs")
-           || !strcmp(option, "message_rate_max") || !strcmp(option, "mrx")
-           || !strcmp(option, "messageRateMax")) {
+	} else if (!strcmp(option, "post_rate_limit") || !strcmp(option, "pxs")
+		   || !strcmp(option, "message_rate_max") || !strcmp(option, "mrx")
+		   || !strcmp(option, "messageRateMax")) {
 		sr_cfg->messageRateMax = atoi(argument);
 		retval = (2);
 
@@ -1070,12 +1080,12 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (2);
 
 	} else if (!strcmp(option, "realpath") || !strcmp(option, "realpath_post")
-	          || !strcmp(option, "realpathPost") ) {
+		   || !strcmp(option, "realpathPost")) {
 		val = StringIsTrue(argument);
 		sr_cfg->realpathPost = val & 2;
 		retval = (1 + (val & 1));
 
-	} else if (!strcmp(option, "realpath_filter")||!strcmp(option, "realpathFilter")) {
+	} else if (!strcmp(option, "realpath_filter") || !strcmp(option, "realpathFilter")) {
 		val = StringIsTrue(argument);
 		sr_cfg->realpathFilter = val & 2;
 		retval = (1 + (val & 1));
@@ -1152,24 +1162,30 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 
 		if (sr_cfg->strip == 0 && argument[0] != '0') {
 			// REGEX processing...
-                        int regstat;
+			int regstat;
 			sr_cfg->strip_pattern = strdup(argument);
-		        sr_log_msg( LOG_INFO, "regex strip arg\n" ); 
+			sr_log_msg(LOG_INFO, "regex strip arg\n");
 #ifdef FORCE_LIBC_REGEX
-        		if (regcomp_fn_ptr_is_setup()) {
-               			 regstat = regcomp_fn_ptr(&(sr_cfg->strip_regex), sr_cfg->strip_pattern, REG_EXTENDED );
-        		} else {
-				sr_log_msg(LOG_CRITICAL, "Failed to access regex library. ignored strip argument:  %s\n", argument );
-				return(retval);
-		        }
+			if (regcomp_fn_ptr_is_setup()) {
+				regstat =
+				    regcomp_fn_ptr(&(sr_cfg->strip_regex), sr_cfg->strip_pattern,
+						   REG_EXTENDED);
+			} else {
+				sr_log_msg(LOG_CRITICAL,
+					   "Failed to access regex library. ignored strip argument:  %s\n",
+					   argument);
+				return (retval);
+			}
 #else
-        		regstat = regcomp(&(sr_cfg->strip_regex), sr_cfg->strip_pattern, REG_EXTENDED );
+			regstat =
+			    regcomp(&(sr_cfg->strip_regex), sr_cfg->strip_pattern, REG_EXTENDED);
 #endif
 			if (regstat) {
-				sr_log_msg(LOG_ERROR, "invalid regular expression: %s. Ignored\n", argument);
-				return(retval);
+				sr_log_msg(LOG_ERROR, "invalid regular expression: %s. Ignored\n",
+					   argument);
+				return (retval);
 			}
-			sr_cfg->strip = -1 ; // flag to say look at regex rather than integer.
+			sr_cfg->strip = -1;	// flag to say look at regex rather than integer.
 		}
 
 	} else if (!strcmp(option, "sum") || !strcmp(option, "integrity")) {
@@ -1186,20 +1202,20 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (2);
 
 	} else if (!strcmp(option, "topic_prefix") || !strcmp(option, "tp")
-	       || !strcmp(option, "topicPrefix")) {
+		   || !strcmp(option, "topicPrefix")) {
 		strcpy(sr_cfg->topicPrefix, argument);
 		retval = (2);
 
 	} else if (!strcmp(option, "url") || !strcmp(option, "u")) {
 		sr_log_msg(LOG_WARNING,
-			"please replace (deprecated) url with post_baseUrl: %s.\n", argument);
+			   "please replace (deprecated) url with post_baseUrl: %s.\n", argument);
 		if (sr_cfg->post_baseUrl)
 			free(sr_cfg->post_baseUrl);
 		sr_cfg->post_baseUrl = argument;
 		argument = NULL;
 		retval = (2);
 	} else if (!strcmp(option, "post_base_url") || !strcmp(option, "pbu")
-	       || !strcmp(option, "post_baseUrl")  || !strcmp(option, "post_baseurl")) {
+		   || !strcmp(option, "post_baseUrl") || !strcmp(option, "post_baseurl")) {
 		if (sr_cfg->post_baseUrl)
 			free(sr_cfg->post_baseUrl);
 		sr_cfg->post_baseUrl = argument;
@@ -1244,55 +1260,55 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 
 	if (sr_cfg->action)
 		free(sr_cfg->action);
-	sr_cfg->action=NULL;
+	sr_cfg->action = NULL;
 	if (sr_cfg->configname)
 		free(sr_cfg->configname);
-	sr_cfg->configname=NULL;
+	sr_cfg->configname = NULL;
 	if (sr_cfg->directory)
 		free(sr_cfg->directory);
-	sr_cfg->directory=NULL;
+	sr_cfg->directory = NULL;
 	if (sr_cfg->post_baseDir)
 		free(sr_cfg->post_baseDir);
-	sr_cfg->post_baseDir=NULL;
+	sr_cfg->post_baseDir = NULL;
 	if (sr_cfg->exchange)
 		free(sr_cfg->exchange);
-	sr_cfg->exchange=NULL;
+	sr_cfg->exchange = NULL;
 	if (sr_cfg->exchangeSuffix)
 		free(sr_cfg->exchangeSuffix);
-	sr_cfg->exchangeSuffix=NULL;
+	sr_cfg->exchangeSuffix = NULL;
 	if (sr_cfg->last_matched)
 		free(sr_cfg->last_matched);
-	sr_cfg->last_matched=NULL;
+	sr_cfg->last_matched = NULL;
 	if (sr_cfg->queuename)
 		free(sr_cfg->queuename);
-	sr_cfg->queuename=NULL;
+	sr_cfg->queuename = NULL;
 	if (sr_cfg->outlet)
 		free(sr_cfg->outlet);
-	sr_cfg->outlet=NULL;
+	sr_cfg->outlet = NULL;
 	if (sr_cfg->pidfile)
 		free(sr_cfg->pidfile);
-	sr_cfg->pidfile=NULL;
+	sr_cfg->pidfile = NULL;
 	if (sr_cfg->post_exchange)
 		free(sr_cfg->post_exchange);
-	sr_cfg->post_exchange=NULL;
+	sr_cfg->post_exchange = NULL;
 	if (sr_cfg->post_exchangeSuffix)
 		free(sr_cfg->post_exchangeSuffix);
-	sr_cfg->post_exchangeSuffix=NULL;
+	sr_cfg->post_exchangeSuffix = NULL;
 	if (sr_cfg->progname)
 		free(sr_cfg->progname);
-	sr_cfg->progname=NULL;
+	sr_cfg->progname = NULL;
 	if (sr_cfg->randid)
 		free(sr_cfg->randid);
-	sr_cfg->randid=NULL;
+	sr_cfg->randid = NULL;
 	if (sr_cfg->source)
 		free(sr_cfg->source);
-	sr_cfg->source=NULL;
+	sr_cfg->source = NULL;
 	if (sr_cfg->to)
 		free(sr_cfg->to);
-	sr_cfg->to=NULL;
+	sr_cfg->to = NULL;
 	if (sr_cfg->post_baseUrl)
 		free(sr_cfg->post_baseUrl);
-	sr_cfg->post_baseUrl=NULL;
+	sr_cfg->post_baseUrl = NULL;
 
 	if (sr_cfg->broker)
 		broker_free(sr_cfg->broker);
@@ -1302,7 +1318,7 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 	sr_cfg->post_broker = NULL;
 	if (sr_cfg->vip)
 		free(sr_cfg->vip);
-        sr_cfg->vip=NULL;
+	sr_cfg->vip = NULL;
 	while (sr_cfg->masks) {
 		e = sr_cfg->masks;
 		sr_cfg->masks = e->next;
@@ -1320,12 +1336,12 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 		free(tmph);
 	}
 
-    while ( sr_cfg->bindings ) {
+	while (sr_cfg->bindings) {
 		struct sr_binding_s *tmpt;
 		tmpt = sr_cfg->bindings;
 		sr_cfg->bindings = sr_cfg->bindings->next;
 		free(tmpt);
-    }
+	}
 	struct sr_path_s *p = sr_cfg->paths;
 	while (p) {
 		struct sr_path_s *tmpp;
@@ -1337,13 +1353,13 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 	sr_credentials_cleanup();
 	sr_log_cleanup();
 	free(sr_cfg->logfn);
-	sr_cfg->logfn=NULL;
+	sr_cfg->logfn = NULL;
 
 	sr_cache_close(sr_cfg->cachep);
 	sr_cfg->cachep = NULL;
 	if (sr_cfg->cache_basis)
 		free(sr_cfg->cache_basis);
-	sr_cfg->cache_basis=NULL;
+	sr_cfg->cache_basis = NULL;
 
 }
 
@@ -1355,15 +1371,14 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_credentials_init();
 	sr_cfg->action = strdup("foreground");
 	sr_cfg->acceptUnmatched = 1;
-        if ( getenv("SR_DEV_APPNAME" ) ) 
-        {
-             strcpy( sr_cfg->appname, getenv("SR_DEV_APPNAME") );
-        } else {
-             strcpy( sr_cfg->appname, SR_APPNAME );
-        } 
-        if ( !getenv("OPENSSL_CONF" ) ) {
-	     setenv("OPENSSL_CONF", "/etc/ssl/", 1);
-        }
+	if (getenv("SR_DEV_APPNAME")) {
+		strcpy(sr_cfg->appname, getenv("SR_DEV_APPNAME"));
+	} else {
+		strcpy(sr_cfg->appname, SR_APPNAME);
+	}
+	if (!getenv("OPENSSL_CONF")) {
+		setenv("OPENSSL_CONF", "/etc/ssl/", 1);
+	}
 	sr_cfg->blocksize = 1;
 	sr_cfg->broker = NULL;
 	sr_cfg->nodupe_ttl = 0;
@@ -1372,13 +1387,15 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->chmod_log = 0600;
 	sr_cfg->configname = NULL;
 	sr_cfg->debug = 0;
-        sr_cfg->exchangeDeclare = 1;
-        sr_cfg->queueDeclare = 1;
+	sr_cfg->exchangeDeclare = 1;
+	sr_cfg->queueDeclare = 1;
 	sr_cfg->delete = 0;
 	sr_cfg->directory = NULL;
 	sr_cfg->post_baseDir = NULL;
 	sr_cfg->durable = 1;
-	sr_cfg->events = (SR_EVENT_CREATE | SR_EVENT_MODIFY | SR_EVENT_DELETE | SR_EVENT_LINK | SR_EVENT_MKDIR | SR_EVENT_RMDIR );
+	sr_cfg->events =
+	    (SR_EVENT_CREATE | SR_EVENT_MODIFY | SR_EVENT_DELETE | SR_EVENT_LINK | SR_EVENT_MKDIR |
+	     SR_EVENT_RMDIR);
 	sr_cfg->expire = 3 * 60;
 	sr_cfg->exchange = NULL;
 	sr_cfg->exchangeSuffix = NULL;
@@ -1454,8 +1471,8 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	if (access(p, R_OK) == -1) {
 		mkdir(p, 0700);
 	}
-	sprintf(p, "%s/.config/%s", getenv("HOME"), sr_cfg->appname );
-	if (access(p, R_OK) == -1 ) {
+	sprintf(p, "%s/.config/%s", getenv("HOME"), sr_cfg->appname);
+	if (access(p, R_OK) == -1) {
 		mkdir(p, 0700);
 	}
 
@@ -1467,7 +1484,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	if (access(p, R_OK) == -1) {
 		mkdir(p, 0700);
 	}
-	sprintf(p, "%s/.config/%s/default.conf", getenv("HOME"), sr_cfg->appname );
+	sprintf(p, "%s/.config/%s/default.conf", getenv("HOME"), sr_cfg->appname);
 	sr_config_read(sr_cfg, p, 0, 0);
 
 }
@@ -1485,7 +1502,7 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 {
 	static int config_depth = 0;
 	FILE *f;
-	char home[PATH_MAX/2];
+	char home[PATH_MAX / 2];
 	char *option;
 	char *argument, *argument2;
 	char *c, *d;
@@ -1515,23 +1532,25 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 	 *           and accept any filename under the config dir !!!
 	 */
 	plen = strlen(filename);
-        strcpy(sufbuf,"");
+	strcpy(sufbuf, "");
 	if (strcmp(&(filename[plen - 5]), ".conf")) {
 		if (strcmp(&(filename[plen - 4]), ".inc")) {
 			strcpy(sufbuf, ".conf");
-		} 
+		}
 	}
 
-	strcpy( home, secure_getenv("HOME"));
+	strcpy(home, secure_getenv("HOME"));
 	//sr_log_msg(LOG_DEBUG, "getenv(HOME): %s, progname: %s, filename: %s\n", secure_getenv("HOME"), sr_cfg->progname, filename );
 	/* linux config location */
 	if (*filename != '/') {
-		sprintf(p, "%s/.config/%s/%s/%s%s", home, sr_cfg->appname, 
-			strcmp(sr_cfg->progname, "shim") ? sr_cfg->progname : "cpost", filename, sufbuf);
+		sprintf(p, "%s/.config/%s/%s/%s%s", home, sr_cfg->appname,
+			strcmp(sr_cfg->progname, "shim") ? sr_cfg->progname : "cpost", filename,
+			sufbuf);
 		if (access(p, F_OK)) {
-		    sprintf(p, "%s/.config/%s/%s/%s%s", home, sr_cfg->appname, 
-			strcmp(sr_cfg->progname, "shim") ? sr_cfg->progname : "post", filename, sufbuf);
-                }
+			sprintf(p, "%s/.config/%s/%s/%s%s", home, sr_cfg->appname,
+				strcmp(sr_cfg->progname, "shim") ? sr_cfg->progname : "post",
+				filename, sufbuf);
+		}
 	} else {
 		strcpy(p, filename);
 	}
@@ -1568,7 +1587,7 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 	if (f == NULL) {
 		if (abort) {
 			sr_log_msg(LOG_CRITICAL,
-				"error: failed to find configuration: %s\n", filename);
+				   "error: failed to find configuration: %s\n", filename);
 			exit(0);
 		}
 		return (1);
@@ -1606,7 +1625,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 {
 	char *d;
 	char *val;
-	char home[PATH_MAX/2];
+	char home[PATH_MAX / 2];
 	char p[PATH_MAX];
 	char q[AMQP_MAX_SS];
 	FILE *f;
@@ -1635,13 +1654,14 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	if (sr_cfg->statehost) {
 		val = sr_local_fqdn();
 		d = strchr(val, '.');
-		if (d) *d = '\0';
+		if (d)
+			*d = '\0';
 	}
 	if (val)
 		sr_cfg->statehostval = strdup(val);
 
 	// if the state directory is missing, build it.
-	strcpy( home, secure_getenv("HOME"));
+	strcpy(home, secure_getenv("HOME"));
 	if (val) {
 		sprintf(p, "%s/.cache/%s/%s/%s/%s", home, sr_cfg->appname, val,
 			sr_cfg->progname, sr_cfg->configname);
@@ -1672,11 +1692,11 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	if (val) {
 		sprintf(p, "%s/.cache/%s/%s/log", home, sr_cfg->appname, val);
 	} else {
-		sprintf(p, "%s/.cache/%s/log", home, sr_cfg->appname );
+		sprintf(p, "%s/.cache/%s/log", home, sr_cfg->appname);
 	}
 	ret = stat(p, &sb);
 	if (ret) {
-		sprintf(p, "%s/.cache/%s", home, sr_cfg->appname );
+		sprintf(p, "%s/.cache/%s", home, sr_cfg->appname);
 		if (val) {
 			strcat(p, "/");
 			strcat(p, val);
@@ -1692,7 +1712,8 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			sr_cfg->configname, sr_cfg->instance);
 	} else {
 		sprintf(p, "%s/.cache/%s/log/%s_%s_%02d.log",
-			home, sr_cfg->appname, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
+			home, sr_cfg->appname, sr_cfg->progname, sr_cfg->configname,
+			sr_cfg->instance);
 	}
 
 	sr_cfg->logfn = strdup(p);
@@ -1702,17 +1723,17 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 
 	if (sr_cfg->log) {
 		sr_log_setup(sr_cfg->logfn, sr_cfg->chmod_log,
-			  sr_cfg->debug ? LOG_DEBUG : (sr_cfg->loglevel),
-			  sr_cfg->logrotate, sr_cfg->logrotate_interval);
+			     sr_cfg->debug ? LOG_DEBUG : (sr_cfg->loglevel),
+			     sr_cfg->logrotate, sr_cfg->logrotate_interval);
 	}
 	// pidfn statehost
 	if (val) {
-		sprintf(p, "%s/.cache/%s/%s/%s/%s/i%03d.pid", home, sr_cfg->appname, 
+		sprintf(p, "%s/.cache/%s/%s/%s/%s/i%03d.pid", home, sr_cfg->appname,
 			val, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 	// pidfn default
 	else {
-		sprintf(p, "%s/.cache/%s/%s/%s/i%03d.pid", home, sr_cfg->appname, 
+		sprintf(p, "%s/.cache/%s/%s/%s/i%03d.pid", home, sr_cfg->appname,
 			sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 
@@ -1734,7 +1755,8 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	else {
 		// FIXME: open and read cache file if present. seek to end.
 		sprintf(p, "%s/.cache/%s/%s/%s/recent_files_%03d.cache",
-			home, sr_cfg->appname, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
+			home, sr_cfg->appname, sr_cfg->progname, sr_cfg->configname,
+			sr_cfg->instance);
 	}
 
 	if (sr_cfg->sanity_log_dead == 0.0)
@@ -1752,32 +1774,35 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	// Since we check how old the log is, we ust not write to the log during startup in sanity mode.
 	if (strcmp(sr_cfg->action, "sanity")) {
 		sr_log_msg(LOG_DEBUG,
-			"sr_%s %s settings: action=%s hostname=%s config_name=%s log_level=%d follow_symlinks=%s realpath: Adjust=%d Filter=%s Post=%s\n",
-			sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_local_fqdn(), 
-			sr_cfg->configname, sr_cfg->loglevel, 
-			sr_cfg->follow_symlinks ? "yes" : "no", 
-			sr_cfg->realpathAdjust,
-			sr_cfg->realpathFilter ? "yes" : "no",
-			sr_cfg->realpathPost ? "yes" : "no"
-			);
+			   "sr_%s %s settings: action=%s hostname=%s config_name=%s log_level=%d follow_symlinks=%s realpath: Adjust=%d Filter=%s Post=%s\n",
+			   sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_local_fqdn(),
+			   sr_cfg->configname, sr_cfg->loglevel,
+			   sr_cfg->follow_symlinks ? "yes" : "no",
+			   sr_cfg->realpathAdjust,
+			   sr_cfg->realpathFilter ? "yes" : "no",
+			   sr_cfg->realpathPost ? "yes" : "no");
 		sr_log_msg(LOG_DEBUG,
-			"\tsleep=%g expire=%g heartbeat=%g sanity_log_dead=%g nodupe_ttl=%g statehost=%s v2compatRenameDoublePost=%s\n",
-			sr_cfg->sleep, sr_cfg->expire, sr_cfg->heartbeat, sr_cfg->sanity_log_dead, sr_cfg->nodupe_ttl, 
-                        sr_cfg->statehost ? "yes" : "no", sr_cfg->v2compatRenameDoublePost ? "yes": "no" );
+			   "\tsleep=%g expire=%g heartbeat=%g sanity_log_dead=%g nodupe_ttl=%g statehost=%s v2compatRenameDoublePost=%s\n",
+			   sr_cfg->sleep, sr_cfg->expire, sr_cfg->heartbeat,
+			   sr_cfg->sanity_log_dead, sr_cfg->nodupe_ttl,
+			   sr_cfg->statehost ? "yes" : "no",
+			   sr_cfg->v2compatRenameDoublePost ? "yes" : "no");
 		sr_log_msg(LOG_DEBUG, "\tcache_file=%s accept_unmatch=%s messageRateMax=%d\n",
-			sr_cfg->cachep ? p : "off", sr_cfg->acceptUnmatched ? "on" : "off", sr_cfg->messageRateMax );
+			   sr_cfg->cachep ? p : "off", sr_cfg->acceptUnmatched ? "on" : "off",
+			   sr_cfg->messageRateMax);
 		sr_log_msg(LOG_DEBUG,
-			"\tfileEvents=%04x directory=%s queuename=%s logReject=%s force_polling=%s sum=%c statehost=%c\n",
-			sr_cfg->events, sr_cfg->directory, sr_cfg->queuename, sr_cfg->logReject ? "on" : "off", 
-			sr_cfg->force_polling ? "on" : "off", sr_cfg->sumalgo, sr_cfg->statehost);
+			   "\tfileEvents=%04x directory=%s queuename=%s logReject=%s force_polling=%s sum=%c statehost=%c\n",
+			   sr_cfg->events, sr_cfg->directory, sr_cfg->queuename,
+			   sr_cfg->logReject ? "on" : "off", sr_cfg->force_polling ? "on" : "off",
+			   sr_cfg->sumalgo, sr_cfg->statehost);
 		sr_log_msg(LOG_DEBUG,
-			"\tmessage_ttl=%g post_exchange=%s post_exchange_split=%d post_exchangeSuffix=%s\n",
-			sr_cfg->message_ttl, sr_cfg->post_exchange,
-			sr_cfg->post_exchange_split, sr_cfg->post_exchangeSuffix);
+			   "\tmessage_ttl=%g post_exchange=%s post_exchange_split=%d post_exchangeSuffix=%s\n",
+			   sr_cfg->message_ttl, sr_cfg->post_exchange, sr_cfg->post_exchange_split,
+			   sr_cfg->post_exchangeSuffix);
 		sr_log_msg(LOG_DEBUG,
-			"\tsource=%s to=%s post_baseUrl=%s topicPrefix=%s post_topicPrefix=%s, pid=%d\n",
-			sr_cfg->source, sr_cfg->to, sr_cfg->post_baseUrl,
-			sr_cfg->topicPrefix, sr_cfg->post_topicPrefix, sr_cfg->pid);
+			   "\tsource=%s to=%s post_baseUrl=%s topicPrefix=%s post_topicPrefix=%s, pid=%d\n",
+			   sr_cfg->source, sr_cfg->to, sr_cfg->post_baseUrl, sr_cfg->topicPrefix,
+			   sr_cfg->post_topicPrefix, sr_cfg->pid);
 		sr_log_msg(LOG_DEBUG, "man sr3_cpost(1) for more information\n");
 	}
 	// FIXME: Missing: topics, user_headers, 
@@ -1824,8 +1849,9 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		if (sr_cfg->to == NULL) {
 			sr_cfg->to = strdup(sr_cfg->post_broker->hostname);
 		}
-		if ((!(sr_cfg->post_baseDir)) && ((sr_cfg->post_baseUrl) && !strncmp( sr_cfg->post_baseUrl, "file:", 5 ))) {
-		    sr_cfg->post_baseDir = strdup( sr_cfg->post_baseUrl+5 );	
+		if ((!(sr_cfg->post_baseDir))
+		    && ((sr_cfg->post_baseUrl) && !strncmp(sr_cfg->post_baseUrl, "file:", 5))) {
+			sr_cfg->post_baseDir = strdup(sr_cfg->post_baseUrl + 5);
 		}
 	}
 
@@ -1903,11 +1929,11 @@ static void stop_handler(int sig)
 
 int sr_config_deactivate(struct sr_config_s *sr_cfg)
 {
-  int ret=0;
-  
-  if (sr_cfg && sr_cfg->pidfile) 
-      ret = unlink(sr_cfg->pidfile);
-  return(ret); 
+	int ret = 0;
+
+	if (sr_cfg && sr_cfg->pidfile)
+		ret = unlink(sr_cfg->pidfile);
+	return (ret);
 }
 
 int sr_config_activate(struct sr_config_s *sr_cfg)
@@ -2015,8 +2041,8 @@ int sr_config_startstop(struct sr_config_s *sr_cfg)
 			if (!strcmp(sr_cfg->action, "start")
 			    || (!strcmp(sr_cfg->action, "foreground"))) {
 				sr_log_msg(LOG_ERROR,
-					"configuration %s already running using pid %d.\n",
-					sr_cfg->configname, sr_cfg->pid);
+					   "configuration %s already running using pid %d.\n",
+					   sr_cfg->configname, sr_cfg->pid);
 				return (-1);
 			}
 			// but otherwise it's normal, so kill the running one. 
@@ -2034,33 +2060,34 @@ int sr_config_startstop(struct sr_config_s *sr_cfg)
 			ret = kill(sr_cfg->pid, 0);
 			if (!ret) {	// pid still running, and have permission to signal, so it didn't die... 
 				sr_log_msg(LOG_DEBUG,
-					"After 2 seconds, instance pid=%d did not respond to SIGTERM, sending SIGKILL\n",
-					sr_cfg->pid);
+					   "After 2 seconds, instance pid=%d did not respond to SIGTERM, sending SIGKILL\n",
+					   sr_cfg->pid);
 				kill(sr_cfg->pid, SIGKILL);
 				nanosleep(&tsleep, NULL);
 				ret = kill(sr_cfg->pid, 0);
 				if (!ret) {
 					sr_log_msg(LOG_CRITICAL,
-						"SIGKILL on pid=%d didn't work either. System not usable, Giving up!\n",
-						sr_cfg->pid);
+						   "SIGKILL on pid=%d didn't work either. System not usable, Giving up!\n",
+						   sr_cfg->pid);
 					return (-1);
 				}
 			} else {
-				sr_log_msg(LOG_INFO, "old instance stopped (pid: %d)\n", sr_cfg->pid);
+				sr_log_msg(LOG_INFO, "old instance stopped (pid: %d)\n",
+					   sr_cfg->pid);
 			}
 		} else		// not permitted to send signals, either access, or it ain't there.
 		{
 			if (errno != ESRCH) {
 				sr_log_msg(LOG_INFO,
-					"running instance (pid %d) found, but is not stoppable.\n",
-					sr_cfg->pid);
+					   "running instance (pid %d) found, but is not stoppable.\n",
+					   sr_cfg->pid);
 				return (-1);
 
 			} else {	// just not running.
 
 				sr_log_msg(LOG_DEBUG,
-					"instance for config %s (pid %d) is not running.\n",
-					sr_cfg->configname, sr_cfg->pid);
+					   "instance for config %s (pid %d) is not running.\n",
+					   sr_cfg->configname, sr_cfg->pid);
 
 				if (!strcmp(sr_cfg->action, "stop")) {
 					fprintf(stderr,
@@ -2132,7 +2159,7 @@ static void cp(const char *s, const char *d)
 char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one)
 {
 	static char oldp[PATH_MAX];
-	char home[PATH_MAX/2];
+	char home[PATH_MAX / 2];
 	char one[255];
 	int len_one;
 
@@ -2149,20 +2176,21 @@ char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one)
 				one[len_one] = '\0';
 		}
 		//fprintf( stderr, " find_one, one: %s\n", one );
-	        strcpy( home, secure_getenv("HOME"));
+		strcpy(home, secure_getenv("HOME"));
 		if (!strcmp(one, "default")) {
-			sprintf(oldp, "%s/.config/%s/default.conf", home, sr_cfg->appname );
+			sprintf(oldp, "%s/.config/%s/default.conf", home, sr_cfg->appname);
 			return (oldp);
 		}
 		if (!strcmp(one, "admin")) {
-			sprintf(oldp, "%s/.config/%s/admin.conf", home, sr_cfg->appname );
+			sprintf(oldp, "%s/.config/%s/admin.conf", home, sr_cfg->appname);
 			return (oldp);
 		}
 		if (!strcmp(one, "credentials")) {
-			sprintf(oldp, "%s/.config/%s/credentials.conf", home, sr_cfg->appname );
+			sprintf(oldp, "%s/.config/%s/credentials.conf", home, sr_cfg->appname);
 			return (oldp);
 		}
-		sprintf(oldp, "%s/.config/%s/%s/%s.inc", home, sr_cfg->appname, sr_cfg->progname, one);
+		sprintf(oldp, "%s/.config/%s/%s/%s.inc", home, sr_cfg->appname, sr_cfg->progname,
+			one);
 		if (!access(oldp, R_OK))
 			return (oldp);
 		else {
@@ -2187,7 +2215,8 @@ char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one)
 					if (!access(oldp, R_OK))
 						return (oldp);
 					else {
-						sr_log_msg(LOG_ERROR, "config %s not found.\n", one);
+						sr_log_msg(LOG_ERROR, "config %s not found.\n",
+							   one);
 						//fprintf(stderr, "not %s\n", oldp );
 					}
 				}
@@ -2215,14 +2244,14 @@ int sr_config_add_one(struct sr_config_s *sr_cfg, const char *original_one)
 		}
 		if (!getenv("SR_CONFIG_EXAMPLES")) {
 			sr_log_msg(LOG_ERROR,
-				"Cannot add configurations because SR_CONFIG_EXAMPLES is not set.\n");
+				   "Cannot add configurations because SR_CONFIG_EXAMPLES is not set.\n");
 			return (1);
 		}
 
 		sprintf(oldp, "%s", getenv("SR_CONFIG_EXAMPLES"));
 		if (access(oldp, F_OK | R_OK)) {
 			sr_log_msg(LOG_ERROR,
-				"Cannot access SR_CONFIG_EXAMPLES directory %s.\n", oldp);
+				   "Cannot access SR_CONFIG_EXAMPLES directory %s.\n", oldp);
 			return (1);
 		}
 
@@ -2328,7 +2357,8 @@ void sr_config_log(struct sr_config_s *sr_cfg)
 
 	if (sr_cfg->statehost == '0') {
 		sprintf(p, "%s/.cache/%s/log/%s_%s_%04d.log",
-			getenv("HOME"), sr_cfg->appname, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
+			getenv("HOME"), sr_cfg->appname, sr_cfg->progname, sr_cfg->configname,
+			sr_cfg->instance);
 	} else {
 		sprintf(p, "%s/.cache/%s/%s/log/%s_%s_%04d.log",
 			getenv("HOME"), sr_cfg->appname, sr_cfg->statehostval, sr_cfg->progname,

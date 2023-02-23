@@ -122,9 +122,16 @@ test_shim_post:
 	#python3 ./check_shim_post.py shim_post.log exit_on_bad
 	python3 ./check_shim_test.py shim_post.log
 
+test_shim_unit:
+	./sr_configtest test_post.conf 
+	./sr_utiltest 
+	./sr_cachetest
+	valgrind --show-reachable=yes --track-origins=yes `which sr3_cpost` -c local_post.conf uthash.h
+
 test_shim_copy:
 	-./shim_copy.sh >shim_copy.log 2>&1
 	#python3 ./check_shim_test.py shim_copy.log exit_on_bad
 	python3 ./check_shim_test.py shim_copy.log 
+
 
 test_shim: test_shim_post test_shim_copy

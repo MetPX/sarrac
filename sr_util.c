@@ -281,48 +281,51 @@ int sr_is_utf8(const char *string)
    supports ipv6, and string can be either a hostname or a numeric one.
  */
 
-int sr_has_vip(char const *vip) {
-  struct ifaddrs *ifaddr, *ifa;
-  char host[NI_MAXHOST];
-  char addr[NI_MAXHOST];
-  int family;
+int sr_has_vip(char const *vip)
+{
+	struct ifaddrs *ifaddr, *ifa;
+	char host[NI_MAXHOST];
+	char addr[NI_MAXHOST];
+	int family;
 
-  if (getifaddrs(&ifaddr) == -1) {
-    perror("getifaddrs");
-    return -1;
-  }
+	if (getifaddrs(&ifaddr) == -1) {
+		perror("getifaddrs");
+		return -1;
+	}
 
-  for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+	for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
 
-    if (ifa->ifa_addr == NULL) continue;
+		if (ifa->ifa_addr == NULL)
+			continue;
 
-    family = ifa->ifa_addr->sa_family;
-    if ( ( family != AF_INET ) && ( family != AF_INET6 ) ) continue;
+		family = ifa->ifa_addr->sa_family;
+		if ((family != AF_INET) && (family != AF_INET6))
+			continue;
 
-    if ( family == AF_INET ) {
-      getnameinfo( ifa->ifa_addr, sizeof(struct sockaddr_in), host,
-          NI_MAXHOST, NULL, 0, 0);
-      getnameinfo( ifa->ifa_addr, sizeof(struct sockaddr_in), addr,
-          NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-    } else {
-      getnameinfo( ifa->ifa_addr, sizeof(struct sockaddr_in6), host,
-          NI_MAXHOST, NULL, 0, 0);
-      getnameinfo( ifa->ifa_addr, sizeof(struct sockaddr_in6), addr,
-          NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-    }
+		if (family == AF_INET) {
+			getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host,
+				    NI_MAXHOST, NULL, 0, 0);
+			getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), addr,
+				    NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+		} else {
+			getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in6), host,
+				    NI_MAXHOST, NULL, 0, 0);
+			getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in6), addr,
+				    NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+		}
 
-    sr_log_msg(LOG_DEBUG, "sr_has_vip: checking interface %s host=%s addr=%s\n", ifa->ifa_name, host, addr );
-    if ( vip && ( !strcmp( host, vip ) || !strcmp( addr, vip) ) ) {
-       sr_log_msg( LOG_DEBUG, "sr_has_vip: Matched!\n" );
-       return 1;
-    }
-  }
+		sr_log_msg(LOG_DEBUG, "sr_has_vip: checking interface %s host=%s addr=%s\n",
+			   ifa->ifa_name, host, addr);
+		if (vip && (!strcmp(host, vip) || !strcmp(addr, vip))) {
+			sr_log_msg(LOG_DEBUG, "sr_has_vip: Matched!\n");
+			return 1;
+		}
+	}
 
-  sr_log_msg(LOG_DEBUG, "sr_has_vip: we don't have the vip\n" );
-  freeifaddrs(ifaddr);
-  return 0;
+	sr_log_msg(LOG_DEBUG, "sr_has_vip: we don't have the vip\n");
+	freeifaddrs(ifaddr);
+	return 0;
 }
-
 
 void sr_daemonize(int close_stdout)
 /* 
@@ -348,7 +351,7 @@ void sr_daemonize(int close_stdout)
 	sid = setsid();
 	if (sid < 0) {
 		sr_log_msg(LOG_WARNING,
-			"daemonizing, setsid errord, failed to completely dissociate from login process\n");
+			   "daemonizing, setsid errord, failed to completely dissociate from login process\n");
 	}
 
 	if (logfd == 2) {
@@ -370,126 +373,147 @@ void sr_daemonize(int close_stdout)
 /* v03 conversion code for base64 
  */
 
-static char b64rep( char i ) 
+static char b64rep(char i)
 {
-   if ( i > 64 ) fprintf( stderr, "errror in representation: %i should not be input to b64encode from hex\n", i );
-   if ( i == 63 ) return( '/' );
-   if ( i == 62 ) return( '+' );
-   if ( i >= 52 ) return( i + '0' - 52 );
-   if ( i >= 26 ) return( i + 'a' - 26 );
-   return( i + 'A' );
+	if (i > 64)
+		fprintf(stderr,
+			"errror in representation: %i should not be input to b64encode from hex\n",
+			i);
+	if (i == 63)
+		return ('/');
+	if (i == 62)
+		return ('+');
+	if (i >= 52)
+		return (i + '0' - 52);
+	if (i >= 26)
+		return (i + 'a' - 26);
+	return (i + 'A');
 }
 
-static char h2b( char i ) {
-  if ( i > 'f' ) fprintf( stderr, "errror in representation: %i should not be input to h2b from hex\n", i );
-  if (i >= 'a' ) return ( i - 'a' + 10 );
+static char h2b(char i)
+{
+	if (i > 'f')
+		fprintf(stderr,
+			"errror in representation: %i should not be input to h2b from hex\n", i);
+	if (i >= 'a')
+		return (i - 'a' + 10);
 
-  if ( i > 'F' ) fprintf( stderr, "errror in representation: %i should not be input to h2b from hex\n", i );
-  if (i >= 'A' ) return ( i - 'A' + 10 );
+	if (i > 'F')
+		fprintf(stderr,
+			"errror in representation: %i should not be input to h2b from hex\n", i);
+	if (i >= 'A')
+		return (i - 'A' + 10);
 
-  if ( i > '9' ) fprintf( stderr, "errror in representation: %i should not be input to h2b from hex\n", i );
-  return( i - '0' );
+	if (i > '9')
+		fprintf(stderr,
+			"errror in representation: %i should not be input to h2b from hex\n", i);
+	return (i - '0');
 
 }
 
-char *sr_hex2base64( const char *hstr ) 
+char *sr_hex2base64(const char *hstr)
 {
-  static char buf[1024];
-  int hxlen;
-  unsigned int h,b ;
-  char pad[2];
+	static char buf[1024];
+	int hxlen;
+	unsigned int h, b;
+	char pad[2];
 
-  hxlen = strlen(hstr);
-  b=0;
-  for ( h = 0 ; h < hxlen-2 ; h+=3 ) {
+	hxlen = strlen(hstr);
+	b = 0;
+	for (h = 0; h < hxlen - 2; h += 3) {
 
-     //base64 encoding requires line feed after every 76 chars...
+		//base64 encoding requires line feed after every 76 chars...
 /*
      if (!((b-1)%77)) 
          buf[b++]='\n';
  */
 //   but Sarracenia expects fake line feed...
-     if ( (b>10) && !((b%78)) ) 
-     { 
-         buf[b++]='\\';
-         buf[b++]='n';
-     }
+		if ((b > 10) && !((b % 78))) {
+			buf[b++] = '\\';
+			buf[b++] = 'n';
+		}
 
-     pad[0] = (h2b(hstr[h]) << 2) | ( h2b(hstr[h+1])>>2 ) ;
-     pad[1] = ((h2b(hstr[h+1])&0x03) << 4) | ( h2b(hstr[h+2]) ) ;
-     buf[b++] = b64rep(pad[0]);
-     buf[b++] = b64rep(pad[1]);
-  }
-  if (( hxlen - h ) >= 2 ) {
-     pad[0] = (h2b(hstr[h]) << 2) | ( h2b(hstr[h+1])>>2 ) ;
-     buf[b++] = b64rep(pad[0]);
-     pad[1] = ((h2b(hstr[h+1])&0x03) << 4) ;
-     buf[b++] = b64rep(pad[1]);
-  } else if (( hxlen - h ) == 1 ) {
-     pad[0] = (h2b(hstr[h]) << 2) ;
-     buf[b++] = b64rep(pad[0]);
-  }
-  while (h < hxlen) {
-     buf[b++] = '=';
-     h++;
-  }
-  buf[b]='\0';
-  
-  return( buf ); 
+		pad[0] = (h2b(hstr[h]) << 2) | (h2b(hstr[h + 1]) >> 2);
+		pad[1] = ((h2b(hstr[h + 1]) & 0x03) << 4) | (h2b(hstr[h + 2]));
+		buf[b++] = b64rep(pad[0]);
+		buf[b++] = b64rep(pad[1]);
+	}
+	if ((hxlen - h) >= 2) {
+		pad[0] = (h2b(hstr[h]) << 2) | (h2b(hstr[h + 1]) >> 2);
+		buf[b++] = b64rep(pad[0]);
+		pad[1] = ((h2b(hstr[h + 1]) & 0x03) << 4);
+		buf[b++] = b64rep(pad[1]);
+	} else if ((hxlen - h) == 1) {
+		pad[0] = (h2b(hstr[h]) << 2);
+		buf[b++] = b64rep(pad[0]);
+	}
+	while (h < hxlen) {
+		buf[b++] = '=';
+		h++;
+	}
+	buf[b] = '\0';
+
+	return (buf);
 }
 
-
-static char raw2hex( char i ) {
-   if ( i > 15 )  fprintf( stderr, "error in represenation. hex range only 0-15: %d\n", i );
-   if ( i < 10 )  return (i+'0');
-   return( i+'a'-10 );
-}
-
-static char b642raw( char i )
+static char raw2hex(char i)
 {
-   if ( i > 'z' ) fprintf( stderr, "error in representation: %d invalid \n", i );
-   if ( i >= 'a' ) return( i - 'a' + 26 );
-   if ( i >= 'A' ) return( i - 'A' );
-   if ( i == '=' ) return(  0 ); // padding.
-   if ( i >= '0' ) return( i - '0' + 52 );
-   if ( i == '/' ) return( 63 );
-   if ( i == '+' ) return( 62 );
-
-   fprintf( stderr, "invalid character in base64 representation: %d\n", i );
-   return( 0 );
+	if (i > 15)
+		fprintf(stderr, "error in represenation. hex range only 0-15: %d\n", i);
+	if (i < 10)
+		return (i + '0');
+	return (i + 'a' - 10);
 }
 
-char *sr_base642hex( const char *bstr )
+static char b642raw(char i)
 {
-  static char buf[1024];
-  int b64len;
-  int h,b ;
+	if (i > 'z')
+		fprintf(stderr, "error in representation: %d invalid \n", i);
+	if (i >= 'a')
+		return (i - 'a' + 26);
+	if (i >= 'A')
+		return (i - 'A');
+	if (i == '=')
+		return (0);	// padding.
+	if (i >= '0')
+		return (i - '0' + 52);
+	if (i == '/')
+		return (63);
+	if (i == '+')
+		return (62);
 
-  b64len = strlen(bstr);
-  h=0;
-  for ( b = 0 ; b < b64len ; b+=2 ) {
-
-     if ( (bstr[b] == '\\' ) && ( bstr[b+1] == 'n' ) )  {
-        b+=2;
-     }
-     while (isspace(bstr[b])) {
-         b++;
-     }
-     if ( bstr[b] == '=' ) {
-         h--;
-         break;
-     }
-
-     buf[h++] = raw2hex( b642raw(bstr[b]) >>2  );
-     buf[h++] = raw2hex( ((b642raw(bstr[b]) & 0x03) << 2 ) | b642raw(bstr[b+1])>>4 );
-     buf[h++] = raw2hex( b642raw(bstr[b+1]) & 0x0f );
-  }
-  buf[h]='\0';
-  return(buf);
+	fprintf(stderr, "invalid character in base64 representation: %d\n", i);
+	return (0);
 }
 
+char *sr_base642hex(const char *bstr)
+{
+	static char buf[1024];
+	int b64len;
+	int h, b;
 
+	b64len = strlen(bstr);
+	h = 0;
+	for (b = 0; b < b64len; b += 2) {
 
+		if ((bstr[b] == '\\') && (bstr[b + 1] == 'n')) {
+			b += 2;
+		}
+		while (isspace(bstr[b])) {
+			b++;
+		}
+		if (bstr[b] == '=') {
+			h--;
+			break;
+		}
+
+		buf[h++] = raw2hex(b642raw(bstr[b]) >> 2);
+		buf[h++] = raw2hex(((b642raw(bstr[b]) & 0x03) << 2) | b642raw(bstr[b + 1]) >> 4);
+		buf[h++] = raw2hex(b642raw(bstr[b + 1]) & 0x0f);
+	}
+	buf[h] = '\0';
+	return (buf);
+}
 
 /* size of buffer used to read the file content in calculating checksums.
  */
@@ -525,9 +549,9 @@ int sr_get_sumhashlen(char algo)
 }
 
 char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
-		 char *linkstr, unsigned long block_size,
-		 unsigned long block_count, unsigned long block_rem,
-		 unsigned long block_num, int xattr_cc)
+		    char *linkstr, unsigned long block_size,
+		    unsigned long block_count, unsigned long block_rem,
+		    unsigned long block_num, int xattr_cc)
  /* 
     return a correct sumstring (assume it is big enough)  as per sr_post(7)
     algo = 
@@ -545,8 +569,8 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
   */
 {
 	EVP_MD_CTX *ctx;
-    	const EVP_MD *md;
-        unsigned int hashlen = 0;
+	const EVP_MD *md;
+	unsigned int hashlen = 0;
 
 	static int fd;
 	static char buf[SUMBUFSIZE];
@@ -592,8 +616,8 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	case 'd':
 		ctx = EVP_MD_CTX_create();
-                md = EVP_md5();
-                EVP_DigestInit_ex(ctx, md, NULL );
+		md = EVP_md5();
+		EVP_DigestInit_ex(ctx, md, NULL);
 		// keep file open through repeated calls.
 		//fprintf( stderr, "opening %s to checksum\n", fn );
 
@@ -612,7 +636,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 			bytes_read = read(fd, buf, how_many_to_read);
 			if (bytes_read > 0) {
-                                EVP_DigestUpdate(ctx, buf, bytes_read);
+				EVP_DigestUpdate(ctx, buf, bytes_read);
 				start += bytes_read;
 			} else {
 				fprintf(stderr, "error reading %s for MD5\n", fn);
@@ -629,27 +653,27 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			fd = 0;
 		}
 
-                EVP_DigestFinal_ex(ctx, sumhash+1, &hashlen);
+		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumhash);
 		break;
 
-	case 'm': // mkdir
+	case 'm':		// mkdir
 		ctx = EVP_MD_CTX_create();
-                md = EVP_md5();
-                EVP_DigestInit_ex(ctx, md, NULL );
+		md = EVP_md5();
+		EVP_DigestInit_ex(ctx, md, NULL);
 
-                just_the_name = just_the_name?just_the_name+1:fn ;
+		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumhash);
 		break;
 
-	case 'r': // rmdir
+	case 'r':		// rmdir
 		ctx = EVP_MD_CTX_create();
-                md = EVP_md5();
-                EVP_DigestInit_ex(ctx, md, NULL );
+		md = EVP_md5();
+		EVP_DigestInit_ex(ctx, md, NULL);
 
-                just_the_name = just_the_name?just_the_name+1:fn ;
+		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumhash);
@@ -657,10 +681,10 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	case 'n':
 		ctx = EVP_MD_CTX_create();
-                md = EVP_md5();
-                EVP_DigestInit_ex(ctx, md, NULL );
+		md = EVP_md5();
+		EVP_DigestInit_ex(ctx, md, NULL);
 
-                just_the_name = just_the_name?just_the_name+1:fn ;
+		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumhash);
@@ -669,9 +693,8 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	case 'L':		// symlink case
 		just_the_name = linkstr;
 		ctx = EVP_MD_CTX_create();
-                md = EVP_sha512();
-                EVP_DigestInit_ex(ctx, md, NULL );
-
+		md = EVP_sha512();
+		EVP_DigestInit_ex(ctx, md, NULL);
 
 		EVP_DigestUpdate(ctx, linkstr, strlen(linkstr));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
@@ -680,23 +703,23 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	case 'R':		// null, or removal.
 		just_the_name = rindex(fn, '/') + 1;
-                just_the_name = just_the_name?just_the_name+1:fn ;
+		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		ctx = EVP_MD_CTX_create();
-                md = EVP_sha512();
-                EVP_DigestInit_ex(ctx, md, NULL );
+		md = EVP_sha512();
+		EVP_DigestInit_ex(ctx, md, NULL);
 
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
-		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen );
+		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumhash);
 		break;
 
 	case 'p':
 		ctx = EVP_MD_CTX_create();
-                md = EVP_sha512();
-                EVP_DigestInit_ex(ctx, md, NULL );
+		md = EVP_sha512();
+		EVP_DigestInit_ex(ctx, md, NULL);
 
 		just_the_name = rindex(fn, '/') + 1;
-                just_the_name = just_the_name?just_the_name+1:fn ;
+		just_the_name = just_the_name ? just_the_name + 1 : fn;
 
 		strcpy(buf, just_the_name);
 		sprintf(buf, "%s%c,%lu,%lu,%lu,%lu", just_the_name, algo,
@@ -708,8 +731,8 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	case 's':
 		ctx = EVP_MD_CTX_create();
-                md = EVP_sha512();
-                EVP_DigestInit_ex(ctx, md, NULL );
+		md = EVP_sha512();
+		EVP_DigestInit_ex(ctx, md, NULL);
 
 		// keep file open through repeated calls.
 		if (!(fd > 0))
@@ -836,7 +859,7 @@ char *sr_hash2sumstr(const unsigned char *h)
 	return (sumstr);
 }
 
-static char time2str_result[SR_TIMESTRLEN+30];
+static char time2str_result[SR_TIMESTRLEN + 30];
 
 char *sr_time2str(struct timespec *tin)
 {

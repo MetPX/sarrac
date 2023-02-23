@@ -46,7 +46,6 @@ status:
 #include "sr_util.h"
 #include "sr_event.h"
 
-
 // AMQP PROTOCOL LIMIT IMPOSED HERE... see definition of short strings.
 // 255 characters, + terminating nul
 #define AMQP_MAX_SS (255+1)
@@ -164,8 +163,8 @@ struct sr_config_s {
 	mode_t chmod_log;	 /**< permission mode bits to use for the log files.*/
 	char *configname;	  /**< the configuration being run (name of the main configuration file.)*/
 	int debug;	     /**< turn on debug output.*/
-        int exchangeDeclare; //**< declare exchange before use */
-        int queueDeclare; //**< declare queue before use */
+	int exchangeDeclare;	//**< declare exchange before use */
+	int queueDeclare;	//**< declare queue before use */
 	int delete;	      /**< flag to mark that files downloaded should be deleted (unimplemented)*/
 	char *directory;	 /**< the current directory setting (used when building masks)*/
 	int durable;	       /**< flag to pass to broker to set corresponding Queue property*/
@@ -233,7 +232,7 @@ struct sr_config_s {
 	char post_topicPrefix[AMQP_MAX_SS];   /**< the topic prefix to post to.*/
 	struct sr_header_s *user_headers;
 				    /**< list of arbitrary user headers for extensions and upward compatibility.*/
-        int  v2compatRenameDoublePost;
+	int v2compatRenameDoublePost;
 	char *vip;	  /**< virtual ip address ... only act, if host has this address.*/
 	int xattr_cc;		/**<boolean flag to determine whether or not xattr checksum caching should be used.*/
 };
@@ -244,7 +243,6 @@ struct sr_config_s {
  */
 char *sr_local_fqdn();
 
-
 #ifdef FORCE_LIBC_REGEX
 
 /**
@@ -252,8 +250,8 @@ char *sr_local_fqdn();
  * when we need to force the right one, sr_config finds it, and sets up a pointer for use by other code.
  */
 
-typedef int (*regexec_fn) (const regex_t * preg, const char *string,
-                           size_t nmatch, regmatch_t pmatch[], int eflags);
+typedef int (*regexec_fn)(const regex_t * preg, const char *string,
+			  size_t nmatch, regmatch_t pmatch[], int eflags);
 
 extern regexec_fn regexec_fn_ptr;
 
