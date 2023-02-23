@@ -4,6 +4,8 @@ metpx-sr3c (3.23.02) UNRELEASED; urgency=medium
     python.)
   * bugfix #97: addding regex strip support.
   * internal variable to sr3: post_rate_limit -> messageRateMax
+  * bugfix for problem with accept/reject mapping of renames. 
+  * add self-test support for testing installed version.
 
  -- Peter <peter@bsqt.homeip.net>  Sun, 29 Jan 2023 09:02:55 -0500
 

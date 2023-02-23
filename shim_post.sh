@@ -57,8 +57,12 @@ EOT
    rm hoohoo
 
    export SR_POST_CONFIG=local_post.conf
-   export LD_PRELOAD=`pwd`/libsr3shim.so.1.0.0
-   export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
+   if [ "${SYSTEM_SHIM_TEST}" ]; then
+       export LD_PRELOAD=libsr3shim.so.1.0.0
+    else
+       export LD_PRELOAD=`pwd`/libsr3shim.so.1.0.0
+       export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
+    fi
    export SR_SHIMDEBUG=99
    exec $0
 fi
