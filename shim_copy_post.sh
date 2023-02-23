@@ -41,6 +41,9 @@ ln -sf ../libsr3shim.c file_to_delete
 
 #echo "#test 1 rename hardlink to a symlink"
 #ln hihi hoohoo
+echo "#test 1,1 link,rename symlink -f absolute existing file... creates two posts: symlink to tmp name, and subsquent rename"
+ln -sf `pwd`/../libsr3shim.c `pwd`/2nd_file_to_delete
+
 echo "#test 1 rename 080 moving a file. "
 mv hoho_my_darling.txt hoho2.log
 
