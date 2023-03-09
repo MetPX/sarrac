@@ -45,6 +45,10 @@ batch 1
 
 mirror True
 directory `pwd`/shim_dirB
+accept .*`realpath .`/.*
+accept .*`realpath ${HOME}/test`/.*
+reject .*
+#accept .*
 
 EOT
 
@@ -116,8 +120,10 @@ cd ../shim_dirB
 find -H . -type f | xargs md5sum >../dirB.sums
 cd ..
     
-if diff dirA.sums dirB.sums; then
+diffs="`diff dirA.sums dirB.sums| wc -l`"
+
+if [ "${diffs}" -eq 0 ]; then
        echo "RESULT: Good! trees the same"
 else
-       echo "RESULT: BAD trees different"
+       echo "RESULT: BAD trees have $diffs differences"
 fi
