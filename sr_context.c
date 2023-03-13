@@ -262,10 +262,21 @@ struct timespec sr_time_of_last_run()
 	return (tstart);
 }
 
+void sr_context_metrics_reset(struct sr_context *sr_c)
+{
+	struct timespec tstart;
+
+        sr_c->metrics.rxGoodCount = 0;
+        sr_c->metrics.rxBadCount = 0;
+        sr_c->metrics.rejectCount = 0;
+        sr_c->metrics.txGoodCount = 0;
+	clock_gettime(CLOCK_REALTIME, &tstart);
+	sr_c->metrics.last_housekeeping= tstart.tv_sec + (tstart.tv_nsec / 1e9);
+}
+
 struct sr_context *sr_context_init_config(struct sr_config_s *sr_cfg, int must_avoid_std_fds)
 {
 
-	static struct timespec tstart;
 	struct sr_context *sr_c;
 
 	if (!sr_cfg)
@@ -303,13 +314,7 @@ struct sr_context *sr_context_init_config(struct sr_config_s *sr_cfg, int must_a
 				   (sr_cfg->post_broker->password) ? "<pw>" : "<null>",
 				   sr_cfg->post_broker->hostname, sr_cfg->post_broker->port);
 	}
-        sr_c->metrics.rxGoodCount = 0;
-        sr_c->metrics.rxBadCount = 0;
-        sr_c->metrics.rejectCount = 0;
-        sr_c->metrics.txGoodCount = 0;
-	clock_gettime(CLOCK_REALTIME, &tstart);
-	sr_c->metrics.last_housekeeping= tstart.tv_sec + (tstart.tv_nsec / 1e9);
-
+        sr_context_metrics_reset(sr_c);
 	return (sr_c);
 
 }
@@ -392,6 +397,8 @@ void sr_context_housekeeping(struct sr_context *sr_c)
 		}
 		cached_count = sr_cache_save(sr_c->cfg->cachep, 0);
 
+                sr_context_metrics_reset(sr_c);
+
 		getrusage(RUSAGE_SELF, &usage_after);
 
 		//FIXME
@@ -413,6 +420,7 @@ void sr_context_write_metrics(struct sr_context *sr_c)
 		);
 	fclose(f);
 }
+
 float sr_context_housekeeping_check(struct sr_context *sr_c)
 /* 
    Check if you need to do to run housekeeping processing.  
