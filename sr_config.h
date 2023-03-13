@@ -190,6 +190,7 @@ struct sr_config_s {
 	struct sr_mask_s *match;
 			     /**< the current matched mask */
 	float message_ttl;	  /**< a time (in seconds) passed to the broker as message lifetime.*/
+	char *metricsFilename;	       /**< the name of the state file containing metrics being reported .*/
 	char *outlet;	      /**< post|json|url - default post. choice of output format.*/
 	int pid;	   /**< what is the current process identifier.*/
 	char *pidfile;	       /**< the name of the state file containing the pid.*/
