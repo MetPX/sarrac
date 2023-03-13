@@ -944,7 +944,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 
 	} else if (!strcmp(option, "heartbeat") || !strcmp(option, "hb")
 		   || !strcmp(option, "housekeeping")) {
-		sr_cfg->heartbeat = seconds_from_duration_str(argument);
+		sr_cfg->housekeeping = seconds_from_duration_str(argument);
 		retval = (2);
 
 	} else if (!strcmp(option, "help") || !strcmp(option, "h")) {
@@ -1449,7 +1449,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->shim_post_minterval = 5.0;
 	sr_cfg->shim_skip_parent_open_files = 1;
 	sr_cfg->sleep = 0.0;
-	sr_cfg->heartbeat = 300.0;
+	sr_cfg->housekeeping = 300.0;
 	sr_cfg->help = 0;
 	sr_cfg->source = NULL;
 	sr_cfg->statehost = 0;
@@ -1771,7 +1771,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	}
 
 	if (sr_cfg->sanity_log_dead == 0.0)
-		sr_cfg->sanity_log_dead = (float)(1.5 * sr_cfg->heartbeat);
+		sr_cfg->sanity_log_dead = (float)(1.5 * sr_cfg->housekeeping);
 	if (sr_cfg->sanity_log_dead < 450)
 		sr_cfg->sanity_log_dead = 450.0;
 
@@ -1793,8 +1793,8 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			   sr_cfg->realpathFilter ? "yes" : "no",
 			   sr_cfg->realpathPost ? "yes" : "no");
 		sr_log_msg(LOG_DEBUG,
-			   "\tsleep=%g expire=%g heartbeat=%g sanity_log_dead=%g nodupe_ttl=%g statehost=%s v2compatRenameDoublePost=%s\n",
-			   sr_cfg->sleep, sr_cfg->expire, sr_cfg->heartbeat,
+			   "\tsleep=%g expire=%g housekeeping=%g sanity_log_dead=%g nodupe_ttl=%g statehost=%s v2compatRenameDoublePost=%s\n",
+			   sr_cfg->sleep, sr_cfg->expire, sr_cfg->housekeeping,
 			   sr_cfg->sanity_log_dead, sr_cfg->nodupe_ttl,
 			   sr_cfg->statehost ? "yes" : "no",
 			   sr_cfg->v2compatRenameDoublePost ? "yes" : "no");

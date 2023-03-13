@@ -105,14 +105,14 @@ void sr_context_close(struct sr_context *sr_c);
    tears down the connection.
  */
 
-void sr_context_heartbeat(struct sr_context *sr_c);
+void sr_context_housekeeping(struct sr_context *sr_c);
 /* periodic processing that users should call ever *hearbeat* interval.
    triggers a print in the log, and cache cleaning, for example.
  */
 
-float sr_context_heartbeat_check(struct sr_context *sr_c);
+float sr_context_housekeeping_check(struct sr_context *sr_c);
 /* 
-   Check the time.  If you need to do to run heartbeat processing, it is done.
+   Check the time.  If you need to do to run housekeeping processing, it is done.
    Returns: elapsed time since previous call, in seconds.
 
    Note: sr_context_init_config must be called before first call to initialize "previous call" timing.

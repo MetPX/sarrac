@@ -653,7 +653,7 @@ void usage()
 		"\t\tExample: when using distributed cluster files systems with multiple writing nodes, like GPFS & lustre (or run on all nodes.)\n");
 	fprintf(stderr,
 		"\theader <key>=<value> - post an arbitrary key=value attribute with file. OPTIONAL\n");
-	fprintf(stderr, "\theartbeat <on|off|integer> - clean cache interval.\n");
+	fprintf(stderr, "\thousekeeping <on|off|integer> - clean cache interval.\n");
 	fprintf(stderr,
 		"\tloglevel <integer> - print >= n:\n\t\t1-DEBUG, 2-info, 3-Warn, 4-ERROR, 5-CRITICAL.\n");
 	fprintf(stderr,
@@ -927,7 +927,7 @@ int main(int argc, char **argv)
 		if (sr_cfg.sleep <= 0.0)
 			break;	// one shot.
 
-		elapsed = sr_context_heartbeat_check(sr_c);
+		elapsed = sr_context_housekeeping_check(sr_c);
 
 		if (elapsed < sr_cfg.sleep) {
 			tsleep.tv_sec = (long)(sr_cfg.sleep - elapsed);

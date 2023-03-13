@@ -252,7 +252,7 @@ struct sr_context *sr_context_connect(struct sr_context *sr_c)
 
 }
 
-/* The time that the program was started, or the last call to heartbeat check.
+/* The time that the program was started, or the last call to housekeeping check.
    
  */
 static struct timespec tstart;
@@ -273,7 +273,7 @@ struct sr_context *sr_context_init_config(struct sr_config_s *sr_cfg, int must_a
 	sr_context_avoid_std_fds = must_avoid_std_fds;
 
 	// seed for random checksums... random enough...
-	// also initializes tstart for use by heartbeat processing.
+	// also initializes tstart for use by housekeeping processing.
 	clock_gettime(CLOCK_REALTIME, &tstart);
 	srandom(tstart.tv_nsec);
 
@@ -364,21 +364,21 @@ void sr_context_close(struct sr_context *sr_c)
 
 }
 
-void sr_context_heartbeat(struct sr_context *sr_c)
-/* run this every heartbeat interval 
+void sr_context_housekeeping(struct sr_context *sr_c)
+/* run this every housekeeping interval 
  */
 {
 	int cached_count;
 	struct rusage usage_before;
 	struct rusage usage_after;
 
-	sr_log_msg(LOG_DEBUG, "heartbeat processing start\n");
+	sr_log_msg(LOG_DEBUG, "housekeeping processing start\n");
 	if (sr_c->cfg->cachep) {
 		getrusage(RUSAGE_SELF, &usage_before);
 
-		sr_log_msg(LOG_INFO, "heartbeat starting to clean cache\n");
+		sr_log_msg(LOG_INFO, "housekeeping starting to clean cache\n");
 		sr_cache_clean(sr_c->cfg->cachep, sr_c->cfg->nodupe_ttl);
-		sr_log_msg(LOG_DEBUG, "heartbeat cleaned, hashes left: %u\n",
+		sr_log_msg(LOG_DEBUG, "housekeeping cleaned, hashes left: %u\n",
 			   HASH_COUNT(sr_c->cfg->cachep->data));
 		if (HASH_COUNT(sr_c->cfg->cachep->data) == 0) {
 			sr_c->cfg->cachep->data = NULL;
@@ -389,15 +389,15 @@ void sr_context_heartbeat(struct sr_context *sr_c)
 
 //FIXME
 		sr_log_msg(LOG_INFO,
-			   "heartbeat after cleaning, cache stores %d entries. (memory: %ld kB)\n",
+			   "housekeeping after cleaning, cache stores %d entries. (memory: %ld kB)\n",
 			   cached_count, usage_after.ru_maxrss);
 	}
-	sr_log_msg(LOG_DEBUG, "heartbeat processing completed\n");
+	sr_log_msg(LOG_DEBUG, "housekeeping processing completed\n");
 }
 
-float sr_context_heartbeat_check(struct sr_context *sr_c)
+float sr_context_housekeeping_check(struct sr_context *sr_c)
 /* 
-   Check if you need to do to run heartbeat processing.  
+   Check if you need to do to run housekeeping processing.  
    Returns: elapsed time since previous call, in seconds.
 
    Note: sr_context_init_config must be called before first call to initialize "previous call" timing.
@@ -405,19 +405,19 @@ float sr_context_heartbeat_check(struct sr_context *sr_c)
 {
 	static struct timespec tend;
 	static float elapsed;
-	static float since_last_heartbeat = 0;
+	static float since_last_housekeeping = 0;
 
 	clock_gettime(CLOCK_REALTIME, &tend);
 	elapsed = (float)((tend.tv_sec + (tend.tv_nsec / 1e9)) -
 			  (tstart.tv_sec + (tstart.tv_nsec / 1e9)));
 
-	since_last_heartbeat = since_last_heartbeat + elapsed;
+	since_last_housekeeping = since_last_housekeeping + elapsed;
 
 	clock_gettime(CLOCK_REALTIME, &tstart);
 
-	if (since_last_heartbeat >= sr_c->cfg->heartbeat) {
-		sr_context_heartbeat(sr_c);
-		since_last_heartbeat = 0.0;
+	if (since_last_housekeeping >= sr_c->cfg->housekeeping) {
+		sr_context_housekeeping(sr_c);
+		since_last_housekeeping = 0.0;
 	}
 
 	return (elapsed);
