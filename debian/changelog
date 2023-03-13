@@ -1,6 +1,7 @@
 metpx-sr3c (3.23.03) UNRELEASED; urgency=medium
 
-  * adding support for metrics.
+  * enhancement: adding support for metrics. ( https://github.com/MetPX/sarracenia/issues/614 )
+  * testing: adding explicit absolute links to test_shim_copy
 
  -- Peter <peter@bsqt.homeip.net>  Sun, 12 Mar 2023 23:17:55 -0400
 

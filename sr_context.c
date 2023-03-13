@@ -264,14 +264,14 @@ struct timespec sr_time_of_last_run()
 
 void sr_context_metrics_reset(struct sr_context *sr_c)
 {
-	struct timespec tstart;
+	struct timespec tnow;
 
         sr_c->metrics.rxGoodCount = 0;
         sr_c->metrics.rxBadCount = 0;
         sr_c->metrics.rejectCount = 0;
         sr_c->metrics.txGoodCount = 0;
-	clock_gettime(CLOCK_REALTIME, &tstart);
-	sr_c->metrics.last_housekeeping= tstart.tv_sec + (tstart.tv_nsec / 1e9);
+	clock_gettime(CLOCK_REALTIME, &tnow);
+	sr_c->metrics.last_housekeeping= tnow.tv_sec + (tnow.tv_nsec / 1e9);
 }
 
 struct sr_context *sr_context_init_config(struct sr_config_s *sr_cfg, int must_avoid_std_fds)
@@ -409,7 +409,7 @@ void sr_context_housekeeping(struct sr_context *sr_c)
 	sr_log_msg(LOG_DEBUG, "housekeeping processing completed\n");
 }
 
-void sr_context_write_metrics(struct sr_context *sr_c) 
+void sr_context_metrics_write(struct sr_context *sr_c) 
 
 {
 	FILE *f;
@@ -432,6 +432,7 @@ float sr_context_housekeeping_check(struct sr_context *sr_c)
 	static struct timespec tend;
 	static float elapsed;
 	static float since_last_housekeeping = 0;
+	static float since_last_metrics_write=0;
 
 	clock_gettime(CLOCK_REALTIME, &tend);
 	elapsed = (float)((tend.tv_sec + (tend.tv_nsec / 1e9)) -
@@ -439,15 +440,17 @@ float sr_context_housekeeping_check(struct sr_context *sr_c)
 
 	since_last_housekeeping = since_last_housekeeping + elapsed;
 
-	if ( sr_c->metrics.rxGoodCount % 10  == 0 )  {
-            sr_context_write_metrics(sr_c);
-        }
+	if ( since_last_metrics_write > 10 ) {
+            sr_context_metrics_write(sr_c);
+	    since_last_metrics_write=0;
+        } else {
+	    since_last_metrics_write += elapsed;
+	}
 	clock_gettime(CLOCK_REALTIME, &tstart);
 
 	if (since_last_housekeeping >= sr_c->cfg->housekeeping) {
 		sr_context_housekeeping(sr_c);
 		since_last_housekeeping = 0.0;
-		sr_c->metrics.last_housekeeping= tend.tv_sec + (tend.tv_nsec / 1e9);
 	}
 
 	return (elapsed);
