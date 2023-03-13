@@ -1,3 +1,9 @@
+metpx-sr3c (3.23.03) UNRELEASED; urgency=medium
+
+  * adding support for metrics.
+
+ -- Peter <peter@bsqt.homeip.net>  Sun, 12 Mar 2023 23:17:55 -0400
+
 metpx-sr3c (3.23.02) unstable; urgency=medium
 
   * bugfix #51: can bind to multiple exchanges+subtopic combinations (like

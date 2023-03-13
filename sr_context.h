@@ -43,6 +43,14 @@
 
 #include "sr_config.h"
 
+struct sr_metrics_s {
+    int rxGoodCount;
+    int rxBadCount;
+    int rejectCount;
+    int txGoodCount;
+    float last_housekeeping;
+};
+
 struct sr_context {
 
 	char settings[AMQP_MAX_SS];
@@ -52,6 +60,7 @@ struct sr_context {
 	amqp_connection_state_t conn;
 	int port;
 	struct sr_config_s *cfg;
+	struct sr_metrics_s metrics;
 };
 
 void sr_amqp_error_print(int x, char const *context);

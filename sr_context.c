@@ -265,6 +265,7 @@ struct timespec sr_time_of_last_run()
 struct sr_context *sr_context_init_config(struct sr_config_s *sr_cfg, int must_avoid_std_fds)
 {
 
+	static struct timespec tstart;
 	struct sr_context *sr_c;
 
 	if (!sr_cfg)
@@ -302,6 +303,12 @@ struct sr_context *sr_context_init_config(struct sr_config_s *sr_cfg, int must_a
 				   (sr_cfg->post_broker->password) ? "<pw>" : "<null>",
 				   sr_cfg->post_broker->hostname, sr_cfg->post_broker->port);
 	}
+        sr_c->metrics.rxGoodCount = 0;
+        sr_c->metrics.rxBadCount = 0;
+        sr_c->metrics.rejectCount = 0;
+        sr_c->metrics.txGoodCount = 0;
+	clock_gettime(CLOCK_REALTIME, &tstart);
+	sr_c->metrics.last_housekeeping= tstart.tv_sec + (tstart.tv_nsec / 1e9);
 
 	return (sr_c);
 
@@ -387,7 +394,7 @@ void sr_context_housekeeping(struct sr_context *sr_c)
 
 		getrusage(RUSAGE_SELF, &usage_after);
 
-//FIXME
+		//FIXME
 		sr_log_msg(LOG_INFO,
 			   "housekeeping after cleaning, cache stores %d entries. (memory: %ld kB)\n",
 			   cached_count, usage_after.ru_maxrss);
@@ -395,6 +402,17 @@ void sr_context_housekeeping(struct sr_context *sr_c)
 	sr_log_msg(LOG_DEBUG, "housekeeping processing completed\n");
 }
 
+void sr_context_write_metrics(struct sr_context *sr_c) 
+
+{
+	FILE *f;
+
+	f = fopen( sr_c->cfg->metricsFilename, "w" );
+        fprintf( f, "{ \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f } }\n" ,
+			sr_c->metrics.rxGoodCount, sr_c->metrics.rxBadCount, sr_c->metrics.rejectCount, sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping 
+		);
+	fclose(f);
+}
 float sr_context_housekeeping_check(struct sr_context *sr_c)
 /* 
    Check if you need to do to run housekeeping processing.  
@@ -413,11 +431,15 @@ float sr_context_housekeeping_check(struct sr_context *sr_c)
 
 	since_last_housekeeping = since_last_housekeeping + elapsed;
 
+	if ( sr_c->metrics.rxGoodCount % 10  == 0 )  {
+            sr_context_write_metrics(sr_c);
+        }
 	clock_gettime(CLOCK_REALTIME, &tstart);
 
 	if (since_last_housekeeping >= sr_c->cfg->housekeeping) {
 		sr_context_housekeeping(sr_c);
 		since_last_housekeeping = 0.0;
+		sr_c->metrics.last_housekeeping= tend.tv_sec + (tend.tv_nsec / 1e9);
 	}
 
 	return (elapsed);

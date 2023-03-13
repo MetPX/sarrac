@@ -337,9 +337,11 @@ int main(int argc, char **argv)
 			continue;
 		} else if (sr_message_valid(m)) {
 			sr_log_msg(LOG_INFO, "received: %s\n", sr_message_2log(m));
+			sr_c->metrics.rxGoodCount++;
 		} else {
 			sr_log_msg(LOG_ERROR, "discarding invalid message: %s\n",
 				   sr_message_2log(m));
+			sr_c->metrics.rxBadCount++;
 			continue;
 		}
 
@@ -349,6 +351,7 @@ int main(int argc, char **argv)
 		if ((mask && !(mask->accepting)) || (!mask && !(sr_cfg.acceptUnmatched))) {
 			if (sr_cfg.logReject)
 				sr_log_msg(LOG_INFO, "rejecting pattern: %s\n", m->relPath);
+			sr_c->metrics.rejectCount++;
 			continue;
 		}
 		// check cache.
@@ -363,6 +366,7 @@ int main(int argc, char **argv)
 					   "%s : %s %s\n",
 					   (ret < 0) ? "cache problem" : "rejecting duplicate",
 					   m->relPath, sr_message_partstr(m));
+			        sr_c->metrics.rejectCount++;
 			}
 
 			if (ret == 0) {
@@ -383,8 +387,10 @@ int main(int argc, char **argv)
 				}
 			} else if (!strcmp(sr_cfg.outlet, "url"))
 				sr_message_2url(m);
-			else if (!strcmp(sr_cfg.outlet, "post"))
+			else if (!strcmp(sr_cfg.outlet, "post")) {
 				sr_post_message(sr_c, m);
+			        sr_c->metrics.txGoodCount++;
+			}
 		}
 
 		sr_context_housekeeping_check(sr_c);
