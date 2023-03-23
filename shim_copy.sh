@@ -27,6 +27,10 @@ if [ ! "${EXCHANGE}" ]; then
     EXCHANGE=xs_feed
 fi
 
+STRIP="`pwd`"
+STRIP="`echo ${STRIP} | tr -cd '/' | wc -c`"
+STRIP=$((${STRIP}+1))
+
 cat >~/.config/sr3/subscribe/local_copy.conf <<EOT
 
 broker ${BROKER}
@@ -42,7 +46,7 @@ nodupe_ttl 0
 logMessageDump on
 callback log
 batch 1
-
+strip ${STRIP}
 mirror True
 directory `pwd`/shim_dirB
 accept .*`realpath .`/.*
