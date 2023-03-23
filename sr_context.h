@@ -48,7 +48,7 @@ struct sr_metrics_s {
     int rxBadCount;
     int rejectCount;
     int txGoodCount;
-    float last_housekeeping;
+    double last_housekeeping;
 };
 
 struct sr_context {

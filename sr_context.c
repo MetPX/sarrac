@@ -262,17 +262,45 @@ struct timespec sr_time_of_last_run()
 	return (tstart);
 }
 
+void sr_context_metrics_cumulative_write(struct sr_context *sr_c)
+{
+        FILE *f;
+        char datestamp[50];
+        char c;
+        char cumulativeFilename[PATH_MAX];
+
+        if ( sr_c->cfg->logMetrics ) {
+                strcpy(datestamp,sr_time2str(NULL));
+                strcpy(cumulativeFilename, sr_c->cfg->metricsFilename );
+                strcat( cumulativeFilename, "." );
+                c=datestamp[9];
+                datestamp[8]='\0';
+                strcat( cumulativeFilename, datestamp );
+                datestamp[8] = c;
+
+                f = fopen( cumulativeFilename, "a+" );
+                fprintf( f, "\"%s\": { \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f } }, \n" ,
+                        datestamp, sr_c->metrics.rxGoodCount, sr_c->metrics.rxBadCount, sr_c->metrics.rejectCount, sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping
+                );
+                fclose(f);
+
+        }
+}
+
 void sr_context_metrics_reset(struct sr_context *sr_c)
 {
 	struct timespec tnow;
 
+        sr_context_metrics_cumulative_write(sr_c);
         sr_c->metrics.rxGoodCount = 0;
         sr_c->metrics.rxBadCount = 0;
         sr_c->metrics.rejectCount = 0;
         sr_c->metrics.txGoodCount = 0;
+	memset(&tnow, 0, sizeof(struct timespec));
 	clock_gettime(CLOCK_REALTIME, &tnow);
 	sr_c->metrics.last_housekeeping= tnow.tv_sec + (tnow.tv_nsec / 1e9);
 }
+
 
 struct sr_context *sr_context_init_config(struct sr_config_s *sr_cfg, int must_avoid_std_fds)
 {
@@ -409,11 +437,12 @@ void sr_context_housekeeping(struct sr_context *sr_c)
 	sr_log_msg(LOG_DEBUG, "housekeeping processing completed\n");
 }
 
+
 void sr_context_metrics_write(struct sr_context *sr_c) 
 
 {
 	FILE *f;
-
+        
 	f = fopen( sr_c->cfg->metricsFilename, "w" );
         fprintf( f, "{ \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f } }\n" ,
 			sr_c->metrics.rxGoodCount, sr_c->metrics.rxBadCount, sr_c->metrics.rejectCount, sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping 

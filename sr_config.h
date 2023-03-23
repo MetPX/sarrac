@@ -180,6 +180,7 @@ struct sr_config_s {
 	char *last_matched;	    /**< the value of the last matched mask. */
 	char *list;		/**< method to generate initial input list:  file or queue*/
 	int log;		/**< Use a log file, rather than standard files.*/
+	bool logMetrics;         /**< write metrics to a file for statistics */
 	int logReject;		   /**< normally rejections are silent, when set, make INFO message. */
 	char *logfn;		  /**< Use this log file, rather than standard files.*/
 	int logrotate;		  /**< number of log files to keep around.*/
