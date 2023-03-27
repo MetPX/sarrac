@@ -63,8 +63,14 @@ echo "fileone" >>link_to_dirone/fileone
 echo "#test 1 directory 130 mkdir 2"
 mkdir dirone/dirtwo
 
+echo "#test 1 link 135 symlink in a sub-dir"
+ln -s link_to_dirone/fileone dirone/link_to_fileone
+
 echo "#test 1 sha512 140 stdout redirection in a subsubdir"
 echo "filetwo" >>dirone/dirtwo/filetwo
+
+echo "#test 1 rename 145 rename in a sub-dir"
+mv dirone/dirtwo/filetwo dirone/dirtwo/filefour
 
 # sleep to allow copies to happen before renaming directory...
 sleep 5 

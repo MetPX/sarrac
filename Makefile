@@ -132,10 +132,19 @@ test_shim_unit:
 	./sr_cachetest
 	valgrind --show-reachable=yes --track-origins=yes `which sr3_cpost` -c local_post.conf uthash.h
 
-test_shim_copy:
-	-./shim_copy.sh >shim_copy.log 2>&1
-	#python3 ./check_shim_test.py shim_copy.log exit_on_bad
-	python3 ./check_shim_test.py shim_copy.log 
+test_shim_copy_mirror:
+	-./shim_copy_mirror.sh >shim_copy_mirror.log 2>&1
+	#python3 ./check_shim_test.py shim_copy_mirror.log exit_on_bad
+	python3 ./check_shim_test.py shim_copy_mirror.log 
 
+test_shim_copy_strip:
+	-./shim_copy_strip.sh >shim_copy_strip.log 2>&1
+	#python3 ./check_shim_test.py shim_copy_strip.log exit_on_bad
+	python3 ./check_shim_test.py shim_copy_strip.log 
 
-test_shim: test_shim_post test_shim_copy
+test_shim_copy_strip_slash:
+	-./shim_copy_strip_slash.sh >shim_copy_strip_slash.log 2>&1
+	#python3 ./check_shim_test.py shim_copy_strip_slash.log exit_on_bad
+	python3 ./check_shim_test.py shim_copy_strip_slash.log 
+
+test_shim: test_shim_post test_shim_copy_strip test_shim_copy_mirror

@@ -6,7 +6,7 @@ if [ ! -d ~/test ]; then
 fi
 
 echo "ignore rm errors.. cleaning before start"
-rm -rf shim_dirA/
+rm -rf shim_dirA/ shim_dirB/
 
 for d in shim_dirA shim_dirB; do
         if [ -d $d ]; then
@@ -27,10 +27,6 @@ if [ ! "${EXCHANGE}" ]; then
     EXCHANGE=xs_feed
 fi
 
-STRIP="`pwd`"
-STRIP="`echo ${STRIP} | tr -cd '/' | wc -c`"
-STRIP=$((${STRIP}+1))
-
 cat >~/.config/sr3/subscribe/local_copy.conf <<EOT
 
 broker ${BROKER}
@@ -46,7 +42,6 @@ nodupe_ttl 0
 logMessageDump on
 callback log
 batch 1
-strip ${STRIP}
 mirror True
 directory `pwd`/shim_dirB
 accept .*`realpath .`/.*
@@ -111,9 +106,9 @@ wait
 # job step 2... copy.
 echo "waiting a few seconds for copies to complete"
 sleep 5
-#sr3 remove cpost/local_post.conf
-#sr3 stop subscribe/local_copy.conf
-#sr3 remove subscribe/local_copy.conf
+sr3 remove cpost/local_post.conf
+sr3 stop subscribe/local_copy.conf
+sr3 remove subscribe/local_copy.conf
 
 echo "#test 0 comment comparing trees"
     
