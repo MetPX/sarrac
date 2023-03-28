@@ -23,8 +23,8 @@ jobs:
       # Don't cancel the entire matrix when one job fails
       fail-fast: false
       matrix:
-       which_test: [ shim ]
-       osver: [ "ubuntu-18.04", "ubuntu-20.04", "ubuntu-22.04" ]
+       which_test: [ "test_shim_post", "test_shim_copy_mirror",  "test_shim_copy_strip", "test_copy_strip_slash" ]
+       osver: [ "ubuntu-20.04", "ubuntu-22.04" ]
 
     runs-on: ${{ matrix.osver }}
   
@@ -50,11 +50,7 @@ jobs:
 
       - name: Setup ${{ matrix.which_test }} run shim post test
         run: |
-          make test_shim_post
-
-      - name: Setup ${{ matrix.which_test }} run shim copy test
-        run: |
-          make test_shim_copy
+          make ${{ matrix.which_test }}
 
       - name: Compress log files for artifacts
         if: always()

@@ -23,7 +23,7 @@ jobs:
       # Don't cancel the entire matrix when one job fails
       fail-fast: false
       matrix:
-       which_test: [ shim ]
+       which_test: [ unit ]
        osver: [ "ubuntu-18.04", "ubuntu-20.04", "ubuntu-22.04" ]
 
     runs-on: ${{ matrix.osver }}
