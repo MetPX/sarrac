@@ -147,4 +147,9 @@ test_shim_copy_strip_slash:
 	#python3 ./check_shim_test.py shim_copy_strip_slash.log exit_on_bad
 	python3 ./check_shim_test.py shim_copy_strip_slash.log 
 
+test_shim_copy_flatten:
+	-./shim_copy_flatten.sh >shim_copy_flatten.log 2>&1
+	#python3 ./check_shim_test.py shim_copy_flatten.log exit_on_bad
+	python3 ./check_shim_test.py shim_copy_flatten.log 
+
 test_shim: test_shim_post test_shim_copy_strip test_shim_copy_mirror
