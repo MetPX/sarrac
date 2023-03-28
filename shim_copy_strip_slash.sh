@@ -29,7 +29,9 @@ fi
 
 STRIP="`pwd`"
 STRIP="`echo ${STRIP} | tr -cd '/' | wc -c`"
-STRIP=$((${STRIP}+1))
+STRIP=$((${STRIP}+2))
+
+echo "setting STRIP to $STRIP for: `pwd`"
 
 cat >~/.config/sr3/subscribe/local_copy.conf <<EOT
 

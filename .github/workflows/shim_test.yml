@@ -52,9 +52,17 @@ jobs:
         run: |
           make test_shim_post
 
-      - name: Setup ${{ matrix.which_test }} run shim copy test
+      - name: Setup ${{ matrix.which_test }} shim copy Mirror test
         run: |
-          make test_shim_copy
+          make test_shim_copy_mirror
+
+      - name: Setup ${{ matrix.which_test }} shim copy Mirror using strip with a baseUrl
+        run: |
+          make test_shim_copy_strip
+
+      - name: Setup ${{ matrix.which_test }} shim copy Mirror using strip with / in baseUrl
+        run: |
+          make test_shim_copy_strip_slash
 
       - name: Compress log files for artifacts
         if: always()
