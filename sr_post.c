@@ -677,6 +677,9 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	c = m->relPath;
 	d = fn;
 
+	// skip initial / if present. it's called relPath...
+        if ( *d == '/') d++;
+
 	while (*d) {
 		if (*d == ' ') {
 			*c++ = '%';
@@ -693,16 +696,17 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		d++;
 	}
 	*c = '\0';
-	//strcpy( m->relPath, fn );
 
-	if (sr_c->cfg->post_baseDir) {
-		drfound = strstr(fn, sr_c->cfg->post_baseDir);
+	if (sr_c->cfg->post_baseDir && strlen(sr_c->cfg->post_baseDir) > 1) {
+		// the +1 is to because baseDir is always absolute, and relPath is always relative
+		drfound = strstr(fn, (sr_c->cfg->post_baseDir)+1);
 
 		if (drfound) {
 			drfound += strlen(sr_c->cfg->post_baseDir);
 			strcpy(m->relPath, drfound);
 		}
 	}
+
 	// Strip option: remove prefix from path according to / #
 	//               include updated path tagged as "rename" in header
 	sr_log_msg(LOG_INFO, "FIXME strip:  m->strip: %d\n", sr_c->cfg->strip);

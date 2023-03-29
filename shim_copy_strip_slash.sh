@@ -29,7 +29,7 @@ fi
 
 STRIP="`pwd`"
 STRIP="`echo ${STRIP} | tr -cd '/' | wc -c`"
-STRIP=$((${STRIP}+2))
+STRIP=$((${STRIP}+1))
 
 echo "setting STRIP to $STRIP for: `pwd`"
 
