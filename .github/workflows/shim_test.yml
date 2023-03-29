@@ -48,7 +48,7 @@ jobs:
         run: |
           make 
 
-      - name: Setup ${{ matrix.which_test }} run shim post test
+      - name: Run ${{ matrix.which_test }} 
         run: |
           make ${{ matrix.which_test }}
 
