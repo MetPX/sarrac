@@ -672,16 +672,11 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 			   sb ? S_ISLNK(sb->st_mode) : 0,
 			   sb ? S_ISDIR(sb->st_mode) : 0, sb ? S_ISREG(sb->st_mode) : 0);
 	}
-/*
-	if (sb && S_ISDIR(sb->st_mode)) {
-		return (0);	// cannot post directories.
-        }
- */
 	/* copy filename to path, but inserting %20 for every space
 	 */
 	c = m->relPath;
 	d = fn;
-	//while ( *d ) { if ( *d == ' ' ) { *c++='%'; *c++='2'; *c++='0'; } else *c++ = *d; d++; }
+
 	while (*d) {
 		if (*d == ' ') {
 			*c++ = '%';
