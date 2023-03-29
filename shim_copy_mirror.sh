@@ -121,8 +121,18 @@ cd ..
     
 diffs="`diff dirA.sums dirB.sums| wc -l`"
 
-if [ "${diffs}" -eq 0 ]; then
-       echo "RESULT: Good! trees the same"
+cd shim_dirA
+find . -type l  | xargs ls -al >../dirA.links
+cd ../shim_dirB
+find . -type l  | xargs ls -al >../dirB.links
+cd ..
+
+sed 's+shim_dirB+shim_dirA+' dirB.links >dirC.links
+
+linkdiffs="`diff dirA.links dirC.links|wc -l`"
+
+if [ "${linkdiffs}" -eq 0 -a "${diffs}" -eq 0 ]; then
+	echo "RESULT: Good! trees links the same: `wc -l dirA.sums` files and `wc -l dirA.links` links mirrored"
 else
-       echo "RESULT: BAD trees have $diffs differences"
+       echo "RESULT: BAD tree differences in $diffs files, and $linkdiffs links"
 fi
