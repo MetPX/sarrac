@@ -1814,17 +1814,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			   sr_cfg->events, sr_cfg->directory, sr_cfg->queuename,
 			   sr_cfg->logReject ? "on" : "off", sr_cfg->force_polling ? "on" : "off",
 			   sr_cfg->sumalgo, sr_cfg->statehost);
-		sr_log_msg(LOG_DEBUG,
-			   "\tmessage_ttl=%g post_exchange=%s post_exchange_split=%d post_exchangeSuffix=%s\n",
-			   sr_cfg->message_ttl, sr_cfg->post_exchange, sr_cfg->post_exchange_split,
-			   sr_cfg->post_exchangeSuffix);
-		sr_log_msg(LOG_DEBUG,
-			   "\tsource=%s to=%s post_baseUrl=%s topicPrefix=%s post_topicPrefix=%s, pid=%d\n",
-			   sr_cfg->source, sr_cfg->to, sr_cfg->post_baseUrl, sr_cfg->topicPrefix,
-			   sr_cfg->post_topicPrefix, sr_cfg->pid);
-		sr_log_msg(LOG_DEBUG, "man sr3_cpost(1) for more information\n");
 	}
-	// FIXME: Missing: topics, user_headers, 
 	if (!strcmp(sr_cfg->progname, "post")
 	    || !strcmp(sr_cfg->progname, "cpost")
 	    || !strcmp(sr_cfg->progname, "shim")) {
@@ -1835,6 +1825,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		}
 
 		if (!(sr_cfg->post_broker)) {
+		        sr_log_msg(LOG_DEBUG, "man sr3_cpost(1) for more information\n");
 			sr_log_msg(LOG_ERROR, "no post_broker given\n");
 			return (0);
 		}
@@ -1868,11 +1859,24 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		if (sr_cfg->to == NULL) {
 			sr_cfg->to = strdup(sr_cfg->post_broker->hostname);
 		}
+		sr_log_msg( LOG_INFO, "FIXME: baseDir: %s, baseUrl: %s\n", sr_cfg->post_baseUrl, sr_cfg->post_baseDir );
 		if ((!(sr_cfg->post_baseDir))
 		    && ((sr_cfg->post_baseUrl) && !strncmp(sr_cfg->post_baseUrl, "file:", 5))) {
 			sr_cfg->post_baseDir = strdup(sr_cfg->post_baseUrl + 5);
 		}
 	}
+	if (strcmp(sr_cfg->action, "sanity")) {
+		sr_log_msg(LOG_DEBUG,
+			   "\tmessage_ttl=%g post_exchange=%s post_exchange_split=%d post_exchangeSuffix=%s\n",
+			   sr_cfg->message_ttl, sr_cfg->post_exchange, sr_cfg->post_exchange_split,
+			   sr_cfg->post_exchangeSuffix);
+		sr_log_msg(LOG_DEBUG,
+			   "\tsource=%s to=%s post_baseUrl=%s post_baseDir=%s topicPrefix=%s post_topicPrefix=%s, pid=%d\n",
+			   sr_cfg->source, sr_cfg->to, sr_cfg->post_baseUrl, sr_cfg->post_baseDir, sr_cfg->topicPrefix,
+			   sr_cfg->post_topicPrefix, sr_cfg->pid);
+		sr_log_msg(LOG_DEBUG, "man sr3_cpost(1) for more information\n");
+	}
+	// FIXME: Missing: topics, user_headers, 
 
 	if (!is_consumer)
 		return (1);

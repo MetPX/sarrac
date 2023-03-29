@@ -64,7 +64,7 @@ echo "#test 1 directory 130 mkdir 2"
 mkdir dirone/dirtwo
 
 echo "#test 1,1 link,rename 135 symlink in a sub-dir"
-ln -sf link_to_dirone/fileone dirone/link_to_fileone
+ln -sf `pwd`/link_to_dirone/fileone dirone/link_to_fileone
 
 echo "#test 1 sha512 140 stdout redirection in a subsubdir"
 echo "filetwo" >>dirone/dirtwo/filetwo
@@ -72,12 +72,12 @@ echo "filetwo" >>dirone/dirtwo/filetwo
 echo "#test 1 rename 145 rename in a sub-dir"
 mv dirone/dirtwo/filetwo dirone/dirtwo/filefour
 
-echo "#test 1,1 link,rename 135 symlink in a sub-dir"
-ln -sf dirone/dirtwo/filefour dirone/dirtwo/link2four
-
 # sleep to allow copies to happen before renaming directory...
 sleep 5 
 echo "#test 1 rename 150 renaming subdirs should cause file rename events."
 mv dirone dirthree
+
+echo "#test 1,1 link,rename 135 symlink in a sub-dir"
+ln -sf `pwd`/dirthree/dirtwo/filefour dirthree/dirtwo/link2four
 
 echo "#test 0 comment 160 shim copy posting end"

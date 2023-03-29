@@ -1,7 +1,9 @@
-metpx-sr3c (3.23.03p1) UNRELEASED; urgency=medium
+metpx-sr3c (3.23.03p1) unstable; urgency=medium
 
-  * more test cases, variety of invocations of ln -sf
-  * mirror tree with a full post_baseUrl, with a *strip*, and baseURL=/ and strip.
+  * test case: test_case_copy_mirror test cases: tree with a full post_baseUrl
+  * test case: test_shim_mirror_strip (with a strip),
+  * test case: test_shim_mirror_strip_slash (baseURL=/ and strip)
+  * remove leading slash from relPath. 
 
  -- Peter <peter@bsqt.homeip.net>  Sun, 26 Mar 2023 02:08:31 -0400
 
