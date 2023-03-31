@@ -111,9 +111,9 @@ wait
 # job step 2... copy.
 echo "waiting a few seconds for copies to complete"
 sleep 5
-sr3 remove cpost/local_post.conf
+#sr3 remove cpost/local_post.conf
 sr3 stop subscribe/local_copy.conf
-sr3 remove subscribe/local_copy.conf
+#sr3 remove subscribe/local_copy.conf
 
 echo "#test 0 comment comparing trees"
     

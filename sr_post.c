@@ -701,7 +701,8 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		// the +1 is to because baseDir is always absolute, and relPath is always relative
 		drfound = strstr(fn, (sr_c->cfg->post_baseDir)+1);
 
-		if (drfound) {
+		// replace only if at the beginning of the string.
+		if (drfound==fn+1) {
 			drfound += strlen(sr_c->cfg->post_baseDir);
 			strcpy(m->relPath, drfound);
 		}
@@ -709,7 +710,6 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 
 	// Strip option: remove prefix from path according to / #
 	//               include updated path tagged as "rename" in header
-	sr_log_msg(LOG_INFO, "FIXME strip:  m->strip: %d\n", sr_c->cfg->strip);
 	if (sr_c->cfg->strip > 0) {
 		i = sr_c->cfg->strip;
 		c = strdup(m->relPath);
