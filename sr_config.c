@@ -1806,8 +1806,9 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			   sr_cfg->sanity_log_dead, sr_cfg->nodupe_ttl,
 			   sr_cfg->statehost ? "yes" : "no",
 			   sr_cfg->v2compatRenameDoublePost ? "yes" : "no");
-		sr_log_msg(LOG_DEBUG, "\tcache_file=%s accept_unmatch=%s messageRateMax=%d\n",
-			   sr_cfg->cachep ? p : "off", sr_cfg->acceptUnmatched ? "on" : "off",
+		sr_log_msg(LOG_DEBUG, "\tcache_file=%s cache_basis=%s, accept_unmatch=%s messageRateMax=%d\n",
+			   sr_cfg->cachep ? p : "off", sr_cfg->cache_basis?sr_cfg->cache_basis:"path", 
+			   sr_cfg->acceptUnmatched ? "on" : "off",
 			   sr_cfg->messageRateMax);
 		sr_log_msg(LOG_DEBUG,
 			   "\tfileEvents=%04x directory=%s queuename=%s logReject=%s force_polling=%s sum=%c statehost=%c\n",

@@ -56,6 +56,11 @@ reject .*
 
 EOT
 
+echo "config file ~/.config/sr3/subscribe/local_copy.conf: "
+cat ~/.config/sr3/subscribe/local_copy.conf
+echo "--"
+
+
 #cp local_post.conf ~/.config/sr3/cpost
 cat >~/.config/sr3/cpost/local_post.conf  <<EOT
 
@@ -88,6 +93,10 @@ accept `realpath .`/.*
 accept `realpath ${HOME}/test`/.*
 reject .*
 EOT
+
+echo "config file ~/.config/sr3/cpost/local_post.conf: "
+cat ~/.config/sr3/cpost/local_post.conf 
+echo "--"
 
 sr3 declare cpost/local_post
 sr3 declare subscribe/local_copy
