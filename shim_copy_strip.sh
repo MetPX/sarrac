@@ -56,6 +56,11 @@ reject .*
 
 EOT
 
+echo "config file ~/.config/sr3/subscribe/local_copy.conf: "
+cat ~/.config/sr3/subscribe/local_copy.conf
+echo "--"
+
+
 #cp local_post.conf ~/.config/sr3/cpost
 cat >~/.config/sr3/cpost/local_post.conf  <<EOT
 
@@ -89,6 +94,10 @@ accept `realpath ${HOME}/test`/.*
 reject .*
 EOT
 
+echo "config file ~/.config/sr3/cpost/local_post.conf: "
+cat ~/.config/sr3/cpost/local_post.conf 
+echo "--"
+
 sr3 declare cpost/local_post
 sr3 declare subscribe/local_copy
 sr3 start subscribe/local_copy.conf
@@ -111,9 +120,9 @@ wait
 # job step 2... copy.
 echo "waiting a few seconds for copies to complete"
 sleep 5
-#sr3 remove cpost/local_post.conf
+sr3 remove cpost/local_post.conf
 sr3 stop subscribe/local_copy.conf
-#sr3 remove subscribe/local_copy.conf
+sr3 remove subscribe/local_copy.conf
 
 echo "#test 0 comment comparing trees"
     
