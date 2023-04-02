@@ -697,7 +697,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	}
 	*c = '\0';
 
-	if (sr_c->cfg->post_baseDir && strlen(sr_c->cfg->post_baseDir) > 1) {
+	if (sr_c->cfg->post_baseDir && (strlen(sr_c->cfg->post_baseDir) > 1 ) ) {
 		// the +1 is to because baseDir is always absolute, and relPath is always relative
 		drfound = strstr(fn, (sr_c->cfg->post_baseDir)+1);
 

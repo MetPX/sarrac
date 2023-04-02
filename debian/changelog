@@ -1,6 +1,7 @@
 metpx-sr3c (3.23.03p2) UNRELEASED; urgency=medium
 
   * removing debug prints.
+  * more work making relPaths relative in all situations. 
 
  -- Peter <peter@bsqt.homeip.net>  Fri, 31 Mar 2023 09:06:46 -0400
 
