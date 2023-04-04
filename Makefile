@@ -157,4 +157,4 @@ test_shim_copy_baseDir:
 	#python3 ./check_shim_test.py shim_copy_baseDir.log exit_on_bad
 	python3 ./check_shim_test.py shim_copy_baseDir.log 
 
-test_shim: test_shim_post test_shim_copy_strip test_shim_copy_mirror
+test_shim: test_shim_post test_shim_copy_strip test_shim_copy_mirror test_shim_copy_baseDir
