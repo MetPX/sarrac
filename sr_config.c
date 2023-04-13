@@ -1860,10 +1860,26 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		if (sr_cfg->to == NULL) {
 			sr_cfg->to = strdup(sr_cfg->post_broker->hostname);
 		}
-		sr_log_msg( LOG_INFO, "FIXME: baseDir: %s, baseUrl: %s\n", sr_cfg->post_baseUrl, sr_cfg->post_baseDir );
-		if ((!(sr_cfg->post_baseDir))
-		    && ((sr_cfg->post_baseUrl) && !strncmp(sr_cfg->post_baseUrl, "file:", 5))) {
-			sr_cfg->post_baseDir = strdup(sr_cfg->post_baseUrl + 5);
+		if (!(sr_cfg->post_baseDir)) {
+                    if (sr_cfg->post_baseUrl) {
+ 			if (!strncmp(sr_cfg->post_baseUrl, "file:", 5)) {
+				sr_cfg->post_baseDir = strdup(sr_cfg->post_baseUrl + 5);
+                    	} else if (!strncmp(sr_cfg->post_baseUrl, "sftp:", 5)) {
+                            char *slash;
+                            char *at;
+                            slash = index(sr_cfg->post_baseUrl+7,'/');
+                            at = index(sr_cfg->post_baseUrl+7,'@');
+                            if (slash) {
+	                            while (at > slash) { // there is a slash in a password...
+       		                         slash = index(slash,'/');
+       		                    }
+                                    if (slash) {
+               		                 while (*(slash+1) == '/') slash++;
+                                         sr_cfg->post_baseDir = strdup(slash);
+                                    }
+                            }
+                        }
+        	    }
 		}
 	}
 	if (strcmp(sr_cfg->action, "sanity")) {
