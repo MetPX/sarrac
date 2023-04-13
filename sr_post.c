@@ -640,6 +640,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
   reading a file, initialize the message that corresponds to it. Return the number of messages to post entire file.
  */
 {
+        bool absolute_path; /* true if path given is absolute */
 	int i;
 	char *drfound;
 	char fn[PATH_MAXNUL];
@@ -678,7 +679,11 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	d = fn;
 
 	// skip initial / if present. it's called relPath...
-        if ( *d == '/') d++;
+        absolute_path = ( *d == '/') ;
+
+        if (absolute_path) {
+            d++;
+        }
 
 	while (*d) {
 		if (*d == ' ') {
@@ -705,7 +710,10 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		if (drfound==fn+1) {
 			drfound += strlen(sr_c->cfg->post_baseDir);
 			strcpy(m->relPath, drfound);
-		}
+		} else if (absolute_path) {
+		   	sr_log_msg(LOG_ERROR, "posting outside of baseDir (%s) invalid path: %s\n", sr_c->cfg->post_baseDir, fn );
+ 			return(0);
+                }
 	}
 
 	// Strip option: remove prefix from path according to / #

@@ -14,8 +14,6 @@ if [ ! "${EXCHANGE}" ]; then
     EXCHANGE=xs_pastest
 fi
 
-DIRECTORY=`pwd`
-
    cat >~/.config/sr3/cpost/local_post.conf  <<EOT
 
 post_broker ${BROKER}
@@ -38,8 +36,7 @@ nodupe_ttl 0
 header toto=pig
 events modify,link,delete,mkdir,rmdir
 
-post_baseUrl file:${DIRECTORY}
-post_baseDir ${DIRECTORY}
+post_baseUrl file:${HOME}
 
 post_topicPrefix v03.post
 
