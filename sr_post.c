@@ -281,7 +281,7 @@ void v03encode(char *message_body, struct sr_context *sr_c, struct sr_message_s 
 	if (sr_c->cfg->strip != 0)
 		v03amqp_header_add(&c, "rename", m->rename);
 
-	if (m->source && m->source[0])
+	if (m->source[0])
 		v03amqp_header_add(&c, "source", m->source);
 
 	if ((m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'm') && (m->sum[0] != 'r')) {
@@ -299,11 +299,11 @@ void v03encode(char *message_body, struct sr_context *sr_c, struct sr_message_s 
 			v03amqp_header_add(&c, "size", smallbuf);
 		}
 
-		if (m->atime && m->atime[0]) {
+		if (m->atime[0]) {
 			v03amqp_header_add(&c, "atime", v03time(m->atime));
 		}
 
-		if (m->mtime && m->mtime[0])
+		if (m->mtime[0])
 			v03amqp_header_add(&c, "mtime", v03time(m->mtime));
 	}
 	if ((m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'r')) {
@@ -451,7 +451,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 			if ((m->sum[0] != 'R') && (m->sum[0] != 'L')) {
 				amqp_header_add("parts", sr_message_partstr(m));
 
-				if (m->atime && m->atime[0])
+				if (m->atime[0])
 					amqp_header_add("atime", m->atime);
 
 				if (m->mode > 0) {
@@ -459,7 +459,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 					amqp_header_add("mode", smallbuf);
 				}
 
-				if (m->mtime && m->mtime[0])
+				if (m->mtime[0])
 					amqp_header_add("mtime", m->mtime);
 			}
 

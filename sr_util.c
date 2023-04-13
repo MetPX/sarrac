@@ -870,7 +870,7 @@ char *sr_time2str(struct timespec *tin)
 	time_t when;
 	struct timespec ts;
 	long nsec;
-	char nsstr[30];
+	char nsstr[10];
 	int nsl;
 
 	memset(&s, 0, sizeof(struct tm));
@@ -887,7 +887,13 @@ char *sr_time2str(struct timespec *tin)
 
 	if (nsec > 0) {
 		nsstr[0] = '\0';
-		sprintf(nsstr, "%09ld", nsec);
+		nsstr[10] = '\0';
+                // tv_nsec is guaranteed not to exceed 9 digits...it's a nanosecond...
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+		snprintf(nsstr, 9, "%09ld", nsec );
+#pragma GCC diagnostic pop
+
 
 		// remove trailing 0's, not relevant after a decimal place.
 		nsl = strlen(nsstr) - 1;

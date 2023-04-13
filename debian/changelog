@@ -1,3 +1,15 @@
+metpx-sr3c (3.23.04p1) UNRELEASED; urgency=medium
+
+  * removed a number of FIXME tags in debugging messages.
+  * removed a number of obsolete debugging messages.
+  * have post_baseUrl provide a default for poast_baseDir if none
+    is provided, for an SFTP url. #106
+  * adding a test case for the above.
+  * clean up some compiler warnings.
+  * posting outside of the given baseDir is an error.
+
+ -- Peter Silva <peter@blacklab>  Thu, 13 Apr 2023 16:20:12 -0400
+
 metpx-sr3c (3.23.04) unstable; urgency=medium
 
   * removing debug prints.

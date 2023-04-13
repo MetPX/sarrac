@@ -439,7 +439,7 @@ static void v03assign_field(const char *key, json_object * jso_v)
 			return;
 		} else if (json_object_object_get_ex(jso_v, "remove", &subvalue)) {
 			char *just_the_name;
-			if (msg.relPath && strlen(msg.relPath) > 0) {
+			if (strlen(msg.relPath) > 0) {
 				just_the_name = rindex(msg.relPath, '/');
 				just_the_name = just_the_name ? just_the_name + 1 : msg.relPath;
 			} else {
@@ -456,7 +456,7 @@ static void v03assign_field(const char *key, json_object * jso_v)
 			return;
 		} else if (json_object_object_get_ex(jso_v, "directory", &subvalue)) {
 			char *just_the_name;
-			if (msg.relPath && strlen(msg.relPath) > 0) {
+			if (strlen(msg.relPath) > 0) {
 				just_the_name = rindex(msg.relPath, '/');
 				just_the_name = just_the_name ? just_the_name + 1 : msg.relPath;
 			} else {
@@ -473,7 +473,7 @@ static void v03assign_field(const char *key, json_object * jso_v)
 			return;
 		} else if (json_object_object_get_ex(jso_v, "rmdir", &subvalue)) {
 			char *just_the_name;
-			if (msg.relPath && strlen(msg.relPath) > 0) {
+			if (strlen(msg.relPath) > 0) {
 				just_the_name = rindex(msg.relPath, '/');
 				just_the_name = just_the_name ? just_the_name + 1 : msg.relPath;
 			} else {
