@@ -735,8 +735,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 #else
 		if (regexec(&(sr_c->cfg->strip_regex), s, ARRAY_SIZE(pmatch), pmatch, 0)) {
 #endif
-			sr_log_msg(LOG_INFO, "FIXME strip: no match to: %s\n",
-				   sr_c->cfg->strip_pattern);
+			sr_log_msg(LOG_DEBUG, "strip: no match to: %s\n", sr_c->cfg->strip_pattern);
 		} else {	// failure is matching case.   
 			//off = pmatch[0].rm_so + (s-m->relPath); 
 			//len = pmatch[0].rm_eo - pmatch[0].rm_so; 

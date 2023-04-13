@@ -335,23 +335,23 @@ void srshim_initialize(const char *progname)
 		return;
 	init_in_progress = 1;
 
-	sr_shimdebug_msg(3, "FIXME srshim_initialize %s starting..\n", progname);
+	sr_shimdebug_msg(3, "srshim_initialize %s starting..\n", progname);
 	if (sr_c) {
-		sr_shimdebug_msg(3, "FIXME srshim_initialize %s already good.\n", progname);
+		sr_shimdebug_msg(3, "srshim_initialize %s already good.\n", progname);
 		return;
 	}
 	setstr = getenv("SR_POST_CONFIG");
 
 	if (setstr == NULL) {
-		sr_shimdebug_msg(3, "FIXME srshim_initialize %s null config\n", progname);
+		sr_shimdebug_msg(3, "srshim_initialize %s null config\n", progname);
 		return;
 	}
-	//sr_shimdebug_msg( 3, "FIXME srshim_initialize 2 %s setstr=%p\n", progname, setstr);
+	//sr_shimdebug_msg( 3, "srshim_initialize 2 %s setstr=%p\n", progname, setstr);
 
 	// skip many FD to try to avoid stepping over stdout stderr, for logs & broker connection.
 	if (config_read == 0) {
 		setstr = strdup(setstr);
-		sr_shimdebug_msg(9, "FIXME srshim_initialize %s about to sr_config_init\n",
+		sr_shimdebug_msg(9, "srshim_initialize %s about to sr_config_init\n",
 				 progname);
 		sr_config_init(&sr_cfg, progname);
 		if (srshim_debug_level > 0) {
@@ -359,10 +359,10 @@ void srshim_initialize(const char *progname)
 			sr_cfg.debug = 1;
 			sr_set_loglevel(LOG_DEBUG);
 		}
-		sr_shimdebug_msg(9, "FIXME srshim_initialize %s about to sr_config_read\n",
+		sr_shimdebug_msg(9, "srshim_initialize %s about to sr_config_read\n",
 				 progname);
 		config_read = sr_config_read(&sr_cfg, setstr, 1, 1);
-		sr_shimdebug_msg(9, "FIXME srshim_initialize %s back from sr_config_read\n",
+		sr_shimdebug_msg(9, "srshim_initialize %s back from sr_config_read\n",
 				 progname);
 		free(setstr);
 		if (!config_read) {
@@ -384,15 +384,15 @@ void srshim_initialize(const char *progname)
 	   worry that if we ever use a log file, then there might be a
 	   conflict where the log file uses one of the standard file descriptors.
 	 */
-	sr_shimdebug_msg(9, "FIXME srshim_initialize %s about to sr_config_finalize\n", progname);
+	sr_shimdebug_msg(9, "srshim_initialize %s about to sr_config_finalize\n", progname);
 	finalize_good = sr_config_finalize(&sr_cfg, 0);
-	sr_shimdebug_msg(9, "FIXME srshim_initialize %s back from sr_config_finalize\n", progname);
+	sr_shimdebug_msg(9, "srshim_initialize %s back from sr_config_finalize\n", progname);
 
 	if (!finalize_good) {
 		shim_disabled = 1;	// turn off the library so stuff works without it.
 		errno = 0;
 		sr_shimdebug_msg(3,
-				 "FIXME srshim_initialize %s disabled, unable to finalize configuration.\n",
+				 "srshim_initialize %s disabled, unable to finalize configuration.\n",
 				 progname);
 		return;
 	}
@@ -412,7 +412,7 @@ void srshim_initialize(const char *progname)
 	}
 	init_in_progress = 0;
 	errno = 0;
-	sr_shimdebug_msg(3, "FIXME srshim_initialize setup completed.\n");
+	sr_shimdebug_msg(3, "srshim_initialize setup completed.\n");
 }
 
 int srshim_connect()
