@@ -1,4 +1,4 @@
-metpx-sr3c (3.23.04p1) UNRELEASED; urgency=medium
+metpx-sr3c (3.23.04p1) unstable; urgency=medium
 
   * removed a number of FIXME tags in debugging messages.
   * removed a number of obsolete debugging messages.
@@ -8,7 +8,7 @@ metpx-sr3c (3.23.04p1) UNRELEASED; urgency=medium
   * clean up some compiler warnings.
   * posting outside of the given baseDir is an error.
 
- -- Peter Silva <peter@blacklab>  Thu, 13 Apr 2023 16:20:12 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Thu, 13 Apr 2023 16:20:12 -0400
 
 metpx-sr3c (3.23.04) unstable; urgency=medium
 
