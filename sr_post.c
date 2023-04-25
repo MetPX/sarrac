@@ -717,7 +717,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 			drfound += strlen(sr_c->cfg->post_baseDir);
 			strcpy(m->relPath, drfound);
 		} else if (absolute_path) {
-		   	sr_log_msg(LOG_ERROR, "posting outside of baseDir (%s) invalid path: %s\n", sr_c->cfg->post_baseDir, fn );
+		   	sr_log_msg(LOG_ERROR, "posting outside of post_baseDir (%s) invalid path: %s\n", sr_c->cfg->post_baseDir, fn );
  			return(0);
                 }
 	}

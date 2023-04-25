@@ -612,6 +612,7 @@ void usage()
 	fprintf(stderr, "\taction [start|stop|setup|cleanup|foreground] default: foreground\n");
 	fprintf(stderr, "\t\tstart - start a daemon running (will detach) and write to log.\n");
 	fprintf(stderr, "\t\thelp - view this usage.\n");
+	fprintf(stderr, "\t\tshow - display the effective configuration.\n");
 	fprintf(stderr, "\t\tstop - stop a running daemon.\n");
 	fprintf(stderr, "\t\tlist - list configurations available.\n");
 	fprintf(stderr,
@@ -730,6 +731,7 @@ int main(int argc, char **argv)
 		    || !strcmp(sr_cfg.action, "add")
 		    || !strcmp(sr_cfg.action, "remove")
 		    || !strcmp(sr_cfg.action, "edit")
+		    || !strcmp(sr_cfg.action, "show")
 		    )
 			sr_add_path(&sr_cfg, argv[i]);
 		else
@@ -783,6 +785,10 @@ int main(int argc, char **argv)
 
 	if (!strcmp(sr_cfg.action, "log")) {
 		sr_config_log(&sr_cfg);
+		exit(0);
+	}
+
+	if (!strcmp(sr_cfg.action, "show")) {
 		exit(0);
 	}
 	// if going to run as a daemon, Check if already running. (conflict in use of state files.)
@@ -843,11 +849,11 @@ int main(int argc, char **argv)
 	sr_post_init(sr_c);
 
 	if (!sr_c->cfg->post_baseUrl) {
-		sr_log_msg(LOG_ERROR, "URL setting missing\n");
+		sr_log_msg(LOG_ERROR, "post_baseURL setting missing\n");
 		return (0);
 	}
 
-	if (!strcmp(sr_cfg.action, "setup")
+	if (!strcmp(sr_cfg.action, "setup") 
 	    || !strcmp(sr_cfg.action, "declare")) {
 		sr_context_close(sr_c);
 		free(sr_c);

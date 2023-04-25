@@ -1645,6 +1645,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	int ret;
 	struct stat sb;
 	struct timespec tseed;
+        int ll = strcmp(sr_cfg->action,"show")?LOG_DEBUG:LOG_INFO;
 
 	if (!sr_cfg->configname)
 		sr_cfg->configname = strdup("NONE");
@@ -1731,9 +1732,10 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 
 	sr_cfg->logfn = strdup(p);
 
-	if (strcmp(sr_cfg->action, "foreground"))
+	if (strcmp(sr_cfg->action, "foreground")&&
+            strcmp(sr_cfg->action, "show") ) {
 		sr_cfg->log = 1;
-
+        }
 	if (sr_cfg->log) {
 		sr_log_setup(sr_cfg->logfn, sr_cfg->chmod_log,
 			     sr_cfg->debug ? LOG_DEBUG : (sr_cfg->loglevel),
@@ -1800,29 +1802,31 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 
 	// Since we check how old the log is, we ust not write to the log during startup in sanity mode.
 	if (strcmp(sr_cfg->action, "sanity")) {
-		sr_log_msg(LOG_DEBUG,
-			   "sr_%s %s settings: action=%s hostname=%s config_name=%s log_level=%d follow_symlinks=%s realpath: Adjust=%d Filter=%s Post=%s\n",
+		sr_log_msg(ll,
+			   "sr_%s %s settings: action=%s hostname=%s config_name=%s log_level=%d\n",
 			   sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_local_fqdn(),
-			   sr_cfg->configname, sr_cfg->loglevel,
+			   sr_cfg->configname, sr_cfg->loglevel );
+		sr_log_msg(ll, "\tfollow_symlinks=%s realpath: Adjust=%d Filter=%s Post=%s\n",
 			   sr_cfg->follow_symlinks ? "yes" : "no",
 			   sr_cfg->realpathAdjust,
 			   sr_cfg->realpathFilter ? "yes" : "no",
 			   sr_cfg->realpathPost ? "yes" : "no");
-		sr_log_msg(LOG_DEBUG,
-			   "\tsleep=%g expire=%g housekeeping=%g sanity_log_dead=%g nodupe_ttl=%g statehost=%s v2compatRenameDoublePost=%s\n",
+		sr_log_msg(ll,
+			   "\tsleep=%g expire=%g housekeeping=%g sanity_log_dead=%g nodupe_ttl=%g nodupe_fileAgeMax=%g\n",
 			   sr_cfg->sleep, sr_cfg->expire, sr_cfg->housekeeping,
-			   sr_cfg->sanity_log_dead, sr_cfg->nodupe_ttl,
-			   sr_cfg->statehost ? "yes" : "no",
-			   sr_cfg->v2compatRenameDoublePost ? "yes" : "no");
-		sr_log_msg(LOG_DEBUG, "\tcache_file=%s cache_basis=%s, accept_unmatch=%s messageRateMax=%d\n",
+			   sr_cfg->sanity_log_dead, sr_cfg->nodupe_ttl, sr_cfg->nodupe_fileAgeMax );
+		sr_log_msg(ll, "\tcache_file=%s cache_basis=%s, accept_unmatch=%s messageRateMax=%d\n",
 			   sr_cfg->cachep ? p : "off", sr_cfg->cache_basis?sr_cfg->cache_basis:"path", 
 			   sr_cfg->acceptUnmatched ? "on" : "off",
 			   sr_cfg->messageRateMax);
-		sr_log_msg(LOG_DEBUG,
-			   "\tfileEvents=%04x directory=%s queuename=%s logReject=%s force_polling=%s sum=%c statehost=%c\n",
+		sr_log_msg(ll,
+			   "\tfileEvents=%04x directory=%s queuename=%s logReject=%s force_polling=%s sum=%c\n",
 			   sr_cfg->events, sr_cfg->directory, sr_cfg->queuename,
 			   sr_cfg->logReject ? "on" : "off", sr_cfg->force_polling ? "on" : "off",
-			   sr_cfg->sumalgo, sr_cfg->statehost);
+			   sr_cfg->sumalgo );
+		sr_log_msg(ll, "\tstatehost=%s v2compatRenameDoublePost=%s\n",
+			   sr_cfg->statehost ? "yes" : "no",
+			   sr_cfg->v2compatRenameDoublePost ? "yes" : "no");
 	}
 	if (!strcmp(sr_cfg->progname, "post")
 	    || !strcmp(sr_cfg->progname, "cpost")
@@ -1891,15 +1895,16 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		}
 	}
 	if (strcmp(sr_cfg->action, "sanity")) {
-		sr_log_msg(LOG_DEBUG,
+		sr_log_msg(ll,
 			   "\tmessage_ttl=%g post_exchange=%s post_exchange_split=%d post_exchangeSuffix=%s\n",
 			   sr_cfg->message_ttl, sr_cfg->post_exchange, sr_cfg->post_exchange_split,
 			   sr_cfg->post_exchangeSuffix);
-		sr_log_msg(LOG_DEBUG,
-			   "\tsource=%s to=%s post_baseUrl=%s post_baseDir=%s topicPrefix=%s post_topicPrefix=%s, pid=%d\n",
-			   sr_cfg->source, sr_cfg->to, sr_cfg->post_baseUrl, sr_cfg->post_baseDir, sr_cfg->topicPrefix,
+		sr_log_msg(ll,
+			   "\tsource=%s to=%s post_baseUrl=%s post_baseDir=%s\n",
+			   sr_cfg->source, sr_cfg->to, sr_cfg->post_baseUrl, sr_cfg->post_baseDir );
+		sr_log_msg(ll,"\ttopicPrefix=%s post_topicPrefix=%s, pid=%d\n", sr_cfg->topicPrefix,
 			   sr_cfg->post_topicPrefix, sr_cfg->pid);
-		sr_log_msg(LOG_DEBUG, "man sr3_cpost(1) for more information\n");
+		sr_log_msg(ll, "man sr3_cpost(1) for more information\n");
 	}
 	// FIXME: Missing: topics, user_headers, 
 

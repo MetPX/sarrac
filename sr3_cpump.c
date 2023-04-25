@@ -62,6 +62,7 @@ void usage()
 	fprintf(stderr, "\t\tstart - start a daemon running (will detach) and write to log.\n");
 	fprintf(stderr, "\t\thelp - view this usage.\n");
 	fprintf(stderr, "\t\tlist - list existing configurations.\n");
+	fprintf(stderr, "\t\tshow - show the effective configuration.\n");
 	fprintf(stderr, "\t\tstop - stop a running daemon.\n");
 	fprintf(stderr,
 		"\t\tdeclare - declare broker resources (to be ready for subscribers to bind to.)\n");
@@ -246,6 +247,10 @@ int main(int argc, char **argv)
 		sr_log_msg(LOG_ERROR, "failed to finalize configuration\n");
 		return (1);
 	}
+
+	if (!strcmp(sr_cfg.action, "show")) {
+ 		exit(0);
+ 	}
 
 	if (!strcmp(sr_cfg.action, "log")) {
 		sr_config_log(&sr_cfg);
