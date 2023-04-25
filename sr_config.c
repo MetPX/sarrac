@@ -1392,7 +1392,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->blocksize = 1;
 	sr_cfg->broker = NULL;
 	sr_cfg->nodupe_ttl = 0;
-	sr_cfg->nodupe_fileAgeMax = 0;
+	sr_cfg->nodupe_fileAgeMax = 30 * 24 * 60 * 60;
 	sr_cfg->nodupe_fileMinMtime = 0;
 	sr_cfg->cachep = NULL;
 	sr_cfg->cache_basis = strdup("path");
