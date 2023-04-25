@@ -1471,8 +1471,8 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->sumalgoz = 's';
 	sr_cfg->to = NULL;
 	sr_cfg->user_headers = NULL;
-	strcpy(sr_cfg->topicPrefix, "v02.post");
-	strcpy(sr_cfg->post_topicPrefix, "v02.post");
+	strcpy(sr_cfg->topicPrefix, "v03.post");
+	strcpy(sr_cfg->post_topicPrefix, "v03.post");
 	sr_cfg->bindings = NULL;
 	sr_cfg->post_baseUrl = NULL;
 
