@@ -684,7 +684,7 @@ static char *subarg(struct sr_config_s *sr_cfg, char *arg)
 		c = e + 1;
 	}
 	*d = '\0';
-	//sr_log_msg(LOG_DEBUG, "argument after substitutions: %s\n", subargbuf);
+	//printf( "argument after substitutions: %s\n", subargbuf);
 	return (subargbuf);
 
 }

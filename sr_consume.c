@@ -1019,10 +1019,11 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 bool sr_message_valid(struct sr_message_s *m)
 {
 
+        /* this is actually ok after all... 
 	if (strlen(m->relPath) == 0) {
 		sr_log_msg(LOG_ERROR, "zero length relPath\n");
 		return false;
-	}
+	} */
 
 	return true;
 }
