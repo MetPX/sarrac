@@ -785,6 +785,9 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 			sr_cfg->nodupe_ttl = seconds_from_duration_str(argument);
 			retval = 2;
 		}
+	} else if (!strcmp(option, "nodupe_fileAgeMax") ) {
+		sr_cfg->nodupe_fileAgeMax = seconds_from_duration_str(argument);
+	        retval = 2;
 	} else if (!strcmp(option, "suppress_duplicates_basis")
 		   || !strcmp(option, "sdb") || !strcmp(option, "cache_basis")
 		   || !strcmp(option, "nodupe_basis")
@@ -1389,6 +1392,8 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->blocksize = 1;
 	sr_cfg->broker = NULL;
 	sr_cfg->nodupe_ttl = 0;
+	sr_cfg->nodupe_fileAgeMax = 0;
+	sr_cfg->nodupe_fileMinMtime = 0;
 	sr_cfg->cachep = NULL;
 	sr_cfg->cache_basis = strdup("path");
 	sr_cfg->chmod_log = 0600;
@@ -1789,6 +1794,9 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		if (!access(p, F_OK))
 			unlink(p);
 	}
+        if (sr_cfg->nodupe_fileAgeMax > 0) {
+        	sr_cfg->nodupe_fileMinMtime = time(NULL) - sr_cfg->nodupe_fileAgeMax ;
+        }
 
 	// Since we check how old the log is, we ust not write to the log during startup in sanity mode.
 	if (strcmp(sr_cfg->action, "sanity")) {
