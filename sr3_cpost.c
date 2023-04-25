@@ -682,7 +682,7 @@ void usage()
 	fprintf(stderr, "\tsuppress_duplicates|sd|cache|caching <on|off|integer> (default: off)\n");
 	fprintf(stderr,
 		"\t\tsuppress duplicate announcements < *cache* seconds apart.  \"on\" means 15 minute caching (on=900).\n");
-	fprintf(stderr, "\tpost_topicPrefix <string> - AMQP topic prefix (default: v02.post )\n");
+	fprintf(stderr, "\tpost_topicPrefix <string> - AMQP topic prefix (default: v03.post )\n");
 	fprintf(stderr,
 		"\tto <destination> - clusters pump network should forward to (default: broker).\n");
 	fprintf(stderr,
