@@ -109,7 +109,7 @@ format:
 
 clean:
 	rm -f *.o *.gcno *.so *.so.* sr3_cpost sr_configtest sr_utiltest sr3_cpump sr_cachetest sr_cache_save.test shim_test.log
-	rm -rf build sr_version.h metpx-sr3c_rhel7.spec
+	rm -rf build sr_version.h metpx-sr3c_rhel7.spec dir?.links
 	-sr3 cleanup cpost/local_post
 	-sr3 cleanup subscribe/local_copy
 	-sr3 remove cpost/local_post
