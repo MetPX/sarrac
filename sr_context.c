@@ -414,7 +414,7 @@ void sr_context_housekeeping(struct sr_context *sr_c)
 
 	sr_log_msg(LOG_DEBUG, "housekeeping processing start\n");
 
-        if (sr_c->cfg->nodupe_fileAgeMax > 0) {
+        if ((sr_c->cfg->nodupe_ttl>0) && (sr_c->cfg->nodupe_fileAgeMax > 0)) {
         	sr_c->cfg->nodupe_fileMinMtime = time(NULL) - sr_c->cfg->nodupe_fileAgeMax ;
         }
 

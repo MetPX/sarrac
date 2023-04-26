@@ -1735,6 +1735,8 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	if (strcmp(sr_cfg->action, "foreground")&&
             strcmp(sr_cfg->action, "show") ) {
 		sr_cfg->log = 1;
+        } else if ( strcmp(sr_cfg->action, "start") && (sr_cfg->sleep == 0.0)  ) {
+		sr_cfg->sleep = 5.0; // if you're "starting" then you want to run a daemon, so sleep must be > 0
         }
 	if (sr_cfg->log) {
 		sr_log_setup(sr_cfg->logfn, sr_cfg->chmod_log,
@@ -1792,14 +1794,13 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 
 	if (sr_cfg->nodupe_ttl > 0) {
 		sr_cfg->cachep = sr_cache_open(p);
+        	if (sr_cfg->nodupe_fileAgeMax > 0) {
+        		sr_cfg->nodupe_fileMinMtime = time(NULL) - sr_cfg->nodupe_fileAgeMax ;
+        	}
 	} else {
 		if (!access(p, F_OK))
 			unlink(p);
 	}
-        if (sr_cfg->nodupe_fileAgeMax > 0) {
-        	sr_cfg->nodupe_fileMinMtime = time(NULL) - sr_cfg->nodupe_fileAgeMax ;
-        }
-
 	// Since we check how old the log is, we ust not write to the log during startup in sanity mode.
 	if (strcmp(sr_cfg->action, "sanity")) {
 		sr_log_msg(ll,
@@ -1812,18 +1813,17 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			   sr_cfg->realpathFilter ? "yes" : "no",
 			   sr_cfg->realpathPost ? "yes" : "no");
 		sr_log_msg(ll,
-			   "\tsleep=%g expire=%g housekeeping=%g sanity_log_dead=%g nodupe_ttl=%g nodupe_fileAgeMax=%g\n",
-			   sr_cfg->sleep, sr_cfg->expire, sr_cfg->housekeeping,
+			   "\tforce_polling=%s sleep=%g expire=%g housekeeping=%g sanity_log_dead=%g nodupe_ttl=%g nodupe_fileAgeMax=%g\n",
+			   sr_cfg->force_polling ? "on" : "off", sr_cfg->sleep, sr_cfg->expire, sr_cfg->housekeeping,
 			   sr_cfg->sanity_log_dead, sr_cfg->nodupe_ttl, sr_cfg->nodupe_fileAgeMax );
 		sr_log_msg(ll, "\tcache_file=%s cache_basis=%s, accept_unmatch=%s messageRateMax=%d\n",
 			   sr_cfg->cachep ? p : "off", sr_cfg->cache_basis?sr_cfg->cache_basis:"path", 
 			   sr_cfg->acceptUnmatched ? "on" : "off",
 			   sr_cfg->messageRateMax);
 		sr_log_msg(ll,
-			   "\tfileEvents=%04x directory=%s queuename=%s logReject=%s force_polling=%s sum=%c\n",
+			   "\tfileEvents=%04x directory=%s queuename=%s logReject=%s sum=%c\n",
 			   sr_cfg->events, sr_cfg->directory, sr_cfg->queuename,
-			   sr_cfg->logReject ? "on" : "off", sr_cfg->force_polling ? "on" : "off",
-			   sr_cfg->sumalgo );
+			   sr_cfg->logReject ? "on" : "off", sr_cfg->sumalgo );
 		sr_log_msg(ll, "\tstatehost=%s v2compatRenameDoublePost=%s\n",
 			   sr_cfg->statehost ? "yes" : "no",
 			   sr_cfg->v2compatRenameDoublePost ? "yes" : "no");

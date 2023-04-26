@@ -652,7 +652,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 
         if ((sb) && (sr_c->cfg) && (sb->st_mtime < sr_c->cfg->nodupe_fileMinMtime )) {
                 if (sr_c->cfg->logReject) {
-		     sr_log_msg(LOG_INFO, "rejecting older than %d: ignoring %s\n", sr_c->cfg->nodupe_fileAgeMax, fn );
+		     sr_log_msg(LOG_INFO, "rejecting older than %g: ignoring %s\n", sr_c->cfg->nodupe_fileAgeMax, fn );
                 }
  		return(0);
         }
