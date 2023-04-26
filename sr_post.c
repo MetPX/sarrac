@@ -650,11 +650,20 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	char linkstr[PATH_MAXNUL];
 	char tmprk[PATH_MAXNUL + 100];
 
-        if ((sb) && (sr_c->cfg) && (sb->st_mtime < sr_c->cfg->nodupe_fileMinMtime )) {
-                if (sr_c->cfg->logReject) {
-		     sr_log_msg(LOG_INFO, "rejecting older than %g: ignoring %s\n", sr_c->cfg->nodupe_fileAgeMax, fn );
-                }
- 		return(0);
+        if ((sb) && (sr_c->cfg) && (sr_c->cfg->nodupe_ttl > 0)) {
+	       time_t age = time(NULL)-sb->st_mtime ;
+	       if ((sr_c->cfg->nodupe_fileAgeMax>0) && (age > sr_c->cfg->nodupe_fileAgeMax )) {
+	                if (sr_c->cfg->logReject) {
+			     sr_log_msg(LOG_INFO, "rejecting older than %g: ignoring %s\n", sr_c->cfg->nodupe_fileAgeMax, fn );
+       		         }
+ 			return(0);
+	       }
+	       if ((sr_c->cfg->nodupe_fileAgeMin>0) && (age < sr_c->cfg->nodupe_fileAgeMin )) {
+	                if (sr_c->cfg->logReject) {
+			     sr_log_msg(LOG_INFO, "rejecting newer than %g: ignoring %s\n", sr_c->cfg->nodupe_fileAgeMin, fn );
+       		         }
+ 			return(0);
+	       }
         }
 	if (*pathspec != '/') {	// need absolute path.
 		getcwd(linkstr, PATH_MAX);

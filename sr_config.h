@@ -158,7 +158,7 @@ struct sr_config_s {
 			      /**< broker: the rabbitmq AMQP broker to connect to.*/
 	float nodupe_ttl;	     /**< cache: the expiry age, in seconds of entries in the recent files cache.*/
 	float nodupe_fileAgeMax; /**< cache: Do not put files older than this into the cache in the first place.*/
-	float nodupe_fileMinMtime; /**< cache: calculated from fileAgeMax above. */
+	float nodupe_fileAgeMin; /**< cache: Do not put files newer than this into the cache in the first place.*/
 	struct sr_cache_s *cachep;
 			      /**< the recent files cache.*/
 	char *cache_basis;	   /**< 'file' | 'path' | 'none' -> modifies which cache entries are comparable.*/

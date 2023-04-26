@@ -788,6 +788,9 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 	} else if (!strcmp(option, "nodupe_fileAgeMax") ) {
 		sr_cfg->nodupe_fileAgeMax = seconds_from_duration_str(argument);
 	        retval = 2;
+	} else if (!strcmp(option, "nodupe_fileAgeMin") ) {
+		sr_cfg->nodupe_fileAgeMin = seconds_from_duration_str(argument);
+	        retval = 2;
 	} else if (!strcmp(option, "suppress_duplicates_basis")
 		   || !strcmp(option, "sdb") || !strcmp(option, "cache_basis")
 		   || !strcmp(option, "nodupe_basis")
@@ -1393,7 +1396,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->broker = NULL;
 	sr_cfg->nodupe_ttl = 0;
 	sr_cfg->nodupe_fileAgeMax = 30 * 24 * 60 * 60;
-	sr_cfg->nodupe_fileMinMtime = 0;
+	sr_cfg->nodupe_fileAgeMin = 0;
 	sr_cfg->cachep = NULL;
 	sr_cfg->cache_basis = strdup("path");
 	sr_cfg->chmod_log = 0600;
@@ -1793,15 +1796,12 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	if (sr_cfg->sanity_log_dead < 450)
 		sr_cfg->sanity_log_dead = 450.0;
 
-	if ((sr_cfg->nodupe_ttl == 0.0) and (sr_cfg->force_polling)) {
+	if ((sr_cfg->nodupe_ttl == 0.0) && (sr_cfg->force_polling)) {
 		sr_log_msg(LOG_INFO, "when force_polling is on, must be duplicate suppression turn one (nodupe_ttl>0).\n" );
 		sr_cfg->nodupe_ttl = 5.0;
 	}
 	if (sr_cfg->nodupe_ttl > 0) {
 		sr_cfg->cachep = sr_cache_open(p);
-        	if (sr_cfg->nodupe_fileAgeMax > 0) {
-        		sr_cfg->nodupe_fileMinMtime = time(NULL) - sr_cfg->nodupe_fileAgeMax ;
-        	}
 	} else {
 		if (!access(p, F_OK))
 			unlink(p);
@@ -1818,9 +1818,9 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			   sr_cfg->realpathFilter ? "yes" : "no",
 			   sr_cfg->realpathPost ? "yes" : "no");
 		sr_log_msg(ll,
-			   "\tforce_polling=%s sleep=%g expire=%g housekeeping=%g sanity_log_dead=%g nodupe_ttl=%g nodupe_fileAgeMax=%g\n",
+			   "\tforce_polling=%s sleep=%g expire=%g housekeeping=%g sanity_log_dead=%g nodupe_ttl=%g nodupe_fileAgeMin=%g nodupe_fileAgeMax=%g\n",
 			   sr_cfg->force_polling ? "on" : "off", sr_cfg->sleep, sr_cfg->expire, sr_cfg->housekeeping,
-			   sr_cfg->sanity_log_dead, sr_cfg->nodupe_ttl, sr_cfg->nodupe_fileAgeMax );
+			   sr_cfg->sanity_log_dead, sr_cfg->nodupe_ttl, sr_cfg->nodupe_fileAgeMin, sr_cfg->nodupe_fileAgeMax );
 		sr_log_msg(ll, "\tcache_file=%s cache_basis=%s, accept_unmatch=%s messageRateMax=%d\n",
 			   sr_cfg->cachep ? p : "off", sr_cfg->cache_basis?sr_cfg->cache_basis:"path", 
 			   sr_cfg->acceptUnmatched ? "on" : "off",
