@@ -1738,7 +1738,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	if (strcmp(sr_cfg->action, "foreground")&&
             strcmp(sr_cfg->action, "show") ) {
 		sr_cfg->log = 1;
-        } else if ( strcmp(sr_cfg->action, "start") && (sr_cfg->sleep == 0.0)  ) {
+        } else if ( !strcmp(sr_cfg->action, "start") && (sr_cfg->sleep == 0.0)  ) {
 		sr_log_msg(LOG_INFO, "when running as a daemon, must set sleep>0.\n" );
 		sr_cfg->sleep = 5.0; // if you're "starting" then you want to run a daemon, so sleep must be > 0
         }
@@ -1796,7 +1796,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	if (sr_cfg->sanity_log_dead < 450)
 		sr_cfg->sanity_log_dead = 450.0;
 
-	if ((sr_cfg->nodupe_ttl == 0.0) && (sr_cfg->force_polling)) {
+	if (!strcmp(sr_cfg->action, "start") && (sr_cfg->nodupe_ttl == 0.0) && (sr_cfg->force_polling)) {
 		sr_log_msg(LOG_INFO, "when force_polling is on, must be duplicate suppression turn one (nodupe_ttl>0).\n" );
 		sr_cfg->nodupe_ttl = 5.0;
 	}
