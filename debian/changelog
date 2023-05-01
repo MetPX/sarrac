@@ -1,8 +1,14 @@
-metpx-sr3c (3.23.04p2) UNRELEASED; urgency=medium
+metpx-sr3c (3.23.05) unstable; urgency=medium
 
   * implemented nodupe_fileAgeMax option
+  * implemented nodupe_fileAgeMin option
+  * changed default topicPrefix to v03 to match python
+  * force_polling now forced duplicate_suppression on
+  * using "start" is obviously a watch so force sleep>0 on.
+  * improvement #107 added "show" support.
+  * posting with an empty relPath is actually valid.
 
- -- Peter Silva <peter@blacklab>  Tue, 25 Apr 2023 15:26:21 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 25 Apr 2023 15:26:21 -0400
 
 metpx-sr3c (3.23.04p1) unstable; urgency=medium
 
