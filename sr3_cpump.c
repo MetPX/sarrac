@@ -53,7 +53,7 @@ void usage()
 		"\t\tsuppress duplicate announcements < *cache* seconds apart.  \"on\" means 15 minute caching (on=900).\n");
 	fprintf(stderr,
 		"\tsuppress_duplicates_basis|sdb|cache_basis|cb <data|name|path> (default: path)\n");
-	fprintf(stderr, "\ttopicPrefix <string> - AMQP topic prefix (default: v03.post )\n");
+	fprintf(stderr, "\ttopicPrefix <string> - AMQP topic prefix (default: v03)\n");
 	fprintf(stderr,
 		"\tto <destination> - clusters pump network should forward to (default: broker).\n");
 	fprintf(stderr, "\turl <url>[,<url>]... - retrieval base url in the posted files.\n");
