@@ -73,7 +73,7 @@ echo "#test 1 rename 145 rename in a sub-dir"
 mv dirone/dirtwo/filetwo dirone/dirtwo/filefour
 
 # sleep to allow copies to happen before renaming directory...
-sleep 5 
+sleep 15 
 echo "#test 1 rename 150 renaming subdirs should cause file rename events."
 mv dirone dirthree
 
