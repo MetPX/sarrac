@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - v03
+      - main
 
   workflow_dispatch:
     inputs:
