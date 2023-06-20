@@ -272,9 +272,9 @@ void v03encode(char *message_body, struct sr_context *sr_c, struct sr_message_s 
 
 	v03amqp_header_add(&c, "relPath", m->relPath);
 
-	ci = v03integrity(m);
+	ci = v03identity(m);
 	if (ci) {
-		status = sprintf(c, ",%s\"integrity\" : { %s }", sep, v03integrity(m));
+		status = sprintf(c, ",%s\"identity\" : { %s }", sep, v03identity(m));
 		c += status;
 	}
 

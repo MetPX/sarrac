@@ -72,7 +72,7 @@ void sr_daemonize(int close_stdout);
 // executed to go from a management instance to a daemon working instance.
 
 /* sr_hex2base64 returns the base64 encoded string converted from a hex-encoded input 
-   This is used to produce v03 integrity fields.
+   This is used to produce v03 identity fields.
 
    no dynamic allocation is done, space is allocated in a static buffer, so use immediately, not thread safe.
 

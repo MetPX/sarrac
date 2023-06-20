@@ -216,7 +216,7 @@ static void assign_field(const char *key, char *value)
 	}
 }
 
-const char *sum2integrity(char sum)
+const char *sum2identity(char sum)
 {
 	switch (sum) {
 	case '0':
@@ -247,7 +247,7 @@ const char *sum2integrity(char sum)
 
 }
 
-char *v03integrity(struct sr_message_s *m)
+char *v03identity(struct sr_message_s *m)
 {
 	static char istr[1024];
 	const char *value;
@@ -265,7 +265,7 @@ char *v03integrity(struct sr_message_s *m)
 		value = sr_hex2base64(&(m->sum[2]));
 		break;
 	case 'z':
-		value = sum2integrity(m->sum[2]);
+		value = sum2identity(m->sum[2]);
 		break;
 	case '0':
 	case 'a':
@@ -273,7 +273,7 @@ char *v03integrity(struct sr_message_s *m)
 		value = &(m->sum[2]);
 		break;
 	}
-	sprintf(istr, " \"method\" : \"%s\", \"value\" : \"%s\" ", sum2integrity(m->sum[0]), value);
+	sprintf(istr, " \"method\" : \"%s\", \"value\" : \"%s\" ", sum2identity(m->sum[0]), value);
 	return (istr);
 
 }
@@ -413,7 +413,7 @@ static void v03assign_field(const char *key, json_object * jso_v)
 		memmove(&msg.datestamp[8], &msg.datestamp[9], tlen);	//eliminate "T".
 	} else if (!strcmp(key, "fileOp")) {
 		if (json_object_get_type(jso_v) != json_type_object) {
-			sr_log_msg(LOG_ERROR, "malformed json: integrity should be an object: %d\n",
+			sr_log_msg(LOG_ERROR, "malformed json: identity should be an object: %d\n",
 				   json_object_get_type(jso_v));
 			return;
 		}
@@ -496,11 +496,11 @@ static void v03assign_field(const char *key, json_object * jso_v)
 			h->next = msg.user_headers;
 			msg.user_headers = h;
 		}
-	} else if (!strcmp(key, "integrity")) {
+	} else if (!strcmp(key,"identity") || (!strcmp(key, "integrity"))) {
 
 		//FIXME
 		if (json_object_get_type(jso_v) != json_type_object) {
-			sr_log_msg(LOG_ERROR, "malformed json: integrity should be an object: %d\n",
+			sr_log_msg(LOG_ERROR, "malformed json: identity should be an object: %d\n",
 				   json_object_get_type(jso_v));
 			return;
 		}
@@ -586,9 +586,9 @@ char *sr_message_2log(struct sr_message_s *m)
 	sprintf(b, "{ \"pubTime\":\"%s\", \"baseUrl\":\"%s\", \"relPath\":\"%s\", \"topic\":\"%s\"",
 		m->datestamp, m->url, m->relPath, m->routing_key);
 
-	ci = v03integrity(m);
+	ci = v03identity(m);
 	if (ci && !strchr("mrRL", m->sum[0])) {
-		sprintf(strchr(b, '\0'), ", \"integrity\":{ %s } ", ci);
+		sprintf(strchr(b, '\0'), ", \"identity\":{ %s } ", ci);
 	}
 
 	if ((m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'r')) {

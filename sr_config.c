@@ -1201,7 +1201,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 			sr_cfg->strip = -1;	// flag to say look at regex rather than integer.
 		}
 
-	} else if (!strcmp(option, "sum") || !strcmp(option, "integrity")) {
+	} else if (!strcmp(option, "sum") || !strcmp(option, "identity") || !strcmp(option, "integrity")) {
 		sr_cfg->sumalgo = argument[0];
 		if (sr_cfg->sumalgo == 'z')
 			sr_cfg->sumalgoz = argument[2];
