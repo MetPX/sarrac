@@ -1,4 +1,4 @@
-metpx-sr3c (3.23.06) UNRELEASED; urgency=medium
+metpx-sr3c (3.23.06) unstable; urgency=medium
 
   * default topicPrefix is v03, not v03.post 
   * #113 v03 message format change "integrity" to "identity"
