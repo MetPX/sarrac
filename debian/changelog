@@ -1,3 +1,9 @@
+metpx-sr3c (3.23.07) UNRELEASED; urgency=medium
+
+  * just moving version marker away from release.
+
+ -- Peter Silva <peter@blacklab>  Tue, 27 Jun 2023 14:25:29 -0400
+
 metpx-sr3c (3.23.06) unstable; urgency=medium
 
   * default topicPrefix is v03, not v03.post 
