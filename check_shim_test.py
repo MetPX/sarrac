@@ -105,7 +105,7 @@ with open(sys.argv[1], 'r') as log:
                 else:
                     sum_algo = list(message['fileOp'].keys())[0] 
             else:
-                sum_algo = message['integrity']['method']
+                sum_algo = message['identity']['method']
 
             if sum_algo in test_actual_posts:
                 test_actual_posts[sum_algo] += 1
