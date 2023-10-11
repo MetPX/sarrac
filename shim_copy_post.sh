@@ -87,7 +87,7 @@ mv test_file dirthree
 echo "#test 1,1 sha512,sha512 create and update test_file (again)"
 echo 2 >test_file; touch test_file
 echo "#test 1 rename move test_file into dirthree subdir (new name)"
-mv test_file direthree/new_test_file
+mv test_file dirthree/new_test_file
 
 
 echo "#test 0 comment 160 shim copy posting end"
