@@ -77,15 +77,20 @@ sleep 15
 echo "#test 1 rename 150 renaming subdirs should cause file rename events."
 mv dirone dirthree
 
-echo "#test 1,1 link,rename 135 symlink in a sub-dir"
+echo "#test 1 link 135 symlink in a sub-dir"
 ln -sf `pwd`/dirthree/dirtwo/filefour dirthree/dirtwo/link2four
 
-echo "#test 1,1 sha512,sha512 create and update test_file"
-echo  1 >test_file; touch test_file
+echo "#test 1 sha512 create test_file"
+echo  1 >test_file
+echo "#test 1 sha512 update test_file"
+touch test_file
+
 echo "#test 1 rename move test_file into dirthree subdir"
 mv test_file dirthree
-echo "#test 1,1 sha512,sha512 create and update test_file (again)"
-echo 2 >test_file; touch test_file
+echo "#test 1 sha512 create test_file (again)"
+echo 2 >test_file
+echo "#no post from touch, refused as repeat"
+touch test_file
 echo "#test 1 rename move test_file into dirthree subdir (new name)"
 mv test_file dirthree/new_test_file
 

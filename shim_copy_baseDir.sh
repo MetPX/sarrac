@@ -74,6 +74,7 @@ realpathPost on
 realpathAdjust -1
 expire 1d
 nodupe_ttl 0
+retry off
 header toto=pig
 events modify,link,delete,mkdir,rmdir
 
@@ -86,6 +87,7 @@ reject .*
 EOT
 
 sr3 declare cpost/local_post
+sr3 cleanup subscribe/local_copy
 sr3 declare subscribe/local_copy
 sr3 start subscribe/local_copy.conf
 
@@ -111,6 +113,7 @@ sleep ${sleepytime}
 
 sr3 remove cpost/local_post.conf
 sr3 stop subscribe/local_copy.conf
+sr3 cleanup subscribe/local_copy.conf
 sr3 remove subscribe/local_copy.conf
 
 echo "#test 0 comment comparing trees"
