@@ -94,5 +94,8 @@ touch test_file
 echo "#test 1 rename move test_file into dirthree subdir (new name)"
 mv test_file dirthree/new_test_file
 
+echo "#test 1 unlink 165 symlink in a non sub-dir"
+cd ../shim_dirC/thedir
+rm fileone
 
 echo "#test 0 comment 160 shim copy posting end"

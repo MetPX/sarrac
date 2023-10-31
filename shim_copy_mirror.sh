@@ -8,13 +8,17 @@ fi
 echo "ignore rm errors.. cleaning before start"
 rm -rf shim_dirA/ shim_dirB/
 
-for d in shim_dirA shim_dirB; do
+for d in shim_dirA shim_dirB shim_dirC; do
         if [ -d $d ]; then
             echo "ignore rm -rf $d"
             rm -rf $d
         fi
         mkdir $d
 done 
+
+# symlink between directories out of tree.
+ln -s ../shim_dirA/dirthree  shim_dirC/thedir
+
 mkdir -p ~/.config/sr3/subscribe
 mkdir -p ~/.config/sr3/cpost
 
