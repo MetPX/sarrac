@@ -1,6 +1,6 @@
 metpx-sr3c (3.23.11) UNRELEASED; urgency=medium
 
-  * just moving version marker away from release.
+  * fixing #114, ensure realpath applies to files being removed.
 
  -- Peter Silva <peter@blacklab>  Tue, 27 Jun 2023 14:25:29 -0400
 
