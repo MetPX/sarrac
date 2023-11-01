@@ -61,7 +61,7 @@ echo "#test 1 sha512 120 stdout redirection in a subdir"
 echo "fileone" >>link_to_dirone/fileone
 
 echo "#test 1 sha512 120 2nd stdout redirection in a subdir"
-echo "filefour" >>link_to_dirone/filefour
+echo "lovely" >>link_to_dirone/filefive
 
 echo "#test 1 directory 130 mkdir 2"
 mkdir dirone/dirtwo
@@ -96,10 +96,5 @@ echo "#no post from touch, refused as repeat"
 touch test_file
 echo "#test 1 rename move test_file into dirthree subdir (new name)"
 mv test_file dirthree/new_test_file
-
-
-echo "#test 1 unlink 165 symlink in a non sub-dir"
-cd ../shim_dirC/thedir
-rm filefour
 
 echo "#test 0 comment 160 shim copy posting end"

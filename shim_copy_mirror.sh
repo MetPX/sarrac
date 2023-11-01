@@ -47,6 +47,10 @@ logMessageDump on
 callback log
 batch 1
 mirror True
+realpathFilter on
+realpathPost on
+realpathAdjust -1
+
 directory `pwd`/shim_dirB
 accept .*`realpath .`/.*
 accept .*`realpath ${HOME}/test`/.*
@@ -100,7 +104,7 @@ else
    export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
 fi
 export SR_SHIMDEBUG=99
-./shim_copy_post.sh &
+./shim_copy_post2.sh &
 unset SR_POST_CONFIG
 unset SR_SHIMDEBUG
 unset LD_PRELOAD
