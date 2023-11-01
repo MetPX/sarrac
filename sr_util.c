@@ -621,8 +621,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		// keep file open through repeated calls.
 		//fprintf( stderr, "opening %s to checksum\n", fn );
 
-		if (!(fd > 0))
-			fd = open(fn, O_RDONLY);
+		fd = open(fn, O_RDONLY);
 		if (fd < 0) {
 			fprintf(stderr, "unable to read file for checksumming\n");
 			strcpy(sumstr + 3, "deadbeef0");
@@ -641,17 +640,10 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			} else {
 				fprintf(stderr, "error reading %s for MD5\n", fn);
 				close(fd);
-				fd = 0;
 				return (NULL);
 			}
 		}
-
-		// close fd, when end of file reached.
-		if ((block_count == 1)
-		    || (end >= ((block_count - 1) * block_size + block_rem))) {
-			close(fd);
-			fd = 0;
-		}
+		close(fd);
 
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumhash);
@@ -734,9 +726,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		md = EVP_sha512();
 		EVP_DigestInit_ex(ctx, md, NULL);
 
-		// keep file open through repeated calls.
-		if (!(fd > 0))
-			fd = open(fn, O_RDONLY);
+		fd = open(fn, O_RDONLY);
 		if (fd < 0) {
 			fprintf(stderr, "unable to read file for SHA checksumming\n");
 			return (NULL);
@@ -758,17 +748,12 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			} else {
 				fprintf(stderr, "error reading %s for SHA\n", fn);
 				close(fd);
-				fd = 0;
 				return (NULL);
 			}
 		}
 
-		// close fd, when end of file reached.
-		if ((block_count == 1)
-		    || (end >= ((block_count - 1) * block_size + block_rem))) {
-			close(fd);
-			fd = 0;
-		}
+		close(fd);
+
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumhash);
 		break;
