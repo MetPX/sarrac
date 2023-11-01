@@ -674,7 +674,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	}
 
 	/* realpath stuff when it exists  sb */
-	if (sb && sr_c->cfg->realpathPost) {
+	if (sr_c->cfg->realpathPost) {
 		realpath_adjust(linkstr, fn, sr_c->cfg->realpathAdjust);
 	} else
 		strcpy(fn, linkstr);
