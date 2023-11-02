@@ -3,12 +3,12 @@ name: Shim library test
 on:
   pull_request:
     types: [opened, edited, reopened]
+
   push:
     branches:
       - development
       - stable
-
-   paths-ignore:
+    paths-ignore:
       - '.github/**'
       - 'debian/changelog'
       - 'TODO.txt'
