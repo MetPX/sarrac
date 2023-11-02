@@ -2,14 +2,14 @@ metpx-sr3c (3.23.11) UNRELEASED; urgency=medium
 
   * just moving version marker away from release.
 
- -- Peter Silva <peter@blacklab>  Tue, 27 Jun 2023 14:25:29 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 27 Jun 2023 14:25:29 -0400
 
 metpx-sr3c (3.23.06) unstable; urgency=medium
 
   * default topicPrefix is v03, not v03.post 
   * #113 v03 message format change "integrity" to "identity"
 
- -- Peter Silva <peter@blacklab>  Tue, 09 May 2023 16:43:58 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Tue, 09 May 2023 16:43:58 -0400
 
 metpx-sr3c (3.23.05) unstable; urgency=medium
 
@@ -244,7 +244,7 @@ sarrac (2.19.11b1) unstable; urgency=medium
   * fix: #67 post_exchange_suffix was not working.
   * new: printing hostname in options. 
 
- -- Peter Silva <peter@blacklab>  Thu, 31 Oct 2019 22:04:30 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Thu, 31 Oct 2019 22:04:30 -0400
 
 sarrac (2.19.10b1) unstable; urgency=medium
 
@@ -272,7 +272,7 @@ sarrac (2.19.07b2) unstable; urgency=medium
   * noticed a missing comma in json output (not v03 related.)
   * added option to omit libjson (documented in Makefile) to avoid dependency. 
 
- -- Peter Silva <peter@blacklab>  Thu, 25 Jul 2019 20:48:36 -0400
+ -- Peter Silva <peter@bsqt.homeip.net>  Thu, 25 Jul 2019 20:48:36 -0400
 
 sarrac (2.19.07b1) unstable; urgency=medium
 
