@@ -1,6 +1,8 @@
 metpx-sr3c (3.23.11) UNRELEASED; urgency=medium
 
   * fixing #114, ensure realpath applies to files being removed.
+  * moved metrics files to separate directory for easier monitoring.
+  * change instance file names to be two digit, instead of 3 to match python.
 
  -- Peter Silva <peter@bsqt.homeip.net>  Tue, 27 Jun 2023 14:25:29 -0400
 
