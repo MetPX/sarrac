@@ -1749,12 +1749,12 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	}
 	// pidfn statehost
 	if (val) {
-		sprintf(p, "%s/.cache/%s/%s/%s/%s/i%03d.pid", home, sr_cfg->appname,
+		sprintf(p, "%s/.cache/%s/%s/%s/%s/i%02d.pid", home, sr_cfg->appname,
 			val, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 	// pidfn default
 	else {
-		sprintf(p, "%s/.cache/%s/%s/%s/i%03d.pid", home, sr_cfg->appname,
+		sprintf(p, "%s/.cache/%s/%s/%s/i%02d.pid", home, sr_cfg->appname,
 			sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 
@@ -1768,25 +1768,25 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	}
 	// MetricsFilename
 	if (val) {
-		sprintf(p, "%s/.cache/%s/%s/metrics/%s_%s_%03d.json", home, sr_cfg->appname,
+		sprintf(p, "%s/.cache/%s/%s/metrics/%s_%s_%02d.json", home, sr_cfg->appname,
 			val, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 	else {
-		sprintf(p, "%s/.cache/%s/metrics/%s_%s_%03d.json", home, sr_cfg->appname,
+		sprintf(p, "%s/.cache/%s/metrics/%s_%s_%02d.json", home, sr_cfg->appname,
 			sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 	sr_cfg->metricsFilename = strdup(p);
 	
 	// cachefn statehost
 	if (val) {
-		sprintf(p, "%s/.cache/%s/%s/%s/%s/recent_files_%03d.cache",
+		sprintf(p, "%s/.cache/%s/%s/%s/%s/recent_files_%02d.cache",
 			home, sr_cfg->appname, val, sr_cfg->progname,
 			sr_cfg->configname, sr_cfg->instance);
 	}
 	// cachefn default
 	else {
 		// FIXME: open and read cache file if present. seek to end.
-		sprintf(p, "%s/.cache/%s/%s/%s/recent_files_%03d.cache",
+		sprintf(p, "%s/.cache/%s/%s/%s/recent_files_%02d.cache",
 			home, sr_cfg->appname, sr_cfg->progname, sr_cfg->configname,
 			sr_cfg->instance);
 	}
