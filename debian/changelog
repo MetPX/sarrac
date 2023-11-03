@@ -1,4 +1,4 @@
-metpx-sr3c (3.23.11) UNRELEASED; urgency=medium
+metpx-sr3c (3.23.11) unstable; urgency=medium
 
   * fixing #114, ensure realpath applies to files being removed.
   * moved metrics files to separate directory for easier monitoring.
