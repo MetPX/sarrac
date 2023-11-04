@@ -1,3 +1,9 @@
+metpx-sr3c (3.23.11p1) UNRELEASED; urgency=medium
+
+  * moving away from release. 
+
+ -- peter <peter@bsqt.homeip.net>  Fri, 03 Nov 2023 22:45:51 -0400
+
 metpx-sr3c (3.23.11) unstable; urgency=medium
 
   * fixing #114, ensure realpath applies to files being removed.
