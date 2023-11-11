@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/xattr.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -26,7 +27,10 @@
 static time_t logbase;
 static int logfd = STDERR_FILENO;
 static char logfn[PATH_MAX];
+static char metricsfn[PATH_MAX];
+bool logMetrics = false;
 static char logfn_ts[PATH_MAX];
+static char metricsfn_ts[PATH_MAX];
 static int loglevel = LOG_INFO;
 static int logmode = 0600;
 static int logrotate = 5;
@@ -36,8 +40,9 @@ static struct timespec ts;
 static struct tm tc;
 
 static struct logfn_tab_s ltab;
+static struct logfn_tab_s mtab;
 
-static void log_set_fnts();
+char *log_set_fnts(char *basefilename);
 
 #ifndef SR_DEBUG_LOGS
 void sr_log_msg(int prio, const char *format, ...)
@@ -74,14 +79,17 @@ void sr_log_msg(int prio, const char *format, ...)
 	clock_gettime(CLOCK_REALTIME, &ts);
 	localtime_r(&ts.tv_sec, &tc);
 
-	/* log rotation */
+	/* log (message & metrics) rotation */
 	if ((logfd != STDERR_FILENO)
 	    && ((ts.tv_sec - logbase) > logrotate_interval)) {
 		logbase = ts.tv_sec;
 
-		log_set_fnts();
+		strcpy(logfn_ts,log_set_fnts(logfn));
 		close(logfd);
 		rename(logfn, logfn_ts);
+
+		strcpy(metricsfn_ts,log_set_fnts(metricsfn));
+		rename(metricsfn, metricsfn_ts);
 
 		logfd = open(logfn, O_WRONLY | O_CREAT | O_APPEND, logmode);
 
@@ -94,6 +102,14 @@ void sr_log_msg(int prio, const char *format, ...)
 			}
 			ltab.fns[ltab.i] = strdup(logfn_ts);
 			ltab.i = (ltab.i + 1) % ltab.size;
+		
+			if (mtab.fns[mtab.i]) {
+				remove(mtab.fns[mtab.i]);
+				free(mtab.fns[mtab.i]);
+				mtab.fns[mtab.i] = NULL;
+			}
+			mtab.fns[mtab.i] = strdup(metricsfn_ts);
+			mtab.i = (mtab.i + 1) % mtab.size;
 		}
 	}
 
@@ -108,14 +124,17 @@ void sr_log_msg(int prio, const char *format, ...)
 }
 #endif
 
-void sr_log_setup(const char *fn, mode_t mode, int level, int lr, int lri)
+void sr_log_setup(const char *fn, const char *mfn, bool logMetricsFlag, mode_t mode, int level, int lr, int lri)
 {
 #ifndef SR_DEBUG_LOGS
 	strcpy(logfn, fn);
+	strcpy(metricsfn, mfn);
 	logmode = mode;
 	logrotate = lr;
 	logrotate_interval = lri;
 	loglevel = level;
+
+	logMetrics = logMetricsFlag;
 
 	clock_gettime(CLOCK_REALTIME, &ts);
 	localtime_r(&ts.tv_sec, &tc);
@@ -129,6 +148,13 @@ void sr_log_setup(const char *fn, mode_t mode, int level, int lr, int lri)
 			ltab.fns[ltab.i] = NULL;
 		ltab.i = 0;
 		ltab.size = logrotate;
+
+                // metrics files.
+		mtab.fns = (char **)malloc(sizeof(char *) * logrotate);
+		for (mtab.i = 0; mtab.i < logrotate; ++mtab.i)
+			mtab.fns[mtab.i] = NULL;
+		mtab.i = 0;
+		mtab.size = logrotate;
 	}
 #endif
 }
@@ -148,7 +174,7 @@ void sr_log_cleanup()
 		logfd = STDERR_FILENO;
 
 		if (logrotate > 0) {
-			for (ltab.i = 0; ltab.i < logrotate; ++ltab.i)
+			for (ltab.i = 0; ltab.i <= logrotate; ++ltab.i)
 				if (ltab.fns[ltab.i])
 					free(ltab.fns[ltab.i]);
 			free(ltab.fns);
@@ -159,15 +185,16 @@ void sr_log_cleanup()
 #endif
 }
 
-static void log_set_fnts()
+char *log_set_fnts(char *basefilename)
 	/* set logging file name time stamp.
 	 */
 {
+	static char logfn_ts[PATH_MAX];
 	char *p;
 	char b[PATH_MAX];
 
-	strcpy(b, logfn);
-	p = b + strlen(logfn);
+	strcpy(b, basefilename);
+	p = b + strlen(basefilename);
 
 	*p++ = '.';
 
@@ -194,6 +221,7 @@ static void log_set_fnts()
 		sprintf(logfn_ts, b, tc.tm_year + 1900, tc.tm_mon + 1,
 			tc.tm_mday, tc.tm_hour, tc.tm_min, tc.tm_sec);
 	}
+	return(logfn_ts);
 }
 
 /* sr_is_utf8     routine to confirm that a field is utf8 encoded, taken verbatim from:
