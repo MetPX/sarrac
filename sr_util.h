@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <stdbool.h>
 
 #include <time.h>
 #include <openssl/sha.h>
@@ -34,7 +35,7 @@ void sr_log_msg(const int prio, const char *format, ...);
 
 #endif
 
-void sr_log_setup(const char *fn, mode_t mode, int level, int lr, int lri);
+void sr_log_setup(const char *fn, const char *metricsfn, bool logMetricsFlag, mode_t mode, int level, int lr, int lri);
 // set up logging to the named file, suppressing messages of lower severity 
 // logrotation is a floating point number of seconds, indicating number of days to retain.
 
