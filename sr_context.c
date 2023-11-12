@@ -286,8 +286,9 @@ void sr_context_metrics_cumulative_write(struct sr_context *sr_c)
                 datestamp[8] = c;
 
                 f = fopen( cumulativeFilename, "a+" );
-                fprintf( f, "\"%s\": { \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f } }, \n" ,
-                        datestamp, sr_c->metrics.rxGoodCount, sr_c->metrics.rxBadCount, sr_c->metrics.rejectCount, sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping
+                fprintf( f, "\"%s\": { \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f, \"brokerQueuedMessageCount\": %d } }, \n" ,
+                        datestamp, sr_c->metrics.rxGoodCount, sr_c->metrics.rxBadCount, sr_c->metrics.rejectCount, 
+			sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping, sr_c->metrics.brokerQueuedMessageCount 
                 );
                 fclose(f);
 
@@ -299,6 +300,7 @@ void sr_context_metrics_reset(struct sr_context *sr_c)
 	struct timespec tnow;
 
         sr_context_metrics_cumulative_write(sr_c);
+        sr_c->metrics.brokerQueuedMessageCount = 0;
         sr_c->metrics.rxGoodCount = 0;
         sr_c->metrics.rxBadCount = 0;
         sr_c->metrics.rejectCount = 0;
@@ -457,9 +459,9 @@ void sr_context_metrics_write(struct sr_context *sr_c)
 	FILE *f;
         
 	f = fopen( sr_c->cfg->metricsFilename, "w" );
-        fprintf( f, "{ \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f } }\n" ,
-			sr_c->metrics.rxGoodCount, sr_c->metrics.rxBadCount, sr_c->metrics.rejectCount, sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping 
-		);
+        fprintf( f, "{ \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f , \"brokerQueuedMessageCount\": %d } }\n" ,
+		sr_c->metrics.rxGoodCount, sr_c->metrics.rxBadCount, sr_c->metrics.rejectCount, 
+		sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping,  sr_c->metrics.brokerQueuedMessageCount ); 
 	fclose(f);
 }
 

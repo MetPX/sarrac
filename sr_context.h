@@ -44,6 +44,7 @@
 #include "sr_config.h"
 
 struct sr_metrics_s {
+    int brokerQueuedMessageCount;
     int rxGoodCount;
     int rxBadCount;
     int rejectCount;

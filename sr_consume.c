@@ -76,21 +76,22 @@ int sr_consume_cleanup(struct sr_context *sr_c)
 	return (1);
 }
 
-int sr_consume_setup(struct sr_context *sr_c)
+signed int sr_consume_queue_declare(struct sr_context *sr_c, amqp_boolean_t passive)
  /*
-    declare a queue and bind it to the configured exchange.
+    declare a queue it to the configured exchange.
+
+    passive means don't actually declare the queue, just pretend, used to get the message count
 
   */
 {
 	amqp_rpc_reply_t reply;
-	amqp_boolean_t passive = 0;
 	amqp_boolean_t exclusive = 0;
 	amqp_boolean_t auto_delete = 0;
 	amqp_queue_declare_ok_t *r;
-	struct sr_binding_s *t;
 	static amqp_basic_properties_t props;
 	static amqp_table_t table;
 	static amqp_table_entry_t table_entries[2];
+	signed int message_count;
 
 	int tecnt = 0;
 
@@ -121,6 +122,7 @@ int sr_consume_setup(struct sr_context *sr_c)
 	msg.user_headers = NULL;
 
 	//amqp_queue_declare_ok_t *r = 
+	message_count=-2;
 	if (sr_c->cfg->queueDeclare) {
 		r = amqp_queue_declare(sr_c->cfg->broker->conn,
 				   2,
@@ -131,13 +133,29 @@ int sr_consume_setup(struct sr_context *sr_c)
 		if (r) {
 	               sr_log_msg(LOG_INFO, "queue declared: %p messages in queue: %d\n", 
 		                sr_c->cfg->queuename, r->message_count );
+		       message_count = r->message_count;
+		       sr_c->metrics.brokerQueuedMessageCount = message_count;
                 }
 		reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);
 		if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
 			sr_amqp_reply_print(reply, "queue declare failed");
-			return (0);
+			message_count = -1;
 		}
 	}
+	return(message_count);
+}
+
+int sr_consume_setup(struct sr_context *sr_c)
+{
+	struct sr_binding_s *t;
+	amqp_rpc_reply_t reply;
+	int messageCount;
+
+        messageCount = sr_consume_queue_declare(sr_c, 0);
+
+	if (messageCount< 0 ) {
+		return(0);
+        }
 
 	/*
 	   FIXME: topic bindings are not working properly...
@@ -698,6 +716,8 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 	amqp_rpc_reply_t reply;
 	amqp_frame_t frame;
 	int result;
+	static time_t next_qdeclare_time=0;
+	static time_t now=0;
 	static char buf[SR_SARRAC_MAXIMUM_MESSAGE_LEN];
 	amqp_basic_deliver_t *d;
 	amqp_basic_properties_t *p;
@@ -709,6 +729,31 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 	char tag[AMQP_MAX_SS];
 	char value[AMQP_MAX_SS];
 	struct sr_header_s *tmph;
+	static time_t this_second = 0;
+        static int consumed_this_second = 0;
+
+
+
+	if (now == 0) {
+            time(&now);
+        }
+
+	// rate limiting.
+	sr_log_msg( LOG_INFO, "rateMax: %d, consumed_this_second: %d\n", 
+			sr_c->cfg->messageRateMax, consumed_this_second );
+        if (sr_c->cfg->messageRateMax > 0) {
+                if (consumed_this_second >= sr_c->cfg->messageRateMax) {
+                        sr_log_msg(LOG_INFO, "messageRateMax %d per second sleeping for a second.\n",
+                                   sr_c->cfg->messageRateMax);
+                        sleep(1);
+                        time(&now);
+                }
+                if (now > this_second) {
+                        this_second = now;
+                        consumed_this_second = 0;
+                }
+                consumed_this_second++;
+        }
 
 	while (msg.user_headers) {
 		tmph = msg.user_headers;
@@ -717,6 +762,14 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 		msg.user_headers = tmph->next;
 		free(tmph);
 	}
+	time(&now);
+	if (next_qdeclare_time == 0) {
+	    next_qdeclare_time=now+20;
+        } else if ( now > next_qdeclare_time ) 
+	{
+               sr_consume_queue_declare(sr_c, 1);
+	       next_qdeclare_time += 20;
+        }
 
 	/*
 	   basic_ack added as per michel's algorithm prior to consuming next.
