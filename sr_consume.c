@@ -86,6 +86,7 @@ int sr_consume_setup(struct sr_context *sr_c)
 	amqp_boolean_t passive = 0;
 	amqp_boolean_t exclusive = 0;
 	amqp_boolean_t auto_delete = 0;
+	amqp_queue_declare_ok_t *r;
 	struct sr_binding_s *t;
 	static amqp_basic_properties_t props;
 	static amqp_table_t table;
@@ -121,12 +122,16 @@ int sr_consume_setup(struct sr_context *sr_c)
 
 	//amqp_queue_declare_ok_t *r = 
 	if (sr_c->cfg->queueDeclare) {
-		amqp_queue_declare(sr_c->cfg->broker->conn,
-				   1,
+		r = amqp_queue_declare(sr_c->cfg->broker->conn,
+				   2,
 				   amqp_cstring_bytes(sr_c->cfg->queuename),
 				   passive, sr_c->cfg->durable, exclusive, auto_delete, table);
 		/* FIXME how to parse r for error? */
-
+                
+		if (r) {
+	               sr_log_msg(LOG_INFO, "queue declared: %p messages in queue: %d\n", 
+		                sr_c->cfg->queuename, r->message_count );
+                }
 		reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);
 		if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
 			sr_amqp_reply_print(reply, "queue declare failed");

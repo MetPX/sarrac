@@ -166,7 +166,13 @@ struct sr_broker_s *sr_broker_connect(struct sr_broker_s *broker)
 
 		open_status = amqp_channel_open(broker->conn, 1);
 		if (open_status == NULL) {
-			sr_log_msg(LOG_ERROR, "failed AMQP amqp_channel_open\n");
+			sr_log_msg(LOG_ERROR, "failed AMQP amqp_channel_open 1\n");
+			goto have_channel;
+		}
+
+		open_status = amqp_channel_open(broker->conn, 2);
+		if (open_status == NULL) {
+			sr_log_msg(LOG_ERROR, "failed AMQP amqp_channel_open 2\n");
 			goto have_channel;
 		}
 
@@ -192,6 +198,7 @@ struct sr_broker_s *sr_broker_connect(struct sr_broker_s *broker)
 
  have_channel:
 		reply = amqp_channel_close(broker->conn, 1, AMQP_REPLY_SUCCESS);
+		reply = amqp_channel_close(broker->conn, 2, AMQP_REPLY_SUCCESS);
 
  have_socket:
 		reply = amqp_connection_close(broker->conn, AMQP_REPLY_SUCCESS);
@@ -357,13 +364,18 @@ void sr_broker_close(struct sr_broker_s *broker)
 		//sr_log_msg(LOG_DEBUG, "amqp broker close: no connection present.\n");
 		return;
 	}
-	reply = amqp_channel_close(broker->conn, 1, AMQP_REPLY_SUCCESS);
+	reply = amqp_channel_close(broker->conn, 2, AMQP_REPLY_SUCCESS);
 	if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-		sr_log_msg(LOG_ERROR, "amqp channel close failed.\n");
+		sr_log_msg(LOG_ERROR, "amqp channel close 2 failed.\n");
 	} else {
-		reply = amqp_connection_close(broker->conn, AMQP_REPLY_SUCCESS);
+		reply = amqp_channel_close(broker->conn, 1, AMQP_REPLY_SUCCESS);
 		if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-			sr_log_msg(LOG_ERROR, "amqp connection close failed.\n");
+			sr_log_msg(LOG_ERROR, "amqp channel close 1 failed.\n");
+		} else {
+			reply = amqp_connection_close(broker->conn, AMQP_REPLY_SUCCESS);
+			if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
+				sr_log_msg(LOG_ERROR, "amqp connection close failed.\n");
+			}
 		}
 	}
 
