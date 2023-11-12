@@ -740,7 +740,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 
 	// rate limiting.
 	//sr_log_msg( LOG_INFO, "rateMax: %d, consumed_this_second: %d\n", 
-			sr_c->cfg->messageRateMax, consumed_this_second );
+	//		sr_c->cfg->messageRateMax, consumed_this_second );
         if (sr_c->cfg->messageRateMax > 0) {
                 if (consumed_this_second >= sr_c->cfg->messageRateMax) {
                         sr_log_msg(LOG_INFO, "messageRateMax %d per second sleeping for a second.\n",
