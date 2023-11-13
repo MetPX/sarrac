@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
+#include <stdbool.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -76,9 +77,12 @@ int sr_consume_cleanup(struct sr_context *sr_c)
 	return (1);
 }
 
-int sr_consume_setup(struct sr_context *sr_c)
+bool sr_consume_setup(struct sr_context *sr_c)
  /*
     declare a queue and bind it to the configured exchange.
+
+
+    returns true if successful
 
   */
 {
@@ -130,7 +134,7 @@ int sr_consume_setup(struct sr_context *sr_c)
 		reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);
 		if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
 			sr_amqp_reply_print(reply, "queue declare failed");
-			return (0);
+			return( false );
 		}
 	}
 
@@ -152,12 +156,12 @@ int sr_consume_setup(struct sr_context *sr_c)
 		reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);
 		if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
 			sr_amqp_reply_print(reply, "binding failed");
-			return (0);
+			return (false);
 		}
 		sr_log_msg(LOG_INFO, "queue %s bound with topic %s to %s\n",
 			   sr_c->cfg->queuename, t->topic, sr_broker_uri(sr_c->cfg->broker));
 	}
-	return (1);
+	return (true);
 }
 
 char *sr_message_partstr(struct sr_message_s *m)
@@ -704,6 +708,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 	char tag[AMQP_MAX_SS];
 	char value[AMQP_MAX_SS];
 	struct sr_header_s *tmph;
+	struct timeval tv;
 
 	while (msg.user_headers) {
 		tmph = msg.user_headers;
@@ -762,15 +767,22 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 		}
 		sr_c->cfg->broker->started = 1;
 	}
-
 	amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
-	result = amqp_simple_wait_frame(sr_c->cfg->broker->conn, &frame);
 
+	tv.tv_sec=0L;
+	tv.tv_usec=1;
+
+	//sr_log_msg(LOG_DEBUG, "wait_frame.\n");
+	result = amqp_simple_wait_frame_noblock(sr_c->cfg->broker->conn, &frame, &tv);
+
+	if (result == AMQP_STATUS_TIMEOUT ) {
+	        //sr_log_msg(LOG_DEBUG, "no messages ready.\n" );
+		return (NULL);
+	}
 	if (result < 0) {
 		sr_log_msg(LOG_ERROR, "wait_frame bad result: %d. aborting connection.\n", result);
 		return (NULL);
 	}
-
 	if (frame.frame_type != AMQP_FRAME_METHOD) {
 		sr_log_msg(LOG_ERROR, "bad FRAME_METHOD: %d. aborting connection.\n",
 			   frame.frame_type);
@@ -950,7 +962,6 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 		sr_log_msg(LOG_DEBUG, "complete message, received: %lu bytes \n",
 			   (unsigned long)body_received);
 	}
-	//amqp_maybe_release_buffers(sr_c->cfg->broker->conn);
 
 	/* Can only happen when amqp_simple_wait_frame returns <= 0 */
 	/* We break here to close the connection */
@@ -1011,8 +1022,6 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 
 	}
 
-	/* Can only happen when amqp_simple_wait_frame returns <= 0 */
-	/* We break here to close the connection */
 	return (&msg);
 }
 
