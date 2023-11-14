@@ -166,7 +166,13 @@ struct sr_broker_s *sr_broker_connect(struct sr_broker_s *broker)
 
 		open_status = amqp_channel_open(broker->conn, 1);
 		if (open_status == NULL) {
-			sr_log_msg(LOG_ERROR, "failed AMQP amqp_channel_open\n");
+			sr_log_msg(LOG_ERROR, "failed AMQP amqp_channel_open 1\n");
+			goto have_channel;
+		}
+
+		open_status = amqp_channel_open(broker->conn, 2);
+		if (open_status == NULL) {
+			sr_log_msg(LOG_ERROR, "failed AMQP amqp_channel_open 2\n");
 			goto have_channel;
 		}
 
@@ -192,6 +198,7 @@ struct sr_broker_s *sr_broker_connect(struct sr_broker_s *broker)
 
  have_channel:
 		reply = amqp_channel_close(broker->conn, 1, AMQP_REPLY_SUCCESS);
+		reply = amqp_channel_close(broker->conn, 2, AMQP_REPLY_SUCCESS);
 
  have_socket:
 		reply = amqp_connection_close(broker->conn, AMQP_REPLY_SUCCESS);
@@ -280,8 +287,9 @@ void sr_context_metrics_cumulative_write(struct sr_context *sr_c)
 
                 f = fopen( cumulativeFilename, "a+" );
 		if (f) {
-                        fprintf( f, "\"%s\": { \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f } }, \n" ,
-                                datestamp, sr_c->metrics.rxGoodCount, sr_c->metrics.rxBadCount, sr_c->metrics.rejectCount, sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping
+                	fprintf( f, "\"%s\": { \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f, \"brokerQueuedMessageCount\": %d } }, \n" ,
+                        datestamp, sr_c->metrics.rxGoodCount, sr_c->metrics.rxBadCount, sr_c->metrics.rejectCount, 
+			sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping, sr_c->metrics.brokerQueuedMessageCount 
                         );
                         fclose(f);
 		}
@@ -294,6 +302,7 @@ void sr_context_metrics_reset(struct sr_context *sr_c)
 	struct timespec tnow;
 
         sr_context_metrics_cumulative_write(sr_c);
+        sr_c->metrics.brokerQueuedMessageCount = 0;
         sr_c->metrics.rxGoodCount = 0;
         sr_c->metrics.rxBadCount = 0;
         sr_c->metrics.rejectCount = 0;
@@ -359,13 +368,18 @@ void sr_broker_close(struct sr_broker_s *broker)
 		//sr_log_msg(LOG_DEBUG, "amqp broker close: no connection present.\n");
 		return;
 	}
-	reply = amqp_channel_close(broker->conn, 1, AMQP_REPLY_SUCCESS);
+	reply = amqp_channel_close(broker->conn, 2, AMQP_REPLY_SUCCESS);
 	if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-		sr_log_msg(LOG_ERROR, "amqp channel close failed.\n");
+		sr_log_msg(LOG_ERROR, "amqp channel close 2 failed.\n");
 	} else {
-		reply = amqp_connection_close(broker->conn, AMQP_REPLY_SUCCESS);
+		reply = amqp_channel_close(broker->conn, 1, AMQP_REPLY_SUCCESS);
 		if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-			sr_log_msg(LOG_ERROR, "amqp connection close failed.\n");
+			sr_log_msg(LOG_ERROR, "amqp channel close 1 failed.\n");
+		} else {
+			reply = amqp_connection_close(broker->conn, AMQP_REPLY_SUCCESS);
+			if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
+				sr_log_msg(LOG_ERROR, "amqp connection close failed.\n");
+			}
 		}
 	}
 
@@ -447,9 +461,9 @@ void sr_context_metrics_write(struct sr_context *sr_c)
 	FILE *f;
         
 	f = fopen( sr_c->cfg->metricsFilename, "w" );
-        fprintf( f, "{ \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f } }\n" ,
-			sr_c->metrics.rxGoodCount, sr_c->metrics.rxBadCount, sr_c->metrics.rejectCount, sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping 
-		);
+        fprintf( f, "{ \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f , \"brokerQueuedMessageCount\": %d } }\n" ,
+		sr_c->metrics.rxGoodCount, sr_c->metrics.rxBadCount, sr_c->metrics.rejectCount, 
+		sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping,  sr_c->metrics.brokerQueuedMessageCount ); 
 	fclose(f);
 }
 

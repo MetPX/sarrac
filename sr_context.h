@@ -44,6 +44,7 @@
 #include "sr_config.h"
 
 struct sr_metrics_s {
+    int brokerQueuedMessageCount;
     int rxGoodCount;
     int rxBadCount;
     int rejectCount;
@@ -57,7 +58,6 @@ struct sr_context {
 	const char *file;
 	const char *post_baseUrl;
 	amqp_socket_t *socket;
-	amqp_connection_state_t conn;
 	int port;
 	struct sr_config_s *cfg;
 	struct sr_metrics_s metrics;
