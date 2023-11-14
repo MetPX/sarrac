@@ -149,7 +149,7 @@ signed int sr_consume_queue_declare(struct sr_context *sr_c, amqp_boolean_t pass
 	return(message_count);
 }
 
-int sr_consume_setup(struct sr_context *sr_c)
+bool sr_consume_setup(struct sr_context *sr_c)
 {
 	struct sr_binding_s *t;
 	amqp_rpc_reply_t reply;
@@ -158,7 +158,7 @@ int sr_consume_setup(struct sr_context *sr_c)
         messageCount = sr_consume_queue_declare(sr_c, 0);
 
 	if (messageCount< 0 ) {
-		return(0);
+		return(false);
         }
 
 	/*
