@@ -1257,7 +1257,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 			retval = (1);
 		}
 	} else {
-		sr_log_msg(LOG_NOTICE, "%s option not implemented, ignored.\n", option);
+		sr_log_msg(LOG_INFO, "%s option not implemented, ignored.\n", option);
 	}
 
 	if (argument)
@@ -1525,6 +1525,11 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 	char sufbuf[10];
 	int plen;
 	char p[PATH_MAX];
+	char one[PATH_MAX];
+	char two[PATH_MAX];
+	char three[PATH_MAX];
+	char four_dir[PATH_MAX];
+
 	int ret;
 
 	/* set config name */
@@ -1570,6 +1575,7 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 	} else {
 		strcpy(p, filename);
 	}
+	strcpy(one,p);
 	// absolute paths in the normal places...
 	sr_log_msg(LOG_DEBUG, "sr_config_read about to open: %s\n", p);
 
@@ -1582,6 +1588,7 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 		plen -= 5;
 		f = fopen(p, "r");
 	}
+	strcpy(two,p);
 	if (f == NULL) {
 		sr_log_msg(LOG_DEBUG, "sr_config_read 2 failed to open: %s\n", p);
 
@@ -1599,11 +1606,14 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 			}
 		}
 	}
+	strcpy(three,p);
 
 	if (f == NULL) {
 		if (abort) {
+			getcwd(four_dir,PATH_MAX);
 			sr_log_msg(LOG_CRITICAL,
-				   "error: failed to find configuration: %s\n", filename);
+				   "error: failed to find configuration: %s, (looked in %s, %s, %s/%s)\n", 
+				   filename, one, two, four_dir, three);
 			exit(0);
 		}
 		return (1);
@@ -2237,6 +2247,9 @@ char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one)
 	static char oldp[PATH_MAX];
 	char home[PATH_MAX / 2];
 	char one[255];
+	char two[PATH_MAX];
+	char three[PATH_MAX];
+	char four[PATH_MAX];
 	int len_one;
 
 	//fprintf( stderr, " find_one, original_one: %s\n", original_one );
@@ -2278,12 +2291,14 @@ char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one)
 			if (!access(oldp, R_OK))
 				return (oldp);
 			else {
+				strcpy(two, oldp);
 				//fprintf(stderr, "not %s\n", oldp );
 				sprintf(oldp, "%s/.config/%s/%s/%s",
 					home, sr_cfg->appname, sr_cfg->progname, one);
 				if (!access(oldp, R_OK))
 					return (oldp);
 				else {
+					strcpy(three, oldp);
 					//fprintf(stderr, "not %s\n", oldp );
 					sprintf(oldp,
 						"%s/.config/%s/%s/%s.conf.off",
@@ -2291,8 +2306,9 @@ char *sr_config_find_one(struct sr_config_s *sr_cfg, const char *original_one)
 					if (!access(oldp, R_OK))
 						return (oldp);
 					else {
-						sr_log_msg(LOG_ERROR, "config %s not found.\n",
-							   one);
+						strcpy(four, oldp);
+						sr_log_msg( LOG_ERROR, "config %s not found (looked in %s,%s,%s,%s.)\n",
+							   one, two, three, four, oldp );
 						//fprintf(stderr, "not %s\n", oldp );
 					}
 				}
