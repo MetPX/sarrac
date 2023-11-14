@@ -70,7 +70,7 @@ char *v03identity(struct sr_message_s *m);
 
 //extern struct sr_message_s msg;
 
-int sr_consume_setup(struct sr_context *sr_c);
+bool sr_consume_setup(struct sr_context *sr_c);
 /* 
    declare and bind queue over a connection already established by context_init
 

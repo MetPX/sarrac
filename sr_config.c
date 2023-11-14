@@ -1705,6 +1705,34 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		strcat(p, sr_cfg->configname);
 		mkdir(p, 0700);
 	}
+	// if the metrics directory is missing, build it.
+	if (val) {
+		sprintf(p, "%s/.cache/%s/%s/metrics", home, sr_cfg->appname, val);
+	} else {
+		sprintf(p, "%s/.cache/%s/metrics", home, sr_cfg->appname);
+	}
+	ret = stat(p, &sb);
+	if (ret) {
+		sprintf(p, "%s/.cache/%s", home, sr_cfg->appname);
+		if (val) {
+			strcat(p, "/");
+			strcat(p, val);
+			mkdir(p, 0700);
+		}
+		strcat(p, "/metrics");
+		mkdir(p, 0700);
+        }
+	// MetricsFilename
+	if (val) {
+		sprintf(p, "%s/.cache/%s/%s/metrics/%s_%s_%02d.json", home, sr_cfg->appname,
+			val, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
+	}
+	else {
+		sprintf(p, "%s/.cache/%s/metrics/%s_%s_%02d.json", home, sr_cfg->appname,
+			sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
+	}
+	sr_cfg->metricsFilename = strdup(p);
+
 	// if the log directory is missing, build it.
 	if (val) {
 		sprintf(p, "%s/.cache/%s/%s/log", home, sr_cfg->appname, val);
@@ -1743,7 +1771,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		sr_cfg->sleep = 5.0; // if you're "starting" then you want to run a daemon, so sleep must be > 0
         }
 	if (sr_cfg->log) {
-		sr_log_setup(sr_cfg->logfn, sr_cfg->chmod_log,
+		sr_log_setup(sr_cfg->logfn, sr_cfg->metricsFilename, sr_cfg->logMetrics, sr_cfg->chmod_log,
 			     sr_cfg->debug ? LOG_DEBUG : (sr_cfg->loglevel),
 			     sr_cfg->logrotate, sr_cfg->logrotate_interval);
 	}
@@ -1766,16 +1794,6 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		sr_cfg->pid = atoi(p);
 		fclose(f);
 	}
-	// MetricsFilename
-	if (val) {
-		sprintf(p, "%s/.cache/%s/%s/metrics/%s_%s_%02d.json", home, sr_cfg->appname,
-			val, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
-	}
-	else {
-		sprintf(p, "%s/.cache/%s/metrics/%s_%s_%02d.json", home, sr_cfg->appname,
-			sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
-	}
-	sr_cfg->metricsFilename = strdup(p);
 	
 	// cachefn statehost
 	if (val) {

@@ -286,6 +286,7 @@ void sr_context_metrics_cumulative_write(struct sr_context *sr_c)
                 datestamp[8] = c;
 
                 f = fopen( cumulativeFilename, "a+" );
+
                 fprintf( f, "\"%s\": { \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f, \"brokerQueuedMessageCount\": %d } }, \n" ,
                         datestamp, sr_c->metrics.rxGoodCount, sr_c->metrics.rxBadCount, sr_c->metrics.rejectCount, 
 			sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping, sr_c->metrics.brokerQueuedMessageCount 

@@ -176,6 +176,8 @@ int main(int argc, char **argv)
 	struct sr_context *sr_c;
 	struct sr_config_s sr_cfg;
 	struct sr_mask_s *mask;
+	static int no_messages_tally = 0;
+	struct timespec tsleep;
 	int consume, i, ret;
 	char *one;
 
@@ -330,20 +332,41 @@ int main(int argc, char **argv)
 
 	while (1) {
 
+		sr_context_housekeeping_check(sr_c);
+
 		if (sr_cfg.vip && (sr_has_vip(sr_cfg.vip) < 1)) {
 			sleep(5);
 			continue;
 		}
+
 		// inlet: from queue, json, tree.
 		m = sr_consume(sr_c);
 
 		if (!m) {
-			sr_c = force_good_connection_and_bindings(sr_c);
+			// exponential back-off if queue checks to reduce cpu.
+                        no_messages_tally += 1;
+			tsleep.tv_sec = 0L; 
+	                tsleep.tv_nsec = 0L;
+			if ( no_messages_tally < 20 ) {
+	                            tsleep.tv_nsec = (long)( 1024<<no_messages_tally );
+                        } else if ( no_messages_tally < 25 ) {
+	                            tsleep.tv_sec = (long)( 1<<(no_messages_tally-20) );
+                        } else {
+	                            tsleep.tv_sec = 32L;
+                        }
+               	        //sr_log_msg( LOG_DEBUG, "no message received, watch sleeping for %ld seconds + %ld micro seconds. \n", 
+		        // 		tsleep.tv_sec, tsleep.tv_nsec/1000 );
+      		        nanosleep(&tsleep, NULL);
+
+			//sr_c = force_good_connection_and_bindings(sr_c);
 			continue;
+
 		} else if (sr_message_valid(m)) {
+			no_messages_tally=0;
 			sr_log_msg(LOG_INFO, "received: %s\n", sr_message_2log(m));
 			sr_c->metrics.rxGoodCount++;
 		} else {
+			no_messages_tally=0;
 			sr_log_msg(LOG_ERROR, "discarding invalid message: %s\n",
 				   sr_message_2log(m));
 			sr_c->metrics.rxBadCount++;
@@ -397,9 +420,6 @@ int main(int argc, char **argv)
 			        sr_c->metrics.txGoodCount++;
 			}
 		}
-
-		sr_context_housekeeping_check(sr_c);
-
 	}
 	sr_context_close(sr_c);
 	free(sr_c);
