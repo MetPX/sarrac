@@ -461,10 +461,12 @@ void sr_context_metrics_write(struct sr_context *sr_c)
 	FILE *f;
         
 	f = fopen( sr_c->cfg->metricsFilename, "w" );
-        fprintf( f, "{ \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f , \"brokerQueuedMessageCount\": %d } }\n" ,
-		sr_c->metrics.rxGoodCount, sr_c->metrics.rxBadCount, sr_c->metrics.rejectCount, 
-		sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping,  sr_c->metrics.brokerQueuedMessageCount ); 
-	fclose(f);
+	if (f) {
+        	fprintf( f, "{ \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f , \"brokerQueuedMessageCount\": %d } }\n" ,
+			sr_c->metrics.rxGoodCount, sr_c->metrics.rxBadCount, sr_c->metrics.rejectCount, 
+			sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping,  sr_c->metrics.brokerQueuedMessageCount ); 
+		fclose(f);
+	}
 }
 
 float sr_context_housekeeping_check(struct sr_context *sr_c)
