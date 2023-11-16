@@ -1,5 +1,12 @@
-metpx-sr3c (3.23.11p1) UNRELEASED; urgency=medium
+metpx-sr3c (3.23.11p2) UNRELEASED; urgency=medium
 
+  * increment away from stable
+
+ -- Peter Silva <peter@blacklab>  Thu, 16 Nov 2023 17:37:22 -0500
+
+metpx-sr3c (3.23.11p1) unstable; urgency=medium
+
+  [ peter ]
   * better error recovery when unable to open metrics file.
   * metrics file rotation implemented.
   * better error message when unable to open configuration file.
