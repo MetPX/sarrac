@@ -1,6 +1,11 @@
 metpx-sr3c (3.23.11p1) UNRELEASED; urgency=medium
 
-  * moving away from release. 
+  * better error recovery when unable to open metrics file.
+  * metrics file rotation implemented.
+  * better error message when unable to open configuration file.
+  * fix #120: report brokerQueuedMessageCount for subscriber (cpump) metrics
+  * fix #109: now doesn't block waiting for messages, sr3 status not always "hung"
+  * messageRateMax implemented on consumer side.
 
  -- peter <peter@bsqt.homeip.net>  Fri, 03 Nov 2023 22:45:51 -0400
 
