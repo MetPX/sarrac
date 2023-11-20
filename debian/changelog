@@ -1,6 +1,7 @@
-metpx-sr3c (3.23.11p2) UNRELEASED; urgency=medium
+metpx-sr3c (3.23.11p2) unstable; urgency=medium
 
-  * increment away from stable
+  * another #109 related fix, restoring connection repair when broken.
+  * coredump in log rotation cleanup code.
 
  -- Peter Silva <peter@blacklab>  Thu, 16 Nov 2023 17:37:22 -0500
 
