@@ -33,7 +33,7 @@ static char logfn_ts[PATH_MAX];
 static char metricsfn_ts[PATH_MAX];
 static int loglevel = LOG_INFO;
 static int logmode = 0600;
-static int logrotate = 5;
+static int logrotate_count = 5;
 static int logrotate_interval = 24 * 60 * 60;
 
 static struct timespec ts;
@@ -94,7 +94,7 @@ void sr_log_msg(int prio, const char *format, ...)
 		logfd = open(logfn, O_WRONLY | O_CREAT | O_APPEND, logmode);
 
 		/* delete outdated logs */
-		if (logrotate > 0) {
+		if (logrotate_count > 0) {
 			if (ltab.fns[ltab.i]) {
 				remove(ltab.fns[ltab.i]);
 				free(ltab.fns[ltab.i]);
@@ -130,7 +130,7 @@ void sr_log_setup(const char *fn, const char *mfn, bool logMetricsFlag, mode_t m
 	strcpy(logfn, fn);
 	strcpy(metricsfn, mfn);
 	logmode = mode;
-	logrotate = lr;
+	logrotate_count = lr;
 	logrotate_interval = lri;
 	loglevel = level;
 
@@ -142,19 +142,19 @@ void sr_log_setup(const char *fn, const char *mfn, bool logMetricsFlag, mode_t m
 
 	logfd = open(logfn, O_WRONLY | O_CREAT | O_APPEND, logmode);
 
-	if (logrotate > 0) {
-		ltab.fns = (char **)malloc(sizeof(char *) * logrotate);
-		for (ltab.i = 0; ltab.i < logrotate; ++ltab.i)
+	if (logrotate_count > 0) {
+		ltab.fns = (char **)malloc(sizeof(char *) * logrotate_count);
+		for (ltab.i = 0; ltab.i < logrotate_count; ++ltab.i)
 			ltab.fns[ltab.i] = NULL;
 		ltab.i = 0;
-		ltab.size = logrotate;
+		ltab.size = logrotate_count;
 
                 // metrics files.
-		mtab.fns = (char **)malloc(sizeof(char *) * logrotate);
-		for (mtab.i = 0; mtab.i < logrotate; ++mtab.i)
+		mtab.fns = (char **)malloc(sizeof(char *) * logrotate_count);
+		for (mtab.i = 0; mtab.i < logrotate_count; ++mtab.i)
 			mtab.fns[mtab.i] = NULL;
 		mtab.i = 0;
-		mtab.size = logrotate;
+		mtab.size = logrotate_count;
 	}
 #endif
 }
@@ -173,13 +173,20 @@ void sr_log_cleanup()
 		close(logfd);
 		logfd = STDERR_FILENO;
 
-		if (logrotate > 0) {
-			for (ltab.i = 0; ltab.i <= logrotate; ++ltab.i)
+		if (logrotate_count > 0) {
+			for (ltab.i = 0; ltab.i < logrotate_count; ++ltab.i)
 				if (ltab.fns[ltab.i])
 					free(ltab.fns[ltab.i]);
 			free(ltab.fns);
 			ltab.i = 0;
 			ltab.size = 0;
+		
+			for (mtab.i = 0; mtab.i < logrotate_count; ++mtab.i)
+				if (mtab.fns[mtab.i])
+					free(mtab.fns[mtab.i]);
+			free(mtab.fns);
+			mtab.i = 0;
+			mtab.size = 0;
 		}
 	}
 #endif
