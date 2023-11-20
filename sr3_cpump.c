@@ -342,7 +342,10 @@ int main(int argc, char **argv)
 		// inlet: from queue, json, tree.
 		m = sr_consume(sr_c);
 
-		if (!m) {
+                if (m==SR_CONSUME_BROKEN) {
+                        sr_c = force_good_connection_and_bindings(sr_c);
+			continue;
+		} else if (!m) {
 			// exponential back-off if queue checks to reduce cpu.
                         no_messages_tally += 1;
 			tsleep.tv_sec = 0L; 

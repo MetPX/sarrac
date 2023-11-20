@@ -833,21 +833,21 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 
 	if (result == AMQP_STATUS_TIMEOUT ) {
 	        //sr_log_msg(LOG_DEBUG, "no messages ready.\n" );
-		return (NULL);
+		return (SR_CONSUME_BROKEN);
 	}
 	if (result < 0) {
 		sr_log_msg(LOG_ERROR, "wait_frame bad result: %d. aborting connection.\n", result);
-		return (NULL);
+		return (SR_CONSUME_BROKEN);
 	}
 	if (frame.frame_type != AMQP_FRAME_METHOD) {
 		sr_log_msg(LOG_ERROR, "bad FRAME_METHOD: %d. aborting connection.\n",
 			   frame.frame_type);
-		return (NULL);
+		return (SR_CONSUME_BROKEN);
 	}
 	if (frame.payload.method.id != AMQP_BASIC_DELIVER_METHOD) {
 		sr_log_msg(LOG_ERROR, "bad payload method: %d. aborting connection.\n",
 			   frame.payload.method.id);
-		return (NULL);
+		return (SR_CONSUME_BROKEN);
 	}
 
 	d = (amqp_basic_deliver_t *) frame.payload.method.decoded;
@@ -872,12 +872,12 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 
 	if (result < 0) {
 		sr_log_msg(LOG_ERROR, "error receiving frame! aborting connection.");
-		return (NULL);
+		return (SR_CONSUME_BROKEN);
 	}
 
 	if (frame.frame_type != AMQP_FRAME_HEADER) {
 		sr_log_msg(LOG_ERROR, "Expected header! aborting connection.");
-		return (NULL);
+		return (SR_CONSUME_BROKEN);
 	}
 
 	p = (amqp_basic_properties_t *) frame.payload.properties.decoded;
@@ -992,7 +992,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 			sr_log_msg(LOG_WARNING,
 				   "broken message received: wait_frame returned %d. aborting connection.\n",
 				   result);
-			return (NULL);
+			return (SR_CONSUME_BROKEN);
 		}
 		if (frame.frame_type != AMQP_FRAME_BODY) {
 			sr_log_msg(LOG_CRITICAL, "Expected body! aborting connection.");
@@ -1013,7 +1013,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 		sr_log_msg(LOG_ERROR,
 			   "incomplete message, received: %lu bytes, expected: %lu bytes.\n",
 			   (long)body_received, (long)body_target);
-		return (NULL);
+		return (SR_CONSUME_BROKEN);
 	} else {
 		sr_log_msg(LOG_DEBUG, "complete message, received: %lu bytes \n",
 			   (unsigned long)body_received);

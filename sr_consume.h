@@ -103,7 +103,15 @@ void sr_message_2url(struct sr_message_s *m);
 
  */
 
+#define SR_CONSUME_BROKEN (struct sr_message_s *)(0x37)
+
 struct sr_message_s *sr_consume(struct sr_context *sr_c);
+/*
+ * return value:
+ *    * pointer to struct of the message received.
+ *    * NULL - connection is good, no message currently available.
+ *    * SR_CONSUME_BROKEN: connection is bad, restart.
+ */
 
 bool sr_message_valid(struct sr_message_s *m);
 /*
