@@ -135,7 +135,7 @@ signed int sr_consume_queue_declare(struct sr_context *sr_c, amqp_boolean_t pass
 		/* FIXME how to parse r for error? */
                 
 		if (r) {
-	               sr_log_msg(LOG_INFO, "queue declared: %p messages in queue: %d\n", 
+	               sr_log_msg(LOG_INFO, "queue declared: %s messages in queue: %d\n", 
 		                sr_c->cfg->queuename, r->message_count );
 		       message_count = r->message_count;
 		       sr_c->metrics.brokerQueuedMessageCount = message_count;
