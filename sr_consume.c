@@ -804,7 +804,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 		reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);
 		if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
 			sr_amqp_reply_print(reply, "basic_consume failed");
-			return (NULL);
+			return (SR_CONSUME_BROKEN);
 		}
 		sprintf(consumer_tag, "host_%s_pid_%d", sr_local_fqdn(), sr_c->cfg->pid);
 
@@ -819,7 +819,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 		reply = amqp_get_rpc_reply(sr_c->cfg->broker->conn);
 		if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
 			sr_amqp_reply_print(reply, "basic_consume failed");
-			return (NULL);
+			return (SR_CONSUME_BROKEN);
 		}
 		sr_c->cfg->broker->started = 1;
 	}
@@ -833,7 +833,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 
 	if (result == AMQP_STATUS_TIMEOUT ) {
 	        //sr_log_msg(LOG_DEBUG, "no messages ready.\n" );
-		return (SR_CONSUME_BROKEN);
+		return (NULL);
 	}
 	if (result < 0) {
 		sr_log_msg(LOG_ERROR, "wait_frame bad result: %d. aborting connection.\n", result);
