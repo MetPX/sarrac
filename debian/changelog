@@ -1,3 +1,9 @@
+metpx-sr3c (3.23.11p3) UNRELEASED; urgency=medium
+
+  * fixed #130 DOS attack by constant re-connections.
+
+ -- peter <peter@bsqt.homeip.net>  Fri, 24 Nov 2023 17:47:59 -0500
+
 metpx-sr3c (3.23.11p2) unstable; urgency=medium
 
   * another #109 related fix, restoring connection repair when broken.
