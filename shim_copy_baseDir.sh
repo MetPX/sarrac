@@ -82,7 +82,7 @@ retry off
 header toto=pig
 events modify,link,delete,mkdir,rmdir
 
-post_baseUrl sftp://${USER}@localhost
+post_baseUrl sftp://${USER}@localhost/
 post_topicPrefix v03.post
 
 accept `realpath .`/.*
