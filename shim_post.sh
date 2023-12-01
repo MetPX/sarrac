@@ -36,7 +36,7 @@ nodupe_ttl 0
 header toto=pig
 events modify,link,delete,mkdir,rmdir
 
-post_baseUrl file:${HOME}
+post_baseUrl file:${PWD}
 
 post_topicPrefix v03.post
 
