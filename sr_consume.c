@@ -941,31 +941,55 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 					break;
 
 				case AMQP_FIELD_KIND_U64:
+					sprintf(tag, "%.*s",
+						(int)p->headers.entries[i].key.len,
+						(char *)p->headers.entries[i].key.bytes);
+
+					sprintf(value, "%lu", p->headers.entries[i].value.value.u64 );
+
+					assign_field(tag, value);
 					sr_log_msg(LOG_WARNING,
-						   "skipping U64 header %d value:%lld\n", i,
+						   "skipping U64 header %d value:%ld\n", i,
 						   (long long unsigned)(p->headers.entries[i].value.
 									value.u64));
-					goto after_headers;
 					break;
 
 				case AMQP_FIELD_KIND_ARRAY:
-					sr_log_msg(LOG_WARNING, "skipping ARRAY header index: %d\n",
-						   i);
+					sprintf(tag, "%.*s",
+						(int)p->headers.entries[i].key.len,
+						(char *)p->headers.entries[i].key.bytes);
+
+					sr_log_msg(LOG_WARNING, "skipping ARRAY header %s index: %d\n", tag, i);
 					goto after_headers;
+					break;
+
+			        case AMQP_FIELD_KIND_I32:
+					sprintf(tag, "%.*s",
+						(int)p->headers.entries[i].key.len,
+						(char *)p->headers.entries[i].key.bytes);
+
+					sprintf(value, "%u", p->headers.entries[i].value.value.u32 );
+					assign_field(tag, value);
 					break;
 
 				case AMQP_FIELD_KIND_I64:
-					sr_log_msg(LOG_WARNING,
-						   "skipping I64  header %d: value:%lld\n", i,
-						   (long long)(p->headers.entries[i].value.value.
-							       i64));
-					goto after_headers;
+					sprintf(tag, "%.*s",
+						(int)p->headers.entries[i].key.len,
+						(char *)p->headers.entries[i].key.bytes);
+
+					sprintf(value, "%ld", p->headers.entries[i].value.value.i64 );
+					assign_field(tag, value);
+
 					break;
 
 				default:
+					sprintf(tag, "%.*s",
+						(int)p->headers.entries[i].key.len,
+						(char *)p->headers.entries[i].key.bytes);
+
 					sr_log_msg(LOG_WARNING,
-						   "skipping non UTF8 headers: amount: %d, this one: %d, kind:%d\n",
-						   p->headers.num_entries, i,
+						   "skipping non UTF8 headers: %s, amount: %d, this one: %d, kind:%d\n",
+						   tag, p->headers.num_entries, i,
 						   p->headers.entries[i].value.kind);
 					goto after_headers;
 
