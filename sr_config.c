@@ -403,6 +403,7 @@ struct sr_header_s *sr_headers_copy(struct sr_header_s *o)
 		i = (struct sr_header_s *)malloc(sizeof(struct sr_header_s));
 		i->key = strdup(o->key);
 		i->value = strdup(o->value);
+		i->is_numeric = o->is_numeric;
 		i->next = n;
 		n = i;
 	}
@@ -460,7 +461,7 @@ int sr_add_decl(struct sr_config_s *cfg, char *what, char *s)
 
 }
 
-int sr_add_header(struct sr_config_s *cfg, char *s)
+int sr_add_header(struct sr_config_s *cfg, char *s, bool is_numeric)
   /*
      Add a (user defined) header to the list of existing ones. 
      see StrinIsTrue for explanation of bitmask return values.
@@ -483,6 +484,7 @@ int sr_add_header(struct sr_config_s *cfg, char *s)
 	*eq = '=';
 	new_header->value = strdup(eq + 1);
 	new_header->next = cfg->user_headers;
+	new_header->is_numeric = is_numeric;
 	cfg->user_headers = new_header;
 	return (3);
 }
@@ -958,7 +960,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		retval = (1);
 
 	} else if (!strcmp(option, "header")) {
-		val = sr_add_header(sr_cfg, argument);
+		val = sr_add_header(sr_cfg, argument, false);
 		retval = (1 + (val & 1));
 
 	} else if (!strcmp(option, "logrotate") || !strcmp(option, "lr")
