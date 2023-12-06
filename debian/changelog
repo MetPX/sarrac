@@ -1,3 +1,9 @@
+metpx-sr3c (3.23.12) UNRELEASED; urgency=medium
+
+  * increment away from previous release.
+
+ -- peter <peter@bsqt.homeip.net>  Tue, 05 Dec 2023 20:26:22 -0500
+
 metpx-sr3c (3.23.11p3) unstable; urgency=medium
 
   * fixed #130 DOS attack by constant re-connections.
