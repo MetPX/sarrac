@@ -238,6 +238,7 @@ static void assign_field(const char *key, char *value)
 		h = (struct sr_header_s *)malloc(sizeof(struct sr_header_s));
 		h->key = strdup(key);
 		h->value = strdup(value);
+		h->is_numeric = false;
 		h->next = msg.user_headers;
 		msg.user_headers = h;
 	}
@@ -521,6 +522,7 @@ static void v03assign_field(const char *key, json_object * jso_v)
 			h->key = strdup("oldname");
 			h->value = strdup(v);
 			h->next = msg.user_headers;
+			h->is_numeric = false;
 			msg.user_headers = h;
 		}
 	} else if (!strcmp(key,"identity") || (!strcmp(key, "integrity"))) {
@@ -592,6 +594,7 @@ static void v03assign_field(const char *key, json_object * jso_v)
 		} else {
 			h->value = strdup(unsupported);
 		}
+		h->is_numeric = false;
 		h->next = msg.user_headers;
 		msg.user_headers = h;
 	}
@@ -599,9 +602,13 @@ static void v03assign_field(const char *key, json_object * jso_v)
 
 #endif
 
-static void json_dump_strheader(char *tag, char *value)
+static void json_dump_strheader(char *tag, char *value, bool is_numeric)
 {
-	printf("\"%s\": \"%s\"", tag, value);
+	if (is_numeric) {
+		printf("\"%s\": %s", tag, value);
+	} else { 
+		printf("\"%s\": \"%s\"", tag, value);
+	}
 }
 
 char *sr_message_2log(struct sr_message_s *m)
@@ -684,23 +691,23 @@ void sr_message_2json(struct sr_message_s *m)
 
 	printf("[");
 	printf(" \"%s\", { ", m->routing_key);
-	json_dump_strheader("atime", m->atime);
+	json_dump_strheader("atime", m->atime, false);
 	printf(", ");
 	printf("\"mode\": \"%04o\"", m->mode);
 	printf(", ");
-	json_dump_strheader("mtime", m->mtime);
+	json_dump_strheader("mtime", m->mtime, false);
 	printf(", ");
 	printf("\"parts\": \"%c,%ld,%ld,%ld,%ld\"",
 	       m->parts_s, m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num);
 	printf(", ");
-	json_dump_strheader("source", m->source);
+	json_dump_strheader("source", m->source, false);
 	printf(", ");
-	json_dump_strheader("sum", m->sum);
+	json_dump_strheader("sum", m->sum, false);
 	printf(", ");
 
 	for (h = msg.user_headers; h; h = h->next) {
 		printf(", ");
-		json_dump_strheader(h->key, h->value);
+		json_dump_strheader(h->key, h->value, h->is_numeric);
 	}
 	printf(" } \"%s %s  %s\"", m->datestamp, m->url, m->relPath);
 	printf("]\n");

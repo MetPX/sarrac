@@ -88,6 +88,8 @@ struct sr_header_s {
 	     /**< the key string */
 	char *value;
 	       /**< the value string */
+	bool is_numeric;
+	       /**< whether it is a numeric value that should not be quoted on output. */
 	struct sr_header_s *next;
 			    /**< link to the next item in the singly linked list. */
 };
