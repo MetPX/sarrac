@@ -35,7 +35,7 @@ care of::
 
   debuild -uc -us
 
-will build a package you can install.  Otherwise just *make*, and you need
+will build a package you can install. Otherwise just *make*, and you need
 to install the bits yourself.
 
 
@@ -54,28 +54,7 @@ This function takes the same options as
 `sr3_post <https://metpx.github.io/sarracenia/Reference/sr3_post.1.html>`_.
 
 but the *sleep* argument, when supplied causes it to loop, checking for new 
-items every *sleep* seconds (equivalent to sr3_watch.) There is also a sample consumer::
-
-  sr3_cpump
-
-which obtains messages and, by default, prints them to standard output in json
-format identical the the format used by the python implementation for 
-save/restore. 
-
-`sr3_cpump <https://metpx.github.io/sarracenia/Reference/sr3_cpump.1.html>`_.
-
-In order to have a complete downloader, one needs a script to
-parse the json output and invoke an appropriate binary downloader. One can
-use the 'outlet' switch to choose other formats:
- 
-json:
-  the default format, json compatible with python save/restore.
-
-post:
-  turns sr3_cpump into an sr3 shovel, if cache is on, then it is a winnow.
-
-url: 
-  just print out the retrieval urls, rather than the entire message
+items every *sleep* seconds (equivalent to sr3_watch.) 
 
 There is also an LD_PRELOAD shim library. (libsr3shim.c) that uses the posting
 API, this is to be used in `very high volume use cases <https://github.com/MetPX/sarracenia/blob/main/doc/hpc_mirroring_use_case.rst>`_
@@ -159,6 +138,40 @@ fields present:
   * 504576 pid of the process doing the logging.
   * 0.0270023 elapsed wallclock time of the process since it started (in seconds.)
 
+Lastly, There is also a sample consumer::
+
+  sr3_cpump
+
+which obtains messages and, by default, prints them to standard output in v03
+format.
+
+`sr3_cpump <https://metpx.github.io/sarracenia/Reference/sr3_cpump.1.html>`_.
+
+In order to have a complete downloader, one needs a script to
+parse the json output and invoke an appropriate binary downloader. One can
+use the 'outlet' switch to choose other formats:
+ 
+json:
+  the default format, json compatible with python save/restore.
+
+post:
+  turns sr3_cpump into an sr3 shovel, if cache is on, then it is a winnow.
+
+url: 
+  just print out the retrieval urls, rather than the entire message
+
+NOTE:
+
+  * The posting logic (sr3_cpost and the library) are the focus of the implementation.
+    They fully work.
+
+  * The consumer logic in C is functional, but not completely robust.
+    It should not be used in operations, but is more of a technology demonstrator.
+    It acknowledges receipt of messages before application processing has completed
+    ( https://github.com/MetPX/sarrac/issues/121 ) 
+   
+    We have flow tests demonstrating failure modes and message loss.
+    The tests are disabled for now because the C consumer does lose messages.
 
 
 Source Code Documentation
