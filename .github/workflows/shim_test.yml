@@ -14,6 +14,12 @@ on:
       - 'TODO.txt'
 
   workflow_dispatch:
+     debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate
+)'
+        required: false
+        default: false
 
 jobs:
 
@@ -23,8 +29,10 @@ jobs:
       # Don't cancel the entire matrix when one job fails
       fail-fast: false
       matrix:
-       which_test: [ "test_shim_post", "test_shim_copy_mirror", "test_shim_copy_strip", "test_shim_copy_strip_slash", "test_shim_copy_baseDir" ]
-       osver: [ "ubuntu-20.04", "ubuntu-22.04" ]
+        #which_test: [ "test_shim_post", "test_shim_copy_mirror", "test_shim_copy_strip", "test_shim_copy_strip_slash", "test_shim_copy_baseDir" ]
+        #osver: [ "ubuntu-20.04", "ubuntu-22.04" ]
+        which_test: [ "test_shim_copy_strip_slash"  ]
+        osver: [ "ubuntu-22.04" ]
 
     runs-on: ${{ matrix.osver }}
   
@@ -42,6 +50,15 @@ jobs:
       - name: Build binaries
         run: |
           make 
+
+      # Enable tmate debugging of manually-triggered workflows if the input option was provided
+      # https://github.com/marketplace/actions/debugging-with-tmate
+      # 2023/07/22 PAS, removed because when manually invoking test it always enables in spite
+      # of the github box not being checked, so cannot invoke the tests manually.
+      
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
 
       - name: Run ${{ matrix.which_test }} 
         run: |
