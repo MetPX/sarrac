@@ -650,6 +650,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	char linkstr[PATH_MAXNUL];
 	char tmprk[PATH_MAXNUL + 100];
 
+	strcpy(fn,"");
         if ((sb) && (sr_c->cfg) && (sr_c->cfg->nodupe_ttl > 0)) {
 	       time_t age = time(NULL)-sb->st_mtime ;
 	       if ((sr_c->cfg->nodupe_fileAgeMax>0) && (age > sr_c->cfg->nodupe_fileAgeMax )) {
@@ -982,6 +983,8 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	char newname[PATH_MAX];
 	char newreal[PATH_MAX];
 
+	strcpy( oldreal,"" );
+	strcpy( newreal,"" );
 	if (*o == '/') {
 		strcpy(oldname, o);
 	} else {
