@@ -136,6 +136,9 @@ test_shim_copy_mirror:
 	-./shim_copy_mirror.sh >shim_copy_mirror.log 2>&1
 	python3 ./check_shim_test.py shim_copy_mirror.log 
 
+# running test_shim_copy_mirror_sftp in an environment where the directory is symlinked
+# and does not match the path used to get to pwd is difficult because need to resolve
+# links (realpath_adjust) over an SFTP link, so this is removed from tests.
 test_shim_copy_mirror_sftp:
 	-./shim_copy_mirror_sftp.sh >shim_copy_mirror_sftp.log 2>&1
 	python3 ./check_shim_test.py shim_copy_mirror_sftp.log 
@@ -152,8 +155,12 @@ test_shim_copy_flatten:
 	-./shim_copy_flatten.sh >shim_copy_flatten.log 2>&1
 	python3 ./check_shim_test.py shim_copy_flatten.log 
 
+# copy_baseDir removed also... doesn't work in symlinked environments.
+#
 test_shim_copy_baseDir:
 	-./shim_copy_baseDir.sh >shim_copy_baseDir.log 2>&1
 	python3 ./check_shim_test.py shim_copy_baseDir.log 
 
-test_shim: test_shim_post test_shim_copy_strip test_shim_copy_mirror test_shim_copy_mirror_sftp test_shim_copy_baseDir
+test_shim: test_shim_post test_shim_copy_strip test_shim_copy_mirror 
+
+test_shim_no_symlinks: test_shim test_shim_copy_mirror_sftp test_shim_copy_baseDir
