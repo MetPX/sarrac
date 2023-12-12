@@ -52,12 +52,10 @@ logMessageDump on
 callback log
 batch 1
 mirror True
-baseDir ${parent_dir}/shim_dirA
-directory `pwd`/shim_dirB
-accept .*`pwd`/.*
-accept .*`${parent_dir}/test`/.*
+baseDir `realpath .`/shim_dirA
+directory `realpath .`/shim_dirB
+accept .*${parent_dir}/.*
 reject .*
-#accept .*
 
 EOT
 
@@ -86,8 +84,8 @@ nodupe_ttl 0
 header toto=pig
 events modify,link,delete,mkdir,rmdir
 
-post_baseUrl sftp://${USER}@localhost/${parent_dir}/shim_dirA
-post_baseDir ${parent_dir}/shim_dirA
+post_baseUrl sftp://${USER}@localhost/`realpath .`/shim_dirA
+post_baseDir `realpath .`/shim_dirA
 post_topicPrefix v03.post
 
 accept `pwd`/.*
