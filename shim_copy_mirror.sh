@@ -1,8 +1,9 @@
-
+d=`realpath .`
+parent_dir=`dirname $d`
 
 # job step 0 - setup...
-if [ ! -d ~/test ]; then
-     mkdir ~/test
+if [ ! -d ${parent_dir}/test ]; then
+     mkdir ${parent_dir}/test
 fi
 
 echo "ignore rm errors.. cleaning before start"
@@ -52,8 +53,8 @@ realpathPost on
 realpathAdjust -1
 
 directory `pwd`/shim_dirB
-accept .*`realpath .`/.*
-accept .*`realpath ${HOME}/test`/.*
+accept .*`pwd`/.*
+accept .*${parent_dir}/test/.*
 reject .*
 #accept .*
 
@@ -87,8 +88,8 @@ events modify,link,delete,mkdir,rmdir
 post_baseUrl file:`pwd`/shim_dirA
 post_topicPrefix v03.post
 
-accept `realpath .`/.*
-accept `realpath ${HOME}/test`/.*
+accept `pwd`/.*
+accept `${parent_dir}/test`/.*
 reject .*
 EOT
 

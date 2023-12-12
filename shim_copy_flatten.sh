@@ -1,8 +1,11 @@
 
+d=`realpath .`
+parent_dir=`dirname $d`
+
 
 # job step 0 - setup...
-if [ ! -d ~/test ]; then
-     mkdir ~/test
+if [ ! -d ${parent_dir}/test ]; then
+     mkdir ${parent_dir}/test
 fi
 
 echo "ignore rm errors.. cleaning before start"

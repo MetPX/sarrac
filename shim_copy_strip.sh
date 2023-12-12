@@ -1,8 +1,10 @@
 
+d=`realpath .`
+parent_dir=`dirname $d`
 
 # job step 0 - setup...
-if [ ! -d ~/test ]; then
-     mkdir ~/test
+if [ ! -d ${parent_dir}/test ]; then
+     mkdir ${parent_dir}/test
 fi
 
 echo "ignore rm errors.. cleaning before start"
@@ -52,9 +54,9 @@ callback log
 batch 1
 strip ${STRIP}
 mirror True
-directory `pwd`/shim_dirB
+directory `realpath .`/shim_dirB
 accept .*`realpath .`/.*
-accept .*`realpath ${HOME}/test`/.*
+accept .*`realpath ${parent_dir}/test`/.*
 reject .*
 #accept .*
 
@@ -90,11 +92,11 @@ nodupe_ttl 0
 header toto=pig
 events modify,link,delete,mkdir,rmdir
 
-post_baseUrl file:`pwd`/shim_dirA
+post_baseUrl file:`realpath .`/shim_dirA
 post_topicPrefix v03.post
 
 accept `realpath .`/.*
-accept `realpath ${HOME}/test`/.*
+accept `realpath ${parent_dir}/test`/.*
 reject .*
 EOT
 
