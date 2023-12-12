@@ -30,7 +30,7 @@ jobs:
       # Don't cancel the entire matrix when one job fails
       fail-fast: false
       matrix:
-        which_test: [ "test_shim_post", "test_shim_copy_mirror", "test_shim_copy_strip", "test_shim_copy_strip_slash", "test_shim_copy_baseDir" ]
+        which_test: [ "test_shim_post", "test_shim_copy_mirror", "test_shim_copy_strip", "test_shim_copy_baseDir" ]
         osver: [ "ubuntu-20.04", "ubuntu-22.04" ]
         #which_test: [ "test_shim_copy_strip_slash"  ]
         #osver: [ "ubuntu-22.04" ]

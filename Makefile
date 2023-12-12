@@ -163,4 +163,4 @@ test_shim_copy_baseDir:
 
 test_shim: test_shim_post test_shim_copy_strip test_shim_copy_mirror 
 
-test_shim_no_symlinks: test_shim test_shim_copy_mirror_sftp test_shim_copy_baseDir
+test_shim_no_symlinks: test_shim test_shim_copy_mirror_sftp test_shim_copy_strip_slash test_shim_copy_baseDir
