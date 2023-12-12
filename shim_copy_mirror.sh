@@ -133,9 +133,9 @@ cd ..
 diffs="`diff dirA.sums dirB.sums| wc -l`"
 
 cd shim_dirA
-find . -type l  | xargs ls -al >../dirA.links
+find . -type l  | xargs ls -al | cut --bytes=42- >../dirA.links
 cd ../shim_dirB
-find . -type l  | xargs ls -al >../dirB.links
+find . -type l  | xargs ls -al | cut --bytes=42- >../dirB.links
 cd ..
 
 sed 's+shim_dirB+shim_dirA+' dirB.links >dirC.links
