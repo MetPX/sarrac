@@ -1,8 +1,13 @@
+d=`realpath .`
+parent_dir=`dirname $d`
 
+if [ $d != `pwd` ]; then
+   echo "RESULT: SKIPPED symlinked environment. This test does not work"
+   exit 0
+fi
 
-# job step 0 - setup...
-if [ ! -d ~/test ]; then
-     mkdir ~/test
+if [ ! -d ${parent_dir}/test ]; then
+     mkdir ${parent_dir}/test
 fi
 
 echo "ignore rm errors.. cleaning before start"
@@ -47,9 +52,10 @@ logMessageDump on
 callback log
 batch 1
 mirror True
+baseDir ${parent_dir}/shim_dirA
 directory `pwd`/shim_dirB
-accept .*`realpath .`/.*
-accept .*`realpath ${HOME}/test`/.*
+accept .*`pwd`/.*
+accept .*`${parent_dir}/test`/.*
 reject .*
 #accept .*
 
@@ -80,11 +86,12 @@ nodupe_ttl 0
 header toto=pig
 events modify,link,delete,mkdir,rmdir
 
-post_baseUrl sftp://${USER}@localhost/`pwd`/shim_dirA
+post_baseUrl sftp://${USER}@localhost/${parent_dir}/shim_dirA
+post_baseDir ${parent_dir}/shim_dirA
 post_topicPrefix v03.post
 
-accept `realpath .`/.*
-accept `realpath ${HOME}/test`/.*
+accept `pwd`/.*
+accept `realpath ${parent_dir}/test`/.*
 reject .*
 EOT
 

@@ -1,8 +1,10 @@
 
+d=`realpath .`
+parent_dir=`dirname $d`
 
 if [ ! "${SR_POST_CONFIG}" ]; then
-   if [ ! -d ~/test ]; then
-     mkdir ~/test
+   if [ ! -d ${parent_dir}/test ]; then
+     mkdir ${parent_dir}/test
    fi
    mkdir -p ~/.config/sr3/cpost
 
@@ -14,6 +16,7 @@ if [ ! "${EXCHANGE}" ]; then
     EXCHANGE=xs_pastest
 fi
 
+
    cat >~/.config/sr3/cpost/local_post.conf  <<EOT
 
 post_broker ${BROKER}
@@ -24,7 +27,7 @@ logReject on
 logLevel debug
 debug True
 realpathAdjust -2
-realpathDirPost True
+realpathPost True
 exchangeDeclare True
 #integrity none
 shim_post_minterval 10
@@ -36,12 +39,12 @@ nodupe_ttl 0
 header toto=pig
 events modify,link,delete,mkdir,rmdir
 
-post_baseUrl file:${HOME}
+post_baseUrl file:$parent_dir
 
 post_topicPrefix v03.post
 
 accept `realpath .`/.*
-accept `realpath ${HOME}/test`/.*
+accept `realpath ${parent_dir}/test`/.*
 reject .*
 EOT
 
@@ -50,7 +53,7 @@ EOT
    rm hihi 
    rm hoho 
    rm haha 
-   rm ~/test/hoho_my_darling.txt 
+   rm ${parent_dir}/test/hoho_my_darling.txt 
    rm hoohoo
 
    export SR_POST_CONFIG=local_post.conf
@@ -61,7 +64,7 @@ EOT
        export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
     fi
    export SR_SHIMDEBUG=99
-   exec $0
+   exec `realpath .`/$0
 fi
 
 set -x
@@ -91,7 +94,7 @@ rmdir sub_dir2
 
 
 echo "#test 1 sha512 070 cp command"
-cp libsr3shim.c ~/test/hoho_my_darling.txt
+cp libsr3shim.c ${parent_dir}/test/hoho_my_darling.txt
 
 echo "#test 1 sha512 080 touch command"
 touch hihi
@@ -105,12 +108,12 @@ mv haha hihi
 echo "#test 1 rename 110 hardlink to a symlink"
 ln hihi hoohoo
 echo "#test 1 rename 120 moving a file. "
-mv ~/test/hoho_my_darling.txt ~/test/hoho2.log
+mv ${parent_dir}/test/hoho_my_darling.txt ${parent_dir}/test/hoho2.log
 echo "#test 1 remove 130 removing a file. "
 rm hihi
 
 echo "#test 1 remove 140 removing a file." 
-rm ~/test/hoho2.log
+rm ${parent_dir}/test/hoho2.log
 
 echo "#test 1 directory 150 make second directory ."
 

@@ -445,6 +445,9 @@ void srshim_realpost(const char *path)
 	char fn[PATH_MAX + 1];
 	char fnreal[PATH_MAX + 1];
 
+	strcpy(fnreal,"");
+	strcpy(fn,"");
+
 	sr_shimdebug_msg(1, "srshim_realpost 1 PATH %s src=%p\n", path, sr_c);
 
 	if (!path || !sr_c)

@@ -1,8 +1,12 @@
 
+d=`realpath .`
+parent_dir=`dirname $d`
+
+
 
 # job step 0 - setup...
-if [ ! -d ~/test ]; then
-     mkdir ~/test
+if [ ! -d ${parent_dir}/test ]; then
+     mkdir ${parent_dir}/test
 fi
 
 echo "ignore rm errors.. cleaning before start"
@@ -50,7 +54,7 @@ mirror True
 baseDir `pwd`/shim_dirA
 directory `pwd`/shim_dirB
 accept .*`realpath .`/.*
-accept .*`realpath ${HOME}/test`/.*
+accept .*`realpath ${parent_dir}/test`/.*
 reject .*
 #accept .*
 
@@ -86,7 +90,7 @@ post_baseUrl sftp://${USER}@localhost/
 post_topicPrefix v03.post
 
 accept `realpath .`/.*
-accept `realpath ${HOME}/test`/.*
+accept `realpath ${parent_dir}/test`/.*
 reject .*
 EOT
 

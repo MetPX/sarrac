@@ -318,6 +318,17 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option,
  * Return: modification of sr_cfg with paths added, as well as action set.
  */
 
+void realpath_adjust(const char *input_path, char *output_path, signed int adjust);
+/*
+ * apply the realpath function as specified by the adjustment.
+ * == 0 - apply it to the whole path, but if that fails (say, for a broken link) the back retry with -1.
+ *
+ * when adjust is non-zero, examine a subset of elements in the path, denoted by a number of slashes.
+ *  < 0 - negative values... start from the right, so -1 means the directory immediately containing the file.
+ *  > 0 - positive values... start from the left. so 3 means apply realpath to first three elements of the path.
+ *
+ */
+
 void sr_add_path(struct sr_config_s *sr_cfg, const char *path);
 
 /**
