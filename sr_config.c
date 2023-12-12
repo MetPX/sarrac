@@ -108,6 +108,80 @@ void sr_add_path(struct sr_config_s *sr_cfg, const char *option)
 	}
 }
 
+void realpath_adjust(const char *input_path, char *output_path, signed int adjust)
+ /* how to adjust the realpath resolution.
+  * 0 - use the whole thing.
+  * n < 0 - from the right work left...
+  * n > 0 - from the left, work right...
+  */
+{
+        char *last_slash;
+        char *start, *spare, *end;
+        char *return_value;
+        char mutable_input_path[PATH_MAX];
+        int i;
+
+        i = 0;
+        end = NULL;
+        start = mutable_input_path;
+        strcpy(mutable_input_path, input_path);
+
+        if (adjust == 0) {
+                return_value = realpath(input_path, output_path);
+                if (return_value) {
+                        sr_log_msg(LOG_DEBUG, "realpath_adjust %d, %s -> %s \n", adjust, input_path,
+                                   output_path);
+                        return;
+                }
+                // fallback to checking a directory for last path element.
+                adjust = -1;
+        }
+        if (adjust < 0) {
+                for (i = 0; i > adjust; i--) {
+                        spare = end;
+                        end = strrchr(start, '/');
+                        if (end) {
+                                if (spare)
+                                        *spare = '/';
+                                *end = '\0';
+                        } else {
+                                break;
+                        }
+                }
+        } else if (adjust > 0) {
+                for (i = 0; i <= adjust; i++) {
+                        spare = start;
+                        end = strchr(start, '/');
+                        if (end) {
+                                start = end + 1;
+                        } else {
+                                break;
+                        }
+                }
+                if (end) {
+                        *end = '\0';
+                }
+        }
+
+        last_slash = end;
+        if (last_slash) {
+                *last_slash = '\0';
+                return_value = realpath(mutable_input_path, output_path);
+                sr_log_msg(LOG_DEBUG, "realpath_adjust %d, %s -> %s \n", adjust, mutable_input_path,
+                           output_path);
+                *last_slash = '/';
+                if (return_value) {
+                        strcat(output_path, last_slash);
+                } else {
+                        strcpy(output_path, input_path);
+                }
+        } else {
+                strcpy(output_path, input_path);
+        }
+
+        return;
+}
+
 /**
  * sr_add_binding() - add to the list of topics in an sr_cfg
  * @sr_cfg: The configuration to be modified with the additional topic.
@@ -709,7 +783,9 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 	char *brokerstr, *argument, *argument2, *spare;
 	int val;
 	int retval;
+	char r[PATH_MAX];
 
+	strcpy(r,"");
 	//char p[PATH_MAX];
 
 	if (strcspn(option, " \t\n#") == 0)
@@ -872,14 +948,27 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 			   argument);
 		if (sr_cfg->post_baseDir)
 			free(sr_cfg->post_baseDir);
-		sr_cfg->post_baseDir = argument;
+
+		if (sr_cfg->realpathPost|| sr_cfg->realpathFilter) {
+	               realpath_adjust( argument, r, sr_cfg->realpathAdjust );
+                       sr_cfg->post_baseDir = strdup(r);
+		} else {
+			sr_cfg->post_baseDir = strdup(argument);
+		}
 		argument = NULL;
 
 	} else if (!strcmp(option, "post_base_dir") || !strcmp(option, "pbd")
 		   || !strcmp(option, "post_baseDir") || !strcmp(option, "post_basedir")) {
 		if (sr_cfg->post_baseDir)
 			free(sr_cfg->post_baseDir);
-		sr_cfg->post_baseDir = argument;
+
+		if (sr_cfg->realpathPost|| sr_cfg->realpathFilter) {
+	               realpath_adjust( argument, r, sr_cfg->realpathAdjust );
+                       sr_cfg->post_baseDir = strdup(r);
+		} else {
+			sr_cfg->post_baseDir = strdup(argument);
+		}
+
 		argument = NULL;
 		retval = 2;
 
@@ -1656,11 +1745,14 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	char home[PATH_MAX / 2];
 	char p[PATH_MAX];
 	char q[AMQP_MAX_SS];
+	char r[PATH_MAX];
 	FILE *f;
 	int ret;
 	struct stat sb;
 	struct timespec tseed;
         int ll = strcmp(sr_cfg->action,"show")?LOG_DEBUG:LOG_INFO;
+
+	strcpy(r,"");
 
 	if (!sr_cfg->configname)
 		sr_cfg->configname = strdup("NONE");
@@ -1910,7 +2002,12 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		if (!(sr_cfg->post_baseDir)) {
                     if (sr_cfg->post_baseUrl) {
  			if (!strncmp(sr_cfg->post_baseUrl, "file:", 5)) {
-				sr_cfg->post_baseDir = strdup(sr_cfg->post_baseUrl + 5);
+				if (sr_cfg->realpathPost|| sr_cfg->realpathFilter) {
+	                               realpath_adjust( sr_cfg->post_baseUrl + 5, r, sr_cfg->realpathAdjust );
+                                       sr_cfg->post_baseDir = strdup(r);
+				} else {
+					sr_cfg->post_baseDir = strdup(sr_cfg->post_baseUrl + 5);
+				}
                     	} else if (!strncmp(sr_cfg->post_baseUrl, "sftp:", 5)) {
                             char *slash;
                             char *at;
@@ -1922,7 +2019,12 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
        		                    }
                                     if (slash) {
                		                 while (*(slash+1) == '/') slash++;
-                                         sr_cfg->post_baseDir = strdup(slash);
+					 if (sr_cfg->realpathPost|| sr_cfg->realpathFilter) {
+	                                 	realpath_adjust( slash, r, sr_cfg->realpathAdjust );
+                                         	sr_cfg->post_baseDir = strdup(r);
+					 } else {
+						sr_cfg->post_baseDir = strdup(slash);
+					 }
                                     }
                             }
                         }
