@@ -49,6 +49,8 @@ struct sr_metrics_s {
     int rxBadCount;
     int rejectCount;
     int txGoodCount;
+    char lastTx[SR_TIMESTRLEN];
+    char lastRx[SR_TIMESTRLEN];
     double last_housekeeping;
 };
 

@@ -287,10 +287,10 @@ void sr_context_metrics_cumulative_write(struct sr_context *sr_c)
 
                 f = fopen( cumulativeFilename, "a+" );
 		if (f) {
-                	fprintf( f, "\"%s\": { \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f, \"brokerQueuedMessageCount\": %d } }, \n" ,
+                	fprintf( f, "\"%s\": { \"context\" : { \"rxGoodCount\": %d, \"rxBadCount\": %d, \"rejectCount\": %d, \"txGoodCount\": %d, \"last_housekeeping\": %f, \"brokerQueuedMessageCount\": %d, \"lastRx\": \"%s\", \"lastTx\": \"%s\" } }, \n" ,
                         datestamp, sr_c->metrics.rxGoodCount, sr_c->metrics.rxBadCount, sr_c->metrics.rejectCount, 
-			sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping, sr_c->metrics.brokerQueuedMessageCount 
-                        );
+			sr_c->metrics.txGoodCount, sr_c->metrics.last_housekeeping, sr_c->metrics.brokerQueuedMessageCount,
+		        sr_c->metrics.lastRx, sr_c->metrics.lastTx );
                         fclose(f);
 		}
 
@@ -307,6 +307,8 @@ void sr_context_metrics_reset(struct sr_context *sr_c)
         sr_c->metrics.rxBadCount = 0;
         sr_c->metrics.rejectCount = 0;
         sr_c->metrics.txGoodCount = 0;
+        strcpy(sr_c->metrics.lastRx,"0.0");
+        strcpy(sr_c->metrics.lastTx,"0.0");
 	memset(&tnow, 0, sizeof(struct timespec));
 	clock_gettime(CLOCK_REALTIME, &tnow);
 	sr_c->metrics.last_housekeeping= tnow.tv_sec + (tnow.tv_nsec / 1e9);

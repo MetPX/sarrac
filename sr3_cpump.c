@@ -368,6 +368,7 @@ int main(int argc, char **argv)
 			no_messages_tally=0;
 			sr_log_msg(LOG_INFO, "received: %s\n", sr_message_2log(m));
 			sr_c->metrics.rxGoodCount++;
+			strcpy(sr_c->metrics.lastRx,sr_time2str(NULL));
 		} else {
 			no_messages_tally=0;
 			sr_log_msg(LOG_ERROR, "discarding invalid message: %s\n",
@@ -421,6 +422,7 @@ int main(int argc, char **argv)
 			else if (!strcmp(sr_cfg.outlet, "post")) {
 				sr_post_message(sr_c, m);
 			        sr_c->metrics.txGoodCount++;
+			        strcpy(sr_c->metrics.lastTx,sr_time2str(NULL));
 			}
 		}
 	}
