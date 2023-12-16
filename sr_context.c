@@ -307,8 +307,6 @@ void sr_context_metrics_reset(struct sr_context *sr_c)
         sr_c->metrics.rxBadCount = 0;
         sr_c->metrics.rejectCount = 0;
         sr_c->metrics.txGoodCount = 0;
-        strcpy(sr_c->metrics.lastRx,"0.0");
-        strcpy(sr_c->metrics.lastTx,"0.0");
 	memset(&tnow, 0, sizeof(struct timespec));
 	clock_gettime(CLOCK_REALTIME, &tnow);
 	sr_c->metrics.last_housekeeping= tnow.tv_sec + (tnow.tv_nsec / 1e9);
@@ -356,6 +354,8 @@ struct sr_context *sr_context_init_config(struct sr_config_s *sr_cfg, int must_a
 				   sr_cfg->post_broker->hostname, sr_cfg->post_broker->port);
 	}
         sr_context_metrics_reset(sr_c);
+        strcpy(sr_c->metrics.lastRx,"0.0");
+        strcpy(sr_c->metrics.lastTx,"0.0");
 	return (sr_c);
 
 }
