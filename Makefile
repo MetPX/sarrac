@@ -156,4 +156,4 @@ test_shim_copy_baseDir:
 	-./shim_copy_baseDir.sh >shim_copy_baseDir.log 2>&1
 	python3 ./check_shim_test.py shim_copy_baseDir.log 
 
-test_shim: test_shim_post test_shim_copy_strip test_shim_copy_mirror test_shim_copy_mirror_sftp test_shim_copy_baseDir
+test_shim: test_shim_post test_shim_copy_strip test_shim_copy_strip_slash test_shim_copy_mirror test_shim_copy_mirror_sftp test_shim_copy_baseDir
