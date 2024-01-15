@@ -1,8 +1,12 @@
-metpx-sr3c (3.23.12) UNRELEASED; urgency=medium
+metpx-sr3c (3.24.01) UNRELEASED; urgency=medium
 
-  * increment away from previous release.
+  * tests: fix for link modification times cannot be preserved.
+  * test fixes for changes in python side.
+  * README revised to reflect that cpump is not resilient to failure.
+  * fix #133 read some non-utf8 fields (instead of erroring.)
+  * last tx/rx should be cumulative, reset less often.
 
- -- peter <peter@bsqt.homeip.net>  Tue, 05 Dec 2023 20:26:22 -0500
+ -- peter <peter@bsqt.homeip.net>  Tue, 15 Jan 2024 08:26:22 -0500
 
 metpx-sr3c (3.23.11p3) unstable; urgency=medium
 
