@@ -1381,7 +1381,7 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 {
 	char *c;
-	char p[256];
+	char p[512];
 	char home[256];
 
 	sr_credentials_init();
