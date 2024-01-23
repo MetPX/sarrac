@@ -24,23 +24,9 @@
 
 #include "sr_util.h"
 
-static time_t logbase;
-static int logfd = STDERR_FILENO;
-static char logfn[PATH_MAX];
-static char metricsfn[PATH_MAX];
-bool logMetrics = false;
-static char logfn_ts[PATH_MAX];
-static char metricsfn_ts[PATH_MAX];
-static int loglevel = LOG_INFO;
-static int logmode = 0600;
-static int logrotate_count = 5;
-static int logrotate_interval = 24 * 60 * 60;
+static struct sr_log_s log_s;
 
-static struct timespec ts;
-static struct tm tc;
-
-static struct logfn_tab_s ltab;
-static struct logfn_tab_s mtab;
+static struct sr_log_s *sru_log = &log_s;
 
 char *log_set_fnts(char *basefilename);
 
@@ -50,7 +36,7 @@ void sr_log_msg(int prio, const char *format, ...)
 	char *level;
 	va_list ap;
 
-	if (prio > loglevel)
+	if (prio > sru_log->loglevel)
 		return;
 
 	switch (prio) {
@@ -76,50 +62,59 @@ void sr_log_msg(int prio, const char *format, ...)
 		level = "UNKNOWN";
 	}
 
-	clock_gettime(CLOCK_REALTIME, &ts);
-	localtime_r(&ts.tv_sec, &tc);
+	clock_gettime(CLOCK_REALTIME, &sru_log->ts);
+	localtime_r(&sru_log->ts.tv_sec, &sru_log->tc);
+
+        if (!sru_log->initialized) {
+		sru_log->logfd = STDERR_FILENO;
+        	sru_log->logmode = 0600;
+        	sru_log->logrotate_count = 5;
+	        sru_log->logrotate_interval = 24*60*60;
+	        sru_log->logMetrics = false;
+	        sru_log->initialized = true;
+ 	}
 
 	/* log (message & metrics) rotation */
-	if ((logfd != STDERR_FILENO)
-	    && ((ts.tv_sec - logbase) > logrotate_interval)) {
-		logbase = ts.tv_sec;
+	if ((sru_log->logfd != STDERR_FILENO) && strcmp(sru_log->logfn,"")
+	    && ((sru_log->ts.tv_sec - sru_log->logbase) > sru_log->logrotate_interval)) {
+		sru_log->logbase = sru_log->ts.tv_sec;
 
-		strcpy(logfn_ts,log_set_fnts(logfn));
-		close(logfd);
-		rename(logfn, logfn_ts);
+		strcpy(sru_log->logfn_ts,log_set_fnts(sru_log->logfn));
+		close(sru_log->logfd);
+		rename(sru_log->logfn, sru_log->logfn_ts);
 
-		strcpy(metricsfn_ts,log_set_fnts(metricsfn));
-		rename(metricsfn, metricsfn_ts);
+		strcpy(sru_log->metricsfn_ts,log_set_fnts(sru_log->metricsfn));
+		rename(sru_log->metricsfn, sru_log->metricsfn_ts);
 
-		logfd = open(logfn, O_WRONLY | O_CREAT | O_APPEND, logmode);
+		sru_log->logfd = open(sru_log->logfn, O_WRONLY | O_CREAT | O_APPEND, sru_log->logmode);
 
 		/* delete outdated logs */
-		if (logrotate_count > 0) {
-			if (ltab.fns[ltab.i]) {
-				remove(ltab.fns[ltab.i]);
-				free(ltab.fns[ltab.i]);
-				ltab.fns[ltab.i] = NULL;
+		if (sru_log->logrotate_count > 0) {
+			if (sru_log->ltab.fns[sru_log->ltab.i]) {
+				remove(sru_log->ltab.fns[sru_log->ltab.i]);
+				free(sru_log->ltab.fns[sru_log->ltab.i]);
+				sru_log->ltab.fns[sru_log->ltab.i] = NULL;
 			}
-			ltab.fns[ltab.i] = strdup(logfn_ts);
-			ltab.i = (ltab.i + 1) % ltab.size;
+			sru_log->ltab.fns[sru_log->ltab.i] = strdup(sru_log->logfn_ts);
+			sru_log->ltab.i = (sru_log->ltab.i + 1) % sru_log->ltab.size;
 		
-			if (mtab.fns[mtab.i]) {
-				remove(mtab.fns[mtab.i]);
-				free(mtab.fns[mtab.i]);
-				mtab.fns[mtab.i] = NULL;
+			if (sru_log->mtab.fns[sru_log->mtab.i]) {
+				remove(sru_log->mtab.fns[sru_log->mtab.i]);
+				free(sru_log->mtab.fns[sru_log->mtab.i]);
+				sru_log->mtab.fns[sru_log->mtab.i] = NULL;
 			}
-			mtab.fns[mtab.i] = strdup(metricsfn_ts);
-			mtab.i = (mtab.i + 1) % mtab.size;
+			sru_log->mtab.fns[sru_log->mtab.i] = strdup(sru_log->metricsfn_ts);
+			sru_log->mtab.i = (sru_log->mtab.i + 1) % sru_log->mtab.size;
 		}
 	}
 
 	/* logging */
-	dprintf(logfd, "%04d-%02d-%02d %02d:%02d:%02d,%03d [%s] ",
-		tc.tm_year + 1900, tc.tm_mon + 1, tc.tm_mday,
-		tc.tm_hour, tc.tm_min, tc.tm_sec, (int)(ts.tv_nsec / 1e6), level);
+	dprintf(sru_log->logfd, "%04d-%02d-%02d %02d:%02d:%02d,%03d [%s] ",
+		sru_log->tc.tm_year + 1900, sru_log->tc.tm_mon + 1, sru_log->tc.tm_mday,
+		sru_log->tc.tm_hour, sru_log->tc.tm_min, sru_log->tc.tm_sec, (int)(sru_log->ts.tv_nsec / 1e6), level);
 
 	va_start(ap, format);
-	vdprintf(logfd, format, ap);
+	vdprintf(sru_log->logfd, format, ap);
 	va_end(ap);
 }
 #endif
@@ -127,34 +122,37 @@ void sr_log_msg(int prio, const char *format, ...)
 void sr_log_setup(const char *fn, const char *mfn, bool logMetricsFlag, mode_t mode, int level, int lr, int lri)
 {
 #ifndef SR_DEBUG_LOGS
-	strcpy(logfn, fn);
-	strcpy(metricsfn, mfn);
-	logmode = mode;
-	logrotate_count = lr;
-	logrotate_interval = lri;
-	loglevel = level;
+        
 
-	logMetrics = logMetricsFlag;
+	strcpy(sru_log->logfn, fn);
+	strcpy(sru_log->metricsfn, mfn);
+	sru_log->logmode = mode;
+	sru_log->logrotate_count = lr;
+	sru_log->logrotate_interval = lri;
+	sru_log->loglevel = level;
+	sru_log->initialized = true;
 
-	clock_gettime(CLOCK_REALTIME, &ts);
-	localtime_r(&ts.tv_sec, &tc);
-	logbase = ts.tv_sec;
+	sru_log->logMetrics = logMetricsFlag;
 
-	logfd = open(logfn, O_WRONLY | O_CREAT | O_APPEND, logmode);
+	clock_gettime(CLOCK_REALTIME, &sru_log->ts);
+	localtime_r(&sru_log->ts.tv_sec, &sru_log->tc);
+	sru_log->logbase = sru_log->ts.tv_sec;
 
-	if (logrotate_count > 0) {
-		ltab.fns = (char **)malloc(sizeof(char *) * logrotate_count);
-		for (ltab.i = 0; ltab.i < logrotate_count; ++ltab.i)
-			ltab.fns[ltab.i] = NULL;
-		ltab.i = 0;
-		ltab.size = logrotate_count;
+	sru_log->logfd = open(sru_log->logfn, O_WRONLY | O_CREAT | O_APPEND, sru_log->logmode);
+
+	if (sru_log->logrotate_count > 0) {
+		sru_log->ltab.fns = (char **)malloc(sizeof(char *) * sru_log->logrotate_count);
+		for (sru_log->ltab.i = 0; sru_log->ltab.i < sru_log->logrotate_count; ++sru_log->ltab.i)
+			sru_log->ltab.fns[sru_log->ltab.i] = NULL;
+		sru_log->ltab.i = 0;
+		sru_log->ltab.size = sru_log->logrotate_count;
 
                 // metrics files.
-		mtab.fns = (char **)malloc(sizeof(char *) * logrotate_count);
-		for (mtab.i = 0; mtab.i < logrotate_count; ++mtab.i)
-			mtab.fns[mtab.i] = NULL;
-		mtab.i = 0;
-		mtab.size = logrotate_count;
+		sru_log->mtab.fns = (char **)malloc(sizeof(char *) * sru_log->logrotate_count);
+		for (sru_log->mtab.i = 0; sru_log->mtab.i < sru_log->logrotate_count; ++sru_log->mtab.i)
+			sru_log->mtab.fns[sru_log->mtab.i] = NULL;
+		sru_log->mtab.i = 0;
+		sru_log->mtab.size = sru_log->logrotate_count;
 	}
 #endif
 }
@@ -162,31 +160,31 @@ void sr_log_setup(const char *fn, const char *mfn, bool logMetricsFlag, mode_t m
 /* global accessor for loglevel, ugly but better than using a global variable... */
 void sr_set_loglevel(int level)
 {
-	loglevel = level;
+	sru_log->loglevel = level;
 }
 
 void sr_log_cleanup()
 {
 #ifndef SR_DEBUG_LOGS
 	/* (logfd != STDERR_FILENO) <> sr_log_setup called previously */
-	if (logfd != STDERR_FILENO) {
-		close(logfd);
-		logfd = STDERR_FILENO;
+	if (sru_log->logfd != STDERR_FILENO) {
+		close(sru_log->logfd);
+		sru_log->logfd = STDERR_FILENO;
 
-		if (logrotate_count > 0) {
-			for (ltab.i = 0; ltab.i < logrotate_count; ++ltab.i)
-				if (ltab.fns[ltab.i])
-					free(ltab.fns[ltab.i]);
-			free(ltab.fns);
-			ltab.i = 0;
-			ltab.size = 0;
+		if (sru_log->logrotate_count > 0) {
+			for (sru_log->ltab.i = 0; sru_log->ltab.i < sru_log->logrotate_count; ++sru_log->ltab.i)
+				if (sru_log->ltab.fns[sru_log->ltab.i])
+					free(sru_log->ltab.fns[sru_log->ltab.i]);
+			free(sru_log->ltab.fns);
+			sru_log->ltab.i = 0;
+			sru_log->ltab.size = 0;
 		
-			for (mtab.i = 0; mtab.i < logrotate_count; ++mtab.i)
-				if (mtab.fns[mtab.i])
-					free(mtab.fns[mtab.i]);
-			free(mtab.fns);
-			mtab.i = 0;
-			mtab.size = 0;
+			for (sru_log->mtab.i = 0; sru_log->mtab.i < sru_log->logrotate_count; ++sru_log->mtab.i)
+				if (sru_log->mtab.fns[sru_log->mtab.i])
+					free(sru_log->mtab.fns[sru_log->mtab.i]);
+			free(sru_log->mtab.fns);
+			sru_log->mtab.i = 0;
+			sru_log->mtab.size = 0;
 		}
 	}
 #endif
@@ -205,28 +203,28 @@ char *log_set_fnts(char *basefilename)
 
 	*p++ = '.';
 
-	int lri = logrotate_interval;
+	int lri = sru_log->logrotate_interval;
 	if (!(lri % (24 * 60 * 60))) {
 		/* daily resolution */
 		strcpy(p, "%04d-%02d-%02d");
-		sprintf(logfn_ts, b, tc.tm_year + 1900, tc.tm_mon + 1, tc.tm_mday);
+		sprintf(logfn_ts, b, sru_log->tc.tm_year + 1900, sru_log->tc.tm_mon + 1, sru_log->tc.tm_mday);
 
 	} else if (!(lri % (60 * 60))) {
 		/* hourly resolution */
 		strcpy(p, "%04d-%02d-%02d_%02d");
-		sprintf(logfn_ts, b, tc.tm_year + 1900, tc.tm_mon + 1, tc.tm_mday, tc.tm_hour);
+		sprintf(logfn_ts, b, sru_log->tc.tm_year + 1900, sru_log->tc.tm_mon + 1, sru_log->tc.tm_mday, sru_log->tc.tm_hour);
 
 	} else if (!(lri % (60))) {
 		/* minute resolution */
 		strcpy(p, "%04d-%02d-%02d_%02d-%02d");
-		sprintf(logfn_ts, b, tc.tm_year + 1900, tc.tm_mon + 1,
-			tc.tm_mday, tc.tm_hour, tc.tm_min);
+		sprintf(logfn_ts, b, sru_log->tc.tm_year + 1900, sru_log->tc.tm_mon + 1,
+			sru_log->tc.tm_mday, sru_log->tc.tm_hour, sru_log->tc.tm_min);
 
 	} else {
 		/* second resolution */
 		strcpy(p, "%04d-%02d-%02d_%02d-%02d-%02d");
-		sprintf(logfn_ts, b, tc.tm_year + 1900, tc.tm_mon + 1,
-			tc.tm_mday, tc.tm_hour, tc.tm_min, tc.tm_sec);
+		sprintf(logfn_ts, b, sru_log->tc.tm_year + 1900, sru_log->tc.tm_mon + 1,
+			sru_log->tc.tm_mday, sru_log->tc.tm_hour, sru_log->tc.tm_min, sru_log->tc.tm_sec);
 	}
 	return(logfn_ts);
 }
@@ -389,7 +387,7 @@ void sr_daemonize(int close_stdout)
 			   "daemonizing, setsid errord, failed to completely dissociate from login process\n");
 	}
 
-	if (logfd == 2) {
+	if (sru_log->logfd == 2) {
 		sr_log_msg(LOG_CRITICAL, "to run as daemon log option must be set.\n");
 		exit(1);
 	}
@@ -397,10 +395,10 @@ void sr_daemonize(int close_stdout)
 	close(0);
 	if (close_stdout) {
 		close(1);
-		dup2(logfd, STDOUT_FILENO);
+		dup2(sru_log->logfd, STDOUT_FILENO);
 	}
 	close(2);
-	dup2(logfd, STDERR_FILENO);
+	dup2(sru_log->logfd, STDERR_FILENO);
 
 	sr_log_msg(LOG_DEBUG, "child daemonizing complete.\n");
 }
@@ -954,6 +952,7 @@ struct timespec *sr_str2time(char *s)
    */
 {
 	struct tm tm;
+	static struct timespec ts;
 	memset(&tm, 0, sizeof(struct tm));
 	memset(&ts, 0, sizeof(struct timespec));
 	int dl;			// length of decimal string.

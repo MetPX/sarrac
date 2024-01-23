@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <linux/limits.h>
 
 #include <time.h>
 #include <openssl/sha.h>
@@ -18,6 +19,36 @@
 #define LOG_ERROR     (2)
 #define LOG_CRITICAL  (1)
 
+/* table to hold previous log file names for log rotation */
+struct logfn_tab_s {
+	char **fns;		/* dynamically allocated, pointer buffer size known at rt */
+	int i;
+	int size;
+};
+
+void sr_log_cleanup();
+struct sr_log_s {
+
+        bool initialized;
+	time_t logbase;
+	int logfd;
+	char logfn[PATH_MAX];
+	char metricsfn[PATH_MAX];
+	bool logMetrics;
+	char logfn_ts[PATH_MAX];
+	char metricsfn_ts[PATH_MAX];
+	int loglevel;
+	int logmode;
+	int logrotate_count;
+	int logrotate_interval;
+
+	struct timespec ts;
+	struct tm tc;
+
+	struct logfn_tab_s ltab;
+	struct logfn_tab_s mtab;
+};
+ 
 #ifdef SR_DEBUG_LOGS
 
 // following macro allows compiler to find errors in sr_log_msg's variadic arguments.
@@ -41,14 +72,6 @@ void sr_log_setup(const char *fn, const char *metricsfn, bool logMetricsFlag, mo
 
 void sr_set_loglevel(int level);
 
-/* table to hold previous log file names for log rotation */
-struct logfn_tab_s {
-	char **fns;		/* dynamically allocated, pointer buffer size known at rt */
-	int i;
-	int size;
-};
-
-void sr_log_cleanup();
 
 /* sr_is_utf8     routine to confirm that a field is utf8 encoded, taken verbatim from:
  *             https://stackoverflow.com/questions/1031645/how-to-detect-utf-8-in-plain-c 
