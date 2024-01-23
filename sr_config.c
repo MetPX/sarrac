@@ -1382,6 +1382,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 {
 	char *c;
 	char p[256];
+	char home[256];
 
 	sr_credentials_init();
 	sr_cfg->action = strdup("foreground");
@@ -1485,24 +1486,25 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->vip = NULL;
 	sr_cfg->xattr_cc = 0;
 
-	sprintf(p, "%s/.config", getenv("HOME"));
+	strcpy(home, secure_getenv("HOME"));
+	sprintf(p, "%s/.config", home);
 	if (access(p, R_OK) == -1) {
 		mkdir(p, 0700);
 	}
-	sprintf(p, "%s/.config/%s", getenv("HOME"), sr_cfg->appname);
+	sprintf(p, "%s/.config/%s", home, sr_cfg->appname);
 	if (access(p, R_OK) == -1) {
 		mkdir(p, 0700);
 	}
 
 	if (!strcmp(progname, "shim")) {
-		sprintf(p, "%s/.config/%s/%s", getenv("HOME"), sr_cfg->appname, "post");
+		sprintf(p, "%s/.config/%s/%s", home, sr_cfg->appname, "post");
 	} else {
-		sprintf(p, "%s/.config/%s/%s", getenv("HOME"), sr_cfg->appname, progname);
+		sprintf(p, "%s/.config/%s/%s", home, sr_cfg->appname, progname);
 	}
 	if (access(p, R_OK) == -1) {
 		mkdir(p, 0700);
 	}
-	sprintf(p, "%s/.config/%s/default.conf", getenv("HOME"), sr_cfg->appname);
+	sprintf(p, "%s/.config/%s/default.conf", home, sr_cfg->appname);
 	sr_config_read(sr_cfg, p, 0, 0);
 
 }
