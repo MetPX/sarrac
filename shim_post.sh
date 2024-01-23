@@ -75,9 +75,6 @@ bash -c 'echo "hoho" >> ./hoho'
 echo "#test 1 sha512 020 c program run."
 truncate --size=2 ./hoho
 
-echo "#test 0 comment 999 exit early"
-exit
-
 echo "#test 1 sha512 030 python program run"
 /usr/bin/python3 pyiotest
 
