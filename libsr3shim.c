@@ -1544,7 +1544,7 @@ int fclose(FILE * f)
 
 	fdstat = fcntl(fd, F_GETFL);
 
-	sr_shimdebug_msg(5, " fclose %p fd=%i fdstat=%d, starting\n", f, fd, fstat);
+	sr_shimdebug_msg(5, " fclose %p fd=%i fdstat=%o, starting\n", f, fd, fdstat);
 
 	if (fdstat == -1) {
 		sr_shimdebug_msg(5, " fclose NO POST not valid fd=%d !\n", fd);
