@@ -555,9 +555,9 @@ char *sr_base642hex(const char *bstr)
 #define SUMBUFSIZE (4096*1024)
 
 // SHA512 being the longest digest...
-static char sumstr[SR_SUMSTRLEN];
+//static char sumstr[SR_SUMSTRLEN];
 
-static unsigned char sumhash[SR_SUMHASHLEN];
+//static unsigned char sumhash[SR_SUMHASHLEN];
 
 int sr_get_sumhashlen(char algo)
 {
@@ -605,10 +605,13 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 {
 	EVP_MD_CTX *ctx;
 	const EVP_MD *md;
+	char *sumstrptr;
+	static char sumstr[SR_SUMSTRLEN];
 	unsigned int hashlen = 0;
 
 	static int fd;
 	static char buf[SUMBUFSIZE];
+        static unsigned char sumhash[SR_SUMHASHLEN];
 	long bytes_read;
 	long how_many_to_read;
 	const char *just_the_name = NULL;
@@ -628,6 +631,8 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	stat(fn, &attr);
 	stat_mtime = attr.st_mtime;
+
+	sumstrptr=NULL;
 
 	memset(cache_mtime, 0, SR_TIMESTRLEN);
 	// are xattrs set?
@@ -681,7 +686,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		close(fd);
 
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sr_hash2sumstr(sumhash);
+		sumstrptr = sr_hash2sumstr(sumhash);
 		break;
 
 	case 'm':		// mkdir
@@ -692,7 +697,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sr_hash2sumstr(sumhash);
+		sumstrptr = sr_hash2sumstr(sumhash);
 		break;
 
 	case 'r':		// rmdir
@@ -703,7 +708,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sr_hash2sumstr(sumhash);
+		sumstrptr = sr_hash2sumstr(sumhash);
 		break;
 
 	case 'n':
@@ -714,7 +719,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sr_hash2sumstr(sumhash);
+		sumstrptr = sr_hash2sumstr(sumhash);
 		break;
 
 	case 'L':		// symlink case
@@ -725,7 +730,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 		EVP_DigestUpdate(ctx, linkstr, strlen(linkstr));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sr_hash2sumstr(sumhash);
+		sumstrptr = sr_hash2sumstr(sumhash);
 		break;
 
 	case 'R':		// null, or removal.
@@ -737,7 +742,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sr_hash2sumstr(sumhash);
+		sumstrptr = sr_hash2sumstr(sumhash);
 		break;
 
 	case 'p':
@@ -753,7 +758,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			block_size, block_count, block_rem, block_num);
 		EVP_DigestUpdate(ctx, buf, strlen(buf));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sr_hash2sumstr(sumhash);
+		sumstrptr = sr_hash2sumstr(sumhash);
 		break;
 
 	case 's':
@@ -790,13 +795,13 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		close(fd);
 
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sr_hash2sumstr(sumhash);
+		sumstrptr = sr_hash2sumstr(sumhash);
 		break;
 
 	case 'z':
 		sumhash[1] = algoz;
 		sumhash[2] = '\0';
-		sr_hash2sumstr(sumhash);
+		sumstrptr = sr_hash2sumstr(sumhash);
 		break;
 
 	default:
@@ -814,7 +819,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	}
 	/* end of xattr set */
 
-	return (sumstr);
+	return (sumstrptr);
 }
 
 static char nibble2hexchr(int i)
@@ -840,6 +845,8 @@ static int hexchr2nibble(char c)
 unsigned char *sr_sumstr2hash(const char *s)
 {
 	int i;
+        static unsigned char sumhash[SR_SUMHASHLEN];
+
 	if (!s)
 		return (NULL);
 	memset(sumhash, 0, SR_SUMHASHLEN);
@@ -861,6 +868,7 @@ unsigned char *sr_sumstr2hash(const char *s)
 char *sr_hash2sumstr(const unsigned char *h)
 {
 	int i;
+        static char sumstr[SR_SUMSTRLEN];
 	memset(sumstr, 0, SR_SUMSTRLEN);
 	sumstr[0] = h[0];
 	sumstr[1] = ',';
@@ -879,13 +887,13 @@ char *sr_hash2sumstr(const unsigned char *h)
 	return (sumstr);
 }
 
-static char time2str_result[SR_TIMESTRLEN + 30];
 
 char *sr_time2str(struct timespec *tin)
 {
 	/* turn a timespec into an 18 character sr_post(7) conformant time stamp string.
 	   if argument is NULL, then the string should correspond to the current system time.
 	 */
+        static char time2str_result[SR_TIMESTRLEN + 30];
 	struct tm s;
 	time_t when;
 	struct timespec ts;
@@ -958,7 +966,11 @@ struct timespec *sr_str2time(char *s)
 	memset(&ts, 0, sizeof(struct timespec));
 	int dl;			// length of decimal string.
 
-	strptime(s, "%Y%m%d%H%M%S", &tm);
+	if ((strlen(s)>8) && (s[8] == 'T')) {
+		strptime(s, "%Y%m%dT%H%M%S", &tm);
+        } else {
+		strptime(s, "%Y%m%d%H%M%S", &tm);
+	};
 	ts.tv_sec = timegm(&tm);
 
 	dl = strlen(s + 15);	// how many digits after decimal point?
