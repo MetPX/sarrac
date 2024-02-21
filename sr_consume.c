@@ -431,14 +431,18 @@ static void v03assign_field(const char *key, json_object * jso_v)
 			return;
 		}
 		strcpy(msg.datestamp, json_object_get_string(jso_v));
+		sr_log_msg(LOG_CRITICAL, "v03assign_field 0 msg.datestamp: %s\n", msg.datestamp );
 		tlen = strlen(msg.datestamp);
 		if (tlen < 16) {
 			sr_log_msg(LOG_ERROR, "malformed json: pubTime value too short: %s\n",
 				   msg.datestamp);
 			return;
 		}
-		tlen -= 8;
-		memmove(&msg.datestamp[8], &msg.datestamp[9], tlen);	//eliminate "T".
+		if ((strlen(msg.datestamp) > 8) && ( msg.datestamp[8] == 'T' )) {
+		    tlen -= 8;
+		    memmove(&msg.datestamp[8], &msg.datestamp[9], tlen);	//eliminate "T".
+                }
+		sr_log_msg(LOG_CRITICAL, "v03assign_field 1 msg.datestamp: %s\n", msg.datestamp );
 	} else if (!strcmp(key, "fileOp")) {
 		if (json_object_get_type(jso_v) != json_type_object) {
 			sr_log_msg(LOG_ERROR, "malformed json: identity should be an object: %d\n",
@@ -691,11 +695,15 @@ void sr_message_2json(struct sr_message_s *m)
 
 	printf("[");
 	printf(" \"%s\", { ", m->routing_key);
-	json_dump_strheader("atime", m->atime, false);
+	if (strlen(m->atime) > 9) {
+	    json_dump_strheader("atime", m->atime, false);
+	}
 	printf(", ");
 	printf("\"mode\": \"%04o\"", m->mode);
 	printf(", ");
-	json_dump_strheader("mtime", m->mtime, false);
+	if (strlen(m->mtime) > 9) {
+	    json_dump_strheader("mtime", m->mtime, false);
+        }
 	printf(", ");
 	printf("\"parts\": \"%c,%ld,%ld,%ld,%ld\"",
 	       m->parts_s, m->parts_blksz, m->parts_blkcount, m->parts_rem, m->parts_num);
@@ -1092,10 +1100,10 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 		jo = json_tokener_parse(buf);
 
 		if (jo == NULL) {
-			sr_log_msg(LOG_ERROR, "failed to parse message body: %s", buf);
+			sr_log_msg(LOG_ERROR, "failed to parse json body: %s", buf);
 			return (NULL);
 		} else {
-			sr_log_msg(LOG_DEBUG, "successfully parsed message body: %s", buf);
+			sr_log_msg(LOG_DEBUG, "successfully parsed json body: %s", buf);
 		}
 		json_object_object_foreach(jo, k, jso_kv) {
 			v03assign_field(k, jso_kv);
@@ -1108,6 +1116,8 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 #endif
 
 	}
+
+	sr_log_msg(LOG_ERROR, "v03 end of parse msg.datestamp: %s\n", msg.datestamp );
 
 	return (&msg);
 }

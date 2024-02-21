@@ -216,10 +216,18 @@ char *v03time(char *v02time)
 {
 	static char buf[128];
 
-	strncpy(buf, v02time, 8);
-	buf[8] = 'T';
-	buf[9] = '\0';
-	strcat(buf, v02time + 8);
+	if (strlen(v02time) > 9) {
+	     if ( v02time[8] != 'T' ) {
+		    strncpy(buf, v02time, 8);
+		    buf[8] = 'T';
+    		    buf[9] = '\0';
+		    strcat(buf, v02time + 8);
+	    }
+	} else {
+	    sr_log_msg(LOG_ERROR, "v03time invalid timestamp: %s. returning unmodified\n", v02time);
+            strcpy(buf,v02time);
+	}
+	//sr_log_msg(LOG_ERROR, "v03time input: %s, output: %s\n", v02time, buf);
 	return (buf);
 }
 
@@ -299,12 +307,13 @@ void v03encode(char *message_body, struct sr_context *sr_c, struct sr_message_s 
 			v03amqp_header_add(&c, "size", smallbuf);
 		}
 
-		if (m->atime[0]) {
+		if (m->atime[0] && (strlen(m->atime)>9)) {
 			v03amqp_header_add(&c, "atime", v03time(m->atime));
 		}
 
-		if (m->mtime[0])
+		if (m->mtime[0] && (strlen(m->mtime)>9)) {
 			v03amqp_header_add(&c, "mtime", v03time(m->mtime));
+		}
 	}
 	if ((m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'r')) {
 		if (m->mode > 0) {
@@ -497,6 +506,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 						       amqp_cstring_bytes(m->routing_key), 0, 0,
 						       &props, amqp_cstring_bytes(message_body));
 		} else {	/* v03 */
+			sr_log_msg(LOG_DEBUG, "v03 pubTime=%s\n", m->datestamp);
 			v03encode(message_body, sr_c, m);
 			sr_log_msg(LOG_DEBUG, "v03 body=%s\n", message_body);
 
