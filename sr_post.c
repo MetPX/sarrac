@@ -889,9 +889,11 @@ struct sr_message_s *sr_file2message_seq(struct sr_context *sr_c,
 		sr_log_msg(LOG_ERROR,
 			   "file2message_seq unable to generate %c checksum for: %s\n",
 			   m->parts_s, pathspec);
+		free(sumstr);
 		return (NULL);
 	}
 	strcpy(m->sum, sumstr);
+	free(sumstr);
 	return (m);
 }
 
