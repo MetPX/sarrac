@@ -118,7 +118,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		    unsigned long block_count, unsigned long block_rem,
 		    unsigned long block_num, int xattr_cc);
 
-unsigned char *sr_sumstr2hash(const char *s);
+unsigned char *sr_sumstr2hash(unsigned char *sumhash, const char *s);
 
 char *sr_hash2sumstr(char *sumstr, const unsigned char *h);
 

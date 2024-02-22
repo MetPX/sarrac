@@ -253,6 +253,8 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 	struct sr_cache_entry_path_s *p;
 	char *sum, *timestr, *path, *partstr;
 	unsigned char key_val[SR_CACHEKEYSZ];
+	static unsigned char sumhash[SR_SUMHASHLEN];
+
 	FILE *f;
 	int line_count = 0;
 
@@ -307,7 +309,7 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 		   sr_log_msg( LOG_DEBUG, "fields: sum=+%s+, timestr=+%s+, path=+%s+, partstr=+%s+\n", 
 		   sum, timestr, path, partstr );
 		 */
-		memcpy(key_val, sr_sumstr2hash(sum), SR_CACHEKEYSZ);
+		memcpy(key_val, sr_sumstr2hash(sumhash,sum), SR_CACHEKEYSZ);
 
 		HASH_FIND(hh, cache, key_val, SR_CACHEKEYSZ, c);
 
