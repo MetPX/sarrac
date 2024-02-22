@@ -455,6 +455,7 @@ static void v03assign_field(const char *key, json_object * jso_v)
 
 		unsigned int hashlen = 0;
 		unsigned char sumhash[SR_SUMHASHLEN];
+		char sumstr[SR_SUMSTRLEN];
 
 		if (json_object_object_get_ex(jso_v, "link", &subvalue)) {
 			const char *v = json_object_get_string(subvalue);
@@ -467,7 +468,7 @@ static void v03assign_field(const char *key, json_object * jso_v)
 			EVP_DigestInit_ex(ctx, md, NULL);
 			EVP_DigestUpdate(ctx, v, strlen(v));
 			EVP_DigestFinal_ex(ctx, sumhash, &hashlen);
-			sprintf(msg.sum, "L,%s", sr_hash2sumstr(sumhash));
+			sprintf(msg.sum, "L,%s", sr_hash2sumstr(sumstr,sumhash));
 			return;
 		} else if (json_object_object_get_ex(jso_v, "remove", &subvalue)) {
 			char *just_the_name;
@@ -484,7 +485,7 @@ static void v03assign_field(const char *key, json_object * jso_v)
 			EVP_DigestInit_ex(ctx, md, NULL);
 			EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 			EVP_DigestFinal_ex(ctx, sumhash, &hashlen);
-			sprintf(msg.sum, "R,%s", sr_hash2sumstr(sumhash));
+			sprintf(msg.sum, "R,%s", sr_hash2sumstr(sumstr,sumhash));
 			return;
 		} else if (json_object_object_get_ex(jso_v, "directory", &subvalue)) {
 			char *just_the_name;
@@ -501,7 +502,7 @@ static void v03assign_field(const char *key, json_object * jso_v)
 			EVP_DigestInit_ex(ctx, md, NULL);
 			EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 			EVP_DigestFinal_ex(ctx, sumhash, &hashlen);
-			sprintf(msg.sum, "m,%s", sr_hash2sumstr(sumhash));
+			sprintf(msg.sum, "m,%s", sr_hash2sumstr(sumstr,sumhash));
 			return;
 		} else if (json_object_object_get_ex(jso_v, "rmdir", &subvalue)) {
 			char *just_the_name;
@@ -518,7 +519,7 @@ static void v03assign_field(const char *key, json_object * jso_v)
 			EVP_DigestInit_ex(ctx, md, NULL);
 			EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 			EVP_DigestFinal_ex(ctx, sumhash, &hashlen);
-			sprintf(msg.sum, "r,%s", sr_hash2sumstr(sumhash));
+			sprintf(msg.sum, "r,%s", sr_hash2sumstr(sumstr,sumhash));
 			return;
 		} else if (json_object_object_get_ex(jso_v, "rename", &subvalue)) {
 			const char *v = json_object_get_string(subvalue);

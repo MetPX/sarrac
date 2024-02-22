@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
 	unsigned char original_hash[SHA512_DIGEST_LENGTH + 1];
 	unsigned char rt_hash[SHA512_DIGEST_LENGTH + 1];
 
+	char wsumstr[SR_SUMSTRLEN];
 	char osumstr[SR_SUMSTRLEN];
 	char rtsumstr[SR_SUMSTRLEN];
 
@@ -86,16 +87,16 @@ int main(int argc, char *argv[])
 
 	memcpy(original_hash, sha512hash("hoho"), SHA512_DIGEST_LENGTH + 1);
 
-	fprintf(stderr, "sumstr=%s", sr_hash2sumstr(sr_sumstr2hash("z,d")));
+	fprintf(stderr, "sumstr=%s", sr_hash2sumstr(wsumstr,sr_sumstr2hash("z,d")));
 
 	for (i = 0; i < 9; i++) {
 		for (i = 1; i < sr_get_sumhashlen(osumstr[0]); i++)
 			fprintf(stderr, " %02d", i);
 		fprintf(stderr, "\n");
 
-		strcpy(osumstr, sr_hash2sumstr(original_hash));
+		strcpy(osumstr, sr_hash2sumstr(wsumstr,original_hash));
 		memcpy(rt_hash, sr_sumstr2hash(osumstr), SHA512_DIGEST_LENGTH + 1);
-		strcpy(rtsumstr, sr_hash2sumstr(rt_hash));
+		strcpy(rtsumstr, sr_hash2sumstr(wsumstr,rt_hash));
 
 		fprintf(stderr, "     original hash is: +%s+ length: %ld\n",
 			osumstr, (long)strlen(osumstr));

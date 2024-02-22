@@ -61,6 +61,7 @@ int sr_cache_check(struct sr_cache_s *cachep, char *cache_basis, char algo,
 	struct sr_cache_entry_s *c = NULL;
 	struct sr_cache_entry_path_s *p;
 	unsigned char keyhash[SR_SUMHASHLEN];
+	char keystr[SR_SUMSTRLEN];
 
 	memset(keyhash, 0, SR_SUMHASHLEN);
 
@@ -98,7 +99,7 @@ int sr_cache_check(struct sr_cache_s *cachep, char *cache_basis, char algo,
 	p->next = c->paths;
 	c->paths = p;
 	/* and append to cache file */
-	fprintf(cachep->fp, "%s %s %s %s\n", sr_hash2sumstr(c->key),
+	fprintf(cachep->fp, "%s %s %s %s\n", sr_hash2sumstr(keystr,c->key),
 		sr_time2str(&(p->created)), p->path, p->partstr);
 	return (1);
 }
@@ -208,6 +209,7 @@ int sr_cache_save(struct sr_cache_s *cachep, int to_stdout)
 	struct sr_cache_entry_s *c, *tmpc;
 	struct sr_cache_entry_path_s *e;
 	FILE *f;
+	char keystr[SR_SUMSTRLEN];
 	int count = 0;
 
 	if (to_stdout) {
@@ -225,7 +227,7 @@ int sr_cache_save(struct sr_cache_s *cachep, int to_stdout)
 		HASH_ITER(hh, cachep->data, c, tmpc) {
 			for (e = c->paths; e; e = e->next) {
 				fprintf(f, "%s %s %s %s\n",
-					sr_hash2sumstr(c->key),
+					sr_hash2sumstr(keystr,c->key),
 					sr_time2str(&(e->created)), e->path, e->partstr);
 				count++;
 			}

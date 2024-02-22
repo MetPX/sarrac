@@ -606,7 +606,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	EVP_MD_CTX *ctx;
 	const EVP_MD *md;
 	char *sumstrptr;
-	static char sumstr[SR_SUMSTRLEN];
+	//static char sumstr[SR_SUMSTRLEN];
 	unsigned int hashlen = 0;
 
 	static int fd;
@@ -632,18 +632,18 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	stat(fn, &attr);
 	stat_mtime = attr.st_mtime;
 
-	sumstrptr=NULL;
+	sumstrptr = (char*)malloc(SR_SUMSTRLEN);
 
 	memset(cache_mtime, 0, SR_TIMESTRLEN);
 	// are xattrs set?
 	if (xattr_cc && (getxattr(fn, "user.sr_mtime", cache_mtime, SR_TIMESTRLEN) > 0)) {
 		// is the checksum valid? (i.e. is (cache_mtime >= stat_mtime)? )
 		if (sr_str2time(cache_mtime)->tv_sec >= stat_mtime) {
-			memset(sumstr, 0, SR_SUMSTRLEN);
-			getxattr(fn, "user.sr_sum", sumstr, SR_SUMSTRLEN);
+			memset(sumstrptr, 0, SR_SUMSTRLEN);
+			getxattr(fn, "user.sr_sum", sumstrptr, SR_SUMSTRLEN);
 			// is it the right checksum algorithm?
-			if (algo == sumstr[0])
-				return (sumstr);
+			if (algo == sumstrptr[0])
+				return (sumstrptr);
 		}
 	}
 	/* end of xattr check */
@@ -651,7 +651,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	switch (algo) {
 
 	case '0':
-		sprintf(sumstr, "%c,%03ld", algo, random() % 1000);
+		sprintf(sumstrptr, "%c,%03ld", algo, random() % 1000);
 		break;
 
 	case 'd':
@@ -664,7 +664,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		fd = open(fn, O_RDONLY);
 		if (fd < 0) {
 			fprintf(stderr, "unable to read file for checksumming\n");
-			strcpy(sumstr + 3, "deadbeef0");
+			strcpy(sumstrptr + 3, "deadbeef0");
 			return (NULL);
 		}
 		lseek(fd, start, SEEK_SET);
@@ -686,7 +686,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		close(fd);
 
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sumstrptr = sr_hash2sumstr(sumhash);
+		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
 	case 'm':		// mkdir
@@ -697,7 +697,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sumstrptr = sr_hash2sumstr(sumhash);
+		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
 	case 'r':		// rmdir
@@ -708,7 +708,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sumstrptr = sr_hash2sumstr(sumhash);
+		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
 	case 'n':
@@ -719,7 +719,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sumstrptr = sr_hash2sumstr(sumhash);
+		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
 	case 'L':		// symlink case
@@ -730,7 +730,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 		EVP_DigestUpdate(ctx, linkstr, strlen(linkstr));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sumstrptr = sr_hash2sumstr(sumhash);
+		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
 	case 'R':		// null, or removal.
@@ -742,7 +742,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sumstrptr = sr_hash2sumstr(sumhash);
+		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
 	case 'p':
@@ -758,7 +758,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			block_size, block_count, block_rem, block_num);
 		EVP_DigestUpdate(ctx, buf, strlen(buf));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sumstrptr = sr_hash2sumstr(sumhash);
+		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
 	case 's':
@@ -795,13 +795,13 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		close(fd);
 
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		sumstrptr = sr_hash2sumstr(sumhash);
+		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
 	case 'z':
 		sumhash[1] = algoz;
 		sumhash[2] = '\0';
-		sumstrptr = sr_hash2sumstr(sumhash);
+		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
 	default:
@@ -812,7 +812,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	/* xattr set for checksum caching optimization */
 	if (xattr_cc) {
 		// can we set xattrs? let's try and find out!
-		setxattr(fn, "user.sr_sum", sumstr, strlen(sumstr), 0);
+		setxattr(fn, "user.sr_sum", sumstrptr, strlen(sumstrptr), 0);
 		char *t2s = sr_time2str(&attr.st_mtim);
 		setxattr(fn, "user.sr_mtime", t2s, strlen(t2s), 0);
 		// if the calls above fail, ignore and proceed
@@ -865,10 +865,10 @@ unsigned char *sr_sumstr2hash(const char *s)
 	return (sumhash);
 }
 
-char *sr_hash2sumstr(const unsigned char *h)
+char *sr_hash2sumstr(char *sumstr, const unsigned char *h)
 {
 	int i;
-        static char sumstr[SR_SUMSTRLEN];
+        //static char sumstr[SR_SUMSTRLEN];
 	memset(sumstr, 0, SR_SUMSTRLEN);
 	sumstr[0] = h[0];
 	sumstr[1] = ',';
