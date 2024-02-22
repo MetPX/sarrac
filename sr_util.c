@@ -842,10 +842,10 @@ static int hexchr2nibble(char c)
 	return (-1);
 }
 
-unsigned char *sr_sumstr2hash(const char *s)
+unsigned char *sr_sumstr2hash(unsigned char *sumhash, const char *s)
 {
 	int i;
-        static unsigned char sumhash[SR_SUMHASHLEN];
+        //static unsigned char sumhash[SR_SUMHASHLEN];
 
 	if (!s)
 		return (NULL);
