@@ -1137,6 +1137,7 @@ int dup3(int oldfd, int newfd, int flags)
 
 static int exit_cleanup_posts_ran = 0;
 
+
 void exit_cleanup_posts()
 {
 	int fdstat;
@@ -1180,6 +1181,10 @@ void exit_cleanup_posts()
 
 			if ((fdstat & O_ACCMODE) == O_RDONLY) {
 				sr_shimdebug_msg(16, "exit_cleanup_posts, read-only, skipping\n");
+				continue;
+			}
+			if (!strcmp(fdde->d_name,"2")) {
+				sr_shimdebug_msg(16, "exit_cleanup_posts, stderr, skipping\n");
 				continue;
 			}
 			snprintf(fdpath, 499, "/proc/self/fd/%s", fdde->d_name);

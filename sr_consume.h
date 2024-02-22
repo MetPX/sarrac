@@ -1,4 +1,4 @@
-/* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
+/* vim:set ft=c ts=4 sw=2 sts=2 et cindent: */
 
 /*
  * Usage info after license block.
