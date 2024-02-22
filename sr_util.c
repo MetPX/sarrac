@@ -45,7 +45,7 @@ static struct logfn_tab_s mtab;
 char *log_set_fnts(char *basefilename);
 
 #ifndef SR_DEBUG_LOGS
-void sr_log_msg(int prio, const char *format, ...)
+void sr_log_msg(struct sr_log_context_s* ctx, int prio, const char *format, ...)
 {
 	char *level;
 	va_list ap;
@@ -124,7 +124,7 @@ void sr_log_msg(int prio, const char *format, ...)
 }
 #endif
 
-void sr_log_setup(const char *fn, const char *mfn, bool logMetricsFlag, mode_t mode, int level, int lr, int lri)
+struct sr_log_context_s* sr_log_setup(const char *fn, const char *mfn, bool logMetricsFlag, mode_t mode, int level, int lr, int lri)
 {
 #ifndef SR_DEBUG_LOGS
 	strcpy(logfn, fn);
@@ -157,15 +157,16 @@ void sr_log_setup(const char *fn, const char *mfn, bool logMetricsFlag, mode_t m
 		mtab.size = logrotate_count;
 	}
 #endif
+	return(NULL);
 }
 
 /* global accessor for loglevel, ugly but better than using a global variable... */
-void sr_set_loglevel(int level)
+void sr_set_loglevel(struct sr_log_context_s* ctx, int level)
 {
 	loglevel = level;
 }
 
-void sr_log_cleanup()
+void sr_log_cleanup(struct sr_log_context_s* ctx)
 {
 #ifndef SR_DEBUG_LOGS
 	/* (logfd != STDERR_FILENO) <> sr_log_setup called previously */
@@ -349,15 +350,15 @@ int sr_has_vip(char const *vip)
 				    NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
 		}
 
-		sr_log_msg(LOG_DEBUG, "sr_has_vip: checking interface %s host=%s addr=%s\n",
+		sr_log_msg(NULL,LOG_DEBUG, "sr_has_vip: checking interface %s host=%s addr=%s\n",
 			   ifa->ifa_name, host, addr);
 		if (vip && (!strcmp(host, vip) || !strcmp(addr, vip))) {
-			sr_log_msg(LOG_DEBUG, "sr_has_vip: Matched!\n");
+			sr_log_msg(NULL,LOG_DEBUG, "sr_has_vip: Matched!\n");
 			return 1;
 		}
 	}
 
-	sr_log_msg(LOG_DEBUG, "sr_has_vip: we don't have the vip\n");
+	sr_log_msg(NULL,LOG_DEBUG, "sr_has_vip: we don't have the vip\n");
 	freeifaddrs(ifaddr);
 	return 0;
 }
@@ -373,7 +374,7 @@ void sr_daemonize(int close_stdout)
 	pid = fork();
 
 	if (pid < 0) {
-		sr_log_msg(LOG_CRITICAL, "fork failed, cannot launch as daemon\n");
+		sr_log_msg(NULL,LOG_CRITICAL, "fork failed, cannot launch as daemon\n");
 		exit(1);
 	}
 	if (pid > 0) {
@@ -382,15 +383,15 @@ void sr_daemonize(int close_stdout)
 	}
 	// child processing.
 
-	sr_log_msg(LOG_DEBUG, "child daemonizing start\n");
+	sr_log_msg(NULL,LOG_DEBUG, "child daemonizing start\n");
 	sid = setsid();
 	if (sid < 0) {
-		sr_log_msg(LOG_WARNING,
+		sr_log_msg(NULL,LOG_WARNING,
 			   "daemonizing, setsid errord, failed to completely dissociate from login process\n");
 	}
 
 	if (logfd == 2) {
-		sr_log_msg(LOG_CRITICAL, "to run as daemon log option must be set.\n");
+		sr_log_msg(NULL,LOG_CRITICAL, "to run as daemon log option must be set.\n");
 		exit(1);
 	}
 
@@ -402,7 +403,7 @@ void sr_daemonize(int close_stdout)
 	close(2);
 	dup2(logfd, STDERR_FILENO);
 
-	sr_log_msg(LOG_DEBUG, "child daemonizing complete.\n");
+	sr_log_msg(NULL,LOG_DEBUG, "child daemonizing complete.\n");
 }
 
 /* v03 conversion code for base64 
