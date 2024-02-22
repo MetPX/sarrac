@@ -157,7 +157,7 @@ struct sr_context *force_good_connection_and_bindings(struct sr_context *sr_c)
 
 	new_one = sr_c;
 	while (!sr_consume_setup(new_one)) {	/* loop until success */
-		sr_log_msg(LOG_WARNING,
+		sr_log_msg(NULL,LOG_WARNING,
 			   "Due to failure, sleeping for %d seconds to try to re-connect.\n",
 			   backoff);
 		sr_context_close(new_one);
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!sr_config_finalize(&sr_cfg, 1)) {
-		sr_log_msg(LOG_ERROR, "failed to finalize configuration\n");
+		sr_log_msg(NULL,LOG_ERROR, "failed to finalize configuration\n");
 		return (1);
 	}
 
@@ -267,12 +267,12 @@ int main(int argc, char **argv)
 
 	sr_c = sr_context_init_config(&sr_cfg, 0);
 	if (!sr_c) {
-		sr_log_msg(LOG_ERROR, "failed to build context from configuration\n");
+		sr_log_msg(NULL,LOG_ERROR, "failed to build context from configuration\n");
 		return (1);
 	}
 	sr_c = sr_context_connect(sr_c);
 	if (!sr_c) {
-		sr_log_msg(LOG_ERROR, "failed to connect context.\n");
+		sr_log_msg(NULL,LOG_ERROR, "failed to connect context.\n");
 		return (1);
 	}
 
@@ -289,7 +289,7 @@ int main(int argc, char **argv)
 
 		/*
 		   while(!sr_consume_setup(sr_c)) { 
-		   sr_log_msg(LOG_ERROR, "Due to binding failure, sleeping for %d seconds to rety.\n", backoff);
+		   sr_log_msg(NULL,LOG_ERROR, "Due to binding failure, sleeping for %d seconds to rety.\n", backoff);
 		   sr_context_close(sr_c);
 		   sleep(backoff);
 		   if ( backoff < 60 ) backoff *= 2;
@@ -313,7 +313,7 @@ int main(int argc, char **argv)
 
 	if (strcmp(sr_cfg.action, "foreground")) {
 		if (!sr_cfg.outlet) {
-			sr_log_msg(LOG_CRITICAL,
+			sr_log_msg(NULL,LOG_CRITICAL,
 				   "must specify output file when running as daemon.\n");
 			return (1);
 		}
@@ -321,11 +321,11 @@ int main(int argc, char **argv)
 	}
 	// Assert: this is a working instance, not a launcher...
 	if (sr_config_activate(&sr_cfg)) {
-		sr_log_msg(LOG_WARNING,
+		sr_log_msg(NULL,LOG_WARNING,
 			   "could not save pidfile %s: possible to run conflicting instances  \n",
 			   sr_cfg.pidfile);
 	}
-	sr_log_msg(LOG_INFO,
+	sr_log_msg(NULL,LOG_INFO,
 		   "%s %s config: %s, pid: %d, queue: %s bound to exchange: %s starting\n",
 		   sr_cfg.progname, __sarra_version__, sr_cfg.configname,
 		   sr_cfg.pid, sr_cfg.queuename, sr_cfg.exchange);
@@ -357,7 +357,7 @@ int main(int argc, char **argv)
                         } else {
 	                            tsleep.tv_sec = 32L;
                         }
-               	        //sr_log_msg( LOG_DEBUG, "no message received, watch sleeping for %ld seconds + %ld micro seconds. \n", 
+               	        //sr_log_msg(NULL,LOG_DEBUG, "no message received, watch sleeping for %ld seconds + %ld micro seconds. \n", 
 		        // 		tsleep.tv_sec, tsleep.tv_nsec/1000 );
       		        nanosleep(&tsleep, NULL);
 
@@ -366,12 +366,12 @@ int main(int argc, char **argv)
 
 		} else if (sr_message_valid(m)) {
 			no_messages_tally=0;
-			sr_log_msg(LOG_INFO, "received: %s\n", sr_message_2log(m));
+			sr_log_msg(NULL,LOG_INFO, "received: %s\n", sr_message_2log(m));
 			sr_c->metrics.rxGoodCount++;
 			strcpy(sr_c->metrics.lastRx,sr_time2str(NULL));
 		} else {
 			no_messages_tally=0;
-			sr_log_msg(LOG_ERROR, "discarding invalid message: %s\n",
+			sr_log_msg(NULL,LOG_ERROR, "discarding invalid message: %s\n",
 				   sr_message_2log(m));
 			sr_c->metrics.rxBadCount++;
 			continue;
@@ -382,7 +382,7 @@ int main(int argc, char **argv)
 		mask = sr_isMatchingPattern(&sr_cfg, m->relPath);
 		if ((mask && !(mask->accepting)) || (!mask && !(sr_cfg.acceptUnmatched))) {
 			if (sr_cfg.logReject)
-				sr_log_msg(LOG_INFO, "rejecting pattern: %s\n", m->relPath);
+				sr_log_msg(NULL,LOG_INFO, "rejecting pattern: %s\n", m->relPath);
 			sr_c->metrics.rejectCount++;
 			continue;
 		}
@@ -394,7 +394,7 @@ int main(int argc, char **argv)
 					   m->relPath, sr_message_partstr(m));
 
 			if ((ret <= 0) && (sr_cfg.logReject)) {
-				sr_log_msg(((ret < 0) ? LOG_WARNING : LOG_INFO),
+				sr_log_msg(NULL,((ret < 0) ? LOG_WARNING : LOG_INFO),
 					   "%s : %s %s\n",
 					   (ret < 0) ? "cache problem" : "rejecting duplicate",
 					   m->relPath, sr_message_partstr(m));

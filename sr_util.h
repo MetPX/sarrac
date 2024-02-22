@@ -18,6 +18,10 @@
 #define LOG_ERROR     (2)
 #define LOG_CRITICAL  (1)
 
+struct sr_log_context_s {
+   int hoho;
+};
+
 #ifdef SR_DEBUG_LOGS
 
 // following macro allows compiler to find errors in sr_log_msg's variadic arguments.
@@ -31,15 +35,15 @@
 
 #else
 
-void sr_log_msg(const int prio, const char *format, ...);
+void sr_log_msg(struct sr_log_context_s *ctx, const int prio, const char *format, ...);
 
 #endif
 
-void sr_log_setup(const char *fn, const char *metricsfn, bool logMetricsFlag, mode_t mode, int level, int lr, int lri);
+struct sr_log_context_s *sr_log_setup(const char *fn, const char *metricsfn, bool logMetricsFlag, mode_t mode, int level, int lr, int lri);
 // set up logging to the named file, suppressing messages of lower severity 
 // logrotation is a floating point number of seconds, indicating number of days to retain.
 
-void sr_set_loglevel(int level);
+void sr_set_loglevel(struct sr_log_context_s* ctx, int level);
 
 /* table to hold previous log file names for log rotation */
 struct logfn_tab_s {
@@ -48,7 +52,7 @@ struct logfn_tab_s {
 	int size;
 };
 
-void sr_log_cleanup();
+void sr_log_cleanup(struct sr_log_context_s* ctx);
 
 /* sr_is_utf8     routine to confirm that a field is utf8 encoded, taken verbatim from:
  *             https://stackoverflow.com/questions/1031645/how-to-detect-utf-8-in-plain-c 
