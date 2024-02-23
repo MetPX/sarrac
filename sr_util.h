@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <linux/limits.h>
+
 #include <stdbool.h>
 
 #include <time.h>
@@ -18,8 +20,28 @@
 #define LOG_ERROR     (2)
 #define LOG_CRITICAL  (1)
 
+/* table to hold previous log file names for log rotation */
+struct logfn_tab_s {
+	char **fns;		/* dynamically allocated, pointer buffer size known at rt */
+	int i;
+	int size;
+};
+
 struct sr_log_context_s {
-   int hoho;
+	time_t logbase;
+	int logfd;
+	char logfn[PATH_MAX];
+	char metricsfn[PATH_MAX];
+	bool logMetrics;
+	char logfn_ts[PATH_MAX];
+	char metricsfn_ts[PATH_MAX];
+	int loglevel;
+	int logmode;
+	int logrotate_count;
+	int logrotate_interval;
+	struct logfn_tab_s ltab;
+	struct logfn_tab_s mtab;
+
 };
 
 #ifdef SR_DEBUG_LOGS
@@ -44,13 +66,6 @@ struct sr_log_context_s *sr_log_setup(const char *fn, const char *metricsfn, boo
 // logrotation is a floating point number of seconds, indicating number of days to retain.
 
 void sr_set_loglevel(struct sr_log_context_s* ctx, int level);
-
-/* table to hold previous log file names for log rotation */
-struct logfn_tab_s {
-	char **fns;		/* dynamically allocated, pointer buffer size known at rt */
-	int i;
-	int size;
-};
 
 void sr_log_cleanup(struct sr_log_context_s* ctx);
 
