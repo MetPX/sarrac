@@ -32,9 +32,10 @@ struct sr_cache_s {
 	char *fn;
 	FILE *fp;
 	struct sr_cache_entry_s *data;
+	struct sr_log_context_s *logctx;
 };
 
-struct sr_cache_s *sr_cache_open(const char *fn);
+struct sr_cache_s *sr_cache_open(const char *fn, struct sr_log_context_s *logctx);
  /* 
     create an sr_cache based on the content of the named file.     
   */

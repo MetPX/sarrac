@@ -183,6 +183,7 @@ struct sr_config_s {
 	int instance;		/**< the instance number of the current process within a component's configuration.*/
 	char *last_matched;	    /**< the value of the last matched mask. */
 	char *list;		/**< method to generate initial input list:  file or queue*/
+	struct sr_log_context_s *logctx;
 	int log;		/**< Use a log file, rather than standard files.*/
 	bool logMetrics;         /**< write metrics to a file for statistics */
 	int logReject;		   /**< normally rejections are silent, when set, make INFO message. */

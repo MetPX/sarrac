@@ -37,7 +37,7 @@ void v03encode(char *message_body, struct sr_context *sr_c, struct sr_message_s 
    fill the message body with a v03 encoded representation of the given message, in the given context.
  */
 
-void realpath_adjust(const char *input_path, char *output_path, signed int adjust);
+void realpath_adjust(struct sr_log_context_s *logctx, const char *input_path, char *output_path, signed int adjust);
 /*
  * apply the realpath function as specified by the adjustment.
  * == 0 - apply it to the whole path, but if that fails (say, for a broken link) the back retry with -1.

@@ -117,7 +117,7 @@ void sr_cache_clean(struct sr_cache_s *cachep, float max_age)
 
 	memset(&since, 0, sizeof(struct timespec));
 	clock_gettime(CLOCK_REALTIME, &since);
-	//sr_log_msg(NULL,LOG_DEBUG, "cleaning out entries. current time: %s\n", sr_time2str( &since ) );
+	//sr_log_msg(cachep->logctx,LOG_DEBUG, "cleaning out entries. current time: %s\n", sr_time2str( &since ) );
 
 	// subtracting max_age from now.
 	since.tv_sec -= (int)(max_age);
@@ -128,21 +128,21 @@ void sr_cache_clean(struct sr_cache_s *cachep, float max_age)
 	}
 	since.tv_nsec -= diff;
 
-	sr_log_msg(NULL,LOG_DEBUG, "cleaning out entries older than: %s value=%ld\n",
+	sr_log_msg(cachep->logctx,LOG_DEBUG, "cleaning out entries older than: %s value=%ld\n",
 		   sr_time2str(&since), since.tv_sec);
 
 	HASH_ITER(hh, cachep->data, c, tmpc) {
-		//sr_log_msg(NULL,LOG_DEBUG, "hash, start\n" );
+		//sr_log_msg(cachep->logctx,LOG_DEBUG, "hash, start\n" );
 		e = c->paths;
 		prev = NULL;
 		while (e) {
-			//sr_log_msg(NULL,LOG_DEBUG, "\tchecking %s, touched=%s difference: %ld\n", e->path, sr_time2str(&(e->created)) ,
+			//sr_log_msg(cachep->logctx,LOG_DEBUG, "\tchecking %s, touched=%s difference: %ld\n", e->path, sr_time2str(&(e->created)) ,
 			//            e->created.tv_sec - since.tv_sec );
 			if ((e->created.tv_sec < since.tv_sec) ||
 			    ((e->created.tv_sec == since.tv_sec)
 			     && (e->created.tv_nsec < since.tv_nsec))
 			    ) {
-				//sr_log_msg(NULL,LOG_DEBUG, "\tdeleting %s c->paths=%p, prev=%p, e=%p, e->next=%p\n", e->path,
+				//sr_log_msg(cachep->logctx,LOG_DEBUG, "\tdeleting %s c->paths=%p, prev=%p, e=%p, e->next=%p\n", e->path,
 				//         c->paths, prev, e, e->next );
 				del = e;
 
@@ -166,14 +166,14 @@ void sr_cache_clean(struct sr_cache_s *cachep, float max_age)
 		if (!(c->paths)) {
 			HASH_DEL(cachep->data, c);
 			free(c);
-			//sr_log_msg(NULL,LOG_DEBUG, "hash, after deleting, data=%p pop=%d\n", cachep->data, HASH_COUNT(cachep->data) );
+			//sr_log_msg(cachep->logctx,LOG_DEBUG, "hash, after deleting, data=%p pop=%d\n", cachep->data, HASH_COUNT(cachep->data) );
 
 		} else {
 			npaths = 0;
 			for (e = c->paths; e; e = e->next)
 				npaths++;
-			//sr_log_msg(NULL,LOG_DEBUG, "hash, done. pop=%d \n", npaths );
-			//sr_log_msg(NULL,LOG_DEBUG, "hash, done. pop=%d HASH_CONT=%d\n", npaths, HASH_COUNT(cachep->data) );
+			//sr_log_msg(cachep->logctx,LOG_DEBUG, "hash, done. pop=%d \n", npaths );
+			//sr_log_msg(cachep->logctx,LOG_DEBUG, "hash, done. pop=%d HASH_CONT=%d\n", npaths, HASH_COUNT(cachep->data) );
 		}
 	}
 }
@@ -218,7 +218,7 @@ int sr_cache_save(struct sr_cache_s *cachep, int to_stdout)
 		fclose(cachep->fp);
 		f = fopen(cachep->fn, "w");
 		if (!f) {
-			sr_log_msg(NULL,LOG_ERROR, "failed to open cache file to save: %s\n",
+			sr_log_msg(cachep->logctx,LOG_ERROR, "failed to open cache file to save: %s\n",
 				   cachep->fn);
 			return (0);
 		}
@@ -244,7 +244,7 @@ int sr_cache_save(struct sr_cache_s *cachep, int to_stdout)
 
 static char buf[load_buflen];
 
-struct sr_cache_entry_s *sr_cache_load(const char *fn)
+struct sr_cache_entry_s *sr_cache_load(const char *fn, struct sr_log_context_s *logctx)
  /* 
     create an sr_cache based on the content of the named file.     
   */
@@ -260,7 +260,7 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 
 	f = fopen(fn, "r");
 	if (!f) {
-		sr_log_msg(NULL,LOG_DEBUG, "ERROR: failed to open cache file to load: %s\n", fn);
+		sr_log_msg(logctx,LOG_DEBUG, "ERROR: failed to open cache file to load: %s\n", fn);
 		return (NULL);
 	}
 	cache = NULL;
@@ -270,7 +270,7 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 		sum = strtok(buf, " ");
 
 		if (!sum) {
-			sr_log_msg(NULL,LOG_ERROR,
+			sr_log_msg(logctx,LOG_ERROR,
 				   "corrupt line %d in cache file %s: %s\n", line_count, fn, buf);
 			continue;
 		}
@@ -278,7 +278,7 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 		timestr = strtok(NULL, " ");
 
 		if (!timestr) {
-			sr_log_msg(NULL,LOG_ERROR,
+			sr_log_msg(logctx,LOG_ERROR,
 				   "no timestring, corrupt line %d in cache file %s: %s\n",
 				   line_count, fn, buf);
 			continue;
@@ -287,7 +287,7 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 		path = strtok(NULL, " \n");
 
 		if (!path) {
-			sr_log_msg(NULL,LOG_ERROR,
+			sr_log_msg(logctx,LOG_ERROR,
 				   "no path, corrupt line %d in cache file %s: %s\n",
 				   line_count, fn, buf);
 			continue;
@@ -299,14 +299,14 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 			partstr = strtok(NULL, " \n");
 
 			if (!partstr) {
-				sr_log_msg(NULL,LOG_ERROR,
+				sr_log_msg(logctx,LOG_ERROR,
 					   "no partstr, corrupt line %d in cache file %s: %s\n",
 					   line_count, fn, buf);
 				continue;
 			}
 		}
 		/*
-		   sr_log_msg(NULL,LOG_DEBUG, "fields: sum=+%s+, timestr=+%s+, path=+%s+, partstr=+%s+\n", 
+		   sr_log_msg(cachep->logctx,LOG_DEBUG, "fields: sum=+%s+, timestr=+%s+, path=+%s+, partstr=+%s+\n", 
 		   sum, timestr, path, partstr );
 		 */
 		memcpy(key_val, sr_sumstr2hash(sumhash,sum), SR_CACHEKEYSZ);
@@ -317,7 +317,7 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 			c = (struct sr_cache_entry_s *)
 			    malloc(sizeof(struct sr_cache_entry_s));
 			if (!c) {
-				sr_log_msg(NULL,LOG_ERROR,
+				sr_log_msg(logctx,LOG_ERROR,
 					   "out of memory reading cache file: %s, stopping at line: %s\n",
 					   fn, buf);
 				return (cache);
@@ -344,7 +344,7 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 		p = (struct sr_cache_entry_path_s *)
 		    malloc(sizeof(struct sr_cache_entry_path_s));
 		if (!p) {
-			sr_log_msg(NULL,LOG_ERROR,
+			sr_log_msg(logctx,LOG_ERROR,
 				   "out of memory 2, reading cache file: %s, stopping at line: %s\n",
 				   fn, buf);
 			return (cache);
@@ -363,15 +363,16 @@ struct sr_cache_entry_s *sr_cache_load(const char *fn)
 	return (cache);
 }
 
-struct sr_cache_s *sr_cache_open(const char *fn)
+struct sr_cache_s *sr_cache_open(const char *fn,struct sr_log_context_s *logctx)
 {
 	struct sr_cache_s *c;
 
 	c = (struct sr_cache_s *)malloc(sizeof(struct sr_cache_s));
 	memset(c, 0, sizeof(struct sr_cache_s));
-	c->data = sr_cache_load(fn);
+	c->data = sr_cache_load(fn,logctx);
 	c->fn = strdup(fn);
 	c->fp = fopen(fn, "a");
+	c->logctx = logctx ;
 	// FIXME: if necessary, disable buffering. I don't think it should be necessary, but saw some corruption in tests.
 	//setbuf(c->fp,NULL);
 	/*

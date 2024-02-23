@@ -52,6 +52,8 @@ int mypid = 0;
 int pid_seconds_wallclock = 0;
 int srshim_debug_level = -1;
 
+struct sr_log_context_s *logctxptr = NULL;
+
 void sr_shimdebug_msg(int level, const char *format, ...)
 {
 	struct timespec ts;
@@ -133,7 +135,7 @@ void record_duped_fds(int oldfd, int newfd)
 			break;
 	}
 	if (duped_fd_index >= MAX_DUPED_FDS) {
-		sr_log_msg(NULL,LOG_ERROR,
+		sr_log_msg(logctxptr,LOG_ERROR,
 			   "srshim ran out of room to store duplicated file descriptors, recompile with MAX_DUPED_FDS (==%d) increased\n",
 			   MAX_DUPED_FDS);
 	} else {
@@ -362,11 +364,12 @@ void srshim_initialize(const char *progname)
 		sr_shimdebug_msg(9, "srshim_initialize %s about to sr_config_read\n",
 				 progname);
 		config_read = sr_config_read(&sr_cfg, setstr, 1, 1);
+		logctxptr = sr_cfg.logctx;
 		sr_shimdebug_msg(9, "srshim_initialize %s back from sr_config_read\n",
 				 progname);
 		free(setstr);
 		if (!config_read) {
-			sr_log_msg(NULL,LOG_ERROR,
+			sr_log_msg(sr_cfg.logctx,LOG_ERROR,
 				   "srshim_initialize problem with configuration file. library disabled\n");
 			shim_disabled = 1;	// turn off the library so stuff works without it.
 			errno = 0;
@@ -404,7 +407,7 @@ void srshim_initialize(const char *progname)
 
 	sr_c = sr_context_init_config(&sr_cfg, 1);
 	if (!sr_c) {
-		sr_log_msg(NULL,LOG_ERROR,
+		sr_log_msg(sr_cfg.logctx,LOG_ERROR,
 			   "srshim_initialize problem establishing context. library disabled\n");
 		shim_disabled = 1;	// turn off the library so stuff works without it.
 		errno = 0;
@@ -424,7 +427,7 @@ int srshim_connect()
 			sr_connected = 1;
 			sr_post_init(sr_c);
 		} else {
-			sr_log_msg(NULL,LOG_ERROR,
+			sr_log_msg(sr_c->cfg->logctx,LOG_ERROR,
 				   "srshim_connect problem establishing context. library disabled\n");
 			shim_disabled = 1;	// turn off the library so stuff works without it.
 		}
@@ -463,7 +466,7 @@ void srshim_realpost(const char *path)
 	strcpy(fn, path);
 
 	if (sr_cfg.realpathPost || sr_cfg.realpathFilter)
-		realpath_adjust(path, fnreal, sr_cfg.realpathAdjust);
+		realpath_adjust(sr_cfg.logctx, path, fnreal, sr_cfg.realpathAdjust);
 
 	if (sr_cfg.realpathPost) {
 		strcpy(fn, fnreal);
@@ -480,7 +483,7 @@ void srshim_realpost(const char *path)
 				 "srshim_realpost mask: %p, mask->accepting=%d acceptUnmatched=%d\n",
 				 mask, mask->accepting, sr_cfg.acceptUnmatched);
 		if (sr_cfg.logReject)
-			sr_log_msg(NULL,LOG_INFO, "sr_%s rejecting pattern: %s\n", sr_cfg.progname, fn);
+			sr_log_msg(sr_cfg.logctx,LOG_INFO, "sr_%s rejecting pattern: %s\n", sr_cfg.progname, fn);
 		return;
 	}
 	sr_shimdebug_msg(1, "srshim_realpost accepted... %s now\n", fn);
@@ -896,7 +899,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		else if (link_fn_ptr && !flags)
 			status = link_fn_ptr(oldpath, newpath);
 		else {
-			sr_log_msg(NULL,LOG_ERROR,
+			sr_log_msg(logctxptr,LOG_ERROR,
 				   " renameorlink could not identify real entry point for link\n");
 		}
 	} else {
@@ -905,7 +908,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		else if (renameat_fn_ptr && !flags)
 			status = renameat_fn_ptr(olddirfd, oldpath, newdirfd, newpath);
 		else {
-			sr_log_msg(NULL,LOG_ERROR,
+			sr_log_msg(logctxptr,LOG_ERROR,
 				   " renameorlink could not identify real entry point for renameat\n");
 			return (-1);
 		}
@@ -930,7 +933,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		snprintf(fdpath, 32, "/proc/self/fd/%d", olddirfd);
 		oreal_return = realpath(fdpath, oreal_path);
 		if (oreal_return) {
-			sr_log_msg(NULL,LOG_WARNING,
+			sr_log_msg(logctxptr,LOG_WARNING,
 				   "srshim renameorlink could not obtain real_path for olddir=%s failed, no post\n",
 				   fdpath);
 			clerror(status);
@@ -946,7 +949,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		snprintf(fdpath, 32, "/proc/self/fd/%d", newdirfd);
 		real_return = realpath(fdpath, real_path);
 		if (real_return) {
-			sr_log_msg(NULL,LOG_WARNING,
+			sr_log_msg(logctxptr,LOG_WARNING,
 				   "srshim renameorlink could not obtain real_path for newdir=%s failed, no post\n",
 				   fdpath);
 			clerror(status);
