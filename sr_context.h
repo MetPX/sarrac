@@ -65,12 +65,12 @@ struct sr_context {
 	struct sr_metrics_s metrics;
 };
 
-void sr_amqp_error_print(int x, char const *context);
+void sr_amqp_error_print(struct sr_log_context_s *logctx, int x, char const *context);
 /* utility functions for handling rabbitmq-c call return values.
    for rabbitmq-c routines that return an integer, process the output.
  */
 
-void sr_amqp_reply_print(amqp_rpc_reply_t x, char const *context);
+void sr_amqp_reply_print(struct sr_log_context_s *logctx, amqp_rpc_reply_t x, char const *context);
 /* utility functions for handling rabbitmq-c call return values.
    if return value from a function is an amqp_rpc_reply_t, then feed it to this routine.
    context, is a descriptive string.

@@ -113,7 +113,7 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c);
  *    * SR_CONSUME_BROKEN: connection is bad, restart.
  */
 
-bool sr_message_valid(struct sr_message_s *m);
+bool sr_message_valid(struct sr_log_context_s *logctx, struct sr_message_s *m);
 /*
  * return True if the message passes validity tests (so will be properly processed.)
  * may print messages about formatting errors.

@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 	hash[2] = '\0';
 
 	unlink("sr_cache_save.test");
-	cache = sr_cache_open("sr_cache_save.test");
+	cache = sr_cache_open("sr_cache_save.test",NULL);
 	ret = sr_cache_check(cache, "path", 's', sha512hash("hoho"), "hoho", "1,1,0,0");
 	if (ret > 0) {
 		fprintf(stdout, "OK: added hoho to the cache\n");
@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 	   There are only three hashes in the table, so that HASH_COUNT should be 3.
 	   sha of haha, sha of hoho, then two items under md5 of lala
 	 */
-	cache = sr_cache_open("sr_cache_save.test");
+	cache = sr_cache_open("sr_cache_save.test",NULL);
 
 	/*
 	   fprintf( stdout, "print right after reading in again\n");
