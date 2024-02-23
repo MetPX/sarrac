@@ -432,7 +432,8 @@ void sr_daemonize(int close_stdout, struct sr_log_context_s *logctx)
 
 	if (!(sr_default_log_initialized)) 
 		sr_log_init_context( &null_ctx);
-	if (null_ctx.logfd == 2) {
+
+	if (logctx->logfd == 2) {
 		sr_log_msg(logctx,LOG_CRITICAL, "to run as daemon log option must be set.\n");
 		exit(1);
 	}
@@ -440,10 +441,10 @@ void sr_daemonize(int close_stdout, struct sr_log_context_s *logctx)
 	close(0);
 	if (close_stdout) {
 		close(1);
-		dup2(null_ctx.logfd, STDOUT_FILENO);
+		dup2(logctx->logfd, STDOUT_FILENO);
 	}
 	close(2);
-	dup2(null_ctx.logfd, STDERR_FILENO);
+	dup2(logctx->logfd, STDERR_FILENO);
 
 	sr_log_msg(logctx,LOG_DEBUG, "child daemonizing complete.\n");
 }
