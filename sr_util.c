@@ -24,6 +24,7 @@
 
 #include "sr_util.h"
 
+/*
 static time_t logbase;
 static int logfd = STDERR_FILENO;
 static char logfn[PATH_MAX];
@@ -35,14 +36,34 @@ static int loglevel = LOG_INFO;
 static int logmode = 0600;
 static int logrotate_count = 5;
 static int logrotate_interval = 24 * 60 * 60;
+static struct logfn_tab_s ltab;
+static struct logfn_tab_s mtab;
+ */
 
 static struct timespec ts;
 static struct tm tc;
 
-static struct logfn_tab_s ltab;
-static struct logfn_tab_s mtab;
+static bool sr_default_log_initialized=false;
 
-char *log_set_fnts(char *basefilename);
+static struct sr_log_context_s null_ctx;
+
+void sr_log_init_context(struct sr_log_context_s *ctx) {
+   //ctx->logbase;
+   ctx->logfd = STDERR_FILENO;
+   //ctx->logfn[PATH_MAX];
+   //ctx->metricsfn[PATH_MAX];
+   ctx->logMetrics = false;
+   //ctx->logfn_ts[PATH_MAX];
+   //ctx->metricsfn_ts[PATH_MAX];
+   ctx->loglevel = LOG_INFO;
+   ctx->logmode = 0600;
+   ctx->logrotate_count = 5;
+   ctx->logrotate_interval = 24 * 60 * 60;
+
+   sr_default_log_initialized=true;
+}
+
+char *log_set_fnts(struct sr_log_context_s* ctx, char *basefilename);
 
 #ifndef SR_DEBUG_LOGS
 void sr_log_msg(struct sr_log_context_s* ctx, int prio, const char *format, ...)
@@ -50,7 +71,12 @@ void sr_log_msg(struct sr_log_context_s* ctx, int prio, const char *format, ...)
 	char *level;
 	va_list ap;
 
-	if (prio > loglevel)
+	if (ctx==NULL) { 
+		if (!(sr_default_log_initialized)) 
+			sr_log_init_context( &null_ctx);
+		ctx=&null_ctx;
+        }
+	if (prio > ctx->loglevel)
 		return;
 
 	switch (prio) {
@@ -80,46 +106,46 @@ void sr_log_msg(struct sr_log_context_s* ctx, int prio, const char *format, ...)
 	localtime_r(&ts.tv_sec, &tc);
 
 	/* log (message & metrics) rotation */
-	if ((logfd != STDERR_FILENO)
-	    && ((ts.tv_sec - logbase) > logrotate_interval)) {
-		logbase = ts.tv_sec;
+	if ((ctx->logfd != STDERR_FILENO)
+	    && ((ts.tv_sec - ctx->logbase) > ctx->logrotate_interval)) {
+		ctx->logbase = ts.tv_sec;
 
-		strcpy(logfn_ts,log_set_fnts(logfn));
-		close(logfd);
-		rename(logfn, logfn_ts);
+		strcpy(ctx->logfn_ts,log_set_fnts(ctx, ctx->logfn));
+		close(ctx->logfd);
+		rename(ctx->logfn, ctx->logfn_ts);
 
-		strcpy(metricsfn_ts,log_set_fnts(metricsfn));
-		rename(metricsfn, metricsfn_ts);
+		strcpy(ctx->metricsfn_ts,log_set_fnts(ctx, ctx->metricsfn));
+		rename(ctx->metricsfn, ctx->metricsfn_ts);
 
-		logfd = open(logfn, O_WRONLY | O_CREAT | O_APPEND, logmode);
+		ctx->logfd = open(ctx->logfn, O_WRONLY | O_CREAT | O_APPEND, ctx->logmode);
 
 		/* delete outdated logs */
-		if (logrotate_count > 0) {
-			if (ltab.fns[ltab.i]) {
-				remove(ltab.fns[ltab.i]);
-				free(ltab.fns[ltab.i]);
-				ltab.fns[ltab.i] = NULL;
+		if (ctx->logrotate_count > 0) {
+			if (ctx->ltab.fns[ctx->ltab.i]) {
+				remove(ctx->ltab.fns[ctx->ltab.i]);
+				free(ctx->ltab.fns[ctx->ltab.i]);
+				ctx->ltab.fns[ctx->ltab.i] = NULL;
 			}
-			ltab.fns[ltab.i] = strdup(logfn_ts);
-			ltab.i = (ltab.i + 1) % ltab.size;
+			ctx->ltab.fns[ctx->ltab.i] = strdup(ctx->logfn_ts);
+			ctx->ltab.i = (ctx->ltab.i + 1) % ctx->ltab.size;
 		
-			if (mtab.fns[mtab.i]) {
-				remove(mtab.fns[mtab.i]);
-				free(mtab.fns[mtab.i]);
-				mtab.fns[mtab.i] = NULL;
+			if (ctx->mtab.fns[ctx->mtab.i]) {
+				remove(ctx->mtab.fns[ctx->mtab.i]);
+				free(ctx->mtab.fns[ctx->mtab.i]);
+				ctx->mtab.fns[ctx->mtab.i] = NULL;
 			}
-			mtab.fns[mtab.i] = strdup(metricsfn_ts);
-			mtab.i = (mtab.i + 1) % mtab.size;
+			ctx->mtab.fns[ctx->mtab.i] = strdup(ctx->metricsfn_ts);
+			ctx->mtab.i = (ctx->mtab.i + 1) % ctx->mtab.size;
 		}
 	}
 
 	/* logging */
-	dprintf(logfd, "%04d-%02d-%02d %02d:%02d:%02d,%03d [%s] ",
+	dprintf(ctx->logfd, "%04d-%02d-%02d %02d:%02d:%02d,%03d [%s] ",
 		tc.tm_year + 1900, tc.tm_mon + 1, tc.tm_mday,
 		tc.tm_hour, tc.tm_min, tc.tm_sec, (int)(ts.tv_nsec / 1e6), level);
 
 	va_start(ap, format);
-	vdprintf(logfd, format, ap);
+	vdprintf(ctx->logfd, format, ap);
 	va_end(ap);
 }
 #endif
@@ -127,73 +153,87 @@ void sr_log_msg(struct sr_log_context_s* ctx, int prio, const char *format, ...)
 struct sr_log_context_s* sr_log_setup(const char *fn, const char *mfn, bool logMetricsFlag, mode_t mode, int level, int lr, int lri)
 {
 #ifndef SR_DEBUG_LOGS
-	strcpy(logfn, fn);
-	strcpy(metricsfn, mfn);
-	logmode = mode;
-	logrotate_count = lr;
-	logrotate_interval = lri;
-	loglevel = level;
 
-	logMetrics = logMetricsFlag;
+	struct sr_log_context_s *ctx = NULL;
+
+	ctx = (struct sr_log_context_s*)malloc(sizeof(struct sr_log_context_s)); 
+	strcpy(ctx->logfn, fn);
+	strcpy(ctx->metricsfn, mfn);
+	ctx->logmode = mode;
+	ctx->logrotate_count = lr;
+	ctx->logrotate_interval = lri;
+	ctx->loglevel = level;
+
+	ctx->logMetrics = logMetricsFlag;
 
 	clock_gettime(CLOCK_REALTIME, &ts);
 	localtime_r(&ts.tv_sec, &tc);
-	logbase = ts.tv_sec;
+	ctx->logbase = ts.tv_sec;
 
-	logfd = open(logfn, O_WRONLY | O_CREAT | O_APPEND, logmode);
+	ctx->logfd = open(ctx->logfn, O_WRONLY | O_CREAT | O_APPEND, ctx->logmode);
 
-	if (logrotate_count > 0) {
-		ltab.fns = (char **)malloc(sizeof(char *) * logrotate_count);
-		for (ltab.i = 0; ltab.i < logrotate_count; ++ltab.i)
-			ltab.fns[ltab.i] = NULL;
-		ltab.i = 0;
-		ltab.size = logrotate_count;
+	if (ctx->logrotate_count > 0) {
+		ctx->ltab.fns = (char **)malloc(sizeof(char *) * ctx->logrotate_count);
+		for (ctx->ltab.i = 0; ctx->ltab.i < ctx->logrotate_count; ++ctx->ltab.i)
+			ctx->ltab.fns[ctx->ltab.i] = NULL;
+		ctx->ltab.i = 0;
+		ctx->ltab.size = ctx->logrotate_count;
 
                 // metrics files.
-		mtab.fns = (char **)malloc(sizeof(char *) * logrotate_count);
-		for (mtab.i = 0; mtab.i < logrotate_count; ++mtab.i)
-			mtab.fns[mtab.i] = NULL;
-		mtab.i = 0;
-		mtab.size = logrotate_count;
+		ctx->mtab.fns = (char **)malloc(sizeof(char *) * ctx->logrotate_count);
+		for (ctx->mtab.i = 0; ctx->mtab.i < ctx->logrotate_count; ++ctx->mtab.i)
+			ctx->mtab.fns[ctx->mtab.i] = NULL;
+		ctx->mtab.i = 0;
+		ctx->mtab.size = ctx->logrotate_count;
 	}
 #endif
-	return(NULL);
+	return(ctx);
 }
 
 /* global accessor for loglevel, ugly but better than using a global variable... */
 void sr_set_loglevel(struct sr_log_context_s* ctx, int level)
 {
-	loglevel = level;
+	if (ctx==NULL) { 
+		if (!(sr_default_log_initialized)) 
+			sr_log_init_context( &null_ctx);
+		ctx=&null_ctx;
+        }
+	ctx->loglevel = level;
 }
 
 void sr_log_cleanup(struct sr_log_context_s* ctx)
 {
+	if (ctx==NULL) { 
+		if (!(sr_default_log_initialized)) 
+			sr_log_init_context( &null_ctx);
+		ctx=&null_ctx;
+        }
 #ifndef SR_DEBUG_LOGS
 	/* (logfd != STDERR_FILENO) <> sr_log_setup called previously */
-	if (logfd != STDERR_FILENO) {
-		close(logfd);
-		logfd = STDERR_FILENO;
+	if (ctx->logfd != STDERR_FILENO) {
+		close(ctx->logfd);
+		ctx->logfd = STDERR_FILENO;
 
-		if (logrotate_count > 0) {
-			for (ltab.i = 0; ltab.i < logrotate_count; ++ltab.i)
-				if (ltab.fns[ltab.i])
-					free(ltab.fns[ltab.i]);
-			free(ltab.fns);
-			ltab.i = 0;
-			ltab.size = 0;
+		if (ctx->logrotate_count > 0) {
+			for (ctx->ltab.i = 0; ctx->ltab.i < ctx->logrotate_count; ++ctx->ltab.i)
+				if (ctx->ltab.fns[ctx->ltab.i])
+					free(ctx->ltab.fns[ctx->ltab.i]);
+			free(ctx->ltab.fns);
+			ctx->ltab.i = 0;
+			ctx->ltab.size = 0;
 		
-			for (mtab.i = 0; mtab.i < logrotate_count; ++mtab.i)
-				if (mtab.fns[mtab.i])
-					free(mtab.fns[mtab.i]);
-			free(mtab.fns);
-			mtab.i = 0;
-			mtab.size = 0;
+			for (ctx->mtab.i = 0; ctx->mtab.i < ctx->logrotate_count; ++ctx->mtab.i)
+				if (ctx->mtab.fns[ctx->mtab.i])
+					free(ctx->mtab.fns[ctx->mtab.i]);
+			free(ctx->mtab.fns);
+			ctx->mtab.i = 0;
+			ctx->mtab.size = 0;
 		}
 	}
 #endif
 }
 
-char *log_set_fnts(char *basefilename)
+char *log_set_fnts(struct sr_log_context_s *ctx, char *basefilename)
 	/* set logging file name time stamp.
 	 */
 {
@@ -206,7 +246,7 @@ char *log_set_fnts(char *basefilename)
 
 	*p++ = '.';
 
-	int lri = logrotate_interval;
+	int lri = ctx->logrotate_interval;
 	if (!(lri % (24 * 60 * 60))) {
 		/* daily resolution */
 		strcpy(p, "%04d-%02d-%02d");
@@ -390,7 +430,9 @@ void sr_daemonize(int close_stdout)
 			   "daemonizing, setsid errord, failed to completely dissociate from login process\n");
 	}
 
-	if (logfd == 2) {
+	if (!(sr_default_log_initialized)) 
+		sr_log_init_context( &null_ctx);
+	if (null_ctx.logfd == 2) {
 		sr_log_msg(NULL,LOG_CRITICAL, "to run as daemon log option must be set.\n");
 		exit(1);
 	}
@@ -398,10 +440,10 @@ void sr_daemonize(int close_stdout)
 	close(0);
 	if (close_stdout) {
 		close(1);
-		dup2(logfd, STDOUT_FILENO);
+		dup2(null_ctx.logfd, STDOUT_FILENO);
 	}
 	close(2);
-	dup2(logfd, STDERR_FILENO);
+	dup2(null_ctx.logfd, STDERR_FILENO);
 
 	sr_log_msg(NULL,LOG_DEBUG, "child daemonizing complete.\n");
 }
