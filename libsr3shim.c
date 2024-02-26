@@ -365,6 +365,7 @@ void srshim_initialize(const char *progname)
 				 progname);
 		config_read = sr_config_read(&sr_cfg, setstr, 1, 1);
 		logctxptr = sr_cfg.logctx;
+		sr_set_loglevel( sr_cfg.logctx, sr_cfg.loglevel );
 		sr_shimdebug_msg(9, "srshim_initialize %s back from sr_config_read\n",
 				 progname);
 		free(setstr);

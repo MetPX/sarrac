@@ -550,7 +550,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 			goto restart;
 		}
 		amqp_maybe_release_buffers(sr_c->cfg->post_broker->conn);
-		sr_log_msg(sr_c->cfg->logctx,LOG_INFO, "published: %s\n", sr_message_2log(m));
+		sr_log_msg(sr_c->cfg->logctx,LOG_INFO, "%s published: %s\n", sr_c->cfg->progname, sr_message_2log(m));
 		return;
 
  restart:
@@ -587,7 +587,7 @@ void realpath_adjust(struct sr_log_context_s *logctx, const char *input_path, ch
 	if (adjust == 0) {
 		return_value = realpath(input_path, output_path);
 		if (return_value) {
-			sr_log_msg(logctx,LOG_DEBUG, "realpath_adjust %d, %s -> %s \n", adjust, input_path,
+			sr_log_msg(logctx,LOG_DEBUG, "%s realpath_adjust %d, %s -> %s \n", adjust, input_path,
 				   output_path);
 			return;
 		}
@@ -689,7 +689,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 
 	if ((sr_c->cfg != NULL) && sr_c->cfg->debug) {
 		sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG,
-			   "sr_%s file2message start with: %s sb=%p islnk=%d, isdir=%d, isreg=%d\n",
+			   "%s file2message start with: %s sb=%p islnk=%d, isdir=%d, isreg=%d\n",
 			   sr_c->cfg->progname, fn, sb,
 			   sb ? S_ISLNK(sb->st_mode) : 0,
 			   sb ? S_ISDIR(sb->st_mode) : 0, sb ? S_ISREG(sb->st_mode) : 0);
@@ -732,7 +732,8 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 			drfound += strlen(sr_c->cfg->post_baseDir);
 			strcpy(m->relPath, drfound);
 		} else if (absolute_path) {
-		   	sr_log_msg(sr_c->cfg->logctx,LOG_ERROR, "posting outside of post_baseDir (%s) invalid path: %s\n", sr_c->cfg->post_baseDir, fn );
+		   	sr_log_msg(sr_c->cfg->logctx,LOG_ERROR, "%s posting outside of post_baseDir (%s) invalid path: %s\n", 
+					sr_c->cfg->progname, sr_c->cfg->post_baseDir, fn );
  			return(0);
                 }
 	}
