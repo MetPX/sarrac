@@ -24,22 +24,6 @@
 
 #include "sr_util.h"
 
-/*
-static time_t logbase;
-static int logfd = STDERR_FILENO;
-static char logfn[PATH_MAX];
-static char metricsfn[PATH_MAX];
-bool logMetrics = false;
-static char logfn_ts[PATH_MAX];
-static char metricsfn_ts[PATH_MAX];
-static int loglevel = LOG_INFO;
-static int logmode = 0600;
-static int logrotate_count = 5;
-static int logrotate_interval = 24 * 60 * 60;
-static struct logfn_tab_s ltab;
-static struct logfn_tab_s mtab;
- */
-
 static struct timespec ts;
 static struct tm tc;
 
@@ -48,6 +32,10 @@ static bool sr_default_log_initialized=false;
 static struct sr_log_context_s null_ctx;
 
 void sr_log_init_context(struct sr_log_context_s *ctx) {
+
+   if (ctx == &null_ctx) {
+   	sr_default_log_initialized=true;
+   }
    //ctx->logbase;
    ctx->logfd = STDERR_FILENO;
    //ctx->logfn[PATH_MAX];
@@ -60,7 +48,7 @@ void sr_log_init_context(struct sr_log_context_s *ctx) {
    ctx->logrotate_count = 5;
    ctx->logrotate_interval = 24 * 60 * 60;
 
-   sr_default_log_initialized=true;
+
 }
 
 char *log_set_fnts(struct sr_log_context_s* ctx, char *basefilename);

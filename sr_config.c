@@ -830,7 +830,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		val = StringIsTrue(argument);
 		sr_cfg->debug = val & 2;
 		sr_cfg->loglevel = LOG_DEBUG;
-		sr_set_loglevel(NULL, LOG_DEBUG);
+		sr_set_loglevel(sr_cfg->logctx, LOG_DEBUG);
 		retval = (1 + (val & 1));
 
 	} else if (!strcmp(option, "declare")) {
@@ -992,7 +992,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		} else {
 			sr_cfg->loglevel = atoi(argument);
 		}
-		sr_set_loglevel(NULL, sr_cfg->loglevel);
+		sr_set_loglevel(sr_cfg->logctx, sr_cfg->loglevel);
 		retval = (2);
 
 	} else if (!strcmp(option, "log")) {
@@ -1840,7 +1840,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	// Since we check how old the log is, we ust not write to the log during startup in sanity mode.
 	if (strcmp(sr_cfg->action, "sanity")) {
 		sr_log_msg(sr_cfg->logctx, ll,
-			   "sr_%s %s settings: action=%s hostname=%s config_name=%s log_level=%d\n",
+			   "%s %s settings: action=%s hostname=%s config_name=%s log_level=%d\n",
 			   sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_local_fqdn(sr_cfg->logctx),
 			   sr_cfg->configname, sr_cfg->loglevel );
 		sr_log_msg(sr_cfg->logctx, ll, "\tfollow_symlinks=%s realpath: Adjust=%d Filter=%s Post=%s\n",
