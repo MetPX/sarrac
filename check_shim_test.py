@@ -93,10 +93,13 @@ with open(sys.argv[1], 'r') as log:
             test_actual_count = 0
             test_actual_posts = {}
 
-        if line[2] == "[INFO]" and line[3] == 'published:':
+        if line[2] == "[INFO]" and line[4] == 'published:':
             print(i)
-            # 2022-12-15 09:54:30,677 [INFO] published: 20221215145430.676464601 sftp://peter@localhost /home/peter/Sarracenia/metpx-sr3c/hoho topic=v03.post.home.peter.Sarracenia.metpx-sr3c sum=n,ac837d7b87a8ca12f0343401d66d081d source=tfeed to_clusters=localhost from_cluster=localhost mtime=20221215145430.67089267 atime=20221215145430.658892516 mode=0664 parts=1,5,1,0,0 toto=pig
-            message=json.loads( i[42:] )
+            #           0         1         2         4         5
+            #           0         0         0         0      7  0    5
+            # 2024-03-01 11:30:09,894 [INFO] shim published: { "pubTime":"20240 ....
+            # 2022-12-15 09:54:30,677 [INFO] shim published: 20221215145430.676464601 sftp://peter@localhost /home/peter/Sarracenia/metpx-sr3c/hoho topic=v03.post.home.peter.Sarracenia.metpx-sr3c sum=n,ac837d7b87a8ca12f0343401d66d081d source=tfeed to_clusters=localhost from_cluster=localhost mtime=20221215145430.67089267 atime=20221215145430.658892516 mode=0664 parts=1,5,1,0,0 toto=pig
+            message=json.loads( i[47:] )
             #print( f"message is: {message} " )
 
             if 'fileOp' in message:
