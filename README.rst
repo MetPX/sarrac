@@ -298,10 +298,11 @@ As of 2022/12, development is on v3 compatible version of sarrac.
 The customer switched to sr3, so there is no need to continue with v2.
 The existing git branches and their roles:
 
-* v03 ... the default development branch, launchpad.net daily packages built from here.
-* main ... v03 release branch, tracks v03 punctually. launchpad.net stable packages built from here.
-* v2_stable ... v2 release branch, tracks v2 punctually. (legacy)
+* development ... the default development branch, launchpad.net daily packages built from here.
+* pre-release ... v03 pre-release branch, tracks development punctually. launchpad.net pre-release packages built from here.
+* stable ... v03 release branch, tracks pre-release punctually. launchpad.net stable packages built from here.
 * v2 ... v2 development branch. (legacy)
+* v2_stable ... v2 release branch, tracks v2 punctually. (legacy)
 * issueXXX ... branch developed to address a particular issue.
 
 
