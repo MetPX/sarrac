@@ -1,4 +1,4 @@
-metpx-sr3c (3.24.03rc1) unstable; urgency=medium
+metpx-sr3c (3.24.02) unstable; urgency=medium
 
   * fix #141 sr3_cpost in a tree being mirrored (conflict with shim)
   * tests: fix for link modification times cannot be preserved.
