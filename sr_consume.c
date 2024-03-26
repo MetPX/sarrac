@@ -431,7 +431,6 @@ static void v03assign_field(struct sr_log_context_s *logctx, const char *key, js
 			return;
 		}
 		strcpy(msg.datestamp, json_object_get_string(jso_v));
-		sr_log_msg(logctx,LOG_CRITICAL, "v03assign_field 0 msg.datestamp: %s\n", msg.datestamp );
 		tlen = strlen(msg.datestamp);
 		if (tlen < 16) {
 			sr_log_msg(logctx,LOG_ERROR, "malformed json: pubTime value too short: %s\n",
@@ -442,7 +441,6 @@ static void v03assign_field(struct sr_log_context_s *logctx, const char *key, js
 		    tlen -= 8;
 		    memmove(&msg.datestamp[8], &msg.datestamp[9], tlen);	//eliminate "T".
                 }
-		sr_log_msg(logctx,LOG_CRITICAL, "v03assign_field 1 msg.datestamp: %s\n", msg.datestamp );
 	} else if (!strcmp(key, "fileOp")) {
 		if (json_object_get_type(jso_v) != json_type_object) {
 			sr_log_msg(logctx,LOG_ERROR, "malformed json: identity should be an object: %d\n",
@@ -1117,8 +1115,6 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 #endif
 
 	}
-
-	sr_log_msg(sr_c->cfg->logctx,LOG_ERROR, "v03 end of parse msg.datestamp: %s\n", msg.datestamp );
 
 	return (&msg);
 }
