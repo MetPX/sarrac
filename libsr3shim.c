@@ -859,6 +859,10 @@ static int renameat2_init_done = 0;
 typedef int (*renameat2_fn)(int, const char *, int, const char *, unsigned int);
 static renameat2_fn renameat2_fn_ptr = NULL;
 
+static int syscall_init_done = 0;
+typedef long int (*syscall_fn)(long int, ...);
+static syscall_fn syscall_fn_ptr = NULL;
+
 int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		 const char *newpath, int flags, int link)
 /*
@@ -1360,6 +1364,48 @@ int renameat2(int olddirfd, const char *oldpath, int newdirfd,
 	sr_shimdebug_msg(1, "renameat2 %s %s\n", oldpath, newpath);
 
 	return (renameorlink(olddirfd, oldpath, newdirfd, newpath, flags, 0));
+}
+
+long int syscall (long int __sysno, ...)
+{
+	va_list args;
+	int status = -1;
+
+	int   olddirfd = -1;
+	char *oldpath  = NULL;
+	int   newdirfd = -1;
+	char *newpath  = NULL;
+	int   flags    = -1;
+
+	sr_shimdebug_msg(1, "syscall %ld\n", __sysno);
+	
+	if (!syscall_init_done) {
+                setup_exit();
+                syscall_fn_ptr = (syscall_fn) dlsym(RTLD_NEXT, "syscall");
+                syscall_init_done = 1;
+        }
+
+	// renameat2 is 316
+	if (__sysno == 316) {
+		sr_shimdebug_msg(1, "syscall %ld\n --> renameat2, will call renameorlink", __sysno);
+		
+		va_start(args, __sysno);
+		olddirfd = va_arg(args, int);
+		oldpath  = va_arg(args, char*);
+		newdirfd = va_arg(args, int);
+		newpath  = va_arg(args, char*);
+		flags    = va_arg(args, int);
+		va_end(args);
+
+		sr_shimdebug_msg(1, "%d, %s, %d, %s, %d", olddirfd, oldpath, newdirfd, newpath, flags);
+		status = renameorlink(olddirfd, oldpath, newdirfd, newpath, flags, 0);
+	}
+	else {
+		sr_shimdebug_msg(1, "syscall %ld\n NOT IMPLEMENTED", __sysno);
+                sr_log_msg(logctxptr,LOG_ERROR, "non-renameat2 syscall not implemented\n");
+                status = -1;
+	}
+	return status;
 }
 
 static int sendfile_init_done = 0;
