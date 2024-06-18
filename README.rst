@@ -294,7 +294,7 @@ Branches
 --------
 
 The main repository of sarrac is: https://github.com/MetPX/sarrac
-As of 2022/12, development is on v3 compatible version of sarrac.
+As of 2022/12, development is on v3 compatible version of sarrac, now called metpx-sr3c.
 The customer switched to sr3, so there is no need to continue with v2.
 The existing git branches and their roles:
 
@@ -309,47 +309,7 @@ The existing git branches and their roles:
 Release Process
 ---------------
 
-To note changes:
-  - Compile once with -DSR_DEBUG_LOGS to verify that no msg_log calls have errors (compiler will report)
-  - build package (without -DSR_DEBUG_LOGS) and install.
-  - run some ./test scripts.
-  - make trust_but_verify
-    examine results, which include a valgrind run.
-  - Run through a flow test.
-  - dch, and add your points.
-  - when ready to release, edit UNRELEASED to an appropriate status, usually unstable.
-  - git commit #what you need to commit...
-  - git tag <release> -m <release>
-  - git push
-  - git push origin <release>
-
-  - go to Launchpad, and import source `here <https://code.launchpad.net/~ssc-hpc-chp-spc/metpx-sarrac/+git/master>`_.
-  - go to launchpad, find the recipe and Request Build `here <https://code.launchpad.net/~ssc-hpc-chp-spc/+recipe/metpx-sarrac>`_.
-
-
-Building RPMS
--------------
-
-clone source to metpx-sr3c directory (needed by rpm build rules)::
-
-  git clone https://github.com/MetPX/sarrac metpx-sr3c
-  cd sr3c
-
-on Suse::
-
-  zypper addrepo https://download.opensuse.org/repositories/network:messaging:amqp/openSUSE_Leap_15.1/network:messaging:amqp.repo
-  zypper refresh
-  zypper install librabbitmq4 librabbitmq-devel
-  zypper install libopenssl-devel libjson-c-devel
-  make rpm_suse15
-
-on Redhat/Centos::
-
-  make rpm_rhel7
-
-
-( notes from: https://github.com/MetPX/sarrac/issues/73 )
-
+See `Releases <Release.rst>`_
 
 Proposed Coding Style Guidelines
 --------------------------------
@@ -360,7 +320,7 @@ but with one pythonic affectation:  You know Rule 1? about the tabs with 8 chara
 indented like python instead, use four spaces, and not tabs.
 
 Also, in terms of documenting code, when adding new things one should add comments
-keeping in minde compatbility with `doxygen <http://www.doxygen.nl/manual/docblocks.html>`_ 
+keeping in mind compatbility with `doxygen <http://www.doxygen.nl/manual/docblocks.html>`_ 
 Examples::
 
   /**
