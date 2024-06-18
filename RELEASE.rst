@@ -133,7 +133,7 @@ To note changes:
   - git push origin <release>
 
   - go to Launchpad, and import source `here <https://code.launchpad.net/~ssc-hpc-chp-spc/metpx-sarrac/+git/master>`_.
-  - go to launchpad, find the recipe and Request Build `here <https://code.launchpad.net/~ssc-hpc-chp-spc/+recipe/metpx-sarrac>`_.
+  - go to launchpad, find the recipe and Request Build `here <https://code.launchpad.net/~ssc-hpc-chp-spc/+recipe/metpx-sr3c-pre-release>`_.
   - go to an hpc account (on an intel node)
     * mkdir ~/Sarracenia;  cd ~/Sarracenia
     * git clone https://github.com/MetPX/sarrac metpx-sr3c
