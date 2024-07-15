@@ -37,6 +37,8 @@ LIBCLOCATION=$(shell ldd /bin/sh | awk '/libc\.so\./ { print; }' | cut -d' ' -f3
 # also remove -ljson-c from EXT_LIB declaration.
 # to work with sr3, change SR_APPNAME=\"sr3\" ... otherwise will be managed by version 2. 
 # on Power9, -fstack-check  causes coredumps, so removed for now.
+# On RHEL8, add -DINTERCEPT_SYSCALL to handle cases where mv calls syscall directly, instead of calling renameat2.
+# See sarrac issue #145 for more information about syscall/renameat2.
 
 CFLAGS = -DHAVE_JSONC -DSR_APPNAME=\"sr3\" -DFORCE_LIBC_REGEX=\"$(LIBCLOCATION)\" -fPIC -ftest-coverage -std=gnu99 -Wall -g -D_GNU_SOURCE $(RABBIT_INCDIR)
 

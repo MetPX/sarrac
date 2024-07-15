@@ -20,6 +20,14 @@
 #include "sr_post.h"
 
 /*
+See https://github.com/MetPX/sarrac/issues/145. 
+glibc < 2.28 doesn't provide renameat2.
+*/
+#if !__GLIBC_PREREQ(2,28)
+#define INTERCEPT_SYSCALL
+#endif
+
+/*
  libsrshim - intercepts calls to libc and kernel to post files for broker.
 
 SR_SHIM_CONFIG -- environment variable to set configuration file name 
@@ -47,6 +55,8 @@ SR_SHIM_CONFIG -- environment variable to set configuration file name
 
 void exit_cleanup_posts();
 int exit_cleanup_posts_setup = 0;
+
+void syscall_init();
 
 int mypid = 0;
 int pid_seconds_wallclock = 0;
@@ -855,6 +865,7 @@ static int renameat_init_done = 0;
 typedef int (*renameat_fn)(int, const char *, int, const char *);
 static renameat_fn renameat_fn_ptr = NULL;
 
+
 static int renameat2_init_done = 0;
 typedef int (*renameat2_fn)(int, const char *, int, const char *, unsigned int);
 static renameat2_fn renameat2_fn_ptr = NULL;
@@ -862,6 +873,7 @@ static renameat2_fn renameat2_fn_ptr = NULL;
 static int syscall_init_done = 0;
 typedef long int (*syscall_fn)(long int, ...);
 static syscall_fn syscall_fn_ptr = NULL;
+
 
 int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		 const char *newpath, int flags, int link)
@@ -883,6 +895,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		renameat2_fn_ptr = (renameat2_fn) dlsym(RTLD_NEXT, "renameat2");
 		renameat2_init_done = 1;
 	}
+
 	if (!renameat_init_done) {
 		renameat_fn_ptr = (renameat_fn) dlsym(RTLD_NEXT, "renameat");
 		renameat_init_done = 1;
@@ -898,6 +911,10 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		linkat_init_done = 1;
 	}
 
+	if (!syscall_init_done) {
+		syscall_init();
+	}
+
 	if (link) {
 		if (linkat_fn_ptr)
 			status = linkat_fn_ptr(olddirfd, oldpath, newdirfd, newpath, flags);
@@ -908,11 +925,15 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 				   " renameorlink could not identify real entry point for link\n");
 		}
 	} else {
-		if (renameat2_fn_ptr)
+		if (renameat2_fn_ptr) {
+			sr_shimdebug_msg(1, " renameorlink using renameat2\n");
 			status = renameat2_fn_ptr(olddirfd, oldpath, newdirfd, newpath, flags);
-		else if (renameat_fn_ptr && !flags)
+		} else if (renameat_fn_ptr && !flags) {
 			status = renameat_fn_ptr(olddirfd, oldpath, newdirfd, newpath);
-		else {
+		} else if (syscall_fn_ptr) {
+			sr_shimdebug_msg(1, " renameorlink using renameat2 via syscall(316, ...)\n");
+			status = syscall_fn_ptr(316, olddirfd, oldpath, newdirfd, newpath, flags);
+		} else {
 			sr_log_msg(logctxptr,LOG_ERROR,
 				   " renameorlink could not identify real entry point for renameat\n");
 			return (-1);
@@ -1366,7 +1387,17 @@ int renameat2(int olddirfd, const char *oldpath, int newdirfd,
 	return (renameorlink(olddirfd, oldpath, newdirfd, newpath, flags, 0));
 }
 
-long int syscall (long int __sysno, ...)
+void syscall_init()
+{
+	if (!syscall_init_done) {
+		setup_exit();
+		syscall_fn_ptr = (syscall_fn) dlsym(RTLD_NEXT, "syscall");
+		syscall_init_done = 1;
+	}
+}
+
+#ifdef INTERCEPT_SYSCALL
+long int syscall(long int __sysno, ...)
 {
 	va_list args;
 	int status = -1;
@@ -1380,10 +1411,8 @@ long int syscall (long int __sysno, ...)
 	sr_shimdebug_msg(1, "syscall %ld\n", __sysno);
 	
 	if (!syscall_init_done) {
-                setup_exit();
-                syscall_fn_ptr = (syscall_fn) dlsym(RTLD_NEXT, "syscall");
-                syscall_init_done = 1;
-        }
+			syscall_init();
+	}
 
 	// renameat2 is 316
 	if (__sysno == 316) {
@@ -1401,12 +1430,13 @@ long int syscall (long int __sysno, ...)
 		status = renameorlink(olddirfd, oldpath, newdirfd, newpath, flags, 0);
 	}
 	else {
-		sr_shimdebug_msg(1, "syscall %ld\n NOT IMPLEMENTED", __sysno);
-                sr_log_msg(logctxptr,LOG_ERROR, "non-renameat2 syscall not implemented\n");
-                status = -1;
+		sr_shimdebug_msg(1, "syscall %ld NOT IMPLEMENTED\n", __sysno);
+		sr_log_msg(logctxptr,LOG_ERROR, "non-renameat2 syscall (%ld) not implemented\n", __sysno);
+		status = -1;
 	}
 	return status;
 }
+#endif
 
 static int sendfile_init_done = 0;
 typedef ssize_t(*sendfile_fn) (int, int, off_t *, size_t);
