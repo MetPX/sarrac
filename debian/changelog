@@ -1,5 +1,8 @@
-metpx-sr3c (3.24.03rc1) unstable; urgency=medium
+metpx-sr3c (3.24.07rc1) unstable; urgency=medium
 
+  * support #147 coreutils using syscall instead of renameat2 on redhat8 and
+    ubuntu 18.
+  * fix #148 sr3_cpost posting messages with corrupt topics if relPath blank.
   * fix #141 sr3_cpost in a tree being mirrored (conflict with shim)
   * tests: fix for link modification times cannot be preserved.
   * test fixes for changes in python side.
