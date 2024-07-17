@@ -776,11 +776,15 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 			s += pmatch[0].rm_eo;
 		}
 	}
+
 	// use tmprk variable to fix  255 AMQP_SS_LEN limit
 	strcpy(tmprk, sr_c->cfg->post_topicPrefix);
-	strcat(tmprk, ".");
-	strcat(tmprk, m->relPath + (*(m->relPath) == '/'));
-
+	if ( strlen(m->relPath) > 0 ) {
+		strcat(tmprk, ".");
+		strcat(tmprk, m->relPath + (*(m->relPath) == '/'));
+        } else {
+		strcpy(tmprk, "");
+	}
 	if (strlen(tmprk) > 255)
 		tmprk[255] = '\0';
 
