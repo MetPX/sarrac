@@ -782,13 +782,11 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	if ( strlen(m->relPath) > 0 ) {
 		strcat(tmprk, ".");
 		strcat(tmprk, m->relPath + ((strlen(m->relPath)>1)&&(*(m->relPath) == '/')));
-        } else {
-		strcpy(tmprk, "");
+		if (strlen(tmprk) > 255)
+			tmprk[255] = '\0';
 	}
-	if (strlen(tmprk) > 255)
-		tmprk[255] = '\0';
-
 	strcpy(m->routing_key, tmprk);
+
 
 	lasti = strlen(sr_c->cfg->post_topicPrefix);
 	for (int i = lasti; i < strlen(m->routing_key); i++) {
