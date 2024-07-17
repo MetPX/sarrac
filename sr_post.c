@@ -781,7 +781,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	strcpy(tmprk, sr_c->cfg->post_topicPrefix);
 	if ( strlen(m->relPath) > 0 ) {
 		strcat(tmprk, ".");
-		strcat(tmprk, m->relPath + (*(m->relPath) == '/'));
+		strcat(tmprk, m->relPath + ((strlen(m->relPath)>1)&&(*(m->relPath) == '/')));
         } else {
 		strcpy(tmprk, "");
 	}
