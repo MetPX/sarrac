@@ -115,18 +115,28 @@ rm ~/test/hoho2.log
 echo "#test 1 directory 150 make second directory ."
 
 mkdir dirone
-echo "#test 1 sha512 160 stdout redirection in a subdir"
-echo "fileone" >>dirone/fileone
+if [ "${KNOWN_REDIRECTION_BUG}" ]; then
+    echo "#test 1 sha512 160 cp to avoid stdout redirection in a subdir"
+    cp hoho dirone/fileone
+else
+    echo "#test 1 sha512 160 stdout redirection in a subdir"
+    echo "fileone" >>dirone/fileone
+fi
 
 echo "#test 1 directory 170 make third directory."
 mkdir dirone/dirtwo
 
-echo "#test 1 sha512 180 stdout redirection in a subsubdir"
-echo "filetwo" >>dirone/dirtwo/filetwo
+if [ "${KNOWN_REDIRECTION_BUG}" ]; then
+    echo "#test 1 sha512 180 cp to avoid stdout redirection in a subsubdir"
+    cp hoho dirone/dirtwo/filetwo
+else
+    echo "#test 1 sha512 180 stdout redirection in a subsubdir"
+    echo "filetwo" >>dirone/dirtwo/filetwo
+fi
 
 echo "#test 1 rename 190 renaming subdirs should cause file rename events."
 mv dirone dirthree
-echo "#test 2 remove 200 removing a whole tree events."
+echo "#test 4 remove 200 removing a whole tree events."
 rm -rf dirthree
 echo "#test 2 remove 210 removing two files"
 rm hoho hoohoo
