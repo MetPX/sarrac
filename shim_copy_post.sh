@@ -98,8 +98,13 @@ mv dirone dirthree
 echo "#test 1 link 135 symlink in a sub-dir"
 ln -sf `pwd`/dirthree/dirtwo/filefour dirthree/dirtwo/link2four
 
-echo "#test 1 sha512 create test_file"
-echo  1 >test_file
+if [ "${KNOWN_REDIRECTION_BUG}" ]; then
+    echo "#test 1 sha512 create test_file"
+    cp hoho test_file
+else
+    echo "#test 1 sha512 create test_file with redirection"
+    echo  1 >test_file
+fi
 echo "#test 1 sha512 update test_file"
 touch test_file
 
