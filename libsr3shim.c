@@ -799,10 +799,6 @@ int unlinkat(int dirfd, const char *path, int flags)
 	if (status == -1)
 		return status;
 
-	if (!stat_failed && S_ISDIR(sb.st_mode)) {
-		sr_shimdebug_msg(1, "unlinkat %s dirfd=%i skipping directory\n", path, dirfd);
-		return status;
-	}
 	if (dirfd == AT_FDCWD)
 		return (shimpost(path, status));
 
