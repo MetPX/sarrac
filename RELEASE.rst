@@ -124,6 +124,9 @@ To note changes:
     examine results, which include a valgrind run.
   - install package so that it is used for flow tests on at least one platform.
   - find redhat8 (with local disk) and run make test_shim
+
+  - on redhat8 edit: Makefile to add -DINTERCEPT_SYSCALL to CFLAGS.
+
   - find ubuntu18 (with local disk) and run make test_shim.
   - dch, and touch up your points if need be.
   - when ready to release, edit UNRELEASED to an appropriate status, usually unstable.
@@ -137,6 +140,7 @@ To note changes:
   - go to an hpc account (on an intel node)
     * mkdir ~/Sarracenia;  cd ~/Sarracenia
     * git clone https://github.com/MetPX/sarrac metpx-sr3c
+    * edit Makefile to add -DINTERCEPT_SYSCALL to CFLAGS.
     * cd metpx-sr3c
     * make rpm_rhel7 
   - go to a hpc account on a powerpc node
