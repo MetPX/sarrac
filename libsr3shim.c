@@ -504,7 +504,7 @@ void srshim_realpost(const char *path)
 		return;
 	}
 	if (sr_c->cfg->shim_defer_posting_to_exit) {
-		sr_shimdebug_msg(1, "srshim_realpost post deferred to exist ... %s\n", fn);
+		sr_shimdebug_msg(1, "srshim_realpost post deferred to exit ... %s\n", fn);
 		return;
 	}
 
