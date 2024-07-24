@@ -57,21 +57,11 @@ mkdir dirone
 echo "#test 1 link 110 symlink to directory"
 ln -s dirone link_to_dirone
 
-if [ "${KNOWN_REDIRECTION_BUG}" ]; then
-	echo "#test 1 sha512 120 cp replaces redirection in a subdir"
-	cp hoho link_to_dirone/fileone
-else
-	echo "#test 1 sha512 120 stdout redirection in a subdir"
-	echo "fileone" >>link_to_dirone/fileone
-fi
+echo "#test 1 sha512 120 stdout redirection in a subdir"
+echo "fileone" >>link_to_dirone/fileone
 
-if [ "${KNOWN_REDIRECTION_BUG}" ]; then
-	echo "#test 1 sha512 120 cp replaces 2nd stdout redirection in a subdir"
-	cp hoho link_to_dirone/filefive
-else
-	echo "#test 1 sha512 120 2nd stdout redirection in a subdir"
-	echo "lovely" >>link_to_dirone/filefive
-fi
+echo "#test 1 sha512 120 2nd stdout redirection in a subdir"
+echo "lovely" >>link_to_dirone/filefive
 
 echo "#test 1 directory 130 mkdir 2"
 mkdir dirone/dirtwo
@@ -79,13 +69,8 @@ mkdir dirone/dirtwo
 echo "#test 1,1 link,rename 135 symlink in a sub-dir"
 ln -sf `pwd`/link_to_dirone/fileone dirone/link_to_fileone
 
-if [ "${KNOWN_REDIRECTION_BUG}" ]; then
-	echo "#test 1 sha512 140 cp replaces redirection in a subsubdir"
-	cp hoho dirone/dirtwo/filetwo
-else
-	echo "#test 1 sha512 140 stdout redirection in a subsubdir"
-	echo "filetwo" >>dirone/dirtwo/filetwo
-fi
+echo "#test 1 sha512 140 stdout redirection in a subsubdir"
+echo "filetwo" >>dirone/dirtwo/filetwo
 
 echo "#test 1 rename 145 rename in a sub-dir"
 mv dirone/dirtwo/filetwo dirone/dirtwo/filefour
@@ -98,25 +83,18 @@ mv dirone dirthree
 echo "#test 1 link 135 symlink in a sub-dir"
 ln -sf `pwd`/dirthree/dirtwo/filefour dirthree/dirtwo/link2four
 
-if [ "${KNOWN_REDIRECTION_BUG}" ]; then
-    echo "#test 1 sha512 141 create test_file (without redirection)"
-    cp hoho test_file
-else
-    echo "#test 1 sha512 142 create test_file with redirection"
-    echo  1 >test_file
-fi
+echo "#test 1 sha512 142 create test_file with redirection"
+echo  1 >test_file
 echo "#test 1 sha512 151 update test_file"
 touch test_file
 
 echo "#test 1 rename 152 move test_file into dirthree subdir"
 mv test_file dirthree
 
-if [ "${KNOWN_REDIRECTION_BUG}" ]; then
-    echo "#test 1 sha512 161 create test_file (again)"
-    cp dirthree/test_file test_file
-else
-    echo "#test 1 sha512 162 create test_file (again)"
-    echo 2 >test_file
+echo "#test 1 sha512 162 create test_file (again)"
+echo 2 >test_file
+
+if [ ! "${KNOWN_REDIRECTION_BUG}" ]; then
     echo "#no post from touch, refused as repeat"
     touch test_file
 fi
