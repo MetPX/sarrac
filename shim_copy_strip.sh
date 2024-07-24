@@ -1,4 +1,7 @@
 
+VERSION=`head -1 debian/changelog| sed 's/.*(//' | sed 's/).*//'`
+MAJOR_VERSION=`echo \"${VERSION}\" | sed 's+\..*++g'`
+
 
 # job step 0 - setup...
 if [ ! -d ~/test ]; then
@@ -108,9 +111,9 @@ sr3 start subscribe/local_copy.conf
 
 export SR_POST_CONFIG=local_post.conf
 if [ "${SYSTEM_SHIM_TEST}" ]; then
-   export LD_PRELOAD=libsr3shim.so.1.0.0
+   export LD_PRELOAD=libsr3shim.so.${VERSION}
 else
-   export LD_PRELOAD=`pwd`/libsr3shim.so.1.0.0
+   export LD_PRELOAD=`pwd`/libsr3shim.so.${VERSION}
    export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
 fi
 export SR_SHIMDEBUG=99
