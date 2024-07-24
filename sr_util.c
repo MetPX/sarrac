@@ -175,8 +175,6 @@ struct sr_log_context_s* sr_log_setup(const char *fn, const char *mfn, bool logM
 		ctx->mtab.size = ctx->logrotate_count;
 	}
 	return(ctx);
-#else
-	return;
 #endif
 }
 
