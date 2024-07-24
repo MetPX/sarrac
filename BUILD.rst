@@ -285,6 +285,9 @@ if on a redhat derived OS, then assuming build dependencies are taken
 care of. For redhat 8, add the INTERCEPT_SYSCALL symbol to CFLAGS in the
 Makefile::
 
+   git clone https://github.com/MetPX/sarrac metpx-sr3c
+   cd metpx-sr3c
+
    vi Makefile
    /^CFLAGS=
    a -DINTERCEPT_SYSCALL <Esc>
@@ -302,6 +305,23 @@ Will run rpmbuild, and put the packages where that tool places them
 
 There is also a suse Makefile target. Has not be tested recently.
 May or may not work. Left as a starting point for next person to try Suse.
+
+
+
+Suse
+~~~~
+
+on a Suse distribution, this has worked in the past::
+
+  zypper addrepo https://download.opensuse.org/repositories/network:messaging:amqp/openSUSE_Leap_15.1/network:messaging:amqp.repo
+  zypper refresh
+  zypper install librabbitmq4 librabbitmq-devel
+  zypper install libopenssl-devel libjson-c-devel
+  make rpm_suse15
+
+
+( notes from: https://github.com/MetPX/sarrac/issues/73 )
+
 
 
 Branches

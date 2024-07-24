@@ -152,35 +152,3 @@ The rpm build targets run *rpmbuild* which places the packages in a standard tre
 ~/rpmbuild/RPMS/<arch>/..rpm on each arch the rpm will be created in the appropriate directory.
 
 
-
-
-
-
-
-
-Building RPMS
--------------
-
-This is the general procedure when building rpms on a system that has never
-had an RPM build on it before.
-Clone source to metpx-sr3c directory (needed by rpm build rules)::
-
-  git clone https://github.com/MetPX/sarrac metpx-sr3c
-  cd sr3c
-
-on Suse::
-
-  zypper addrepo https://download.opensuse.org/repositories/network:messaging:amqp/openSUSE_Leap_15.1/network:messaging:amqp.repo
-  zypper refresh
-  zypper install librabbitmq4 librabbitmq-devel
-  zypper install libopenssl-devel libjson-c-devel
-  make rpm_suse15
-
-on Redhat/Centos::
-
-  # install dependencies somehow... unclear in general.
-  make rpm_rhel7
-
-
-( notes from: https://github.com/MetPX/sarrac/issues/73 )
-
