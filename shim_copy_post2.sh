@@ -84,8 +84,13 @@ mkdir dirone/dirtwo
 echo "#test 1,1 link,rename 135 symlink in a sub-dir"
 ln -sf `pwd`/link_to_dirone/fileone dirone/link_to_fileone
 
-echo "#test 1 sha512 140 stdout redirection in a subsubdir"
-echo "filetwo" >>dirone/dirtwo/filetwo
+if [ "${KNOWN_REDIRECTION_BUG}" ]; then
+    echo "#test 1 sha512 140 creat file (work-around stdout redirection) in a subsubdir"
+    dd if=/dev/zero of=dirone/dirtwo/filetwo count=7
+else
+    echo "#test 1 sha512 140 stdout redirection in a subsubdir"
+    echo "filetwo" >>dirone/dirtwo/filetwo
+fi
 
 echo "#test 1 rename 145 rename in a sub-dir"
 mv dirone/dirtwo/filetwo dirone/dirtwo/filefour
@@ -116,9 +121,9 @@ if [ "${KNOWN_REDIRECTION_BUG}" ]; then
 else
 	echo "#test 1 sha512 create test_file (again) from redirection"
 	echo 2 >test_file
+        echo "#no post from touch, refused as repeat"
+        touch test_file
 fi
-echo "#no post from touch, refused as repeat"
-touch test_file
 echo "#test 1 rename move test_file into dirthree subdir (new name)"
 mv test_file dirthree/new_test_file
 
