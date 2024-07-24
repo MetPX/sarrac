@@ -48,7 +48,7 @@ struct sr_log_context_s {
 
 // following macro allows compiler to find errors in sr_log_msg's variadic arguments.
 //  it disables use of log files, redirecting it all to stderr.
-#define sr_log_msg(prio, ... ) fprintf( stderr, __VA_ARGS__ )
+#define sr_log_msg(ctx, prio, ... ) fprintf( stderr, __VA_ARGS__ )
 
 /* install libexplain, and libexplain-dev, and add -lexplain and you might get some messages.
 #include <libexplain/fprintf.h>
