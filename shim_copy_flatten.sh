@@ -104,7 +104,12 @@ else
    export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
 fi
 export SR_SHIMDEBUG=99
-./shim_copy_post.sh &
+if [ "${KNOWN_REDIRECTION_BUG}" ]; then
+     bash ./shim_copy_post.sh &
+else
+     ./shim_copy_post.sh &
+fi
+     
 unset SR_POST_CONFIG
 unset SR_SHIMDEBUG
 unset LD_PRELOAD
