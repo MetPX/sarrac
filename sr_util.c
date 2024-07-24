@@ -174,8 +174,10 @@ struct sr_log_context_s* sr_log_setup(const char *fn, const char *mfn, bool logM
 		ctx->mtab.i = 0;
 		ctx->mtab.size = ctx->logrotate_count;
 	}
-#endif
 	return(ctx);
+#else
+	return;
+#endif
 }
 
 /* global accessor for loglevel, ugly but better than using a global variable... */
