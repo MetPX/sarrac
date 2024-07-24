@@ -99,7 +99,7 @@ echo "#test 1 link 135 symlink in a sub-dir"
 ln -sf `pwd`/dirthree/dirtwo/filefour dirthree/dirtwo/link2four
 
 if [ "${KNOWN_REDIRECTION_BUG}" ]; then
-    echo "#test 1 sha512 141 create test_file"
+    echo "#test 1 sha512 141 create test_file (without redirection)"
     cp hoho test_file
 else
     echo "#test 1 sha512 142 create test_file with redirection"
@@ -113,13 +113,14 @@ mv test_file dirthree
 
 if [ "${KNOWN_REDIRECTION_BUG}" ]; then
     echo "#test 1 sha512 161 create test_file (again)"
-    cp dirthree/test_file >test_file
+    cp dirthree/test_file test_file
 else
     echo "#test 1 sha512 162 create test_file (again)"
     echo 2 >test_file
+    echo "#no post from touch, refused as repeat"
+    touch test_file
 fi
-echo "#no post from touch, refused as repeat"
-touch test_file
+
 echo "#test 1 rename move test_file into dirthree subdir (new name)"
 mv test_file dirthree/new_test_file
 
