@@ -125,7 +125,7 @@ To note changes:
   - install package so that it is used for flow tests on at least one platform.
   - find redhat8 (with local disk) and run make test_shim
 
-  - on redhat8 edit: Makefile to add -DINTERCEPT_SYSCALL to CFLAGS.
+  - on redhat8, edit Makefile to add -DINTERCEPT_SYSCALL to CFLAGS.
 
   - find ubuntu18 (with local disk) and run make test_shim.
   - dch, and touch up your points if need be.
