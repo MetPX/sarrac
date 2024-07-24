@@ -282,7 +282,16 @@ Build an RPM Package
 --------------------
 
 if on a redhat derived OS, then assuming build dependencies are taken 
-care of::
+care of. For redhat 8, add the INTERCEPT_SYSCALL symbol to CFLAGS in the
+Makefile::
+
+   vi Makefile
+   /^CFLAGS=
+   a -DINTERCEPT_SYSCALL <Esc>
+   :wq
+
+
+For all Redhat versions::
 
    make rpm_rhel7
 
