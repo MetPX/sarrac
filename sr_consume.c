@@ -965,9 +965,8 @@ struct sr_message_s *sr_consume(struct sr_context *sr_c)
 
 					assign_field(tag, value);
 					sr_log_msg(sr_c->cfg->logctx,LOG_WARNING,
-						   "skipping U64 header %d value:%ld\n", i,
-						   (long long unsigned)(p->headers.entries[i].value.
-									value.u64));
+						   "skipping U64 header %d value:%lld\n", i,
+						   (long long unsigned)(p->headers.entries[i].value.value.u64));
 					break;
 
 				case AMQP_FIELD_KIND_ARRAY:

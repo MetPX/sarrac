@@ -587,8 +587,7 @@ void realpath_adjust(struct sr_log_context_s *logctx, const char *input_path, ch
 	if (adjust == 0) {
 		return_value = realpath(input_path, output_path);
 		if (return_value) {
-			sr_log_msg(logctx,LOG_DEBUG, "%s realpath_adjust %d, %s -> %s \n", adjust, input_path,
-				   output_path);
+			sr_log_msg(logctx,LOG_DEBUG, "realpath_adjust %d, %s -> %s \n", adjust, input_path, output_path);
 			return;
 		}
 		// fallback to checking a directory for last path element.
