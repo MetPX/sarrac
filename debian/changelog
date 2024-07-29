@@ -9,8 +9,10 @@ metpx-sr3c (3.24.07rc1) unstable; urgency=medium
   * README revised to reflect that cpump is not resilient to failure.
   * fix #133 read some non-utf8 fields (instead of erroring.)
   * last tx/rx should be cumulative, reset less often.
+  * fix SR_DEBUG_LOGS being broken by addition of context to api signature
+  * tests working on RedHat 8 and 9
 
- -- peter <peter@bsqt.homeip.net>  Tue, 15 Jan 2024 08:26:22 -0500
+ -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Mon, 29 Jul 2024 15:06:22 -0600
 
 metpx-sr3c (3.23.11p3) unstable; urgency=medium
 
