@@ -1445,7 +1445,7 @@ long int syscall(long int __sysno, ...)
 		sr_log_msg(logctxptr,LOG_ERROR, "syscall (%ld) no syscall_fn_ptr!\n", __sysno);
 		status = -1;
 	}
-	sr_shimdebug_msg(1, "syscall %ld return %ld\n", status);
+	sr_shimdebug_msg(1, "syscall %ld return %ld\n", __sysno, status);
 	return status;
 }
 #endif
