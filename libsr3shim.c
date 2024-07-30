@@ -10,6 +10,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 #include <math.h>
 #include <stdarg.h>
 #include <errno.h>
@@ -925,10 +926,11 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 			sr_shimdebug_msg(1, " renameorlink using renameat2\n");
 			status = renameat2_fn_ptr(olddirfd, oldpath, newdirfd, newpath, flags);
 		} else if (renameat_fn_ptr && !flags) {
+			sr_shimdebug_msg(1, " renameorlink using renameat\n");
 			status = renameat_fn_ptr(olddirfd, oldpath, newdirfd, newpath);
 		} else if (syscall_fn_ptr) {
-			sr_shimdebug_msg(1, " renameorlink using renameat2 via syscall(316, ...)\n");
-			status = syscall_fn_ptr(316, olddirfd, oldpath, newdirfd, newpath, flags);
+			sr_shimdebug_msg(1, " renameorlink using renameat2 via syscall(SYS_renameat2, ...)\n");
+			status = syscall_fn_ptr(SYS_renameat2, olddirfd, oldpath, newdirfd, newpath, flags);
 		} else {
 			sr_log_msg(logctxptr,LOG_ERROR,
 				   " renameorlink could not identify real entry point for renameat\n");
@@ -1396,7 +1398,7 @@ void syscall_init()
 long int syscall(long int __sysno, ...)
 {
 	va_list args;
-	int status = -1;
+	long int status = -1;
 
 	int   olddirfd = -1;
 	char *oldpath  = NULL;
@@ -1407,12 +1409,11 @@ long int syscall(long int __sysno, ...)
 	sr_shimdebug_msg(1, "syscall %ld\n", __sysno);
 	
 	if (!syscall_init_done) {
-			syscall_init();
+		syscall_init();
 	}
 
-	// renameat2 is 316
-	if (__sysno == 316) {
-		sr_shimdebug_msg(1, "syscall %ld\n --> renameat2, will call renameorlink", __sysno);
+	if (__sysno == SYS_renameat2) {
+		sr_shimdebug_msg(1, "syscall %ld --> renameat2, will call renameorlink\n", __sysno);
 		
 		va_start(args, __sysno);
 		olddirfd = va_arg(args, int);
@@ -1424,12 +1425,27 @@ long int syscall(long int __sysno, ...)
 
 		sr_shimdebug_msg(1, "%d, %s, %d, %s, %d", olddirfd, oldpath, newdirfd, newpath, flags);
 		status = renameorlink(olddirfd, oldpath, newdirfd, newpath, flags, 0);
-	}
-	else {
+	} else if (__sysno == SYS_getrandom && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> getrandom, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		void *buf = va_arg(args, void*);
+		size_t buflen = va_arg(args, size_t);
+		unsigned int flags = va_arg(args, unsigned int);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, buf, buflen, flags);
+	} else if (__sysno == SYS_getpid && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> getpid, will pass along\n", __sysno);
+		status = syscall_fn_ptr(__sysno);
+	} else if (syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld NOT IMPLEMENTED\n", __sysno);
-		sr_log_msg(logctxptr,LOG_ERROR, "non-renameat2 syscall (%ld) not implemented\n", __sysno);
+		sr_log_msg(logctxptr,LOG_ERROR, "syscall (%ld) not implemented\n", __sysno);
+		status = -1;
+	} else {
+		sr_shimdebug_msg(1, "syscall %ld no syscall_fn_ptr!\n", __sysno);
+		sr_log_msg(logctxptr,LOG_ERROR, "syscall (%ld) no syscall_fn_ptr!\n", __sysno);
 		status = -1;
 	}
+	sr_shimdebug_msg(1, "syscall %ld return %ld\n", status);
 	return status;
 }
 #endif
