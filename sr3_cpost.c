@@ -387,6 +387,15 @@ void dir_stack_check4events(struct sr_context *sr_c)
 	struct inotify_event *e;
 	struct dir_stack *d;
 	int ret;
+	/* A normal rename is two events IN_MOVED_FROM, and IN_MOVED_TO.
+	 * if the source is outside the paths being monitored, we only get IN_MOVED_TO.
+	 * if the destination is outside, we only get IN_MOVED_FROM.
+	 *
+	 * an *rename_single_event* is one where we only receive one event.
+	 * Since we don't have anything outside the tree, this turns into a normal 
+	 * post of a file, or a removal.
+	 */
+	int rename_single_event=0;
 	struct rename_list *old_names = NULL, *on = NULL, *prevon = NULL;
 
 	struct hash_entry *new_entry, *entries_done, *tmpe = NULL;
@@ -447,6 +456,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 				sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG, "rename, %sname=%s\n",
 					   ((e->mask & IN_MOVED_TO) ==
 					    IN_MOVED_TO) ? "new" : "old", fn);
+				rename_single_event=1;
 				if (old_names) {
 					prevon = NULL;
 					for (on = old_names;
@@ -454,6 +464,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 						prevon = on;
 					if (on) {
 						if (on->ofn) {
+				                        rename_single_event=0;
 							sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG,
 								   "ok invoking rename ofn=%s %s\n",
 								   on->ofn, fn);
@@ -463,6 +474,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 							sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG,
 								   "ok invoking rename %s nfn=%s\n",
 								   fn, on->nfn);
+				                        rename_single_event=0;
 							sr_post_rename(sr_c, fn, on->nfn);
 							free(on->nfn);
 						}
@@ -512,7 +524,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 				sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG,
 					   "e->mask=%04x from:  %04x  to: %04x \n",
 					   e->mask, IN_MOVED_FROM, IN_MOVED_TO);
-				if (!(e->mask & (IN_ATTRIB | IN_MOVED_FROM | IN_MOVED_TO))) {
+				if (rename_single_event || !(e->mask & (IN_ATTRIB | IN_MOVED_FROM | IN_MOVED_TO))) {
 					if (!(e->mask & IN_ATTRIB)
 					    || (sr_c->cfg->events & SR_EVENT_ATTRIB)) {
 						sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG, "do one file: %s\n", fn);
