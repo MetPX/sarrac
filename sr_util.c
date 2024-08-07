@@ -378,10 +378,10 @@ int sr_has_vip(char const *vip, struct sr_log_context_s *logctx)
 				    NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
 		}
 
-		sr_log_msg(logctx,LOG_DEBUG, "sr_has_vip: checking interface %s host=%s addr=%s\n",
-			   ifa->ifa_name, host, addr);
+		//sr_log_msg(logctx,LOG_DEBUG, "sr_has_vip: checking interface %s host=%s addr=%s\n",
+		//	   ifa->ifa_name, host, addr);
 		if (vip && (!strcmp(host, vip) || !strcmp(addr, vip))) {
-			sr_log_msg(logctx,LOG_DEBUG, "sr_has_vip: Matched!\n");
+			//sr_log_msg(logctx,LOG_DEBUG, "sr_has_vip: Matched!\n");
 			return 1;
 		}
 	}
