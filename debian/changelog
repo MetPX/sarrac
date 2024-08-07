@@ -1,5 +1,6 @@
 metpx-sr3c (3.24.07rc1) unstable; urgency=medium
 
+  * fix #154 rename ignored when one end is outside tree being watched with inotify.
   * support #147 coreutils using syscall instead of renameat2 on redhat8 and
     ubuntu 18.
   * fix #148 sr3_cpost posting messages with corrupt topics if relPath blank.
