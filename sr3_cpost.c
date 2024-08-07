@@ -817,6 +817,12 @@ int main(int argc, char **argv)
 			   "start|restart with sleep <= 0 does nothing. exiting normally\n");
 		return (0);
 	}
+
+	if (sr_cfg.paths == NULL) {
+		sr_log_msg(sr_cfg.logctx,LOG_CRITICAL, "no path to post given\n");
+		return (0);
+        }
+
 	sr_c = sr_context_init_config(&sr_cfg, 0);
 	if (!sr_c) {
 		sr_log_msg(sr_cfg.logctx,LOG_CRITICAL, "failed to read config\n");
