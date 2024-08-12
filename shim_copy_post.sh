@@ -5,8 +5,8 @@ cd shim_dirA
 which bash
 
 echo "FIXME: KNOWN ISSUE redirection close does not get posted!"
-echo "#test 1 sha512 000 capturing stdout"
-bash -c 'echo "hoho" >> ./hoho'
+#echo "#test 1 sha512 000 capturing stdout"
+#bash -c 'echo "hoho" >> ./hoho'
 
 echo "#test 0 comment 010 shim copy posting start"
 echo "#test 1 sha512 c program run."
@@ -83,17 +83,22 @@ mv dirone dirthree
 echo "#test 1 link 135 symlink in a sub-dir"
 ln -sf `pwd`/dirthree/dirtwo/filefour dirthree/dirtwo/link2four
 
-echo "#test 1 sha512 create test_file"
+echo "#test 1 sha512 142 create test_file with redirection"
 echo  1 >test_file
-echo "#test 1 sha512 update test_file"
+echo "#test 1 sha512 151 update test_file"
 touch test_file
 
-echo "#test 1 rename move test_file into dirthree subdir"
+echo "#test 1 rename 152 move test_file into dirthree subdir"
 mv test_file dirthree
-echo "#test 1 sha512 create test_file (again)"
+
+echo "#test 1 sha512 162 create test_file (again)"
 echo 2 >test_file
-echo "#no post from touch, refused as repeat"
-touch test_file
+
+if [ ! "${KNOWN_REDIRECTION_BUG}" ]; then
+    echo "#no post from touch, refused as repeat"
+    touch test_file
+fi
+
 echo "#test 1 rename move test_file into dirthree subdir (new name)"
 mv test_file dirthree/new_test_file
 

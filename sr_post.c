@@ -587,8 +587,7 @@ void realpath_adjust(struct sr_log_context_s *logctx, const char *input_path, ch
 	if (adjust == 0) {
 		return_value = realpath(input_path, output_path);
 		if (return_value) {
-			sr_log_msg(logctx,LOG_DEBUG, "%s realpath_adjust %d, %s -> %s \n", adjust, input_path,
-				   output_path);
+			sr_log_msg(logctx,LOG_DEBUG, "realpath_adjust %d, %s -> %s \n", adjust, input_path, output_path);
 			return;
 		}
 		// fallback to checking a directory for last path element.
@@ -776,15 +775,17 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 			s += pmatch[0].rm_eo;
 		}
 	}
+
 	// use tmprk variable to fix  255 AMQP_SS_LEN limit
 	strcpy(tmprk, sr_c->cfg->post_topicPrefix);
-	strcat(tmprk, ".");
-	strcat(tmprk, m->relPath + (*(m->relPath) == '/'));
-
-	if (strlen(tmprk) > 255)
-		tmprk[255] = '\0';
-
+	if ( strlen(m->relPath) > 0 ) {
+		strcat(tmprk, ".");
+		strcat(tmprk, m->relPath + ((strlen(m->relPath)>1)&&(*(m->relPath) == '/')));
+		if (strlen(tmprk) > 255)
+			tmprk[255] = '\0';
+	}
 	strcpy(m->routing_key, tmprk);
+
 
 	lasti = strlen(sr_c->cfg->post_topicPrefix);
 	for (int i = lasti; i < strlen(m->routing_key); i++) {

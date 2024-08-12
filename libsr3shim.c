@@ -10,6 +10,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 #include <math.h>
 #include <stdarg.h>
 #include <errno.h>
@@ -18,6 +19,14 @@
 #define clerror(s)  if (s==0) { errno=0; }
 
 #include "sr_post.h"
+
+/*
+See https://github.com/MetPX/sarrac/issues/145. 
+glibc < 2.28 doesn't provide renameat2.
+*/
+#if !__GLIBC_PREREQ(2,28)
+#define INTERCEPT_SYSCALL
+#endif
 
 /*
  libsrshim - intercepts calls to libc and kernel to post files for broker.
@@ -47,6 +56,8 @@ SR_SHIM_CONFIG -- environment variable to set configuration file name
 
 void exit_cleanup_posts();
 int exit_cleanup_posts_setup = 0;
+
+void syscall_init();
 
 int mypid = 0;
 int pid_seconds_wallclock = 0;
@@ -494,7 +505,7 @@ void srshim_realpost(const char *path)
 		return;
 	}
 	if (sr_c->cfg->shim_defer_posting_to_exit) {
-		sr_shimdebug_msg(1, "srshim_realpost post deferred to exist ... %s\n", fn);
+		sr_shimdebug_msg(1, "srshim_realpost post deferred to exit ... %s\n", fn);
 		return;
 	}
 
@@ -789,10 +800,6 @@ int unlinkat(int dirfd, const char *path, int flags)
 	if (status == -1)
 		return status;
 
-	if (!stat_failed && S_ISDIR(sb.st_mode)) {
-		sr_shimdebug_msg(1, "unlinkat %s dirfd=%i skipping directory\n", path, dirfd);
-		return status;
-	}
 	if (dirfd == AT_FDCWD)
 		return (shimpost(path, status));
 
@@ -855,9 +862,15 @@ static int renameat_init_done = 0;
 typedef int (*renameat_fn)(int, const char *, int, const char *);
 static renameat_fn renameat_fn_ptr = NULL;
 
+
 static int renameat2_init_done = 0;
 typedef int (*renameat2_fn)(int, const char *, int, const char *, unsigned int);
 static renameat2_fn renameat2_fn_ptr = NULL;
+
+static int syscall_init_done = 0;
+typedef long int (*syscall_fn)(long int, ...);
+static syscall_fn syscall_fn_ptr = NULL;
+
 
 int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		 const char *newpath, int flags, int link)
@@ -879,6 +892,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		renameat2_fn_ptr = (renameat2_fn) dlsym(RTLD_NEXT, "renameat2");
 		renameat2_init_done = 1;
 	}
+
 	if (!renameat_init_done) {
 		renameat_fn_ptr = (renameat_fn) dlsym(RTLD_NEXT, "renameat");
 		renameat_init_done = 1;
@@ -894,6 +908,10 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		linkat_init_done = 1;
 	}
 
+	if (!syscall_init_done) {
+		syscall_init();
+	}
+
 	if (link) {
 		if (linkat_fn_ptr)
 			status = linkat_fn_ptr(olddirfd, oldpath, newdirfd, newpath, flags);
@@ -904,11 +922,16 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 				   " renameorlink could not identify real entry point for link\n");
 		}
 	} else {
-		if (renameat2_fn_ptr)
+		if (renameat2_fn_ptr) {
+			sr_shimdebug_msg(1, " renameorlink using renameat2\n");
 			status = renameat2_fn_ptr(olddirfd, oldpath, newdirfd, newpath, flags);
-		else if (renameat_fn_ptr && !flags)
+		} else if (renameat_fn_ptr && !flags) {
+			sr_shimdebug_msg(1, " renameorlink using renameat\n");
 			status = renameat_fn_ptr(olddirfd, oldpath, newdirfd, newpath);
-		else {
+		} else if (syscall_fn_ptr) {
+			sr_shimdebug_msg(1, " renameorlink using renameat2 via syscall(SYS_renameat2, ...)\n");
+			status = syscall_fn_ptr(SYS_renameat2, olddirfd, oldpath, newdirfd, newpath, flags);
+		} else {
 			sr_log_msg(logctxptr,LOG_ERROR,
 				   " renameorlink could not identify real entry point for renameat\n");
 			return (-1);
@@ -1361,6 +1384,71 @@ int renameat2(int olddirfd, const char *oldpath, int newdirfd,
 
 	return (renameorlink(olddirfd, oldpath, newdirfd, newpath, flags, 0));
 }
+
+void syscall_init()
+{
+	if (!syscall_init_done) {
+		setup_exit();
+		syscall_fn_ptr = (syscall_fn) dlsym(RTLD_NEXT, "syscall");
+		syscall_init_done = 1;
+	}
+}
+
+#ifdef INTERCEPT_SYSCALL
+long int syscall(long int __sysno, ...)
+{
+	va_list args;
+	long int status = -1;
+
+	int   olddirfd = -1;
+	char *oldpath  = NULL;
+	int   newdirfd = -1;
+	char *newpath  = NULL;
+	int   flags    = -1;
+
+	sr_shimdebug_msg(1, "syscall %ld\n", __sysno);
+	
+	if (!syscall_init_done) {
+		syscall_init();
+	}
+
+	if (__sysno == SYS_renameat2) {
+		sr_shimdebug_msg(1, "syscall %ld --> renameat2, will call renameorlink\n", __sysno);
+		
+		va_start(args, __sysno);
+		olddirfd = va_arg(args, int);
+		oldpath  = va_arg(args, char*);
+		newdirfd = va_arg(args, int);
+		newpath  = va_arg(args, char*);
+		flags    = va_arg(args, int);
+		va_end(args);
+
+		sr_shimdebug_msg(1, "%d, %s, %d, %s, %d", olddirfd, oldpath, newdirfd, newpath, flags);
+		status = renameorlink(olddirfd, oldpath, newdirfd, newpath, flags, 0);
+	} else if (__sysno == SYS_getrandom && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> getrandom, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		void *buf = va_arg(args, void*);
+		size_t buflen = va_arg(args, size_t);
+		unsigned int flags = va_arg(args, unsigned int);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, buf, buflen, flags);
+	} else if (__sysno == SYS_getpid && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> getpid, will pass along\n", __sysno);
+		status = syscall_fn_ptr(__sysno);
+	} else if (syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld NOT IMPLEMENTED\n", __sysno);
+		sr_log_msg(logctxptr,LOG_ERROR, "syscall (%ld) not implemented\n", __sysno);
+		status = -1;
+	} else {
+		sr_shimdebug_msg(1, "syscall %ld no syscall_fn_ptr!\n", __sysno);
+		sr_log_msg(logctxptr,LOG_ERROR, "syscall (%ld) no syscall_fn_ptr!\n", __sysno);
+		status = -1;
+	}
+	sr_shimdebug_msg(1, "syscall %ld return %ld\n", __sysno, status);
+	return status;
+}
+#endif
 
 static int sendfile_init_done = 0;
 typedef ssize_t(*sendfile_fn) (int, int, off_t *, size_t);

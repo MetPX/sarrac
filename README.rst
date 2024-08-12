@@ -174,22 +174,6 @@ NOTE:
     The tests are disabled for now because the C consumer does lose messages.
 
 
-Source Code Documentation
--------------------------
-
-Partial implementation of Doxygen docs.
-to view::
-
-  sudo apt install doxygen
-  sudo apt install graphviz
-  doxygen
-
-and run, and it will create the browseable docs/html/ subdirectory
-with some documentation. Although only a few files out of the total
-have been properly annoted so far, doxygen is configured to extract
-as much information from the code as possible. (We have some pretty
-call/caller graphs now!)
-
 Limitations of the C implementation
 -----------------------------------
 
@@ -204,74 +188,6 @@ Limitations of the C implementation
 
  - The C implementation uses the libc(7) regular expression routines, which 
    are a little more limited than python ones.
-
-Build Dependencies
-------------------
-
-The librabbitmq version needs to be > 0.8,  this is newer than what is in
-ubuntu 16.04. So you need to git clone from https://github.com/alanxz/rabbitmq-c
-then built it there. The launchpad PPA has a backport included to take care of
-this::
-
-  export RABBIT_BUILD=*directory where rabbit has been built*
-
-
-librabbitmq-dev - AMQP client library written in C - Dev Files
-libssl-dev  - OpenSSL client library (used for hash algorithms.)
-libjson-c-dev - json-c header files.
-
-run dependencies::
-
-  librabbitmq4 - AMQP client library written in C
-  libssl - OpenSSL client library.
-  libjson-c3 - JSON manupulation library (for v03 parsing)
-
-On RPM-based distributions::
-  
-  librabbitmq-devel
-  json-c-devel
-
-This JSON library changed API multiple times in it's history. Sarrac development
-platform is ubuntu 18.04, where the libjson-c3 library is provided.  Older linux
-versions may have incompatible library versions and may not build or run correctly.
-The Makefile includes the -DHAVE_JSONC option in CFLAGS.  Removing this option
-disables v03 message parsing, but makes it possible to build on such systems.
-v03 posting will still work (dependency only required to receive messages.)
-
-BUILD OPTIONS
--------------
-
-FORCE_LIBC_REGEX
-~~~~~~~~~~~~~~~~
-
-This option is set by default as it is usually desired.
-If you see::
-
-  2018-11-21 00:08:17,315 [ERROR] invalid regular expression: .*\/tmp\/.*. Ignored
-
-and the regex is valid... the symptom we had was that the library was
-calling a version of the regular expresison routines included in a binary
-(ksh93 in this case) instead of the ones in libc that were expected.
-without this option being set, the shim library will compile and user
-Korn Shell regular expression grammar instead of the libc/posix ones.
-This is confusing in practice.
-
-Set the option::
-   
-   -DFORCE_LIBC_REGEX=\"/lib/x86_64-linux-gnu/libc.so.6\" 
-
-to the file containing the regcomp and regexec routines what are to be 
-used. The code uses dynamic library loading to force use of the specified
-routines. Obviously this setting is architecture dependent and would
-need adjustment if compiling on another platform, such as ARM or MIPS.
- 
-SR_DEBUG_LOGS
-~~~~~~~~~~~~~
-
-To disable all log file support, so that diagnostics messages 
-are sent to standard error instead, include::
-
-  -DSR_DEBUG_LOGS=1
 
 
 Dorval Computing Centre
@@ -289,100 +205,13 @@ To load sr3_cpost::
  
 or it may be installed in the system locations (/usr/bin, etc...)
 
+Build Process
+-------------
 
-Branches
---------
-
-The main repository of sarrac is: https://github.com/MetPX/sarrac
-As of 2022/12, development is on v3 compatible version of sarrac.
-The customer switched to sr3, so there is no need to continue with v2.
-The existing git branches and their roles:
-
-* development ... the default development branch, launchpad.net daily packages built from here.
-* pre-release ... v03 pre-release branch, tracks development punctually. launchpad.net pre-release packages built from here.
-* stable ... v03 release branch, tracks pre-release punctually. launchpad.net stable packages built from here.
-* v2 ... v2 development branch. (legacy)
-* v2_stable ... v2 release branch, tracks v2 punctually. (legacy)
-* issueXXX ... branch developed to address a particular issue.
+See `Building from Source <BUILD.rst>`_
 
 
 Release Process
 ---------------
 
-To note changes:
-  - Compile once with -DSR_DEBUG_LOGS to verify that no msg_log calls have errors (compiler will report)
-  - build package (without -DSR_DEBUG_LOGS) and install.
-  - run some ./test scripts.
-  - make trust_but_verify
-    examine results, which include a valgrind run.
-  - Run through a flow test.
-  - dch, and add your points.
-  - when ready to release, edit UNRELEASED to an appropriate status, usually unstable.
-  - git commit #what you need to commit...
-  - git tag <release> -m <release>
-  - git push
-  - git push origin <release>
-
-  - go to Launchpad, and import source `here <https://code.launchpad.net/~ssc-hpc-chp-spc/metpx-sarrac/+git/master>`_.
-  - go to launchpad, find the recipe and Request Build `here <https://code.launchpad.net/~ssc-hpc-chp-spc/+recipe/metpx-sarrac>`_.
-
-
-Building RPMS
--------------
-
-clone source to metpx-sr3c directory (needed by rpm build rules)::
-
-  git clone https://github.com/MetPX/sarrac metpx-sr3c
-  cd sr3c
-
-on Suse::
-
-  zypper addrepo https://download.opensuse.org/repositories/network:messaging:amqp/openSUSE_Leap_15.1/network:messaging:amqp.repo
-  zypper refresh
-  zypper install librabbitmq4 librabbitmq-devel
-  zypper install libopenssl-devel libjson-c-devel
-  make rpm_suse15
-
-on Redhat/Centos::
-
-  make rpm_rhel7
-
-
-( notes from: https://github.com/MetPX/sarrac/issues/73 )
-
-
-Proposed Coding Style Guidelines
---------------------------------
-
-Generally, we used `Linux Kernel C Guidelines <https://www.kernel.org/doc/html/v4.10/process/coding-style.html>`_
-
-but with one pythonic affectation:  You know Rule 1? about the tabs with 8 characters?  This code base is normally
-indented like python instead, use four spaces, and not tabs.
-
-Also, in terms of documenting code, when adding new things one should add comments
-keeping in minde compatbility with `doxygen <http://www.doxygen.nl/manual/docblocks.html>`_ 
-Examples::
-
-  /**
-   *  descriptive comment above a struct or function declaration.
-   */ 
-
-  /**
-   * sr_config_find_one() - find the name configuration file name 
-   * \param sr_cfg:       The configuration to be updated with the configuration found.
-   * \param original_one: The name provided by the user.
-   *
-   * Return pointer to the matching mask if there is one, NULL otherwise.
-   * The pointer to char will hold the absolute path of the config file corresponding to original_one
-   *
-   * Return: pointer to a static char buffer with a path name to the corresponding configuration file.
-   */
-
-  char foo; /**< description of foo class member */
-
-
-The code has a mix of comments is not entirely doxygen friendly just yet.  Feel free
-to improve.  Other than that... the kernel C guidelines are the rule.
-
-FIXME: We ran a code reformatter on it once... should probably repeat from time to time, would be 
-useful to document which one was used. I believe it undoes for the pythonic exception.
+See `Releases <Release.rst>`_

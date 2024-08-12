@@ -1,13 +1,19 @@
-metpx-sr3c (3.24.02) unstable; urgency=medium
+metpx-sr3c (3.24.07) unstable; urgency=medium
 
+  * fix #154 rename ignored when one end is outside tree being watched with inotify.
+  * support #147 coreutils using syscall instead of renameat2 on redhat8 and
+    ubuntu 18.
+  * fix #148 sr3_cpost posting messages with corrupt topics if relPath blank.
   * fix #141 sr3_cpost in a tree being mirrored (conflict with shim)
   * tests: fix for link modification times cannot be preserved.
   * test fixes for changes in python side.
   * README revised to reflect that cpump is not resilient to failure.
   * fix #133 read some non-utf8 fields (instead of erroring.)
   * last tx/rx should be cumulative, reset less often.
+  * fix SR_DEBUG_LOGS being broken by addition of context to api signature
+  * tests working on RedHat 8 and 9
 
- -- peter <peter@bsqt.homeip.net>  Tue, 15 Jan 2024 08:26:22 -0500
+ -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Mon, 12 Aug 2024 15:06:22 -0600
 
 metpx-sr3c (3.23.11p3) unstable; urgency=medium
 

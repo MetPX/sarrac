@@ -22,6 +22,9 @@ SARRA_LINK = '-Wl,-rpath,$$ORIGIN/../lib' -L${SARRA_LIBDIR}
 
 CC = gcc
 
+VERSION = $(shell head -1 debian/changelog| sed 's/.*(//' | sed 's/).*//')
+MAJOR_VERSION = $(shell  echo "$(VERSION)" | sed 's+\..*++g' )
+
 # can also use intel compiller just by changing CC
 # CC = icc
 
@@ -37,29 +40,31 @@ LIBCLOCATION=$(shell ldd /bin/sh | awk '/libc\.so\./ { print; }' | cut -d' ' -f3
 # also remove -ljson-c from EXT_LIB declaration.
 # to work with sr3, change SR_APPNAME=\"sr3\" ... otherwise will be managed by version 2. 
 # on Power9, -fstack-check  causes coredumps, so removed for now.
+# On RHEL8, add -DINTERCEPT_SYSCALL to handle cases where mv calls syscall directly, instead of calling renameat2.
+# See sarrac issue #145 for more information about syscall/renameat2.
 
 CFLAGS = -DHAVE_JSONC -DSR_APPNAME=\"sr3\" -DFORCE_LIBC_REGEX=\"$(LIBCLOCATION)\" -fPIC -ftest-coverage -std=gnu99 -Wall -g -D_GNU_SOURCE $(RABBIT_INCDIR)
 
 SARRA_HEADER = sr_cache.h sr_config.h sr_consume.h sr_context.h sr_credentials.h sr_event.h sr_post.h sr_util.h sr_version.h uthash.h 
 SARRA_OBJECT = sr_post.o sr_consume.o sr_context.o sr_config.o sr_event.o sr_credentials.o sr_cache.o sr_util.o
-SARRA_LIB = libsr3c.so.1.0.0 
+SARRA_LIB = libsr3c.so.$(VERSION)
 EXT_LIB = -ljson-c -lrabbitmq -lcrypto -lc
-SHARED_LIB = libsr3shim.so.1 -o libsr3shim.so.1.0.0 libsr3shim.c libsr3c.so.1.0.0
+SHARED_LIB = libsr3shim.so.$(MAJOR_VERSION) -o libsr3shim.so.$(VERSION) libsr3shim.c libsr3c.so.$(VERSION)
 
 .c.o: $(SARRA_HEADER) Makefile
 	$(CC) $(CFLAGS) -c  $<
 
 #  head -1 debian/changelog | sed 's/.*(//' | sed 's/).*//'
 all: sr_version.h $(SARRA_OBJECT)
-	$(CC) $(CFLAGS) -shared -Wl,-soname,libsr3c.so.1 -o libsr3c.so.1.0.0 $(SARRA_OBJECT) -ldl $(RABBIT_LINK) $(EXT_LIB)
+	$(CC) $(CFLAGS) -shared -Wl,-soname,libsr3c.so.$(MAJOR_VERSION) -o libsr3c.so.$(VERSION) $(SARRA_OBJECT) -ldl $(RABBIT_LINK) $(EXT_LIB)
 	$(CC) $(CFLAGS) -shared -Wl,-soname,$(SHARED_LIB) -ldl $(SARRA_LINK) $(RABBIT_LINK) $(EXT_LIB)
 	if [ ! -f libsr3c.so ]; \
 	then \
-		ln -s libsr3c.so.1.0.0 libsr3c.so ; \
+		ln -s libsr3c.so.$(VERSION) libsr3c.so ; \
 	fi;
-	if [ ! -f libsr3c.so.1 ]; \
+	if [ ! -f libsr3c.so.$(MAJOR_VERSION) ]; \
 	then \
-		ln -s libsr3c.so.1.0.0 libsr3c.so.1 ; \
+		ln -s libsr3c.so.$(VERSION) libsr3c.so.$(MAJOR_VERSION) ; \
 	fi;
 	$(CC) $(CFLAGS) -o sr_configtest sr_configtest.c -lsr3c $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
 	$(CC) $(CFLAGS) -o sr_utiltest sr_utiltest.c -lsr3c $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
@@ -70,14 +75,15 @@ all: sr_version.h $(SARRA_OBJECT)
 #debian/changelog: ../sarracenia/debian/changelog
 #	sed 's/^metpx-sarracenia/libsarra-c/' <../sarracenia/debian/changelog >debian/changelog 
 
+
 sr_version.h: debian/changelog
-	echo "#define __sarra_version__ \"`head -1 debian/changelog| sed 's/.*(//' | sed 's/).*//'`\"" >sr_version.h
+	echo "#define __sarra_version__ \"$(VERSION)\"" >sr_version.h
 
 install:
 	@mkdir -p build build/bin build/lib build/include
 	@mv *.so build/lib
-	@mv *.so.1 build/lib
-	@mv *.so.*1.0.0 build/lib
+	@mv *.so.$(MAJOR_VERSION) build/lib
+	@mv *.so.*$(VERSION) build/lib
 	@mv sr3_cpost build/bin
 	@mv sr3_cpump build/bin
 	@cp *.h build/include/
