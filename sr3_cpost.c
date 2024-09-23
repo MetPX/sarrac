@@ -37,6 +37,9 @@ static char error_buf[EBUFLEN + 1];
 #include "uthash.h"
 
 #include "sr_version.h"
+
+#define IDLE_MESSAGE_INTERVAL (60)
+
 /* 
   for each directory opened, store it's dev+inode pair.
   if you encounter another directory witht the same numbers, there is a loop.
@@ -376,9 +379,11 @@ struct rename_list {
 	struct rename_list *next;
 };
 
-void dir_stack_check4events(struct sr_context *sr_c)
+int dir_stack_check4events(struct sr_context *sr_c)
  /* at the end of each sleeping interval, read the queue of outstanding events
     and process them.
+
+    return the number of events processed.
   */
 {
 	char buff[PATH_MAX * 4];
@@ -387,6 +392,8 @@ void dir_stack_check4events(struct sr_context *sr_c)
 	struct inotify_event *e;
 	struct dir_stack *d;
 	int ret;
+	int event_count = 0;
+
 	/* A normal rename is two events IN_MOVED_FROM, and IN_MOVED_TO.
 	 * if the source is outside the paths being monitored, we only get IN_MOVED_TO.
 	 * if the destination is outside, we only get IN_MOVED_FROM.
@@ -413,6 +420,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 	while ((ret = read(inot_fd, buff, sizeof buff)) > 0) {
 		for (p = buff; p < (buff + ret); p += sizeof(struct inotify_event) + e->len) {
 			e = (struct inotify_event *)p;
+			event_count += 1;
 
 			for (d = dir_stack_top; d && (e->wd != d->wd); d = d->next) ;
 			if (!d) {
@@ -543,6 +551,7 @@ void dir_stack_check4events(struct sr_context *sr_c)
 		HASH_DEL(entries_done, tmpe);
 		free(tmpe);
 	}
+	return(event_count);
 }
 
 int sr_cpost_cleanup(struct sr_context *sr_c, struct sr_config_s *sr_cfg, int dolog)
@@ -717,6 +726,12 @@ int main(int argc, char **argv)
 
 	struct timespec tsleep;
 	float elapsed;
+	int fs_event_count = 0;
+	int seconds_since_fs_event;
+	struct timespec now,last_fs_event; 
+
+	clock_gettime(CLOCK_REALTIME_COARSE, &last_fs_event);
+	clock_gettime(CLOCK_REALTIME_COARSE, &now);
 
 	sr_config_init(&sr_cfg, "cpost");
 
@@ -944,8 +959,22 @@ int main(int argc, char **argv)
 			//sr_log_msg(sr_c->cfg->logctx,LOG_ERROR, "latest_min_mtime: %d, %d\n", latest_min_mtim.tv_sec, latest_min_mtim.tv_nsec );
 		} else {
 
-			dir_stack_check4events(sr_c);	// inotify. process accumulated events.
+			fs_event_count = dir_stack_check4events(sr_c);	// inotify. process accumulated events.
 
+			//sr_log_msg(sr_c->cfg->logctx,LOG_INFO, "%d events received.\n", fs_event_count );
+			if (fs_event_count == 0) {
+	                    clock_gettime(CLOCK_REALTIME_COARSE, &now);
+
+	                    seconds_since_fs_event = now.tv_sec - last_fs_event.tv_sec ;
+			    //sr_log_msg(sr_c->cfg->logctx,LOG_INFO, "%d-%d == %d seconds since last fs_event.\n", 
+			    //		    now.tv_sec, last_fs_event.tv_sec, seconds_since_fs_event );
+			    if (seconds_since_fs_event > IDLE_MESSAGE_INTERVAL)  {
+				sr_log_msg(sr_c->cfg->logctx,LOG_INFO, "no directory changes in last %d seconds\n", seconds_since_fs_event );
+	                        clock_gettime(CLOCK_REALTIME_COARSE, &last_fs_event);
+			    }
+			} else {
+	                   clock_gettime(CLOCK_REALTIME_COARSE, &last_fs_event);
+			}
 		}
 
 		if (sr_cfg.sleep <= 0.0)
