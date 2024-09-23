@@ -967,12 +967,12 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		   || !strcmp(option, "logRotateCount")
 		   || !strcmp(option, "logdays") || !strcmp(option, "ld")) {
 
-		sr_cfg->logrotate = atoi(argument);
+		sr_cfg->logRotateCount = atoi(argument);
 		retval = (2);
 
 	} else if (!strcmp(option, "logrotate_interval")
 		   || !strcmp(option, "lri") || !strcmp(option, "logRotateInterval")) {
-		sr_cfg->logrotate_interval = (int)seconds_from_duration_str(argument);
+		sr_cfg->logRotateInterval = (int)seconds_from_duration_str(argument);
 		retval = (2);
 
 	} else if (!strcmp(option, "loglevel") || !strcmp(option, "logLevel")) {
@@ -1425,8 +1425,8 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->logMetrics = false;
 	sr_cfg->logReject = 0;
 	sr_cfg->logfn = NULL;
-	sr_cfg->logrotate = 5;
-	sr_cfg->logrotate_interval = 24 * 60 * 60;
+	sr_cfg->logRotateCount = 5;
+	sr_cfg->logRotateInterval = 24 * 60 * 60;
 	sr_cfg->loglevel = LOG_INFO;
 	sr_cfg->masks = NULL;
 	sr_cfg->match = NULL;
@@ -1786,7 +1786,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	if (sr_cfg->log) {
 		sr_cfg->logctx = sr_log_setup(sr_cfg->logfn, sr_cfg->metricsFilename, sr_cfg->logMetrics, sr_cfg->chmod_log,
 			     sr_cfg->debug ? LOG_DEBUG : (sr_cfg->loglevel),
-			     sr_cfg->logrotate, sr_cfg->logrotate_interval);
+			     sr_cfg->logRotateCount, sr_cfg->logRotateCount);
 	}
 	// pidfn statehost
 	if (val) {
