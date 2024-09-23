@@ -45,8 +45,8 @@ void sr_log_init_context(struct sr_log_context_s *ctx) {
    //ctx->metricsfn_ts[PATH_MAX];
    ctx->loglevel = LOG_INFO;
    ctx->logmode = 0600;
-   ctx->logrotate_count = 5;
-   ctx->logrotate_interval = 24 * 60 * 60;
+   ctx->logRotateCount = 5;
+   ctx->logRotateInterval = 24 * 60 * 60;
 
 
 }
@@ -95,7 +95,7 @@ void sr_log_msg(struct sr_log_context_s* ctx, int prio, const char *format, ...)
 
 	/* log (message & metrics) rotation */
 	if ((ctx->logfd != STDERR_FILENO)
-	    && ((ts.tv_sec - ctx->logbase) > ctx->logrotate_interval)) {
+	    && ((ts.tv_sec - ctx->logbase) > ctx->logRotateInterval)) {
 		ctx->logbase = ts.tv_sec;
 
 		strcpy(ctx->logfn_ts,log_set_fnts(ctx, ctx->logfn));
@@ -108,7 +108,7 @@ void sr_log_msg(struct sr_log_context_s* ctx, int prio, const char *format, ...)
 		ctx->logfd = open(ctx->logfn, O_WRONLY | O_CREAT | O_APPEND, ctx->logmode);
 
 		/* delete outdated logs */
-		if (ctx->logrotate_count > 0) {
+		if (ctx->logRotateCount > 0) {
 			if (ctx->ltab.fns[ctx->ltab.i]) {
 				remove(ctx->ltab.fns[ctx->ltab.i]);
 				free(ctx->ltab.fns[ctx->ltab.i]);
@@ -148,8 +148,8 @@ struct sr_log_context_s* sr_log_setup(const char *fn, const char *mfn, bool logM
 	strcpy(ctx->logfn, fn);
 	strcpy(ctx->metricsfn, mfn);
 	ctx->logmode = mode;
-	ctx->logrotate_count = lr;
-	ctx->logrotate_interval = lri;
+	ctx->logRotateCount = lr;
+	ctx->logRotateInterval = lri;
 	ctx->loglevel = level;
 
 	ctx->logMetrics = logMetricsFlag;
@@ -160,19 +160,19 @@ struct sr_log_context_s* sr_log_setup(const char *fn, const char *mfn, bool logM
 
 	ctx->logfd = open(ctx->logfn, O_WRONLY | O_CREAT | O_APPEND, ctx->logmode);
 
-	if (ctx->logrotate_count > 0) {
-		ctx->ltab.fns = (char **)malloc(sizeof(char *) * ctx->logrotate_count);
-		for (ctx->ltab.i = 0; ctx->ltab.i < ctx->logrotate_count; ++ctx->ltab.i)
+	if (ctx->logRotateCount > 0) {
+		ctx->ltab.fns = (char **)malloc(sizeof(char *) * ctx->logRotateCount);
+		for (ctx->ltab.i = 0; ctx->ltab.i < ctx->logRotateCount; ++ctx->ltab.i)
 			ctx->ltab.fns[ctx->ltab.i] = NULL;
 		ctx->ltab.i = 0;
-		ctx->ltab.size = ctx->logrotate_count;
+		ctx->ltab.size = ctx->logRotateCount;
 
                 // metrics files.
-		ctx->mtab.fns = (char **)malloc(sizeof(char *) * ctx->logrotate_count);
-		for (ctx->mtab.i = 0; ctx->mtab.i < ctx->logrotate_count; ++ctx->mtab.i)
+		ctx->mtab.fns = (char **)malloc(sizeof(char *) * ctx->logRotateCount);
+		for (ctx->mtab.i = 0; ctx->mtab.i < ctx->logRotateCount; ++ctx->mtab.i)
 			ctx->mtab.fns[ctx->mtab.i] = NULL;
 		ctx->mtab.i = 0;
-		ctx->mtab.size = ctx->logrotate_count;
+		ctx->mtab.size = ctx->logRotateCount;
 	}
 	return(ctx);
 #endif
@@ -202,15 +202,15 @@ void sr_log_cleanup(struct sr_log_context_s* ctx)
 		close(ctx->logfd);
 		ctx->logfd = STDERR_FILENO;
 
-		if (ctx->logrotate_count > 0) {
-			for (ctx->ltab.i = 0; ctx->ltab.i < ctx->logrotate_count; ++ctx->ltab.i)
+		if (ctx->logRotateCount > 0) {
+			for (ctx->ltab.i = 0; ctx->ltab.i < ctx->logRotateCount; ++ctx->ltab.i)
 				if (ctx->ltab.fns[ctx->ltab.i])
 					free(ctx->ltab.fns[ctx->ltab.i]);
 			free(ctx->ltab.fns);
 			ctx->ltab.i = 0;
 			ctx->ltab.size = 0;
 		
-			for (ctx->mtab.i = 0; ctx->mtab.i < ctx->logrotate_count; ++ctx->mtab.i)
+			for (ctx->mtab.i = 0; ctx->mtab.i < ctx->logRotateCount; ++ctx->mtab.i)
 				if (ctx->mtab.fns[ctx->mtab.i])
 					free(ctx->mtab.fns[ctx->mtab.i]);
 			free(ctx->mtab.fns);
@@ -234,7 +234,7 @@ char *log_set_fnts(struct sr_log_context_s *ctx, char *basefilename)
 
 	*p++ = '.';
 
-	int lri = ctx->logrotate_interval;
+	int lri = ctx->logRotateInterval;
 	if (!(lri % (24 * 60 * 60))) {
 		/* daily resolution */
 		strcpy(p, "%04d-%02d-%02d");

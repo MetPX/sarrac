@@ -37,8 +37,8 @@ struct sr_log_context_s {
 	char metricsfn_ts[PATH_MAX];
 	int loglevel;
 	int logmode;
-	int logrotate_count;
-	int logrotate_interval;
+	int logRotateCount;
+	int logRotateInterval;
 	struct logfn_tab_s ltab;
 	struct logfn_tab_s mtab;
 
