@@ -188,8 +188,8 @@ struct sr_config_s {
 	bool logMetrics;         /**< write metrics to a file for statistics */
 	int logReject;		   /**< normally rejections are silent, when set, make INFO message. */
 	char *logfn;		  /**< Use this log file, rather than standard files.*/
-	int logrotate;		  /**< number of log files to keep around.*/
-	int logrotate_interval;		  /**< number of seconds between log rotations.*/
+	int logRotateCount;		  /**< number of log files to keep around.*/
+	int logRotateInterval;		  /**< number of seconds between log rotations.*/
 	int loglevel;		/**< severity of messages to log (regardless of where.)*/
 	struct sr_mask_s *masks;
 			     /**< the list of masks to compare file names to.*/
