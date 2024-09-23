@@ -1,4 +1,13 @@
-metpx-sr3c (3.24.07rc1) unstable; urgency=medium
+metpx-sr3c (3.24.09rc1) UNRELEASED; urgency=medium
+
+  * need syscall gettid implementation for redhat 8.
+  * fix #157 to have cpost print messages more often to convince sr3 it is not
+    hung.
+  * fix #158 log rotation.
+
+ -- SSC-5CD2310S60 <peter@bsqt.homeip.net>  Mon, 23 Sep 2024 16:19:20 -0400
+
+metpx-sr3c (3.24.07) unstable; urgency=medium
 
   * fix #154 rename ignored when one end is outside tree being watched with inotify.
   * support #147 coreutils using syscall instead of renameat2 on redhat8 and
@@ -13,7 +22,7 @@ metpx-sr3c (3.24.07rc1) unstable; urgency=medium
   * fix SR_DEBUG_LOGS being broken by addition of context to api signature
   * tests working on RedHat 8 and 9
 
- -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Mon, 29 Jul 2024 15:06:22 -0600
+ -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Mon, 12 Aug 2024 15:06:22 -0600
 
 metpx-sr3c (3.23.11p3) unstable; urgency=medium
 
