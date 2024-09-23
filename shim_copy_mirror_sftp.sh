@@ -53,6 +53,7 @@ mirror True
 directory `pwd`/shim_dirB
 accept .*`realpath .`/.*
 accept .*`realpath ${HOME}/test`/.*
+accept .*${HOME}/test/.*
 reject .*
 #accept .*
 
@@ -88,6 +89,7 @@ post_topicPrefix v03.post
 
 accept `realpath .`/.*
 accept `realpath ${HOME}/test`/.*
+accept ${HOME}/test/.*
 reject .*
 EOT
 

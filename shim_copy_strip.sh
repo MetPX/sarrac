@@ -58,6 +58,7 @@ mirror True
 directory `pwd`/shim_dirB
 accept .*`realpath .`/.*
 accept .*`realpath ${HOME}/test`/.*
+accept .*${HOME}/test/.*
 reject .*
 #accept .*
 
@@ -93,11 +94,13 @@ nodupe_ttl 0
 header toto=pig
 events modify,link,delete,mkdir,rmdir
 
-post_baseUrl file:`pwd`/shim_dirA
+#post_baseUrl file:`pwd`/shim_dirA
+post_baseUrl file:/
 post_topicPrefix v03.post
 
 accept `realpath .`/.*
 accept `realpath ${HOME}/test`/.*
+accept ${HOME}/test/.*
 reject .*
 EOT
 
