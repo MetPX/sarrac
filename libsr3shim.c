@@ -1436,6 +1436,9 @@ long int syscall(long int __sysno, ...)
 	} else if (__sysno == SYS_getpid && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> getpid, will pass along\n", __sysno);
 		status = syscall_fn_ptr(__sysno);
+	} else if (__sysno == SYS_gettid && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> gettid, will pass along\n", __sysno);
+		status = syscall_fn_ptr(__sysno);
 	} else if (syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld NOT IMPLEMENTED\n", __sysno);
 		sr_log_msg(logctxptr,LOG_ERROR, "syscall (%ld) not implemented\n", __sysno);
