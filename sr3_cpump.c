@@ -180,6 +180,12 @@ int main(int argc, char **argv)
 	struct timespec tsleep;
 	int consume, i, ret;
 	char *one;
+	int how_long;
+        struct timespec now,last_message_log;
+
+        clock_gettime(CLOCK_REALTIME_COARSE, &last_message_log);
+        clock_gettime(CLOCK_REALTIME_COARSE, &now);
+
 
 	//if ( argc < 3 ) usage();
 
@@ -341,6 +347,7 @@ int main(int argc, char **argv)
 
 		// inlet: from queue, json, tree.
 		m = sr_consume(sr_c);
+                clock_gettime(CLOCK_REALTIME_COARSE, &now);
 
                 if (m==SR_CONSUME_BROKEN) {
                         sr_c = force_good_connection_and_bindings(sr_c);
@@ -356,6 +363,12 @@ int main(int argc, char **argv)
 	                            tsleep.tv_sec = (long)( 1<<(no_messages_tally-20) );
                         } else {
 	                            tsleep.tv_sec = 32L;
+				    how_long = now.tv_sec - last_message_log.tv_sec;
+				    if (how_long > 60) 
+				    {
+               	                     	sr_log_msg(sr_cfg.logctx,LOG_INFO, "no message received for %d seconds\n",  how_long );
+                                        clock_gettime(CLOCK_REALTIME_COARSE, &last_message_log);
+			            }
                         }
                	        //sr_log_msg(sr_cfg.logctx,LOG_DEBUG, "no message received, watch sleeping for %ld seconds + %ld micro seconds. \n", 
 		        // 		tsleep.tv_sec, tsleep.tv_nsec/1000 );
@@ -368,7 +381,7 @@ int main(int argc, char **argv)
 			no_messages_tally=0;
 			sr_log_msg(sr_cfg.logctx,LOG_INFO, "received: %s\n", sr_message_2log(m));
 			sr_c->metrics.rxGoodCount++;
-			strcpy(sr_c->metrics.lastRx,sr_time2str(NULL));
+			strcpy(sr_c->metrics.lastRx,sr_time2str(&now));
 		} else {
 			no_messages_tally=0;
 			sr_log_msg(sr_cfg.logctx,LOG_ERROR, "discarding invalid message: %s\n",
