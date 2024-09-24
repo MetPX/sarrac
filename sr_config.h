@@ -127,7 +127,7 @@ struct sr_broker_s {
 	      /**< broker port number ( 1-65535 ) */
 	char *exchange;
 		  /**< name of the exchange to publish to on the broker. */
-	int exchange_split;
+	int exchangeSplit;
 			/**< number of exchanges to split publishes among. */
 	uint64_t last_delivery_tag;
 			      /**< some AMQP thing... no idea. */
@@ -210,7 +210,7 @@ struct sr_config_s {
 	struct sr_broker_s *post_broker;
 				   /**< the broker to post to.*/
 	char *post_exchange;	     /**< the exchange to post to on the post broker.*/
-	int post_exchange_split;	   /**< the count of  a team of similar exchanges.*/
+	int post_exchangeSplit;	   /**< the count of  a team of similar exchanges.*/
 	char *post_exchangeSuffix;	    /**< appended to an exchange name.*/
 	int messageRateMax;	 /**< limit maximum number of posts per second */
 	char *queuename;	 /**< the name of the queue for a consumer.*/
