@@ -1790,13 +1790,13 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	}
 	// pidfn statehost
 	if (val) {
-		sprintf(p, "%s/.cache/%s/%s/%s/%s/i%02d.pid", home, sr_cfg->appname,
-			val, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
+		sprintf(p, "%s/.cache/%s/%s/%s/%s/%s_%s_%02d.pid", home, sr_cfg->appname,
+			val, sr_cfg->progname, sr_cfg->configname,  sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 	// pidfn default
 	else {
-		sprintf(p, "%s/.cache/%s/%s/%s/i%02d.pid", home, sr_cfg->appname,
-			sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
+		sprintf(p, "%s/.cache/%s/%s/%s/%s_%s_%02d.pid", home, sr_cfg->appname,
+			sr_cfg->progname, sr_cfg->configname, sr_cfg->progname, sr_cfg->configname, sr_cfg->instance);
 	}
 
 	sr_cfg->pidfile = strdup(p);
@@ -2609,8 +2609,8 @@ void sr_config_list(struct sr_config_s *sr_cfg)
 			*s = '\0';
 		}
 
-		sprintf(p, "%s/.cache/%s/%s/%s/i001.pid", getenv("HOME"),
-			sr_cfg->appname, sr_cfg->progname, d->d_name);
+		sprintf(p, "%s/.cache/%s/%s/%s/%s_%s_01.pid", getenv("HOME"),
+			sr_cfg->appname, sr_cfg->progname, sr_cfg->appname, sr_cfg->progname, d->d_name);
 		f = fopen(p, "r");
 		if (f)		// read the pid from the file.
 		{
