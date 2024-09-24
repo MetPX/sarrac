@@ -1,4 +1,6 @@
 
+#include <dirent.h>
+#include <libgen.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/xattr.h>
@@ -53,6 +55,57 @@ void sr_log_init_context(struct sr_log_context_s *ctx) {
 
 char *log_set_fnts(struct sr_log_context_s* ctx, char *basefilename);
 
+void sr_log_delete_rotations(struct sr_log_context_s* ctx, char *basefilename) 
+	/* look at all the files that match the basefilename, 
+	 * keep logRotateCount of them, delete the others.
+	 */
+{
+     char *baseDirBuf=strdup(basefilename);
+     char *thedir = dirname(baseDirBuf);
+     DIR *dir;
+     struct dirent* de;
+     char *baseFileBuf=strdup(basefilename);
+     char *thefile = basename(baseFileBuf);
+     int maxAge = ctx->logRotateCount * ctx->logRotateInterval;
+     char fullpath[PATH_MAX];
+     struct stat sb;
+     struct timespec ts;
+     int age;
+
+     clock_gettime(CLOCK_REALTIME, &ts);
+
+     //fprintf( stderr, "directory is: %s, filename: %s\n", thedir, thefile );
+     //fprintf( stderr, "oldest possible: %d\n", maxAge );
+ 
+     dir = opendir(thedir);
+     if (dir)  
+     {
+         while ( (de = readdir(dir)) != NULL ) {
+	    if (!strncmp( thefile, de->d_name, strlen(thefile) ) )
+	    {
+	       sprintf(fullpath,"%s/%s", thedir, de->d_name );
+	       //fprintf( stderr, "this is a matching log: %s\n", fullpath );
+	       if (!stat(fullpath, &sb))
+	       {
+           		age = ts.tv_sec - sb.st_mtime;
+	                //fprintf( stderr, "and %s is %d seconds old\n", fullpath, age );
+                        if (age > maxAge) {
+	                        fprintf( stderr, "%s too old! (%d seconds) Removing.\n", fullpath, age );
+				remove(fullpath);
+			}
+	       }
+
+
+            }
+         }
+         closedir(dir);
+     } else {	
+	 fprintf(stderr, "failed to open %s!\n", thedir );
+     };
+     free(baseDirBuf);
+     free(baseFileBuf);
+}
+
 #ifndef SR_DEBUG_LOGS
 void sr_log_msg(struct sr_log_context_s* ctx, int prio, const char *format, ...)
 {
@@ -94,8 +147,8 @@ void sr_log_msg(struct sr_log_context_s* ctx, int prio, const char *format, ...)
 	localtime_r(&ts.tv_sec, &tc);
 
 	/* log (message & metrics) rotation */
-	if ((ctx->logfd != STDERR_FILENO)
-	    && ((ts.tv_sec - ctx->logbase) > ctx->logRotateInterval)) {
+	if ((ctx->logfd != STDERR_FILENO) && ((ts.tv_sec - ctx->logbase) > ctx->logRotateInterval)) {
+
 		ctx->logbase = ts.tv_sec;
 
 		strcpy(ctx->logfn_ts,log_set_fnts(ctx, ctx->logfn));
@@ -103,12 +156,14 @@ void sr_log_msg(struct sr_log_context_s* ctx, int prio, const char *format, ...)
 		rename(ctx->logfn, ctx->logfn_ts);
 
 		strcpy(ctx->metricsfn_ts,log_set_fnts(ctx, ctx->metricsfn));
+		sr_log_delete_rotations( ctx, ctx->metricsfn );
 		rename(ctx->metricsfn, ctx->metricsfn_ts);
 
 		ctx->logfd = open(ctx->logfn, O_WRONLY | O_CREAT | O_APPEND, ctx->logmode);
 
 		/* delete outdated logs */
 		if (ctx->logRotateCount > 0) {
+		        sr_log_delete_rotations( ctx, ctx->logfn );
 			if (ctx->ltab.fns[ctx->ltab.i]) {
 				remove(ctx->ltab.fns[ctx->ltab.i]);
 				free(ctx->ltab.fns[ctx->ltab.i]);
