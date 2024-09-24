@@ -1786,7 +1786,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	if (sr_cfg->log) {
 		sr_cfg->logctx = sr_log_setup(sr_cfg->logfn, sr_cfg->metricsFilename, sr_cfg->logMetrics, sr_cfg->chmod_log,
 			     sr_cfg->debug ? LOG_DEBUG : (sr_cfg->loglevel),
-			     sr_cfg->logRotateCount, sr_cfg->logRotateCount);
+			     sr_cfg->logRotateCount, sr_cfg->logRotateInterval);
 	}
 	// pidfn statehost
 	if (val) {
