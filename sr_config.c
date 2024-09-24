@@ -1840,27 +1840,31 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	// Since we check how old the log is, we ust not write to the log during startup in sanity mode.
 	if (strcmp(sr_cfg->action, "sanity")) {
 		sr_log_msg(sr_cfg->logctx, ll,
-			   "%s %s settings: action=%s hostname=%s config_name=%s log_level=%d\n",
+			   "%s %s settings: action=%s, hostname=%s, config_name=%s\n",
 			   sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_local_fqdn(sr_cfg->logctx),
-			   sr_cfg->configname, sr_cfg->loglevel );
-		sr_log_msg(sr_cfg->logctx, ll, "\tfollow_symlinks=%s realpath: Adjust=%d Filter=%s Post=%s\n",
+			   sr_cfg->configname );
+		sr_log_msg(sr_cfg->logctx, ll, "\tfollow_symlinks=%s, realpath: Adjust=%d, Filter=%s, Post=%s\n",
 			   sr_cfg->follow_symlinks ? "yes" : "no",
 			   sr_cfg->realpathAdjust,
 			   sr_cfg->realpathFilter ? "yes" : "no",
 			   sr_cfg->realpathPost ? "yes" : "no");
 		sr_log_msg(sr_cfg->logctx, ll,
-			   "\tforce_polling=%s sleep=%g expire=%g housekeeping=%g sanity_log_dead=%g nodupe_ttl=%g nodupe_fileAgeMin=%g nodupe_fileAgeMax=%g\n",
+			   "\tforce_polling=%s, sleep=%g, expire=%g, housekeeping=%g, sanity_log_dead=%g\n",
 			   sr_cfg->force_polling ? "on" : "off", sr_cfg->sleep, sr_cfg->expire, sr_cfg->housekeeping,
-			   sr_cfg->sanity_log_dead, sr_cfg->nodupe_ttl, sr_cfg->nodupe_fileAgeMin, sr_cfg->nodupe_fileAgeMax );
-		sr_log_msg(sr_cfg->logctx, ll, "\tcache_file=%s cache_basis=%s, accept_unmatch=%s messageRateMax=%d\n",
+			   sr_cfg->sanity_log_dead );
+		sr_log_msg(sr_cfg->logctx, ll,
+			   "\tnodupe_ttl=%d, nodupe_fileAgeMin=%g, nodupe_fileAgeMax=%g,\n",
+			   sr_cfg->nodupe_ttl, sr_cfg->nodupe_fileAgeMin, sr_cfg->nodupe_fileAgeMax );
+		sr_log_msg(sr_cfg->logctx, ll, "\tcache_file=%s, cache_basis=%s, accept_unmatch=%s, messageRateMax=%d\n",
 			   sr_cfg->cachep ? p : "off", sr_cfg->cache_basis?sr_cfg->cache_basis:"path", 
 			   sr_cfg->acceptUnmatched ? "on" : "off",
 			   sr_cfg->messageRateMax);
+		sr_log_msg(sr_cfg->logctx, ll, "\tloglevel=%d, logReject=%s, logRotateCount=%d, logRotateInterval=%d\n",
+				sr_cfg->loglevel, sr_cfg->logReject ? "on" : "off", sr_cfg->logRotateCount, sr_cfg->logRotateInterval );
 		sr_log_msg(sr_cfg->logctx, ll,
-			   "\tfileEvents=%04x directory=%s queuename=%s logReject=%s sum=%c\n",
-			   sr_cfg->events, sr_cfg->directory, sr_cfg->queuename,
-			   sr_cfg->logReject ? "on" : "off", sr_cfg->sumalgo );
-		sr_log_msg(sr_cfg->logctx, ll, "\tstatehost=%s v2compatRenameDoublePost=%s\n",
+			   "\tfileEvents=%04x, directory=%s, queuename=%s, sum=%c\n",
+			   sr_cfg->events, sr_cfg->directory, sr_cfg->queuename, sr_cfg->sumalgo );
+		sr_log_msg(sr_cfg->logctx, ll, "\tstatehost=%s, v2compatRenameDoublePost=%s\n",
 			   sr_cfg->statehost ? "yes" : "no",
 			   sr_cfg->v2compatRenameDoublePost ? "yes" : "no");
 	}
@@ -1932,13 +1936,13 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	}
 	if (strcmp(sr_cfg->action, "sanity")) {
 		sr_log_msg(sr_cfg->logctx, ll,
-			   "\tmessage_ttl=%g post_exchange=%s post_exchange_split=%d post_exchangeSuffix=%s\n",
+			   "\tmessage_ttl=%g, post_exchange=%s, post_exchange_split=%d, post_exchangeSuffix=%s\n",
 			   sr_cfg->message_ttl, sr_cfg->post_exchange, sr_cfg->post_exchange_split,
 			   sr_cfg->post_exchangeSuffix);
 		sr_log_msg(sr_cfg->logctx, ll,
-			   "\tsource=%s to=%s post_baseUrl=%s post_baseDir=%s\n",
+			   "\tsource=%s, to=%s, post_baseUrl=%s, post_baseDir=%s\n",
 			   sr_cfg->source, sr_cfg->to, sr_cfg->post_baseUrl, sr_cfg->post_baseDir );
-		sr_log_msg(sr_cfg->logctx, ll,"\ttopicPrefix=%s post_topicPrefix=%s, pid=%d\n", sr_cfg->topicPrefix,
+		sr_log_msg(sr_cfg->logctx, ll,"\ttopicPrefix=%s, post_topicPrefix=%s, pid=%d\n", sr_cfg->topicPrefix,
 			   sr_cfg->post_topicPrefix, sr_cfg->pid);
 		sr_log_msg(sr_cfg->logctx, ll, "man sr3_cpost(1) for more information\n");
 	}
