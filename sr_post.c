@@ -490,10 +490,10 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 
 			strcpy(thisexchange, sr_c->cfg->post_broker->exchange);
 
-			if (sr_c->cfg->post_broker->exchange_split > 0) {
+			if (sr_c->cfg->post_broker->exchangeSplit > 0) {
 				sprintf(strchr(thisexchange, '\0'), "%02d",
 					m->sum[sr_get_sumhashlen(m->sum[0]) -
-					       1] % sr_c->cfg->post_broker->exchange_split);
+					       1] % sr_c->cfg->post_broker->exchangeSplit);
 			}
 			if (bad_hdrcnt == 0)
 				status =
@@ -516,10 +516,10 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 
 			strcpy(thisexchange, sr_c->cfg->post_broker->exchange);
 
-			if (sr_c->cfg->post_broker->exchange_split > 0) {
+			if (sr_c->cfg->post_broker->exchangeSplit > 0) {
 				sprintf(strchr(thisexchange, '\0'), "%02d",
 					m->sum[sr_get_sumhashlen(m->sum[0]) -
-					       1] % sr_c->cfg->post_broker->exchange_split);
+					       1] % sr_c->cfg->post_broker->exchangeSplit);
 			}
 			status =
 			    amqp_basic_publish(sr_c->cfg->post_broker->conn, 1,
@@ -1096,8 +1096,8 @@ int sr_post_cleanup(struct sr_context *sr_c)
 	if (!sr_c->cfg->post_broker)
 		return (1);
 
-	if (sr_c->cfg->post_broker->exchange_split) {
-		for (int i = 0; i < sr_c->cfg->post_broker->exchange_split; i++) {
+	if (sr_c->cfg->post_broker->exchangeSplit) {
+		for (int i = 0; i < sr_c->cfg->post_broker->exchangeSplit; i++) {
 			sprintf(exchange, "%s%02d", sr_c->cfg->post_broker->exchange, i);
 			sr_log_msg(sr_c->cfg->logctx,LOG_INFO, "deleting exchange %s%02d\n",
 				   sr_broker_uri(sr_c->cfg->post_broker), i);
@@ -1130,8 +1130,8 @@ int sr_post_init(struct sr_context *sr_c)
 	if (!sr_c->cfg->exchangeDeclare) {
 		return (1);
 	}
-	if (sr_c->cfg->post_broker->exchange_split) {
-		for (int i = 0; i < sr_c->cfg->post_broker->exchange_split; i++) {
+	if (sr_c->cfg->post_broker->exchangeSplit) {
+		for (int i = 0; i < sr_c->cfg->post_broker->exchangeSplit; i++) {
 			sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG, "declaring exchange %s%02d\n",
 				   sr_broker_uri(sr_c->cfg->post_broker), i);
 			sprintf(exchange, "%s%02d", sr_c->cfg->post_broker->exchange, i);

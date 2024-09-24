@@ -44,7 +44,7 @@ void usage()
 
 	fprintf(stderr,
 		"\tpost_exchange <exchange> name of exchange to publish to (default: xs_<brokerusername>.)\n");
-	fprintf(stderr, "\tpost_exchange_split <num> number of output exchanges (default: 1.)\n");
+	fprintf(stderr, "\tpost_exchangeSplit <num> number of output exchanges (default: 1.)\n");
 	fprintf(stderr, "\thousekeeping <on|off|integer> - clean cache interval.\n");
 	fprintf(stderr, "\tsuppress_duplicates|sd|cache|caching <on|off|integer> (default: off)\n");
 	fprintf(stderr,

@@ -1072,7 +1072,7 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 	} else if (!strcmp(option, "post_exchange_split")
 		   || !strcmp(option, "pxs")
 		   || !strcmp(option, "post_exchangeSplit")) {
-		sr_cfg->post_exchange_split = atoi(argument);
+		sr_cfg->post_exchangeSplit = atoi(argument);
 		retval = (2);
 
 	} else if (!strcmp(option, "post_exchangeSuffix") || !strcmp(option, "post_exchangeSuffix")) {
@@ -1438,7 +1438,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->pipe = 0;
 	sr_cfg->post_broker = NULL;
 	sr_cfg->post_exchange = NULL;
-	sr_cfg->post_exchange_split = 0;
+	sr_cfg->post_exchangeSplit = 0;
 	sr_cfg->messageRateMax = 0;
 	sr_cfg->post_exchangeSuffix = NULL;
 	sr_cfg->prefetch = 25;
@@ -1903,7 +1903,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 		} else {
 			sr_cfg->post_broker->exchange = strdup(sr_cfg->post_exchange);
 		}
-		sr_cfg->post_broker->exchange_split = sr_cfg->post_exchange_split;
+		sr_cfg->post_broker->exchangeSplit = sr_cfg->post_exchangeSplit;
 
 		if (sr_cfg->source == NULL) {
 			sr_cfg->source = strdup(sr_cfg->post_broker->user);
@@ -1936,8 +1936,8 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	}
 	if (strcmp(sr_cfg->action, "sanity")) {
 		sr_log_msg(sr_cfg->logctx, ll,
-			   "\tmessage_ttl=%g, post_exchange=%s, post_exchange_split=%d, post_exchangeSuffix=%s\n",
-			   sr_cfg->message_ttl, sr_cfg->post_exchange, sr_cfg->post_exchange_split,
+			   "\tmessage_ttl=%g, post_exchange=%s, post_exchangeSplit=%d, post_exchangeSuffix=%s\n",
+			   sr_cfg->message_ttl, sr_cfg->post_exchange, sr_cfg->post_exchangeSplit,
 			   sr_cfg->post_exchangeSuffix);
 		sr_log_msg(sr_cfg->logctx, ll,
 			   "\tsource=%s, to=%s, post_baseUrl=%s, post_baseDir=%s\n",
