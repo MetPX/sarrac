@@ -1555,6 +1555,7 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 	 *           would be better to know that we are in "include" mode...
 	 *           and accept any filename under the config dir !!!
 	 */
+
 	plen = strlen(filename);
 	strcpy(sufbuf, "");
 	if (strcmp(&(filename[plen - 5]), ".conf")) {
@@ -1574,11 +1575,15 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 			sprintf(p, "%s/.config/%s/%s/%s%s", home, sr_cfg->appname,
 				strcmp(sr_cfg->progname, "shim") ? sr_cfg->progname : "post",
 				filename, sufbuf);
+			if (access(p, F_OK)) {
+				sprintf(p, "%s/.config/%s/%s%s", home, sr_cfg->appname, filename, sufbuf);
+			}
 		}
 	} else {
 		strcpy(p, filename);
 	}
 	strcpy(one,p);
+
 	// absolute paths in the normal places...
 	sr_log_msg(sr_cfg->logctx,LOG_DEBUG, "sr_config_read about to open: %s\n", p);
 
