@@ -178,6 +178,7 @@ struct sr_config_s {
 	float expire;	      /**< a time (in seconds) passed to the broker as queue lifetime.*/
 	int follow_symlinks;	       /**< flag to indicate whether one should visit the destination of symlinks.*/
 	int force_polling;	     /**< flag to switch watch algorithms , either brute polling or Inotify*/
+	char *hostname;       /**< the name of the current host (can be overriden with option.)*/
 	float housekeeping;	 /**< interval, in seconds between periodic processing events.*/
 	int help;	     /**< flag to trigger printing help message.*/
 	int instance;		/**< the instance number of the current process within a component's configuration.*/

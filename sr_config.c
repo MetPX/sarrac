@@ -963,6 +963,13 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		val = sr_add_header(sr_cfg, argument, false);
 		retval = (1 + (val & 1));
 
+	} else if (!strcmp(option, "hostname")) {
+		if (sr_cfg->hostname)
+			free(sr_cfg->hostname);
+		sr_cfg->hostname = argument;
+		argument = NULL;
+		retval = 2;
+
 	} else if (!strcmp(option, "logrotate") || !strcmp(option, "lr")
 		   || !strcmp(option, "logRotateCount")
 		   || !strcmp(option, "logdays") || !strcmp(option, "ld")) {
@@ -1291,6 +1298,8 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 	if (sr_cfg->exchangeSuffix)
 		free(sr_cfg->exchangeSuffix);
 	sr_cfg->exchangeSuffix = NULL;
+	if (sr_cfg->hostname)
+		free(sr_cfg->hostname);
 	if (sr_cfg->last_matched)
 		free(sr_cfg->last_matched);
 	sr_cfg->last_matched = NULL;
@@ -1418,6 +1427,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->exchangeSuffix = NULL;
 	sr_cfg->follow_symlinks = 0;
 	sr_cfg->force_polling = 0;
+	sr_cfg->hostname = NULL;
 	sr_cfg->instance = 1;
 	sr_cfg->last_matched = NULL;
 	sr_cfg->log = 0;
@@ -1671,6 +1681,9 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	if (!sr_cfg->configname)
 		sr_cfg->configname = strdup("NONE");
 
+	if (!sr_cfg->hostname)
+		sr_cfg->hostname = strdup(sr_local_fqdn(sr_cfg->logctx));
+
 	if (!sr_cfg->progname)
 		sr_cfg->progname = strdup("NONE");
 
@@ -1687,7 +1700,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	d = NULL;
 	val = NULL;
 	if (sr_cfg->statehost) {
-		val = sr_local_fqdn(sr_cfg->logctx);
+		val = sr_cfg->hostname;
 		d = strchr(val, '.');
 		if (d)
 			*d = '\0';
@@ -1846,7 +1859,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 	if (strcmp(sr_cfg->action, "sanity")) {
 		sr_log_msg(sr_cfg->logctx, ll,
 			   "%s %s settings: action=%s, hostname=%s, config_name=%s\n",
-			   sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_local_fqdn(sr_cfg->logctx),
+			   sr_cfg->progname, __sarra_version__, sr_cfg->action, sr_cfg->hostname,
 			   sr_cfg->configname );
 		sr_log_msg(sr_cfg->logctx, ll, "\tfollow_symlinks=%s, realpath: Adjust=%d, Filter=%s, Post=%s\n",
 			   sr_cfg->follow_symlinks ? "yes" : "no",
