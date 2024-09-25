@@ -102,7 +102,7 @@ char *sr_hex2base64(const char *hstr);
 /* sr_base642hex returns a hex-coded string given a base64 one (reverse of sr_hex2base64) */
 char *sr_base642hex(const char *bstr);
 
-#define SR_TIMESTRLEN (26)
+#define SR_TIMESTRLEN (64)
 
 // Assumed longest possible hash. typeprefix + SHA512_DIGEST 
 #define SR_SUMHASHLEN (SHA512_DIGEST_LENGTH+1)
