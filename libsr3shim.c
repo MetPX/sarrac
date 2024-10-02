@@ -15,6 +15,11 @@
 #include <stdarg.h>
 #include <errno.h>
 
+// needed for syscall epoll_ctl
+#include <sys/epoll.h>
+// needed for syscall sched_getaffinity sched_setaffinity
+#include <sched.h>
+
 #include <dirent.h>
 #define clerror(s)  if (s==0) { errno=0; }
 
@@ -1411,7 +1416,7 @@ long int syscall(long int __sysno, ...)
 	if (!syscall_init_done) {
 		syscall_init();
 	}
-
+	// renameat2 - call renameorlink to do the rename and post a message
 	if (__sysno == SYS_renameat2) {
 		sr_shimdebug_msg(1, "syscall %ld --> renameat2, will call renameorlink\n", __sysno);
 		
@@ -1425,6 +1430,169 @@ long int syscall(long int __sysno, ...)
 
 		sr_shimdebug_msg(1, "%d, %s, %d, %s, %d", olddirfd, oldpath, newdirfd, newpath, flags);
 		status = renameorlink(olddirfd, oldpath, newdirfd, newpath, flags, 0);
+	
+	// all other syscalls we don't do anything, but we have to pass them through to the real syscall
+	} else if (__sysno == SYS_brk && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> brk, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		void *addr = va_arg(args, void*);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, addr);
+	} else if ((__sysno == SYS_epoll_create || __sysno == SYS_epoll_create) && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> epoll_create or epoll_create1, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		int size_or_flags = va_arg(args, int);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, size_or_flags);
+	} else if (__sysno == SYS_epoll_ctl && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> epoll_ctl, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		int epfd = va_arg(args, int);
+		int op = va_arg(args, int);
+		int fd = va_arg(args, int);
+		struct epoll_event event = va_arg(args, struct epoll_event);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, epfd, op, fd, event);
+	} else if (__sysno == SYS_epoll_pwait && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> epoll_pwait, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		int epfd = va_arg(args, int);
+		struct epoll_event events = va_arg(args, struct epoll_event);
+		int maxevents = va_arg(args, int);
+		int timeout = va_arg(args, int);
+		sigset_t sigmask = va_arg(args, sigset_t);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, epfd, events, maxevents, timeout, sigmask);
+	} else if (__sysno == SYS_epoll_wait && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> epoll_wait, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		int epfd = va_arg(args, int);
+		struct epoll_event events = va_arg(args, struct epoll_event); // is this right?
+		int maxevents = va_arg(args, int);
+		int timeout = va_arg(args, int);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, epfd, events, maxevents, timeout);
+	} else if (__sysno == SYS_get_mempolicy && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> get_mempolicy, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		int *mode = va_arg(args, int*);
+		// man page says unsigned long nodemask[(.maxnode + ULONG_WIDTH - 1) / ULONG_WIDTH]
+		unsigned long *nodemask = va_arg(args, unsigned long*);
+		unsigned long maxnode = va_arg(args, unsigned long);
+		void *addr = va_arg(args, void*);
+		unsigned long flags = va_arg(args, unsigned long);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, mode, nodemask, maxnode, addr, flags);
+	#ifdef SYS_ipc
+	} else if (__sysno == SYS_ipc && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> ipc, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		unsigned int call = va_arg(args, unsigned int);
+		int first = va_arg(args, int);
+		unsigned long second = va_arg(args, unsigned long);
+		unsigned long third = va_arg(args, unsigned long);
+		void *ptr = va_arg(args, void*);
+		long fifth = va_arg(args, long);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, call, first, second, third, ptr, fifth);
+	#endif
+	} else if (__sysno == SYS_madvise && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> madvise, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		void *addr = va_arg(args, void*);
+		size_t length = va_arg(args, size_t);
+		int advice = va_arg(args, int);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, addr, length, advice);
+	} else if (__sysno == SYS_mbind && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> mbind, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		void *addr = va_arg(args, void*);
+		unsigned long len = va_arg(args, unsigned long);
+		int mode = va_arg(args, int);
+		unsigned long *nodemask = va_arg(args, unsigned long*);
+		unsigned long maxnode = va_arg(args, unsigned long);
+		unsigned int flags = va_arg(args, unsigned int);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, addr, len, mode, nodemask, maxnode, flags);
+	} else if (__sysno == SYS_migrate_pages && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> migrate_pages, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		int pid = va_arg(args, int);
+		unsigned long maxnode = va_arg(args, unsigned long);
+		unsigned long *old_nodes = va_arg(args, unsigned long *);
+		unsigned long *new_nodes = va_arg(args, unsigned long *);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, pid, maxnode, old_nodes, new_nodes);
+	} else if (__sysno == SYS_mmap && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> mmap, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		void *addr = va_arg(args, void*); 
+		size_t length = va_arg(args, size_t);
+		int prot = va_arg(args, int);
+		int flags = va_arg(args, int);
+		int fd = va_arg(args, int);
+		off_t offset = va_arg(args, off_t);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, addr, length, prot, flags, fd, offset);
+	} else if (__sysno == SYS_move_pages && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> move_pages, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		int pid = va_arg(args, int);
+		unsigned long count = va_arg(args, unsigned long);
+		void *pages = va_arg(args, void*);
+		int *nodes = va_arg(args, int*);
+		int *status_mp = va_arg(args, int*);
+		int flags = va_arg(args, int);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, pid, count, pages, nodes, status_mp, flags);
+	} else if (__sysno == SYS_munmap && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> munmap, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		void *addr = va_arg(args, void*);
+		size_t length = va_arg(args, size_t);
+		int prot = va_arg(args, int);
+		int flags = va_arg(args, int);
+		int fd = va_arg(args, int);
+		off_t offset = va_arg(args, off_t);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, addr, length, prot, flags, fd, offset);
+	} else if ((__sysno == SYS_process_vm_readv || __sysno == SYS_process_vm_writev) && syscall_fn_ptr) {
+		if (__sysno == SYS_process_vm_readv)
+			sr_shimdebug_msg(1, "syscall %ld --> process_vm_readv, will pass along\n", __sysno);
+		if (__sysno == SYS_process_vm_writev)
+			sr_shimdebug_msg(1, "syscall %ld --> process_vm_writev, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		pid_t pid = va_arg(args, pid_t);
+		struct iovec *local_iov = va_arg(args, struct iovec*);
+		unsigned long liovcnt = va_arg(args, unsigned long);
+		struct iovec *remote_iov = va_arg(args, struct iovec*);
+		unsigned long riovcnt = va_arg(args, unsigned long);
+		unsigned long flags = va_arg(args, unsigned long);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, pid, local_iov, liovcnt, remote_iov, riovcnt, flags);
+	} else if ((__sysno == SYS_sched_getaffinity || __sysno == SYS_sched_setaffinity) && syscall_fn_ptr) {
+		if (__sysno == SYS_sched_getaffinity)
+			sr_shimdebug_msg(1, "syscall %ld --> sched_getaffinity, will pass along\n", __sysno);
+		if (__sysno == SYS_sched_setaffinity)
+			sr_shimdebug_msg(1, "syscall %ld --> sched_setaffinity, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		pid_t pid = va_arg(args, pid_t);
+		size_t cpusetsize = va_arg(args, size_t);
+		cpu_set_t *mask = va_arg(args, cpu_set_t*);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, pid, cpusetsize, mask);
+	} else if (__sysno == SYS_set_mempolicy && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> set_mempolicy, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		int mode = va_arg(args, int);
+		unsigned long *nodemask = va_arg(args, unsigned long*);
+		unsigned long maxnode = va_arg(args, unsigned long);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, mode, nodemask, maxnode);
+	} else if (__sysno == SYS_getpid && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> getpid, will pass along\n", __sysno);
+		status = syscall_fn_ptr(__sysno);
 	} else if (__sysno == SYS_getrandom && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> getrandom, will pass along\n", __sysno);
 		va_start(args, __sysno);
@@ -1433,9 +1601,6 @@ long int syscall(long int __sysno, ...)
 		unsigned int flags = va_arg(args, unsigned int);
 		va_end(args);
 		status = syscall_fn_ptr(__sysno, buf, buflen, flags);
-	} else if (__sysno == SYS_getpid && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> getpid, will pass along\n", __sysno);
-		status = syscall_fn_ptr(__sysno);
 	} else if (__sysno == SYS_gettid && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> gettid, will pass along\n", __sysno);
 		status = syscall_fn_ptr(__sysno);
