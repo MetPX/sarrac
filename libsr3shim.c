@@ -1628,6 +1628,7 @@ long int syscall(long int __sysno, ...)
 	} else if (__sysno == SYS_gettid && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> gettid, will pass along\n", __sysno);
 		status = syscall_fn_ptr(__sysno);
+	#ifdef SYS_shmat
 	} else if (__sysno == SYS_shmat && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> shmat, will pass along\n", __sysno);
 		va_start(args, __sysno);
@@ -1636,12 +1637,15 @@ long int syscall(long int __sysno, ...)
 		int shmflg = va_arg(args, int);
 		va_end(args);
 		status = syscall_fn_ptr(__sysno, shmid, shmaddr, shmflg);
+	#endif
+	#ifdef SYS_shmdt
 	} else if (__sysno == SYS_shmdt && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> shmdt, will pass along\n", __sysno);
 		va_start(args, __sysno);
 		void *shmaddr = va_arg(args, void*);
 		va_end(args);
 		status = syscall_fn_ptr(__sysno, shmaddr);
+	#endif
 	} else if (syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld NOT IMPLEMENTED\n", __sysno);
 		sr_log_msg(logctxptr,LOG_ERROR, "syscall (%ld) not implemented\n", __sysno);
