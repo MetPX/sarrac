@@ -1,4 +1,16 @@
-metpx-sr3c (3.24.09rc1) UNRELEASED; urgency=medium
+metpx-sr3c (3.24.10rc1) unstable; urgency=medium
+
+  * added more syscalls (getcpu, mremap, shmat, shmdt)
+
+ -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Thu, 03 Oct 2024 13:26:44 +0000
+
+metpx-sr3c (3.24.09rc2) unstable; urgency=medium
+
+  * added additional syscall passthroughs for syscalls used by MPI (#145)
+
+ -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Thu, 03 Oct 2024 13:26:44 +0000
+
+metpx-sr3c (3.24.09rc1) unstable; urgency=medium
 
   * need syscall gettid implementation for redhat 8.
   * fix #157 to have cpost print messages more often to convince sr3 it is not

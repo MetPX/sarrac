@@ -19,6 +19,8 @@
 #include <sys/epoll.h>
 // needed for syscall sched_getaffinity sched_setaffinity
 #include <sched.h>
+// needed for syscall mremap
+#include <sys/mman.h>
 
 #include <dirent.h>
 #define clerror(s)  if (s==0) { errno=0; }
@@ -1546,6 +1548,21 @@ long int syscall(long int __sysno, ...)
 		int flags = va_arg(args, int);
 		va_end(args);
 		status = syscall_fn_ptr(__sysno, pid, count, pages, nodes, status_mp, flags);
+	} else if (__sysno == SYS_mremap && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> mremap, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		void *old_address = va_arg(args, void*);
+		size_t old_size = va_arg(args, size_t);
+		size_t new_size = va_arg(args, size_t);
+		int flags = va_arg(args, int);
+		if (flags & MREMAP_FIXED) {
+			void *new_address = va_arg(args, void*);
+			va_end(args);
+			status = syscall_fn_ptr(__sysno, old_address, old_size, new_size, flags, new_address);
+		} else {
+			va_end(args);
+			status = syscall_fn_ptr(__sysno, old_address, old_size, new_size, flags);
+		}
 	} else if (__sysno == SYS_munmap && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> munmap, will pass along\n", __sysno);
 		va_start(args, __sysno);
@@ -1593,6 +1610,13 @@ long int syscall(long int __sysno, ...)
 	} else if (__sysno == SYS_getpid && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> getpid, will pass along\n", __sysno);
 		status = syscall_fn_ptr(__sysno);
+	} else if (__sysno == SYS_getcpu && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> getcpu, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		unsigned int *cpu = va_arg(args, unsigned int*);
+		unsigned int *node = va_arg(args, unsigned int*);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, cpu, node);
 	} else if (__sysno == SYS_getrandom && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> getrandom, will pass along\n", __sysno);
 		va_start(args, __sysno);
@@ -1604,6 +1628,20 @@ long int syscall(long int __sysno, ...)
 	} else if (__sysno == SYS_gettid && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> gettid, will pass along\n", __sysno);
 		status = syscall_fn_ptr(__sysno);
+	} else if (__sysno == SYS_shmat && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> shmat, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		int shmid = va_arg(args, int);
+		void *shmaddr = va_arg(args, void*);
+		int shmflg = va_arg(args, int);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, shmid, shmaddr, shmflg);
+	} else if (__sysno == SYS_shmdt && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> shmdt, will pass along\n", __sysno);
+		va_start(args, __sysno);
+		void *shmaddr = va_arg(args, void*);
+		va_end(args);
+		status = syscall_fn_ptr(__sysno, shmaddr);
 	} else if (syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld NOT IMPLEMENTED\n", __sysno);
 		sr_log_msg(logctxptr,LOG_ERROR, "syscall (%ld) not implemented\n", __sysno);
