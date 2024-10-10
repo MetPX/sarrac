@@ -7,6 +7,7 @@ shim_dir*
 *.tmp
 *.spec
 build
+call_remove
 sr3_cpump
 sr3_cpost
 libsr3cshim.so
