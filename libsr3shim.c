@@ -693,6 +693,52 @@ int rmdir(const char *pathname)
 	return (shimpost(pathname, status));
 }
 
+static int remove_init_done = 0;
+typedef int (*remove_fn)(const char *);
+static remove_fn remove_fn_ptr = remove;
+
+int remove(const char *pathname)
+{
+	int status;
+	struct stat sb;
+	int statres;
+	bool isdir = false;
+
+	sr_shimdebug_msg(1, "remove %s\n", pathname);
+	if (!remove_init_done) {
+		setup_exit();
+		remove_fn_ptr = (remove_fn) dlsym(RTLD_NEXT, "remove");
+		remove_init_done = 1;
+	}
+
+	// before removing, need to know if pathname is a file or dir
+	// if stat fails, also assuming that pathname is not a dir
+	statres = lstat(pathname, &sb);
+	if (!statres) {
+		isdir = S_ISDIR(sb.st_mode);
+	}
+
+	status = remove_fn_ptr(pathname);
+	if (shim_disabled)
+		return (status);
+
+	sr_shimdebug_msg(1, " remove 2 %s status=%d\n", pathname, status);	
+
+	clerror(status);
+	if (status == -1)
+		return status;
+
+	if (!strncmp(pathname, "/dev/", 5))
+		return (status);
+	if (!strncmp(pathname, "/proc/", 6))
+		return (status);
+
+	if (isdir) {
+		rmdir_in_progress = 1;
+	}
+	return (shimpost(pathname, status));
+}
+
 static int symlink_init_done = 0;
 typedef int (*symlink_fn)(const char *, const char *);
 static symlink_fn symlink_fn_ptr = symlink;

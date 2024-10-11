@@ -71,6 +71,7 @@ all: sr_version.h $(SARRA_OBJECT)
 	$(CC) $(CFLAGS) -o sr_cachetest sr_cachetest.c -lsr3c $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
 	$(CC) $(CFLAGS) -o sr3_cpost sr3_cpost.c -lsr3c $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
 	$(CC) $(CFLAGS) -o sr3_cpump sr3_cpump.c -lsr3c $(SARRA_LINK) -lrabbitmq $(RABBIT_LINK) -lcrypto
+	$(CC) $(CFLAGS) -o call_remove call_remove.c 
 
 #debian/changelog: ../sarracenia/debian/changelog
 #	sed 's/^metpx-sarracenia/libsarra-c/' <../sarracenia/debian/changelog >debian/changelog 
@@ -114,7 +115,7 @@ format:
 	rm *.c~ *.h~
 
 clean:
-	rm -f *.o *.gcno *.so *.so.* *.links sr3_cpost sr_configtest sr_utiltest sr3_cpump sr_cachetest sr_cache_save.test shim_test.log
+	rm -f *.o *.gcno *.so *.so.* *.links sr3_cpost sr_configtest sr_utiltest sr3_cpump sr_cachetest sr_cache_save.test shim_test.log call_remove 
 	rm -rf build sr_version.h metpx-sr3c_rhel7.spec dir?.links
 	-sr3 cleanup cpost/local_post
 	-sr3 cleanup subscribe/local_copy
