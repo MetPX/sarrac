@@ -5518,3 +5518,18 @@ long int syscall(long int __sysno, ...)
 		va_end(syscall_args);
 		syscall_status = syscall_fn_ptr(__sysno, fd, vec, vlen);
 	#endif
+
+	// end of auto generated code
+	} else if (syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld NOT IMPLEMENTED\n", __sysno);
+		sr_log_msg(logctxptr,LOG_ERROR, "syscall (%ld) not implemented\n", __sysno);
+		syscall_status = -1;
+	} else {
+		sr_shimdebug_msg(1, "syscall %ld no syscall_fn_ptr!\n", __sysno);
+		sr_log_msg(logctxptr,LOG_ERROR, "syscall (%ld) no syscall_fn_ptr!\n", __sysno);
+		syscall_status = -1;
+	}
+	sr_shimdebug_msg(1, "syscall %ld return %ld\n", __sysno, syscall_status);
+	return syscall_status;
+}
+#endif
