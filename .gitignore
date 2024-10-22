@@ -12,6 +12,7 @@ sr3_cpump
 sr3_cpost
 libsr3cshim.so
 libsr3c.so
+libsr3shim_syscalls.c
 sr_version.h
 sr_cachetest
 sr_cache_save.test
