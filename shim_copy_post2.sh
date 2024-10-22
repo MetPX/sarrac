@@ -119,4 +119,7 @@ echo "#test 1 remove 165 symlink in a non sub-dir"
 cd ../shim_dirC/thedir
 rm filefive
 
+echo "#test 1 rename move a file when in a linked dir.)"
+mv new_test_file middle_aged_test_file
+
 echo "#test 0 comment 160 shim copy posting end"
