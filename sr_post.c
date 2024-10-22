@@ -1068,7 +1068,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 	}
 
 	first_user_header.key = strdup("oldname");
-	first_user_header.value = strdup(o);
+	first_user_header.value = strdup(oldname);
 
 	if (sr_c->cfg->realpathFilter) {
 		mask = sr_isMatchingPattern(sr_c->cfg, newreal);
