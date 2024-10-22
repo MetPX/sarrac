@@ -79,7 +79,7 @@ def syscall_to_code(name, signature):
 
     arg_names = []
     if 'void' not in signature:
-        output += """\t\tva_start(args, __sysno);\n"""
+        output += """\t\tva_start(syscall_args, __sysno);\n"""
 
         for arg in signature:
             for thing in cleanup:
@@ -117,16 +117,16 @@ def syscall_to_code(name, signature):
             
             data_type = data_type.strip()
             if data_type in SPECIAL_TYPES:
-                output += f"""\t\t{data_type} {var_name} = ({data_type})va_arg(args, {SPECIAL_TYPES[data_type]});\n"""
+                output += f"""\t\t{data_type} {var_name} = ({data_type})va_arg(syscall_args, {SPECIAL_TYPES[data_type]});\n"""
             else:
-                output += f"""\t\t{data_type} {var_name} = va_arg(args, {data_type});\n"""
+                output += f"""\t\t{data_type} {var_name} = va_arg(syscall_args, {data_type});\n"""
             all_types.add(data_type)
             arg_names.append(var_name)
 
             if name in DEBUG:
                 print(f"SYSCALL={name} FULL ARG={arg}: data_type={data_type}, var_name={var_name}, idx={idx}")
         
-        output += """\t\tva_end(args);\n"""
+        output += """\t\tva_end(syscall_args);\n"""
     
     output += """\t\tsyscall_status = syscall_fn_ptr(__sysno"""
     for arg_name in arg_names:
