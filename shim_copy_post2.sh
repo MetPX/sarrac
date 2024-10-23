@@ -90,6 +90,12 @@ mv dirone dirthree
 echo "#test 1 link 135 symlink in a sub-dir"
 ln -sf `pwd`/dirthree/dirtwo/filefour dirthree/dirtwo/link2four
 
+echo "#test 1 link 156 symlink in a sub-dir"
+ln -sf filefour `pwd`/dirthree/dirtwo/link32_to_file4
+
+echo "#test 1 rename 156.5 symlink in a sub-dir"
+mv `pwd`/dirthree/dirtwo/link32_to_file4 `pwd`/dirthree/dirtwo/renamed_link32_to_file4
+
 echo "#test 1 sha512 create test_file with redirection."
 echo  1 >test_file
 echo "#test 1 sha512 update test_file"
@@ -112,5 +118,8 @@ mv test_file dirthree/new_test_file
 echo "#test 1 remove 165 symlink in a non sub-dir"
 cd ../shim_dirC/thedir
 rm filefive
+
+echo "#test 1 rename move a file when in a linked dir.)"
+mv new_test_file middle_aged_test_file
 
 echo "#test 0 comment 160 shim copy posting end"
