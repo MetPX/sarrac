@@ -41,6 +41,10 @@ typedef __kernel_rwf_t rwf_t;
 typedef uint32_t u32;
 typedef uint64_t u64;
 typedef short unsigned int umode_t;
+#ifdef __powerpc__
+// not defined on PPC
+typedef sigset_t old_sigset_t;
+#endif
 #endif
 
 #include <dirent.h>
@@ -1720,7 +1724,6 @@ FILE *fopen(const char *pathname, const char *mode)
 	return (fopen_fn_ptr(pathname, mode));
 }
 
-
 #ifdef INTERCEPT_SYSCALL
 long int syscall(long int __sysno, ...)
 {
@@ -1748,6 +1751,129 @@ long int syscall(long int __sysno, ...)
 		syscall_status = renameorlink(olddirfd, oldpath, newdirfd, newpath, flags, 0);
 	
 	// all other syscalls we don't do anything, but we have to pass them through to the real syscall
+
+	#ifdef SYS__sysctl
+	} else if (__sysno == SYS__sysctl && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> _sysctl, will pass along\n", __sysno);
+		va_start(syscall_args, __sysno);
+		struct __sysctl_args *args = va_arg(syscall_args, struct __sysctl_args *);
+		va_end(syscall_args);
+		syscall_status = syscall_fn_ptr(__sysno, args);
+	#endif
+	#ifdef SYS_arch_prctl
+	} else if (__sysno == SYS_arch_prctl && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> arch_prctl, will pass along\n", __sysno);
+		va_start(syscall_args, __sysno);
+		unsigned long addr = va_arg(syscall_args, unsigned long);
+		va_end(syscall_args);
+		syscall_status = syscall_fn_ptr(__sysno, addr);
+	#endif
+	#ifdef SYS_create_module
+	} else if (__sysno == SYS_create_module && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> create_module, will pass along\n", __sysno);
+		va_start(syscall_args, __sysno);
+		char *name = va_arg(syscall_args, char *);
+		size_t size = va_arg(syscall_args, size_t);
+		va_end(syscall_args);
+		syscall_status = syscall_fn_ptr(__sysno, name, size);
+	#endif
+	// epoll_ctl_old and epoll_wait_old not implemented
+	#ifdef SYS_get_kernel_syms
+	} else if (__sysno == SYS_get_kernel_syms && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> get_kernel_syms, will pass along\n", __sysno);
+		va_start(syscall_args, __sysno);
+		struct kernel_sym *table = va_arg(syscall_args, struct kernel_sym *);
+		va_end(syscall_args);
+		syscall_status = syscall_fn_ptr(__sysno, table);
+	#endif
+	#ifdef SYS_get_thread_area
+	} else if (__sysno == SYS_get_thread_area && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> get_thread_area, will pass along\n", __sysno);
+		va_start(syscall_args, __sysno);
+		struct user_desc *u_info = va_arg(syscall_args, struct user_desc *);
+		va_end(syscall_args);
+		syscall_status = syscall_fn_ptr(__sysno, u_info);
+	#endif
+	#ifdef SYS_set_thread_area
+	} else if (__sysno == SYS_set_thread_area && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> set_thread_area, will pass along\n", __sysno);
+		va_start(syscall_args, __sysno);
+		struct user_desc *u_info = va_arg(syscall_args, struct user_desc *);
+		va_end(syscall_args);
+		syscall_status = syscall_fn_ptr(__sysno, u_info);
+	#endif
+	#ifdef SYS_iopl
+	} else if (__sysno == SYS_iopl && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> iopl, will pass along\n", __sysno);
+		va_start(syscall_args, __sysno);
+		int level = va_arg(syscall_args, int);
+		va_end(syscall_args);
+		syscall_status = syscall_fn_ptr(__sysno, level);
+	#endif
+	#ifdef SYS_mmap
+	} else if (__sysno == SYS_mmap && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> mmap, will pass along\n", __sysno);
+		va_start(syscall_args, __sysno);
+		void *addr = va_arg(syscall_args, void*);
+		size_t length = va_arg(syscall_args, size_t);
+		int prot = va_arg(syscall_args, int);
+		int flags = va_arg(syscall_args, int);
+		int fd = va_arg(syscall_args, int);
+		off_t offset = va_arg(syscall_args, off_t);
+		va_end(syscall_args);
+		syscall_status = syscall_fn_ptr(__sysno, addr, length, prot, flags, fd, offset);
+	#endif
+	#ifdef SYS_modify_ldt
+	} else if (__sysno == SYS_modify_ldt && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> modify_ldt, will pass along\n", __sysno);
+		va_start(syscall_args, __sysno);
+		int func = va_arg(syscall_args, int);
+		void *ptr = va_arg(syscall_args, void*);
+		unsigned long bytecount = va_arg(syscall_args, unsigned long);
+		va_end(syscall_args);
+		syscall_status = syscall_fn_ptr(__sysno, func, ptr, bytecount);
+	#endif
+	#ifdef SYS_nfsservctl
+	} else if (__sysno == SYS_nfsservctl && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> nfsservctl, will pass along\n", __sysno);
+		va_start(syscall_args, __sysno);
+		int cmd = va_arg(syscall_args, int);
+		struct nfsctl_arg *argp = va_arg(syscall_args, struct nfsctl_arg *);
+		union nfsctl_res *resp = va_arg(syscall_args, union nfsctl_res *);
+		va_end(syscall_args);
+		syscall_status = syscall_fn_ptr(__sysno, cmd, argp, resp);
+	#endif
+	#ifdef SYS_query_module
+	} else if (__sysno == SYS_query_module && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> query_module, will pass along\n", __sysno);
+		va_start(syscall_args, __sysno);
+		char *name = va_arg(syscall_args, char*);
+		int which = va_arg(syscall_args, int);
+		void *buf = va_arg(syscall_args, void*);
+		size_t bufsize = va_arg(syscall_args, size_t);
+		size_t *ret = va_arg(syscall_args, size_t *);
+		va_end(syscall_args);
+		syscall_status = syscall_fn_ptr(__sysno, name, which, buf, bufsize, ret);
+	#endif
+	// the man page for rt_sigreturn says that the number of arguments depends on the architecture
+	// luckily, PowerPC and Intel both take 0 arguments.
+	// https://github.com/torvalds/linux/blob/master/arch/x86/kernel/signal_64.c
+	// https://github.com/torvalds/linux/blob/master/arch/powerpc/kernel/signal_64.c
+	#ifdef SYS_rt_sigreturn
+	} else if (__sysno == SYS_rt_sigreturn && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> rt_sigreturn, will pass along\n", __sysno);
+		syscall_status = syscall_fn_ptr(__sysno);
+	#endif
+	#ifdef SYS_umount2
+	} else if (__sysno == SYS_umount2 && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> umount2, will pass along\n", __sysno);
+		va_start(syscall_args, __sysno);
+		char *target = va_arg(syscall_args, char *);
+		int flags = va_arg(syscall_args, int);
+		va_end(syscall_args);
+		syscall_status = syscall_fn_ptr(__sysno, target, flags);
+	#endif
+
 	// start of auto-generated code
 
 	#ifdef SYS_accept
