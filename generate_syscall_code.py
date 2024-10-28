@@ -11,7 +11,8 @@
 import subprocess
 
 # exclusions: syscalls to not generate code for
-EXCLUDE = ['renameat2'] # and mremap? # clone, fanotify_mark and sigsuspend have multiple signatures.
+EXCLUDE = ['close', 'dup2', 'dup3', 'link', 'linkat', 'rename', 'renameat', 'renameat2', 'rmdir', 
+           'truncate', 'truncate64', 'unlink', 'unlinkat']
 
 # Because arguments are sometimes defined without variable names, we need to differentiate between unsigned types.
 # For example, 'unsigned long,' is an argument of type 'unsigned long' with no variable name. It is NOT a variable
@@ -241,3 +242,7 @@ implemented_syscalls_in_tbl_not_in_sigs = sorted(set(syscalls_in_tbl_not_in_sigs
 print("WARNING: Need to implement manually:")
 print(f"{len(implemented_syscalls_in_tbl_not_in_sigs)} IMPLEMENTED syscalls defined in {SYSCALL_TBL} that are missing from syscall signatures:")
 print(implemented_syscalls_in_tbl_not_in_sigs)
+
+print()
+print('# of signatures', len(syscalls_from_sigs))
+print('# in table', len(syscalls_from_tbl))

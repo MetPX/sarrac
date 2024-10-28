@@ -1735,10 +1735,12 @@ long int syscall(long int __sysno, ...)
 	if (!syscall_init_done) {
 		syscall_init();
 	}
-	// renameat2 - call renameorlink to do the rename and post a message
+
+	// start of file/directory related syscalls that we need to intercept and post a message for
+
+	// rename* syscalls - call renameorlink to do the rename and post a message
 	if (__sysno == SYS_renameat2) {
 		sr_shimdebug_msg(1, "syscall %ld --> renameat2, will call renameorlink\n", __sysno);
-		
 		va_start(syscall_args, __sysno);
 		int olddirfd = va_arg(syscall_args, int);
 		char *oldpath = va_arg(syscall_args, char*);
@@ -1746,10 +1748,179 @@ long int syscall(long int __sysno, ...)
 		char *newpath = va_arg(syscall_args, char*);
 		int flags = va_arg(syscall_args, int);
 		va_end(syscall_args);
+		sr_shimdebug_msg(1, "renameat2 syscall %d, %s, %d, %s, %d", olddirfd, oldpath, newdirfd, newpath, flags);
+		syscall_status = renameat2(olddirfd, oldpath, newdirfd, newpath, flags);
+	#ifdef SYS_renameat
+	} else if (__sysno == SYS_renameat && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> renameat, will call renameorlink\n", __sysno);
+		va_start(syscall_args, __sysno);
+		int olddirfd = va_arg(syscall_args, int);
+		char *oldpath = va_arg(syscall_args, char*);
+		int newdirfd = va_arg(syscall_args, int);
+		char *newpath = va_arg(syscall_args, char*);
+		va_end(syscall_args);
+		sr_shimdebug_msg(1, "renameat syscall %d, %s, %d, %s", olddirfd, oldpath, newdirfd, newpath);
+		syscall_status = renameat(olddirfd, oldpath, newdirfd, newpath);
+	#endif
+	#ifdef SYS_rename
+	} else if (__sysno == SYS_rename && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> rename, will call renameorlink\n", __sysno);
+		va_start(syscall_args, __sysno);
+		char *oldpath = va_arg(syscall_args, char *);
+		char *newpath = va_arg(syscall_args, char *);
+		va_end(syscall_args);
+		sr_shimdebug_msg(1, "rename syscall %s, %s", oldpath, newpath);
+		syscall_status = rename(oldpath, newpath);
+	#endif
 
-		sr_shimdebug_msg(1, "%d, %s, %d, %s, %d", olddirfd, oldpath, newdirfd, newpath, flags);
-		syscall_status = renameorlink(olddirfd, oldpath, newdirfd, newpath, flags, 0);
+	#ifdef SYS_close
+	} else if (__sysno == SYS_close && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> close, will call close\n", __sysno);
+		va_start(syscall_args, __sysno);
+		unsigned int fd = va_arg(syscall_args, unsigned int);
+		va_end(syscall_args);
+
+		sr_shimdebug_msg(1, "close syscall %d", fd);
+		syscall_status = close(fd);
+	#endif
+
+	// we don't do anything for dup, because it just copies the fd, it doesn't close the file
+	#ifdef SYS_dup2
+	} else if (__sysno == SYS_dup2 && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> dup2, will call dup2\n", __sysno);
+		va_start(syscall_args, __sysno);
+		unsigned int oldfd = va_arg(syscall_args, unsigned int);
+		unsigned int newfd = va_arg(syscall_args, unsigned int);
+		va_end(syscall_args);
+		syscall_status = dup2(oldfd, newfd);
+	#endif
+	#ifdef SYS_dup3
+	} else if (__sysno == SYS_dup3 && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> dup3, will call dup3\n", __sysno);
+		va_start(syscall_args, __sysno);
+		unsigned int oldfd = va_arg(syscall_args, unsigned int);
+		unsigned int newfd = va_arg(syscall_args, unsigned int);
+		int flags = va_arg(syscall_args, int);
+		va_end(syscall_args);
+		syscall_status = dup3(oldfd, newfd, flags);
+	#endif
+
+	#ifdef SYS_link
+	} else if (__sysno == SYS_link && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> link, will call link\n", __sysno);
+		va_start(syscall_args, __sysno);
+		char * oldname = va_arg(syscall_args, char *);
+		char * newname = va_arg(syscall_args, char *);
+		va_end(syscall_args);
+		syscall_status = link(oldname, newname);
+	#endif
+	#ifdef SYS_linkat
+	} else if (__sysno == SYS_linkat && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> linkat, will call linkat\n", __sysno);
+		va_start(syscall_args, __sysno);
+		int olddfd = va_arg(syscall_args, int);
+		char * oldname = va_arg(syscall_args, char *);
+		int newdfd = va_arg(syscall_args, int);
+		char * newname = va_arg(syscall_args, char *);
+		int flags = va_arg(syscall_args, int);
+		va_end(syscall_args);
+		syscall_status = linkat(olddfd, oldname, newdfd, newname, flags);
+	#endif
+
+	#ifdef SYS_mkdir
+	} else if (__sysno == SYS_mkdir && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> mkdir, will call mkdir\n", __sysno);
+		va_start(syscall_args, __sysno);
+		char * pathname = va_arg(syscall_args, char *);
+		umode_t mode = (umode_t)va_arg(syscall_args, unsigned int);
+		va_end(syscall_args);
+		syscall_status = mkdir(pathname, mode);
+	#endif
+	#ifdef SYS_mkdirat
+	} else if (__sysno == SYS_mkdirat && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> mkdirat, will call mkdirat\n", __sysno);
+		va_start(syscall_args, __sysno);
+		int dfd = va_arg(syscall_args, int);
+		char *  pathname = va_arg(syscall_args, char *);
+		umode_t mode = (umode_t)va_arg(syscall_args, unsigned int);
+		va_end(syscall_args);
+		syscall_status = mkdirat(dfd,  pathname, mode);
+	#endif
+
+	#ifdef SYS_rmdir
+	} else if (__sysno == SYS_rmdir && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> rmdir, will call rmdir\n", __sysno);
+		va_start(syscall_args, __sysno);
+		char * pathname = va_arg(syscall_args, char *);
+		va_end(syscall_args);
+		syscall_status = rmdir(pathname);
+	#endif
+
+	#ifdef SYS_symlink
+	} else if (__sysno == SYS_symlink && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> symlink, will call symlink\n", __sysno);
+		va_start(syscall_args, __sysno);
+		char * old = va_arg(syscall_args, char *);
+		char * new = va_arg(syscall_args, char *);
+		va_end(syscall_args);
+		syscall_status = symlink(old, new);
+	#endif
+	#ifdef SYS_symlinkat
+	} else if (__sysno == SYS_symlinkat && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> symlinkat, will call symlinkat\n", __sysno);
+		va_start(syscall_args, __sysno);
+		char *  oldname = va_arg(syscall_args, char *);
+		int newdfd = va_arg(syscall_args, int);
+		char *  newname = va_arg(syscall_args, char *);
+		va_end(syscall_args);
+		syscall_status = symlinkat(oldname, newdfd,  newname);
+	#endif
+
+	#ifdef SYS_truncate
+	} else if (__sysno == SYS_truncate && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> truncate, will call truncate\n", __sysno);
+		va_start(syscall_args, __sysno);
+		char * path = va_arg(syscall_args, char *);
+		long length = va_arg(syscall_args, long);
+		va_end(syscall_args);
+		syscall_status = truncate(path, length);
+	#endif
+	// FIXME: truncate64 not implemented (yet?)
+	#ifdef SYS_truncate64
+	} else if (__sysno == SYS_truncate64 && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> truncate64, will pass along\n", __sysno);
+		va_start(syscall_args, __sysno);
+		char * path = va_arg(syscall_args, char *);
+		loff_t length = va_arg(syscall_args, loff_t);
+		va_end(syscall_args);
+		syscall_status = syscall_fn_ptr(__sysno, path, length);
+	#endif
 	
+	#ifdef SYS_unlink
+	} else if (__sysno == SYS_unlink && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> unlink, will call unlink\n", __sysno);
+		va_start(syscall_args, __sysno);
+		char *pathname = va_arg(syscall_args, char *);
+		va_end(syscall_args);
+
+		sr_shimdebug_msg(1, "unlink syscall %s", pathname);
+		syscall_status = unlink(pathname);
+	#endif
+	#ifdef SYS_unlinkat
+	} else if (__sysno == SYS_unlinkat && syscall_fn_ptr) {
+		sr_shimdebug_msg(1, "syscall %ld --> unlinkat, will call unlinkat\n", __sysno);
+		va_start(syscall_args, __sysno);
+		int dfd = va_arg(syscall_args, int);
+		char *pathname = va_arg(syscall_args, char *);
+		int flag = va_arg(syscall_args, int);
+		va_end(syscall_args);
+
+		sr_shimdebug_msg(1, "unlinkat syscall %d, %s, %s", dfd, pathname, flag);
+		syscall_status = unlinkat(dfd, pathname, flag);
+	#endif
+
+	// end of file/directory related syscalls that we need to intercept and post a message for
+
 	// all other syscalls we don't do anything, but we have to pass them through to the real syscall
 
 	#ifdef SYS__sysctl
@@ -2101,14 +2272,6 @@ long int syscall(long int __sysno, ...)
 		va_end(syscall_args);
 		syscall_status = syscall_fn_ptr(__sysno, unknown_name0, unknown_name1, unknown_name2, unknown_name3, unknown_name4);
 	#endif
-	#ifdef SYS_close
-	} else if (__sysno == SYS_close && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> close, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		unsigned int fd = va_arg(syscall_args, unsigned int);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno, fd);
-	#endif
 	#ifdef SYS_close_range
 	} else if (__sysno == SYS_close_range && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> close_range, will pass along\n", __sysno);
@@ -2167,25 +2330,6 @@ long int syscall(long int __sysno, ...)
 		unsigned int fildes = va_arg(syscall_args, unsigned int);
 		va_end(syscall_args);
 		syscall_status = syscall_fn_ptr(__sysno, fildes);
-	#endif
-	#ifdef SYS_dup2
-	} else if (__sysno == SYS_dup2 && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> dup2, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		unsigned int oldfd = va_arg(syscall_args, unsigned int);
-		unsigned int newfd = va_arg(syscall_args, unsigned int);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno, oldfd, newfd);
-	#endif
-	#ifdef SYS_dup3
-	} else if (__sysno == SYS_dup3 && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> dup3, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		unsigned int oldfd = va_arg(syscall_args, unsigned int);
-		unsigned int newfd = va_arg(syscall_args, unsigned int);
-		int flags = va_arg(syscall_args, int);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno, oldfd, newfd, flags);
 	#endif
 	#ifdef SYS_epoll_create
 	} else if (__sysno == SYS_epoll_create && syscall_fn_ptr) {
@@ -3237,27 +3381,6 @@ long int syscall(long int __sysno, ...)
 		va_end(syscall_args);
 		syscall_status = syscall_fn_ptr(__sysno, path, name, value, size);
 	#endif
-	#ifdef SYS_link
-	} else if (__sysno == SYS_link && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> link, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		char * oldname = va_arg(syscall_args, char *);
-		char * newname = va_arg(syscall_args, char *);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno, oldname, newname);
-	#endif
-	#ifdef SYS_linkat
-	} else if (__sysno == SYS_linkat && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> linkat, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		int olddfd = va_arg(syscall_args, int);
-		char * oldname = va_arg(syscall_args, char *);
-		int newdfd = va_arg(syscall_args, int);
-		char * newname = va_arg(syscall_args, char *);
-		int flags = va_arg(syscall_args, int);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno, olddfd, oldname, newdfd, newname, flags);
-	#endif
 	#ifdef SYS_listen
 	} else if (__sysno == SYS_listen && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> listen, will pass along\n", __sysno);
@@ -3419,25 +3542,6 @@ long int syscall(long int __sysno, ...)
 		unsigned char *  vec = va_arg(syscall_args, unsigned char *);
 		va_end(syscall_args);
 		syscall_status = syscall_fn_ptr(__sysno, start, len,  vec);
-	#endif
-	#ifdef SYS_mkdir
-	} else if (__sysno == SYS_mkdir && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> mkdir, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		char * pathname = va_arg(syscall_args, char *);
-		umode_t mode = (umode_t)va_arg(syscall_args, unsigned int);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno, pathname, mode);
-	#endif
-	#ifdef SYS_mkdirat
-	} else if (__sysno == SYS_mkdirat && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> mkdirat, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		int dfd = va_arg(syscall_args, int);
-		char *  pathname = va_arg(syscall_args, char *);
-		umode_t mode = (umode_t)va_arg(syscall_args, unsigned int);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno, dfd,  pathname, mode);
 	#endif
 	#ifdef SYS_mknod
 	} else if (__sysno == SYS_mknod && syscall_fn_ptr) {
@@ -4310,26 +4414,6 @@ long int syscall(long int __sysno, ...)
 		va_end(syscall_args);
 		syscall_status = syscall_fn_ptr(__sysno, path, name);
 	#endif
-	#ifdef SYS_rename
-	} else if (__sysno == SYS_rename && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> rename, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		char * oldname = va_arg(syscall_args, char *);
-		char * newname = va_arg(syscall_args, char *);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno, oldname, newname);
-	#endif
-	#ifdef SYS_renameat
-	} else if (__sysno == SYS_renameat && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> renameat, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		int olddfd = va_arg(syscall_args, int);
-		char *  oldname = va_arg(syscall_args, char *);
-		int newdfd = va_arg(syscall_args, int);
-		char *  newname = va_arg(syscall_args, char *);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno, olddfd,  oldname, newdfd,  newname);
-	#endif
 	#ifdef SYS_request_key
 	} else if (__sysno == SYS_request_key && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> request_key, will pass along\n", __sysno);
@@ -4345,14 +4429,6 @@ long int syscall(long int __sysno, ...)
 	} else if (__sysno == SYS_restart_syscall && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> restart_syscall, will pass along\n", __sysno);
 		syscall_status = syscall_fn_ptr(__sysno);
-	#endif
-	#ifdef SYS_rmdir
-	} else if (__sysno == SYS_rmdir && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> rmdir, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		char * pathname = va_arg(syscall_args, char *);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno, pathname);
 	#endif
 	#ifdef SYS_rseq
 	} else if (__sysno == SYS_rseq && syscall_fn_ptr) {
@@ -5236,25 +5312,6 @@ long int syscall(long int __sysno, ...)
 		va_end(syscall_args);
 		syscall_status = syscall_fn_ptr(__sysno, specialfile, swap_flags);
 	#endif
-	#ifdef SYS_symlink
-	} else if (__sysno == SYS_symlink && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> symlink, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		char * old = va_arg(syscall_args, char *);
-		char * new = va_arg(syscall_args, char *);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno, old, new);
-	#endif
-	#ifdef SYS_symlinkat
-	} else if (__sysno == SYS_symlinkat && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> symlinkat, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		char *  oldname = va_arg(syscall_args, char *);
-		int newdfd = va_arg(syscall_args, int);
-		char *  newname = va_arg(syscall_args, char *);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno,  oldname, newdfd,  newname);
-	#endif
 	#ifdef SYS_sync
 	} else if (__sysno == SYS_sync && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> sync, will pass along\n", __sysno);
@@ -5447,24 +5504,6 @@ long int syscall(long int __sysno, ...)
 		va_end(syscall_args);
 		syscall_status = syscall_fn_ptr(__sysno, pid, sig);
 	#endif
-	#ifdef SYS_truncate
-	} else if (__sysno == SYS_truncate && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> truncate, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		char * path = va_arg(syscall_args, char *);
-		long length = va_arg(syscall_args, long);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno, path, length);
-	#endif
-	#ifdef SYS_truncate64
-	} else if (__sysno == SYS_truncate64 && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> truncate64, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		char * path = va_arg(syscall_args, char *);
-		loff_t length = va_arg(syscall_args, loff_t);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno, path, length);
-	#endif
 	#ifdef SYS_umask
 	} else if (__sysno == SYS_umask && syscall_fn_ptr) {
 		sr_shimdebug_msg(1, "syscall %ld --> umask, will pass along\n", __sysno);
@@ -5489,24 +5528,6 @@ long int syscall(long int __sysno, ...)
 		struct old_utsname * unknown_name0 = va_arg(syscall_args, struct old_utsname *);
 		va_end(syscall_args);
 		syscall_status = syscall_fn_ptr(__sysno, unknown_name0);
-	#endif
-	#ifdef SYS_unlink
-	} else if (__sysno == SYS_unlink && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> unlink, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		char * pathname = va_arg(syscall_args, char *);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno, pathname);
-	#endif
-	#ifdef SYS_unlinkat
-	} else if (__sysno == SYS_unlinkat && syscall_fn_ptr) {
-		sr_shimdebug_msg(1, "syscall %ld --> unlinkat, will pass along\n", __sysno);
-		va_start(syscall_args, __sysno);
-		int dfd = va_arg(syscall_args, int);
-		char *  pathname = va_arg(syscall_args, char *);
-		int flag = va_arg(syscall_args, int);
-		va_end(syscall_args);
-		syscall_status = syscall_fn_ptr(__sysno, dfd,  pathname, flag);
 	#endif
 	#ifdef SYS_unshare
 	} else if (__sysno == SYS_unshare && syscall_fn_ptr) {
