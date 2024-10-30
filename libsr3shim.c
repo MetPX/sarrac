@@ -53,14 +53,6 @@ typedef sigset_t old_sigset_t;
 #include "sr_post.h"
 
 /*
-See https://github.com/MetPX/sarrac/issues/145. 
-glibc < 2.28 doesn't provide renameat2.
-*/
-#if !__GLIBC_PREREQ(2,28)
-#define INTERCEPT_SYSCALL
-#endif
-
-/*
  libsrshim - intercepts calls to libc and kernel to post files for broker.
 
 SR_SHIM_CONFIG -- environment variable to set configuration file name 
