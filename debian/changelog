@@ -4,6 +4,9 @@ metpx-sr3c (3.24.10p1rc3) unstable; urgency=medium
     'renameat', 'rmdir', 'truncate', 'unlink', and 'unlinkat' so
     that they call "our" equivalent function that will perform the action and
     trigger a message to be posted.
+  * removed glibc version check for INTERCEPT_SYSCALL and added the definition
+    to the Makefile. We decided that we should always intercept syscall on all
+    OSes.
 
  -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Tue, 29 Oct 2024 19:47:29 +0000
 
