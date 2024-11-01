@@ -1871,7 +1871,7 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			   sr_cfg->force_polling ? "on" : "off", sr_cfg->sleep, sr_cfg->expire, sr_cfg->housekeeping,
 			   sr_cfg->sanity_log_dead );
 		sr_log_msg(sr_cfg->logctx, ll,
-			   "\tnodupe_ttl=%d, nodupe_fileAgeMin=%g, nodupe_fileAgeMax=%g,\n",
+			   "\tnodupe_ttl=%g, nodupe_fileAgeMin=%g, nodupe_fileAgeMax=%g,\n",
 			   sr_cfg->nodupe_ttl, sr_cfg->nodupe_fileAgeMin, sr_cfg->nodupe_fileAgeMax );
 		sr_log_msg(sr_cfg->logctx, ll, "\tcache_file=%s, cache_basis=%s, accept_unmatch=%s, messageRateMax=%d\n",
 			   sr_cfg->cachep ? p : "off", sr_cfg->cache_basis?sr_cfg->cache_basis:"path", 
