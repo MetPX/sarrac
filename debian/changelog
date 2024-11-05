@@ -1,4 +1,4 @@
-metpx-sr3c (3.24.10p1rc3) unstable; urgency=medium
+metpx-sr3c (3.24.11rc0) unstable; urgency=medium
 
   * changed syscalls 'close', 'dup2', 'dup3', 'link', 'linkat', 'rename', 
     'renameat', 'rmdir', 'truncate', 'unlink', and 'unlinkat' so
