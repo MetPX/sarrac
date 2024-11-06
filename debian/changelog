@@ -1,3 +1,9 @@
+metpx-sr3c (3.24.11p1rc0) UNRELEASED; urgency=medium
+
+  * 
+
+ -- peter <peter@bsqt.homeip.net>  Wed, 06 Nov 2024 16:39:36 -0500
+
 metpx-sr3c (3.24.11) unstable; urgency=medium
 
   * changed syscalls 'close', 'dup2', 'dup3', 'link', 'linkat', 'rename', 
