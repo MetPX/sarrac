@@ -1,4 +1,4 @@
-metpx-sr3c (3.24.11rc0) unstable; urgency=medium
+metpx-sr3c (3.24.11) unstable; urgency=medium
 
   * changed syscalls 'close', 'dup2', 'dup3', 'link', 'linkat', 'rename', 
     'renameat', 'rmdir', 'truncate', 'unlink', and 'unlinkat' so
@@ -7,52 +7,29 @@ metpx-sr3c (3.24.11rc0) unstable; urgency=medium
   * removed glibc version check for INTERCEPT_SYSCALL and added the definition
     to the Makefile. We decided that we should always intercept syscall on all
     OSes.
-
- -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Tue, 29 Oct 2024 19:47:29 +0000
-
-metpx-sr3c (3.24.10p1rc2) unstable; urgency=medium
-
   * manually added syscalls that don't get auto-generated
   * added some extra code to the syscall generation script to find syscalls
     that don't have signatures and therefore don't get auto-generated
   * @petersilva fixed #169, rename posts with realpathPost are posted with 
     non-realpath
-
- -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Fri, 25 Oct 2024 19:55:15 +0000
-
-metpx-sr3c (3.24.10p1rc1) unstable; urgency=medium
-
   * added a script to generate passthrough code for all syscalls
+  * implemented remove(3)
+  * fixed #175 coredump sometimes when "does not match any masks"
 
- -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Tue, 22 Oct 2024 18:38:27 +0000
+ -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Tue, 29 Oct 2024 19:47:29 +0000
 
 metpx-sr3c (3.24.10) unstable; urgency=medium
 
-  * implemented remove
-
- -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Thu, 10 Oct 2024 15:39:50 +0000
-
-metpx-sr3c (3.24.10rc1) unstable; urgency=medium
-
   * added more syscalls (getcpu, mremap, shmat, shmdt)
-
- -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Tue, 08 Oct 2024 14:55:36 +0000
-
-metpx-sr3c (3.24.09rc2) unstable; urgency=medium
-
   * added additional syscall passthroughs for syscalls used by MPI (#145)
-
- -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Thu, 03 Oct 2024 13:26:44 +0000
-
-metpx-sr3c (3.24.09rc1) unstable; urgency=medium
-
   * need syscall gettid implementation for redhat 8.
   * fix #157 to have cpost print messages more often to convince sr3 it is not
     hung.
   * fix #158 log rotation.
   * fix #143 include files in main conf directory and hostname implementation.
 
- -- SSC-5CD2310S60 <peter.silva@ssc-spc.gc.ca>  Mon, 23 Sep 2024 16:19:20 -0400
+ -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Thu, 10 Oct 2024 15:39:50 +0000
+
 
 metpx-sr3c (3.24.07) unstable; urgency=medium
 
