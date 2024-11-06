@@ -466,6 +466,7 @@ static void v03assign_field(struct sr_log_context_s *logctx, const char *key, js
 			EVP_DigestInit_ex(ctx, md, NULL);
 			EVP_DigestUpdate(ctx, v, strlen(v));
 			EVP_DigestFinal_ex(ctx, sumhash, &hashlen);
+			EVP_MD_CTX_free(ctx);
 			sprintf(msg.sum, "L,%s", sr_hash2sumstr(sumstr,sumhash));
 			return;
 		} else if (json_object_object_get_ex(jso_v, "remove", &subvalue)) {
@@ -483,6 +484,7 @@ static void v03assign_field(struct sr_log_context_s *logctx, const char *key, js
 			EVP_DigestInit_ex(ctx, md, NULL);
 			EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 			EVP_DigestFinal_ex(ctx, sumhash, &hashlen);
+			EVP_MD_CTX_free(ctx);
 			sprintf(msg.sum, "R,%s", sr_hash2sumstr(sumstr,sumhash));
 			return;
 		} else if (json_object_object_get_ex(jso_v, "directory", &subvalue)) {
@@ -500,6 +502,7 @@ static void v03assign_field(struct sr_log_context_s *logctx, const char *key, js
 			EVP_DigestInit_ex(ctx, md, NULL);
 			EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 			EVP_DigestFinal_ex(ctx, sumhash, &hashlen);
+			EVP_MD_CTX_free(ctx);
 			sprintf(msg.sum, "m,%s", sr_hash2sumstr(sumstr,sumhash));
 			return;
 		} else if (json_object_object_get_ex(jso_v, "rmdir", &subvalue)) {
@@ -517,6 +520,7 @@ static void v03assign_field(struct sr_log_context_s *logctx, const char *key, js
 			EVP_DigestInit_ex(ctx, md, NULL);
 			EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 			EVP_DigestFinal_ex(ctx, sumhash, &hashlen);
+			EVP_MD_CTX_free(ctx);
 			sprintf(msg.sum, "r,%s", sr_hash2sumstr(sumstr,sumhash));
 			return;
 		} else if (json_object_object_get_ex(jso_v, "rename", &subvalue)) {

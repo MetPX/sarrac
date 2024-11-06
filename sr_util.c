@@ -711,6 +711,9 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	memset(sumhash, 0, SR_SUMHASHLEN);
 	sumhash[0] = algo;
 
+	ctx=NULL;
+	md=NULL;
+
 	/* xattr check for checksum caching optimization */
 	struct stat attr;
 	time_t stat_mtime;
@@ -767,12 +770,14 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			} else {
 				fprintf(stderr, "error reading %s for MD5\n", fn);
 				close(fd);
+		                EVP_MD_CTX_free(ctx);
 				return (NULL);
 			}
 		}
 		close(fd);
 
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
+		EVP_MD_CTX_free(ctx);
 		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
@@ -784,6 +789,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
+		EVP_MD_CTX_free(ctx);
 		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
@@ -795,6 +801,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
+		EVP_MD_CTX_free(ctx);
 		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
@@ -806,6 +813,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
+		EVP_MD_CTX_free(ctx);
 		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
@@ -817,6 +825,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 		EVP_DigestUpdate(ctx, linkstr, strlen(linkstr));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
+		EVP_MD_CTX_free(ctx);
 		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
@@ -829,6 +838,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
+		EVP_MD_CTX_free(ctx);
 		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
@@ -845,6 +855,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			block_size, block_count, block_rem, block_num);
 		EVP_DigestUpdate(ctx, buf, strlen(buf));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
+		EVP_MD_CTX_free(ctx);
 		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
@@ -856,6 +867,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		fd = open(fn, O_RDONLY);
 		if (fd < 0) {
 			fprintf(stderr, "unable to read file for SHA checksumming\n");
+		        EVP_MD_CTX_free(ctx);
 			return (NULL);
 		}
 		lseek(fd, start, SEEK_SET);
@@ -875,6 +887,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			} else {
 				fprintf(stderr, "error reading %s for SHA\n", fn);
 				close(fd);
+		                EVP_MD_CTX_free(ctx);
 				return (NULL);
 			}
 		}
@@ -882,6 +895,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		close(fd);
 
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
+		EVP_MD_CTX_free(ctx);
 		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
