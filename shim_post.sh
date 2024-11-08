@@ -62,7 +62,7 @@ EOT
        export LD_PRELOAD=`pwd`/libsr3shim.so.${VERSION}
        export LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
     fi
-   export SR_SHIMDEBUG=255
+   export SR_SHIMDEBUG=99
    exec $0
 fi
 

@@ -43,12 +43,12 @@ LIBCLOCATION=$(shell ldd /bin/sh | awk '/libc\.so\./ { print; }' | cut -d' ' -f3
 # On RHEL8, add -DINTERCEPT_SYSCALL to handle cases where mv calls syscall directly, instead of calling renameat2.
 # See sarrac issue #145 for more information about syscall/renameat2.
 
-CFLAGS = -DSR_APPNAME=\"sr3\" -DFORCE_LIBC_REGEX=\"$(LIBCLOCATION)\" -DOPENSSL_NO_DEPRECATED -fPIC -ftest-coverage -std=gnu99 -Wall -g -D_GNU_SOURCE $(RABBIT_INCDIR) -pthread
+CFLAGS = -DSR_APPNAME=\"sr3\" -DFORCE_LIBC_REGEX=\"$(LIBCLOCATION)\" -fPIC -ftest-coverage -std=gnu99 -Wall -g -D_GNU_SOURCE $(RABBIT_INCDIR) 
 
 SARRA_HEADER = sr_cache.h sr_config.h sr_consume.h sr_context.h sr_credentials.h sr_event.h sr_post.h sr_util.h sr_version.h uthash.h 
 SARRA_OBJECT = sr_post.o sr_consume.o sr_context.o sr_config.o sr_event.o sr_credentials.o sr_cache.o sr_util.o
 SARRA_LIB = libsr3c.so.$(VERSION)
-EXT_LIB = -ljson-c -lrabbitmq -lcrypto -lc 
+EXT_LIB = -ljson-c -lrabbitmq -lcrypto -lc
 SHARED_LIB = libsr3shim.so.$(MAJOR_VERSION) -o libsr3shim.so.$(VERSION) libsr3shim.c libsr3c.so.$(VERSION)
 
 .c.o: $(SARRA_HEADER) Makefile
