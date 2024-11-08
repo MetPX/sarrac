@@ -54,6 +54,9 @@ SHARED_LIB = libsr3shim.so.$(MAJOR_VERSION) -o libsr3shim.so.$(VERSION) libsr3sh
 .c.o: $(SARRA_HEADER) Makefile
 	$(CC) $(CFLAGS) -c  $<
 
+default: all test_shim_post
+
+
 #  head -1 debian/changelog | sed 's/.*(//' | sed 's/).*//'
 all: sr_version.h $(SARRA_OBJECT)
 	$(CC) $(CFLAGS) -shared -Wl,-soname,libsr3c.so.$(MAJOR_VERSION) -o libsr3c.so.$(VERSION) $(SARRA_OBJECT) -ldl $(RABBIT_LINK) $(EXT_LIB)
