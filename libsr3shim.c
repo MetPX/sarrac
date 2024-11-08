@@ -1512,7 +1512,7 @@ static copy_file_range_fn copy_file_range_fn_ptr = NULL;
 ssize_t copy_file_range(int fd_in, loff_t * off_in, int fd_out,
 			loff_t * off_out, size_t len, unsigned int flags)
 {
-	ssize_t status;
+	ssize_t bytes_copied;
 	char fdpath[32];
 	char real_path[PATH_MAX + 1];
 	char *real_return;
@@ -1522,26 +1522,28 @@ ssize_t copy_file_range(int fd_in, loff_t * off_in, int fd_out,
 		copy_file_range_fn_ptr = (copy_file_range_fn) dlsym(RTLD_NEXT, "copy_file_range");
 		copy_file_range_init_done = 1;
 	}
-	status = copy_file_range_fn_ptr(fd_in, off_in, fd_out, off_out, len, flags);
-	if (shim_disabled)
-		return (status);
+	bytes_copied = copy_file_range_fn_ptr(fd_in, off_in, fd_out, off_out, len, flags);
 
+	if (shim_disabled || !bytes_copied)
+		return (bytes_copied);
+
+	// bytes_copied > 0 means success, a file got updated.
 	snprintf(fdpath, 32, "/proc/self/fd/%d", fd_out);
 	real_return = realpath(fdpath, real_path);
 
 	sr_shimdebug_msg(1, "copy_file_range to %s\n", real_path);
+        errno=0;
 
 	if (!real_return)
-		return (status);
+		return (bytes_copied);
 	if (!strncmp(real_path, "/dev/", 5))
-		return (status);
+		return (bytes_copied);
 	if (!strncmp(real_path, "/proc/", 6))
-		return (status);
+		return (bytes_copied);
 
 	shimpost(real_path, 0);
-
-	clerror(status);
-	return (status);
+        errno=0;
+	return (bytes_copied);
 }
 
 int close(int fd)
