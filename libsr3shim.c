@@ -928,9 +928,14 @@ ssize_t copy_file_range(int fd_in, __off64_t * off_in, int fd_out,
 	sr_shimdebug_msg(1, "copy_file_range, 961 realone is: %p ready to call real one\n", copy_file_range_fn_ptr );
 	status = copy_file_range_fn_ptr(fd_in, off_in, fd_out, off_out, len, flags);
 	saved_errno=errno;
-	sr_shimdebug_msg(1, "copy_file_range, 963 back from real one\n" );
+	sr_shimdebug_msg(1, "copy_file_range, 963 back from real one (copied %ld bytes)\n", status );
 	if (shim_disabled)
 		return (status);
+
+	if (!status) {
+	        sr_shimdebug_msg(1, "copy_file_range, 963 ERROR no bytes copied, nothing to post\n", status );
+		return (status);
+	}
 
 	sr_shimdebug_msg(1, "copy_file_range, 967 about to try to post...\n" );
 	snprintf(fdpath, 32, "/proc/self/fd/%d", fd_out);
