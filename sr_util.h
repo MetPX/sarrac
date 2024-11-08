@@ -105,7 +105,7 @@ char *sr_base642hex(const char *bstr);
 #define SR_TIMESTRLEN (64)
 
 // Assumed longest possible hash. typeprefix + SHA512_DIGEST 
-#define SR_SUMHASHLEN (SHA512_DIGEST_LENGTH+1)
+#define SR_SUMHASHLEN (SHA512_DIGEST_LENGTH+2)
 
 // SUMSTR is the printable-string representation of the hash, each digit decodes to two characters for hexadecimal digits.
 #define SR_SUMSTRLEN  (2 * SHA512_DIGEST_LENGTH + 3 )

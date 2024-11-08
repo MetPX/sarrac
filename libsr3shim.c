@@ -1669,8 +1669,14 @@ int fclose(FILE * f)
 		return fclose_fn_ptr(f);
 	}
 
+	if (fd == 2) {
+		sr_shimdebug_msg(5, " fclose %p skipping stderr\n" );
+		return 0;
+	}
+
 	snprintf(fdpath, 32, "/proc/self/fd/%d", fd);
 	real_return = realpath(fdpath, real_path);
+	sr_shimdebug_msg(5, " fclose %p real_return=%s\n", f, real_return);
 	status = fclose_fn_ptr(f);
 	clerror(status);
 

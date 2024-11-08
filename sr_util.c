@@ -860,9 +860,23 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		break;
 
 	case 's':
+		fprintf(stderr, "set_sumstr 863 about do sha sum\n" );
 		ctx = EVP_MD_CTX_create();
+
+		if (ctx==NULL) {
+			fprintf(stderr, "unable create SSL MD context\n");
+                        return(NULL);
+		}
+		fprintf(stderr, "set_sumstr 86- EVP_MAX_MD_SIZE: %d\n", EVP_MAX_MD_SIZE );
 		md = EVP_sha512();
+		if (ctx==NULL) {
+			fprintf(stderr, "unable create SSL SHA512 MD engine\n");
+                        return(NULL);
+		}
+		fprintf(stderr, "set_sumstr 875 md size is: %d, block_size: %d\n", 
+			EVP_MD_size(md), EVP_MD_block_size(md) );
 		EVP_DigestInit_ex(ctx, md, NULL);
+		fprintf(stderr, "set_sumstr 877 back from  sha sum init\n" );
 
 		fd = open(fn, O_RDONLY);
 		if (fd < 0) {
@@ -871,15 +885,15 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			return (NULL);
 		}
 		lseek(fd, start, SEEK_SET);
-		//fprintf( stderr, "DBG checksumming start: %lu to %lu\n", start, end );
+		fprintf( stderr, "DBG checksumming start: %lu to %lu\n", start, end );
 		while (start < end) {
 			how_many_to_read =
 			    (SUMBUFSIZE < (end - start)) ? SUMBUFSIZE : (end - start);
 
 			bytes_read = read(fd, buf, how_many_to_read);
 
-			//fprintf( stderr, "checksumming how_many_to_read: %lu bytes_read: %lu\n", 
-			//   how_many_to_read, bytes_read );
+			fprintf( stderr, "checksumming how_many_to_read: %lu bytes_read: %lu\n", 
+			   how_many_to_read, bytes_read );
 
 			if (bytes_read >= 0) {
 				EVP_DigestUpdate(ctx, buf, bytes_read);
@@ -895,6 +909,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		close(fd);
 
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
+		fprintf(stderr, "set_sumstr, max hashlen=%d Digest returned hashlen=%d\n", SR_SUMHASHLEN, hashlen );
 		EVP_MD_CTX_free(ctx);
 		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
