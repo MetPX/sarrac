@@ -1506,7 +1506,7 @@ ssize_t sendfile(int out_fd, int in_fd, off_t * offset, size_t count)
 }
 
 static int copy_file_range_init_done = 0;
-typedef ssize_t(*copy_file_range_fn) (int, loff_t *, int, loff_t *, size_t, unsigned int);
+typedef ssize_t (*copy_file_range_fn) (int, off_t *, int, off_t *, size_t, unsigned int);
 static copy_file_range_fn copy_file_range_fn_ptr = NULL;
 
 ssize_t copy_file_range(int fd_in, loff_t * off_in, int fd_out,
