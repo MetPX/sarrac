@@ -149,7 +149,7 @@ void setup_exit()
  *            post.
  */
 
-#define MAX_DUPED_FDS (20)
+#define MAX_DUPED_FDS (200)
 signed int duped_fds[MAX_DUPED_FDS];
 
 void init_duped_fds()
@@ -162,6 +162,7 @@ void record_duped_fds(int oldfd, int newfd)
 {
 	int duped_fd_index;
 
+	sr_shimdebug_msg(16, "record_duped_fds start\n" );
 	// look for an empty pair of spots in duped_fds to add two new fds.
 	for (duped_fd_index = 0; (duped_fd_index < MAX_DUPED_FDS); duped_fd_index += 2) {
 		if ((duped_fds[duped_fd_index] < 0) && (duped_fds[duped_fd_index + 1] < 0))
@@ -180,6 +181,7 @@ void record_duped_fds(int oldfd, int newfd)
 		sr_shimdebug_msg(16, "set duped_fds[%d]=%d\n", duped_fd_index,
 				 duped_fds[duped_fd_index]);
 	}
+	sr_shimdebug_msg(16, "record_duped_fds done\n" );
 }
 
 bool is_duped(int fd)
@@ -915,6 +917,7 @@ ssize_t copy_file_range(int fd_in, __off64_t * off_in, int fd_out,
 	char fdpath[PATH_MAX+1];
 	char real_path[PATH_MAX + 1];
 	char *real_return;
+	int saved_errno;
 
 	sr_shimdebug_msg(1, "copy_file_range(%d,%p,%d,%p,%ld,%d)\n", fd_in, off_in, fd_out, off_out, len, flags);
 	if (!copy_file_range_init_done) {
@@ -924,6 +927,7 @@ ssize_t copy_file_range(int fd_in, __off64_t * off_in, int fd_out,
 	}
 	sr_shimdebug_msg(1, "copy_file_range, 961 realone is: %p ready to call real one\n", copy_file_range_fn_ptr );
 	status = copy_file_range_fn_ptr(fd_in, off_in, fd_out, off_out, len, flags);
+	saved_errno=errno;
 	sr_shimdebug_msg(1, "copy_file_range, 963 back from real one\n" );
 	if (shim_disabled)
 		return (status);
@@ -934,6 +938,7 @@ ssize_t copy_file_range(int fd_in, __off64_t * off_in, int fd_out,
 
 	sr_shimdebug_msg(1, "copy_file_range to %s, realpath=%p, real_return=%p\n", real_path, real_path, real_return);
 
+	errno = saved_errno;
 	if (!real_return)
 		return (status);
 	if (!strncmp(real_path, "/dev/", 5))
@@ -946,6 +951,7 @@ ssize_t copy_file_range(int fd_in, __off64_t * off_in, int fd_out,
 	sr_shimdebug_msg(1, "copy_file_range, 982 back from really post...\n" );
 
 	//clerror(status);
+	errno = saved_errno;
 	return (status);
 }
 
