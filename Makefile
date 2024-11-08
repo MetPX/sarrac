@@ -80,36 +80,6 @@ all: sr_version.h $(SARRA_OBJECT)
 sr_version.h: debian/changelog
 	echo "#define __sarra_version__ \"$(VERSION)\"" >sr_version.h
 
-install:
-	@mkdir -p build build/bin build/lib build/include
-	@mv *.so build/lib
-	@mv *.so.$(MAJOR_VERSION) build/lib
-	@mv *.so.*$(VERSION) build/lib
-	@mv sr3_cpost build/bin
-	@mv sr3_cpump build/bin
-	@cp *.h build/include/
-	@if [ $$(echo "$(DESTDIR)" | grep "rpmbuild") ]; \
-	then \
-		mkdir -p $(DESTDIR)/usr; \
-		cp -r build/lib $(DESTDIR)/usr/lib64; \
-		cp -r build/bin $(DESTDIR)/usr/bin; \
-		cp -r build/include $(DESTDIR)/usr/include; \
-	fi;
-
-rpm_suse15:
-	rpmbuild --build-in-place -bb metpx-sr3c_suse15.spec 
-
-metpx-sr3c_rhel7.spec: sr_version.h metpx-sr3c_rhel7.spec.tem
-	 sed 's/__sarra_version__/'`head -1 debian/changelog| sed 's/.*(//' | sed 's/).*//'`'/' <metpx-sr3c_rhel7.spec.tem >metpx-sr3c_rhel7.spec
-
-rpm_rhel7: metpx-sr3c_rhel7.spec
-	rpmdev-setuptree
-	echo "%_unpackaged_files_terminate_build      0" > ~/.rpmmacros
-	echo "%_binaries_in_noarch_packages_terminate_build   0" >> ~/.rpmmacros
-	tar -czvf /tmp/metpx-sr3c.tar.gz ../metpx-sr3c
-	cp -p /tmp/metpx-sr3c.tar.gz `rpm --eval "%{_sourcedir}"`
-	rpmbuild -bb metpx-sr3c_rhel7.spec
-
 format:
 	indent -linux -l100 *.c *.h
 	rm *.c~ *.h~
@@ -138,29 +108,3 @@ test_shim_unit:
 	./sr_utiltest 
 	./sr_cachetest
 	valgrind --show-reachable=yes --track-origins=yes `which sr3_cpost` -c local_post.conf uthash.h
-
-test_shim_copy_mirror:
-	-./shim_copy_mirror.sh >shim_copy_mirror.log 2>&1
-	python3 ./check_shim_test.py shim_copy_mirror.log 
-
-test_shim_copy_mirror_sftp:
-	-./shim_copy_mirror_sftp.sh >shim_copy_mirror_sftp.log 2>&1
-	python3 ./check_shim_test.py shim_copy_mirror_sftp.log 
-
-test_shim_copy_strip:
-	-./shim_copy_strip.sh >shim_copy_strip.log 2>&1
-	python3 ./check_shim_test.py shim_copy_strip.log 
-
-test_shim_copy_strip_slash:
-	-./shim_copy_strip_slash.sh >shim_copy_strip_slash.log 2>&1
-	python3 ./check_shim_test.py shim_copy_strip_slash.log 
-
-test_shim_copy_flatten:
-	-./shim_copy_flatten.sh >shim_copy_flatten.log 2>&1
-	python3 ./check_shim_test.py shim_copy_flatten.log 
-
-test_shim_copy_baseDir:
-	-./shim_copy_baseDir.sh >shim_copy_baseDir.log 2>&1
-	python3 ./check_shim_test.py shim_copy_baseDir.log 
-
-test_shim: test_shim_post test_shim_copy_strip test_shim_copy_strip_slash test_shim_copy_mirror test_shim_copy_mirror_sftp test_shim_copy_baseDir
