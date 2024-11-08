@@ -941,30 +941,34 @@ void exit_group(int status)
 }
 
 static int copy_file_range_init_done = 0;
-typedef ssize_t(*copy_file_range_fn) (int, loff_t *, int, loff_t *, size_t, unsigned int);
+typedef ssize_t(*copy_file_range_fn) (int, __off64_t *, int, __off64_t *, size_t, unsigned int);
 static copy_file_range_fn copy_file_range_fn_ptr = NULL;
 
-ssize_t copy_file_range(int fd_in, loff_t * off_in, int fd_out,
-			loff_t * off_out, size_t len, unsigned int flags)
+ssize_t copy_file_range(int fd_in, __off64_t * off_in, int fd_out,
+			__off64_t * off_out, size_t len, unsigned int flags)
 {
 	ssize_t status;
 	char fdpath[32];
 	char real_path[PATH_MAX + 1];
 	char *real_return;
 
+	sr_shimdebug_msg(1, "copy_file_range(%d,%p,%d,%p,%ld,%d)\n", fd_in, off_in, fd_out, off_out, len, flags);
 	if (!copy_file_range_init_done) {
 		setup_exit();
 		copy_file_range_fn_ptr = (copy_file_range_fn) dlsym(RTLD_NEXT, "copy_file_range");
 		copy_file_range_init_done = 1;
 	}
+	sr_shimdebug_msg(1, "copy_file_range, 961 ready to call real one\n" );
 	status = copy_file_range_fn_ptr(fd_in, off_in, fd_out, off_out, len, flags);
+	sr_shimdebug_msg(1, "copy_file_range, 963 back from real one\n" );
 	if (shim_disabled)
 		return (status);
 
+	sr_shimdebug_msg(1, "copy_file_range, 967 about to try to post...\n" );
 	snprintf(fdpath, 32, "/proc/self/fd/%d", fd_out);
 	real_return = realpath(fdpath, real_path);
 
-	sr_shimdebug_msg(1, "copy_file_range to %s\n", real_path);
+	sr_shimdebug_msg(1, "copy_file_range to %s, real_return=%d\n", real_path, real_return);
 
 	if (!real_return)
 		return (status);
