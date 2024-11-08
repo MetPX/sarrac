@@ -701,7 +701,6 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
         static unsigned char sumhash[SR_SUMHASHLEN];
 	long bytes_read;
 	long how_many_to_read;
-	const char *just_the_name = NULL;
 
 	unsigned long start = block_size * block_num;
 	unsigned long end;
@@ -714,6 +713,8 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	ctx=NULL;
 	md=NULL;
 
+	fprintf(stderr, "set_sumstr 717 ( %c, %c, %s, %s, %s, %ld, %ld, %ld, %ld, %d) \n",
+	      algo, algoz, fn, partstr, linkstr, block_size, block_count, block_rem, block_num, xattr_cc );
 	/* xattr check for checksum caching optimization */
 	struct stat attr;
 	time_t stat_mtime;
@@ -725,18 +726,6 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	sumstrptr = (char*)malloc(SR_SUMSTRLEN);
 
 	memset(cache_mtime, 0, SR_TIMESTRLEN);
-	// are xattrs set?
-	if (xattr_cc && (getxattr(fn, "user.sr_mtime", cache_mtime, SR_TIMESTRLEN) > 0)) {
-		// is the checksum valid? (i.e. is (cache_mtime >= stat_mtime)? )
-		if (sr_str2time(cache_mtime)->tv_sec >= stat_mtime) {
-			memset(sumstrptr, 0, SR_SUMSTRLEN);
-			getxattr(fn, "user.sr_sum", sumstrptr, SR_SUMSTRLEN);
-			// is it the right checksum algorithm?
-			if (algo == sumstrptr[0])
-				return (sumstrptr);
-		}
-	}
-	/* end of xattr check */
 
 	switch (algo) {
 

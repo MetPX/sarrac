@@ -553,8 +553,10 @@ int shimpost(const char *path, int status)
 	char *cwd = NULL;
 	char *real_path = NULL;
 
-	if (shim_disabled)
+	if (shim_disabled) {
+	        sr_shimdebug_msg(3, "shim already disabled post of %s\n", path);
 		return (status);
+	}
 
 	// disable shim library during post operations (to avoid forever recursion.)
 	shim_disabled = 1;
@@ -856,11 +858,12 @@ void exit_cleanup_posts()
 		if (!srshim_connect())
 			continue;
 
-		sr_shimdebug_msg(8, "exit_cleanup_post, looking at: %s\n",
+		sr_shimdebug_msg(8, "exit_cleanup_post, looking at: remembered_filenames[%d].name=%s\n", i,
 				 (*remembered_filenames)[i].name);
 		statres = lstat((*remembered_filenames)[i].name, &sb);
 
-		if (statres) {
+		if (statres) { // failure is deletion event...
+		        sr_shimdebug_msg(8, "lstat returned: %d ", statres );
 			sr_post(sr_c, (*remembered_filenames)[i].name, NULL);
 		} else {
 			if (S_ISLNK(sb.st_mode)) {
@@ -873,6 +876,7 @@ void exit_cleanup_posts()
 					sr_post(sr_c, real_path, &sb);
 				}
 			}
+		        sr_shimdebug_msg(8, "exit_cleanup_post about to post: %s\n", (*remembered_filenames)[i].name, &sb);
 			sr_post(sr_c, (*remembered_filenames)[i].name, &sb);
 		}
 	}

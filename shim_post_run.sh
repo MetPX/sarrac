@@ -7,7 +7,6 @@ echo "#test 0 comment 000 shim test posting start"
 echo "#test 1 sha512 070 cp command"
 cp libsr3shim.c ~/test/hoho_my_darling.txt
 
-exit
 
 echo "#test 1 sha512 070 cp command"
 gdb cp <<EOT
