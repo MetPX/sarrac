@@ -923,7 +923,7 @@ void exit(int status)
    added this, but it didn't solve the problem, so removing for now...
 
  */
-void exit_group(int status)
+void exit_hoho(int status)
 {
 	static exit_fn exit_group_fn_ptr = NULL;
 
@@ -948,7 +948,7 @@ ssize_t copy_file_range(int fd_in, __off64_t * off_in, int fd_out,
 			__off64_t * off_out, size_t len, unsigned int flags)
 {
 	ssize_t status;
-	char fdpath[32];
+	char fdpath[PATH_MAX+1];
 	char real_path[PATH_MAX + 1];
 	char *real_return;
 
@@ -958,7 +958,7 @@ ssize_t copy_file_range(int fd_in, __off64_t * off_in, int fd_out,
 		copy_file_range_fn_ptr = (copy_file_range_fn) dlsym(RTLD_NEXT, "copy_file_range");
 		copy_file_range_init_done = 1;
 	}
-	sr_shimdebug_msg(1, "copy_file_range, 961 ready to call real one\n" );
+	sr_shimdebug_msg(1, "copy_file_range, 961 realone is: %p ready to call real one\n", copy_file_range_fn_ptr );
 	status = copy_file_range_fn_ptr(fd_in, off_in, fd_out, off_out, len, flags);
 	sr_shimdebug_msg(1, "copy_file_range, 963 back from real one\n" );
 	if (shim_disabled)
@@ -968,7 +968,7 @@ ssize_t copy_file_range(int fd_in, __off64_t * off_in, int fd_out,
 	snprintf(fdpath, 32, "/proc/self/fd/%d", fd_out);
 	real_return = realpath(fdpath, real_path);
 
-	sr_shimdebug_msg(1, "copy_file_range to %s, real_return=%d\n", real_path, real_return);
+	sr_shimdebug_msg(1, "copy_file_range to %s, realpath=%p, real_return=%p\n", real_path, real_path, real_return);
 
 	if (!real_return)
 		return (status);
@@ -977,9 +977,11 @@ ssize_t copy_file_range(int fd_in, __off64_t * off_in, int fd_out,
 	if (!strncmp(real_path, "/proc/", 6))
 		return (status);
 
+	sr_shimdebug_msg(1, "copy_file_range, 980 really post...\n" );
 	shimpost(real_path, 0);
+	sr_shimdebug_msg(1, "copy_file_range, 982 back from really post...\n" );
 
-	clerror(status);
+	//clerror(status);
 	return (status);
 }
 
