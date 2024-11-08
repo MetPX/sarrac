@@ -899,46 +899,6 @@ void exit_cleanup_posts()
 
 }
 
-//void exit(int status) __attribute__((noreturn));
-
-typedef void (*exit_fn)(int) __attribute__( (noreturn));
-
-void exit(int status)
-{
-	static exit_fn exit_fn_ptr = NULL;
-
-	if (exit_cleanup_posts_ran)
-		_exit(status);
-
-	exit_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit");
-
-	exit_cleanup_posts();
-
-	// how to ensure other atexit functions run? call it again... loop potential.
-	exit_fn_ptr(status);
-}
-
-/*  
-   in some process traces, saw that exit wasn't being called, only exit_group.
-   added this, but it didn't solve the problem, so removing for now...
-
- */
-void exit_hoho(int status)
-{
-	static exit_fn exit_group_fn_ptr = NULL;
-
-	sr_shimdebug_msg(1, "exit_group 0, context=%p\n", sr_c);
-
-	exit_group_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit_group");
-
-	if (!getenv("SR_POST_CONFIG") || shim_disabled)
-		exit_group_fn_ptr(status);
-
-	exit_cleanup_posts();
-
-	// do it for real.
-	exit_group_fn_ptr(status);
-}
 
 static int copy_file_range_init_done = 0;
 typedef ssize_t(*copy_file_range_fn) (int, __off64_t *, int, __off64_t *, size_t, unsigned int);
