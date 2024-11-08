@@ -740,125 +740,6 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	switch (algo) {
 
-	case '0':
-		sprintf(sumstrptr, "%c,%03ld", algo, random() % 1000);
-		break;
-
-	case 'd':
-		ctx = EVP_MD_CTX_create();
-		md = EVP_md5();
-		EVP_DigestInit_ex(ctx, md, NULL);
-		// keep file open through repeated calls.
-		//fprintf( stderr, "opening %s to checksum\n", fn );
-
-		fd = open(fn, O_RDONLY);
-		if (fd < 0) {
-			fprintf(stderr, "unable to read file for checksumming\n");
-			strcpy(sumstrptr + 3, "deadbeef0");
-			return (NULL);
-		}
-		lseek(fd, start, SEEK_SET);
-		//fprintf( stderr, "checksumming start: %lu to %lu\n", start, end );
-		while (start < end) {
-			how_many_to_read =
-			    (SUMBUFSIZE < (end - start)) ? SUMBUFSIZE : (end - start);
-
-			bytes_read = read(fd, buf, how_many_to_read);
-			if (bytes_read > 0) {
-				EVP_DigestUpdate(ctx, buf, bytes_read);
-				start += bytes_read;
-			} else {
-				fprintf(stderr, "error reading %s for MD5\n", fn);
-				close(fd);
-		                EVP_MD_CTX_free(ctx);
-				return (NULL);
-			}
-		}
-		close(fd);
-
-		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		EVP_MD_CTX_free(ctx);
-		sr_hash2sumstr(sumstrptr, sumhash);
-		break;
-
-	case 'm':		// mkdir
-		ctx = EVP_MD_CTX_create();
-		md = EVP_md5();
-		EVP_DigestInit_ex(ctx, md, NULL);
-
-		just_the_name = just_the_name ? just_the_name + 1 : fn;
-		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
-		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		EVP_MD_CTX_free(ctx);
-		sr_hash2sumstr(sumstrptr, sumhash);
-		break;
-
-	case 'r':		// rmdir
-		ctx = EVP_MD_CTX_create();
-		md = EVP_md5();
-		EVP_DigestInit_ex(ctx, md, NULL);
-
-		just_the_name = just_the_name ? just_the_name + 1 : fn;
-		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
-		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		EVP_MD_CTX_free(ctx);
-		sr_hash2sumstr(sumstrptr, sumhash);
-		break;
-
-	case 'n':
-		ctx = EVP_MD_CTX_create();
-		md = EVP_md5();
-		EVP_DigestInit_ex(ctx, md, NULL);
-
-		just_the_name = just_the_name ? just_the_name + 1 : fn;
-		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
-		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		EVP_MD_CTX_free(ctx);
-		sr_hash2sumstr(sumstrptr, sumhash);
-		break;
-
-	case 'L':		// symlink case
-		just_the_name = linkstr;
-		ctx = EVP_MD_CTX_create();
-		md = EVP_sha512();
-		EVP_DigestInit_ex(ctx, md, NULL);
-
-		EVP_DigestUpdate(ctx, linkstr, strlen(linkstr));
-		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		EVP_MD_CTX_free(ctx);
-		sr_hash2sumstr(sumstrptr, sumhash);
-		break;
-
-	case 'R':		// null, or removal.
-		just_the_name = rindex(fn, '/') + 1;
-		just_the_name = just_the_name ? just_the_name + 1 : fn;
-		ctx = EVP_MD_CTX_create();
-		md = EVP_sha512();
-		EVP_DigestInit_ex(ctx, md, NULL);
-
-		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
-		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		EVP_MD_CTX_free(ctx);
-		sr_hash2sumstr(sumstrptr, sumhash);
-		break;
-
-	case 'p':
-		ctx = EVP_MD_CTX_create();
-		md = EVP_sha512();
-		EVP_DigestInit_ex(ctx, md, NULL);
-
-		just_the_name = rindex(fn, '/') + 1;
-		just_the_name = just_the_name ? just_the_name + 1 : fn;
-
-		strcpy(buf, just_the_name);
-		sprintf(buf, "%s%c,%lu,%lu,%lu,%lu", just_the_name, algo,
-			block_size, block_count, block_rem, block_num);
-		EVP_DigestUpdate(ctx, buf, strlen(buf));
-		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		EVP_MD_CTX_free(ctx);
-		sr_hash2sumstr(sumstrptr, sumhash);
-		break;
-
 	case 's':
 		fprintf(stderr, "set_sumstr 863 about do sha sum\n" );
 		ctx = EVP_MD_CTX_create();
@@ -911,12 +792,6 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		fprintf(stderr, "set_sumstr, max hashlen=%d Digest returned hashlen=%d\n", SR_SUMHASHLEN, hashlen );
 		EVP_MD_CTX_free(ctx);
-		sr_hash2sumstr(sumstrptr, sumhash);
-		break;
-
-	case 'z':
-		sumhash[1] = algoz;
-		sumhash[2] = '\0';
 		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 

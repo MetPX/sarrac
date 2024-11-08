@@ -20,6 +20,17 @@ Detailed use case:
 .. Contents::
 
 
+Branch dedicated for issue #111
+-------------------------------
+
+git clone --branch issue111_2_nevermerge_minimal_crasher https://github.com/MetPX/sarrac metpx-sr3c
+make
+make test_shim_post
+
+it will crash with seg fault core dump.
+
+
+
 Installation
 ------------
 

@@ -9,4 +9,4 @@ cp libsr3shim.c ~/test/hoho_my_darling.txt
 
 
 echo "#test 1 sha512 070 cp command"
-valgrind --leak-check=full cp libsr3shim.c ~/test/hoho_my_darling.txt
+valgrind  --show-reachable=yes --track-origins=yes --leak-check=full cp libsr3shim.c ~/test/hoho_my_darling.txt
