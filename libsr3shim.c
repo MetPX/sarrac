@@ -554,7 +554,7 @@ int shimpost(const char *path, int status)
 	char *real_path = NULL;
 	char saved_errno;
 
-	if (shim_disabled)
+	if (shim_disabled||!path)
 		return (status);
 
 	saved_errno=errno;
