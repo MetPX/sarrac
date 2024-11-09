@@ -487,6 +487,7 @@ void srshim_realpost(const char *path)
 	if (!path || !sr_c)
 		return;
 
+
 	sr_shimdebug_msg(1, "srshim_realpost 2 PATH %s\n", path);
 
 	statres = lstat(path, &sb);
@@ -561,6 +562,7 @@ int shimpost(const char *path, int status)
 	// disable shim library during post operations (to avoid forever recursion.)
 	shim_disabled = 1;
 	sr_shimdebug_msg(3, "shim disabled during post of %s\n", path);
+
 	if (!status) {
 		srshim_initialize("shim");
 
@@ -576,6 +578,7 @@ int shimpost(const char *path, int status)
 			strcat(real_path, path);
 			sr_shimdebug_msg(3, "relative 2 shimpost %s status=%d\n", real_path,
 					 status);
+
 			srshim_realpost(real_path);
 			free(real_path);
 			free(cwd);
@@ -1011,6 +1014,7 @@ int close(int fd)
 		sr_shimdebug_msg(8, " close fd=%d shim_disabled, passing to built-in.\n", fd);
 		return close_fn_ptr(fd);
 	}
+
 	fdstat = fcntl(fd, F_GETFL);
 
 	if (fdstat == -1) {
@@ -1030,8 +1034,13 @@ int close(int fd)
 				 fd);
 		return close_fn_ptr(fd);
 	}
+
+
 	snprintf(fdpath, 32, "/proc/self/fd/%d", fd);
+	sr_shimdebug_msg(8, " close fd=%d fdpath=%s\n", fd, fdpath);
+
 	real_return = realpath(fdpath, real_path);
+
 
 	if (!getenv("SR_POST_READS"))
 		srshim_initialize("shim");
@@ -1042,6 +1051,8 @@ int close(int fd)
 		sr_shimdebug_msg(8, " close fd=%d failed, returning without post.\n", fd);
 		return status;
 	}
+
+
 	if (!real_return) {
 		sr_shimdebug_msg(8, " close fd=%d - %s real_returning... no post.\n", fd, real_path);
 	        errno=0;
@@ -1062,6 +1073,7 @@ int close(int fd)
 	}
 	sr_shimdebug_msg(8, "close fd=%d realpath=%s passing to shimpost\n", fd, real_path);
 	errno=0;
+
 
 	return shimpost(real_path, status);
 }

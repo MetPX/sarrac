@@ -706,8 +706,12 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	unsigned long start = block_size * block_num;
 	unsigned long end;
 
+	fprintf(stderr, "set_sumstr 709 start (algo=%c, algoz=%c, fn=%s, partstr=%s, linkstr=%s, blocks sz=%lu cnt=%lu rem=%lu, num=%lu, xattr_cc=%d )\n", 
+			algo, algoz, fn, partstr, linkstr, block_size, block_count, block_rem, block_num, xattr_cc
+			);
 	end = start + ((block_num < (block_count - (block_rem != 0))) ? block_size : block_rem);
 
+	fprintf(stderr, "set_sumstr 714 end=%lu SR_SUMHASHLEN=%d\n", end, SR_SUMHASHLEN );
 	memset(sumhash, 0, SR_SUMHASHLEN);
 	sumhash[0] = algo;
 
@@ -748,14 +752,14 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			fprintf(stderr, "unable create SSL MD context\n");
                         return(NULL);
 		}
-		fprintf(stderr, "set_sumstr 86- EVP_MAX_MD_SIZE: %d\n", EVP_MAX_MD_SIZE );
+		fprintf(stderr, "set_sumstr 86- ctx=%p EVP_MAX_MD_SIZE: %d\n", ctx, EVP_MAX_MD_SIZE );
 		md = EVP_sha512();
 		if (ctx==NULL) {
 			fprintf(stderr, "unable create SSL SHA512 MD engine\n");
                         return(NULL);
 		}
-		fprintf(stderr, "set_sumstr 875 md size is: %d, block_size: %d\n", 
-			EVP_MD_size(md), EVP_MD_block_size(md) );
+		fprintf(stderr, "set_sumstr 875 md=%p, size is: %d, block_size: %d\n", 
+			md, EVP_MD_size(md), EVP_MD_block_size(md) );
 		EVP_DigestInit_ex(ctx, md, NULL);
 		fprintf(stderr, "set_sumstr 877 back from  sha sum init\n" );
 

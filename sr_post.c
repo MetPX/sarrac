@@ -887,7 +887,7 @@ struct sr_message_s *sr_file2message_seq(struct sr_context *sr_c,
 		sr_log_msg(sr_c->cfg->logctx,LOG_ERROR,
 			   "file2message_seq unable to generate %c checksum for: %s\n",
 			   m->parts_s, pathspec);
-		free(sumstr);
+		//free(sumstr);
 		return (NULL);
 	}
 	strcpy(m->sum, sumstr);
@@ -900,6 +900,7 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 	static struct sr_message_s m;
 	int numblks;
 	int status;
+
 
 	/* check utf8 compliance of path */
 	if (!sr_is_utf8(pathspec)) {
@@ -936,7 +937,6 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 			sr_post_message(sr_c, &m);
 		}
 	}
-
 }
 
 void sr_post_rename(struct sr_context *sr_c, const char *oldname, const char *newname);
