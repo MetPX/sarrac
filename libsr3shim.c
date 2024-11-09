@@ -552,10 +552,12 @@ int shimpost(const char *path, int status)
 {
 	char *cwd = NULL;
 	char *real_path = NULL;
+	char saved_errno;
 
 	if (shim_disabled)
 		return (status);
 
+	saved_errno=errno;
 	// disable shim library during post operations (to avoid forever recursion.)
 	shim_disabled = 1;
 	sr_shimdebug_msg(3, "shim disabled during post of %s\n", path);
@@ -582,7 +584,7 @@ int shimpost(const char *path, int status)
 	shim_disabled = 0;
 	sr_shimdebug_msg(3, "shim re-enabled after post of %s\n", path);
 
-	clerror(status);
+	errno=saved_errno;
 	return (status);
 }
 
@@ -992,7 +994,7 @@ int close(int fd)
 {
 
 	int fdstat;
-	char fdpath[32];
+	char fdpath[PATH_MAX];
 	char real_path[PATH_MAX + 1];
 	char *real_return;
 	int status;
@@ -1017,7 +1019,7 @@ int close(int fd)
 		return close_fn_ptr(fd);
 	}
 
-	/* check against duped files */
+	// check against duped files 
 	if (is_duped(fd)) {
 		return close_fn_ptr(fd);
 	}
@@ -1037,32 +1039,34 @@ int close(int fd)
 	errno = 0;
 	status = close_fn_ptr(fd);
 	if (status == -1) {
-		sr_shimdebug_msg(8, " close fd=%d - %s, failed, returning without post.\n", fd,
-				 real_path);
+		sr_shimdebug_msg(8, " close fd=%d failed, returning without post.\n", fd);
 		return status;
 	}
-	clerror(status);
 	if (!real_return) {
 		sr_shimdebug_msg(8, " close fd=%d - %s real_returning... no post.\n", fd, real_path);
+	        errno=0;
 		return status;
 	}
-	sr_shimdebug_msg(8, "close %s fd=%d\n", real_path, fd);
+	sr_shimdebug_msg(8, "close fd=%d realpath=%s\n", fd, real_path);
 
 	if (!strncmp(real_path, "/dev/", 5)) {
-		clerror(status);
 		sr_shimdebug_msg(8, " close fd=%d reject /dev: %s\n", fd, real_path );
+	        errno=0;
 		return (status);
 	}
 
 	if (!strncmp(real_path, "/proc/", 6)) {
-		clerror(status);
 		sr_shimdebug_msg(8, " close fd=%d reject /proc: %s\n", fd, real_path );
+	        errno=0;
 		return (status);
 	}
+	sr_shimdebug_msg(8, "close fd=%d realpath=%s passing to shimpost\n", fd, real_path);
+	errno=0;
 
 	return shimpost(real_path, status);
 }
 
+/*
 static int fclose_init_done = 0;
 typedef int (*fclose_fn)(FILE *);
 static fclose_fn fclose_fn_ptr = fclose;
@@ -1093,7 +1097,7 @@ int fclose(FILE * f)
 		return fclose_fn_ptr(f);
 	}
 
-	/* check against duped files */
+	// check against duped files 
 	if (is_duped(fd)) {
 		return fclose_fn_ptr(f);
 	}
@@ -1144,3 +1148,4 @@ int fclose(FILE * f)
 
 	return shimpost(real_path, status);
 }
+*/
