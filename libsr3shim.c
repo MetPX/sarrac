@@ -213,14 +213,14 @@ int max_pfo = 1;
  */
 void setup_pfo()
 {
-	char fdpath[500];
+	char fdpath[PATH_MAX];
 	int fdpathlen;
 	DIR *fddir = NULL;
 	struct dirent *fdde;
 
 	parent_files_open = (char **)malloc(sizeof(char *));
 
-	snprintf(fdpath, 499, "/proc/%d/fd", getppid());
+	snprintf(fdpath, PATH_MAX, "/proc/%d/fd", getppid());
 	fddir = opendir(fdpath);
 
 	if (fddir) {
@@ -228,7 +228,7 @@ void setup_pfo()
 			if (fdde->d_name[0] == '.')
 				continue;
 
-			fdpathlen = readlinkat(dirfd(fddir), fdde->d_name, fdpath, 500);
+			fdpathlen = readlinkat(dirfd(fddir), fdde->d_name, fdpath, PATH_MAX);
 
 			if (fdpathlen < 0)
 				continue;
@@ -599,7 +599,7 @@ static dup2_fn dup2_fn_ptr = dup2;
 int dup2(int oldfd, int newfd)
 {
 	int fdstat;
-	char fdpath[32];
+	char fdpath[PATH_MAX];
 	char real_path[PATH_MAX + 1];
 	char *real_return;
 	int status;
@@ -634,7 +634,7 @@ int dup2(int oldfd, int newfd)
 		return dup2_fn_ptr(oldfd, newfd);
 	}
 
-	snprintf(fdpath, 32, "/proc/self/fd/%d", oldfd);
+	snprintf(fdpath, PATH_MAX, "/proc/self/fd/%d", oldfd);
 	real_return = realpath(fdpath, real_path);
 
 	if (!real_return) {
@@ -680,7 +680,7 @@ static dup3_fn dup3_fn_ptr = dup3;
 int dup3(int oldfd, int newfd, int flags)
 {
 	int fdstat;
-	char fdpath[32];
+	char fdpath[PATH_MAX];
 	char real_path[PATH_MAX + 1];
 	char *real_return;
 	int status;
@@ -715,7 +715,7 @@ int dup3(int oldfd, int newfd, int flags)
 		return dup3_fn_ptr(oldfd, newfd, flags);
 	}
 
-	snprintf(fdpath, 32, "/proc/self/fd/%d", newfd);
+	snprintf(fdpath, PATH_MAX, "/proc/self/fd/%d", newfd);
 	real_return = realpath(fdpath, real_path);
 
 	if (!real_return) {
@@ -766,7 +766,7 @@ void exit_cleanup_posts()
 	int fdstat;
 	struct stat sb;
 	int statres;
-	char fdpath[500];
+	char fdpath[PATH_MAX];
 	char real_path[PATH_MAX + 1];
 	char *real_return;
 	int fd;
@@ -810,7 +810,7 @@ void exit_cleanup_posts()
 				sr_shimdebug_msg(16, "exit_cleanup_posts, stderr, skipping\n");
 				continue;
 			}
-			snprintf(fdpath, 499, "/proc/self/fd/%s", fdde->d_name);
+			snprintf(fdpath, PATH_MAX, "/proc/self/fd/%s", fdde->d_name);
 			real_return = realpath(fdpath, real_path);
 
 			if ((!real_return) || (real_path[0] != '/') ||
@@ -953,7 +953,7 @@ ssize_t copy_file_range(int fd_in, __off64_t * off_in, int fd_out,
 			__off64_t * off_out, size_t len, unsigned int flags)
 {
 	ssize_t status;
-	char fdpath[32];
+	char fdpath[PATH_MAX];
 	char real_path[PATH_MAX + 1];
 	char *real_return;
 
@@ -975,7 +975,7 @@ ssize_t copy_file_range(int fd_in, __off64_t * off_in, int fd_out,
 	}
 
 	sr_shimdebug_msg(1, "copy_file_range, 967 about to try to post...\n" );
-	snprintf(fdpath, 32, "/proc/self/fd/%d", fd_out);
+	snprintf(fdpath, PATH_MAX, "/proc/self/fd/%d", fd_out);
 	real_return = realpath(fdpath, real_path);
 
 	sr_shimdebug_msg(1, "copy_file_range to %s, real_return=%d\n", real_path, real_return);
@@ -1036,7 +1036,7 @@ int close(int fd)
 	}
 
 
-	snprintf(fdpath, 32, "/proc/self/fd/%d", fd);
+	snprintf(fdpath, PATH_MAX, "/proc/self/fd/%d", fd);
 	sr_shimdebug_msg(8, " close fd=%d fdpath=%s\n", fd, fdpath);
 
 	real_return = realpath(fdpath, real_path);
@@ -1088,7 +1088,7 @@ int fclose(FILE * f)
 
 	int fd;
 	int fdstat;
-	char fdpath[32];
+	char fdpath[PATH_MAX];
 	char real_path[PATH_MAX + 1];
 	char *real_return;
 	int status;
@@ -1135,7 +1135,7 @@ int fclose(FILE * f)
 		return 0;
 	}
 
-	snprintf(fdpath, 32, "/proc/self/fd/%d", fd);
+	snprintf(fdpath, PATH_MAX, "/proc/self/fd/%d", fd);
 	real_return = realpath(fdpath, real_path);
 	sr_shimdebug_msg(5, " fclose %p real_return=%s\n", f, real_return);
 	status = fclose_fn_ptr(f);
