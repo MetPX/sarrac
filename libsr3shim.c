@@ -553,7 +553,7 @@ int shimpost(const char *path, int status)
 {
 	char *cwd = NULL;
 	char *real_path = NULL;
-	char saved_errno;
+	int saved_errno;
 
 	if (shim_disabled||!path)
 		return (status);
@@ -591,6 +591,477 @@ int shimpost(const char *path, int status)
 	return (status);
 }
 
+static int truncate_init_done = 0;
+typedef int (*truncate_fn)(const char *, off_t length);
+static truncate_fn truncate_fn_ptr = truncate;
+
+int truncate(const char *path, off_t length)
+{
+	int status;
+
+	if (!truncate_init_done) {
+		setup_exit();
+		truncate_fn_ptr = (truncate_fn) dlsym(RTLD_NEXT, "truncate");
+		truncate_init_done = 1;
+	}
+	status = truncate_fn_ptr(path, length);
+
+	if (shim_disabled)
+		return (status);
+
+	//clerror(status);
+	if (status == -1)
+		return status;
+
+	if (!strncmp(path, "/dev/", 5))
+		return (status);
+	if (!strncmp(path, "/proc/", 6))
+		return (status);
+        errno=0;
+	return (shimpost(path, status));
+
+}
+
+static int mkdir_init_done = 0;
+typedef int (*mkdir_fn)(const char *, mode_t);
+static mkdir_fn mkdir_fn_ptr = mkdir;
+
+int mkdir(const char *pathname, mode_t mode)
+{
+	int status;
+
+	sr_shimdebug_msg(1, "mkdir %s %4o\n", pathname, mode);
+	if (!mkdir_init_done) {
+		setup_exit();
+		mkdir_fn_ptr = (mkdir_fn) dlsym(RTLD_NEXT, "mkdir");
+		mkdir_init_done = 1;
+	}
+	status = mkdir_fn_ptr(pathname, mode);
+	if (shim_disabled)
+		return (status);
+
+	if (status == -1)
+		return status;
+
+	if (!strncmp(pathname, "/dev/", 5))
+		return (status);
+	if (!strncmp(pathname, "/proc/", 6))
+		return (status);
+
+	return (shimpost(pathname, status));
+}
+
+static int mkdirat_init_done = 0;
+typedef int (*mkdirat_fn)(int, const char *, mode_t);
+static mkdirat_fn mkdirat_fn_ptr = mkdirat;
+
+int mkdirat(int dirfd, const char *pathname, mode_t mode)
+{
+	int status;
+
+	sr_shimdebug_msg(1, "mkdirat %d %s %4o\n", dirfd, pathname, mode);
+	if (!mkdirat_init_done) {
+		setup_exit();
+		mkdirat_fn_ptr = (mkdirat_fn) dlsym(RTLD_NEXT, "mkdirat");
+		mkdirat_init_done = 1;
+	}
+	status = mkdirat_fn_ptr(dirfd, pathname, mode);
+	if (shim_disabled)
+		return (status);
+
+	if (status == -1)
+		return status;
+
+	if (!strncmp(pathname, "/dev/", 5))
+		return (status);
+	if (!strncmp(pathname, "/proc/", 6))
+		return (status);
+
+	return (shimpost(pathname, status));
+}
+
+static int rmdir_init_done = 0;
+typedef int (*rmdir_fn)(const char *);
+static rmdir_fn rmdir_fn_ptr = rmdir;
+
+int rmdir(const char *pathname)
+{
+	int status;
+
+	sr_shimdebug_msg(1, "rmdir %s\n", pathname);
+	if (!rmdir_init_done) {
+		setup_exit();
+		rmdir_fn_ptr = (rmdir_fn) dlsym(RTLD_NEXT, "rmdir");
+		rmdir_init_done = 1;
+	}
+	status = rmdir_fn_ptr(pathname);
+	if (shim_disabled)
+		return (status);
+
+	if (status == -1)
+		return status;
+
+	if (!strncmp(pathname, "/dev/", 5))
+		return (status);
+	if (!strncmp(pathname, "/proc/", 6))
+		return (status);
+
+	rmdir_in_progress = 1;
+	return (shimpost(pathname, status));
+}
+
+static int remove_init_done = 0;
+typedef int (*remove_fn)(const char *);
+static remove_fn remove_fn_ptr = remove;
+
+int remove(const char *pathname)
+{
+	int status;
+	struct stat sb;
+	int statres;
+	bool isdir = false;
+
+	sr_shimdebug_msg(1, "remove %s\n", pathname);
+	if (!remove_init_done) {
+		setup_exit();
+		remove_fn_ptr = (remove_fn) dlsym(RTLD_NEXT, "remove");
+		remove_init_done = 1;
+	}
+
+	// before removing, need to know if pathname is a file or dir
+	// if stat fails, also assuming that pathname is not a dir
+	statres = lstat(pathname, &sb);
+	if (!statres) {
+		isdir = S_ISDIR(sb.st_mode);
+	}
+
+	status = remove_fn_ptr(pathname);
+	if (shim_disabled)
+		return (status);
+
+	sr_shimdebug_msg(1, " remove 2 %s status=%d\n", pathname, status);	
+
+	clerror(status);
+	if (status == -1)
+		return status;
+
+	if (!strncmp(pathname, "/dev/", 5))
+		return (status);
+	if (!strncmp(pathname, "/proc/", 6))
+		return (status);
+
+	if (isdir) {
+		rmdir_in_progress = 1;
+	}
+	return (shimpost(pathname, status));
+}
+
+static int symlink_init_done = 0;
+typedef int (*symlink_fn)(const char *, const char *);
+static symlink_fn symlink_fn_ptr = symlink;
+
+int symlink(const char *target, const char *linkpath)
+{
+	int status;
+
+	sr_shimdebug_msg(1, "symlink %s %s\n", target, linkpath);
+	if (!symlink_init_done) {
+		setup_exit();
+		symlink_fn_ptr = (symlink_fn) dlsym(RTLD_NEXT, "symlink");
+		symlink_init_done = 1;
+	}
+	status = symlink_fn_ptr(target, linkpath);
+	if (shim_disabled)
+		return (status);
+
+	if (status == -1)
+		return status;
+
+	if (!strncmp(linkpath, "/dev/", 5))
+		return (status);
+	if (!strncmp(linkpath, "/proc/", 6))
+		return (status);
+
+	return (shimpost(linkpath, status));
+}
+
+static int symlinkat_init_done = 0;
+typedef int (*symlinkat_fn)(const char *, int, const char *);
+static symlinkat_fn symlinkat_fn_ptr = symlinkat;
+
+int symlinkat(const char *target, int dirfd, const char *linkpath)
+{
+	int status;
+	char fdpath[PATH_MAX + 1];
+	char real_path[PATH_MAX + 1];
+	char *real_return;
+
+	if (!symlinkat_init_done) {
+		setup_exit();
+		symlinkat_fn_ptr = (symlinkat_fn) dlsym(RTLD_NEXT, "symlinkat");
+		symlinkat_init_done = 1;
+	}
+	status = symlinkat_fn_ptr(target, dirfd, linkpath);
+
+	if (shim_disabled) {
+		sr_shimdebug_msg(1, "symlinkat %s %s\n", target, linkpath);
+		return (status);
+	}
+	if (status == -1)
+		return status;
+
+	if (!strncmp(linkpath, "/dev/", 5))
+		return (status);
+	if (!strncmp(linkpath, "/proc/", 6))
+		return (status);
+
+	if (dirfd == AT_FDCWD) {
+		clerror(status);
+		return (shimpost(linkpath, status));
+	}
+
+	snprintf(fdpath, 32, "/proc/self/fd/%d", dirfd);
+	real_return = realpath(fdpath, real_path);
+
+	sr_shimdebug_msg(1, "4 symlinkat real_path=%s target=%s linkpath=%s\n", real_path, target,
+			 linkpath);
+
+	clerror(status);
+	if (!real_return) {
+		return (status);
+	}
+	strcat(real_path, "/");
+	strcat(real_path, linkpath);
+
+	clerror(status);
+	return (shimpost(real_path, status));
+
+}
+
+static int unlinkat_init_done = 0;
+typedef int (*unlinkat_fn)(int dirfd, const char *, int flags);
+static unlinkat_fn unlinkat_fn_ptr = unlinkat;
+
+int unlinkat(int dirfd, const char *path, int flags)
+{
+	int status;
+	int stat_failed;
+	struct stat sb;
+	char fdpath[PATH_MAX + 1];
+	char real_path[PATH_MAX + 1];
+	char *real_return;
+
+	sr_shimdebug_msg(1, "unlinkat %s dirfd=%i\n", path, dirfd);
+	if (!unlinkat_init_done) {
+		setup_exit();
+		unlinkat_fn_ptr = (unlinkat_fn) dlsym(RTLD_NEXT, "unlinkat");
+		unlinkat_init_done = 1;
+	}
+
+	stat_failed = fstatat(dirfd, path, &sb, 0);
+	sr_shimdebug_msg(1, "unlinkat %s dirfd=%i stat returned: %d\n", path, dirfd, stat_failed);
+
+	status = unlinkat_fn_ptr(dirfd, path, flags);
+	if (shim_disabled)
+		return status;
+	if (status == -1)
+		return status;
+
+	if (dirfd == AT_FDCWD)
+		return (shimpost(path, status));
+
+	snprintf(fdpath, 32, "/proc/self/fd/%d", dirfd);
+	real_return = realpath(fdpath, real_path);
+	sr_shimdebug_msg(1, " unlinkat relative directory %s real_return=%p\n", fdpath,
+			 real_return);
+	strcat(real_path, "/");
+	strcat(real_path, path);
+
+	clerror(status);
+	if (!real_return)
+		return (status);
+
+	sr_shimdebug_msg(1, " unlinkat realpath %s\n", real_path);
+
+	return (shimpost(real_path, status));
+}
+
+static int unlink_init_done = 0;
+typedef int (*unlink_fn)(const char *);
+static unlink_fn unlink_fn_ptr = unlink;
+
+int unlink(const char *path)
+{
+	int status;
+
+	sr_shimdebug_msg(1, " unlink %s\n", path);
+	if (!unlink_init_done) {
+		setup_exit();
+		unlink_fn_ptr = (unlink_fn) dlsym(RTLD_NEXT, "unlink");
+		unlink_init_done = 1;
+	}
+	status = unlink_fn_ptr(path);
+	if (shim_disabled)
+		return (status);
+
+	sr_shimdebug_msg(1, " unlink 2 %s status=%d\n", path, status);
+
+	if (status == -1)
+		return status;
+
+	if (!strncmp(path, "/dev/", 5)) {
+		clerror(status);
+		return (status);
+	}
+
+	return (shimpost(path, status));
+}
+
+static int link_init_done = 0;
+typedef int (*link_fn)(const char *, const char *);
+static link_fn link_fn_ptr = link;
+
+static int linkat_init_done = 0;
+typedef int (*linkat_fn)(int, const char *, int, const char *, int flags);
+static linkat_fn linkat_fn_ptr = linkat;
+
+static int renameat_init_done = 0;
+typedef int (*renameat_fn)(int, const char *, int, const char *);
+static renameat_fn renameat_fn_ptr = NULL;
+
+
+static int renameat2_init_done = 0;
+typedef int (*renameat2_fn)(int, const char *, int, const char *, unsigned int);
+static renameat2_fn renameat2_fn_ptr = NULL;
+
+static int syscall_init_done = 0;
+typedef long int (*syscall_fn)(long int, ...);
+static syscall_fn syscall_fn_ptr = NULL;
+
+
+int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
+		 const char *newpath, int flags, int link)
+/*
+  The real implementation of all renames.
+ */
+{
+	int status;
+	char fdpath[32];
+	char real_path[PATH_MAX + 1];
+	char *real_return;
+	char oreal_path[PATH_MAX + 1];
+	char *oreal_return;
+
+	sr_shimdebug_msg(1, " renameorlink %s %s\n", oldpath, newpath);
+
+	if (!renameat2_init_done) {
+		setup_exit();
+		renameat2_fn_ptr = (renameat2_fn) dlsym(RTLD_NEXT, "renameat2");
+		renameat2_init_done = 1;
+	}
+
+	if (!renameat_init_done) {
+		renameat_fn_ptr = (renameat_fn) dlsym(RTLD_NEXT, "renameat");
+		renameat_init_done = 1;
+	}
+
+	if (!link_init_done) {
+		link_fn_ptr = (link_fn) dlsym(RTLD_NEXT, "link");
+		link_init_done = 1;
+	}
+
+	if (!linkat_init_done) {
+		linkat_fn_ptr = (linkat_fn) dlsym(RTLD_NEXT, "linkat");
+		linkat_init_done = 1;
+	}
+
+	if (!syscall_init_done) {
+		syscall_init();
+	}
+
+	if (link) {
+		if (linkat_fn_ptr)
+			status = linkat_fn_ptr(olddirfd, oldpath, newdirfd, newpath, flags);
+		else if (link_fn_ptr && !flags)
+			status = link_fn_ptr(oldpath, newpath);
+		else {
+			sr_log_msg(logctxptr,LOG_ERROR,
+				   " renameorlink could not identify real entry point for link\n");
+		}
+	} else {
+		if (renameat2_fn_ptr) {
+			sr_shimdebug_msg(1, " renameorlink using renameat2\n");
+			status = renameat2_fn_ptr(olddirfd, oldpath, newdirfd, newpath, flags);
+		} else if (renameat_fn_ptr && !flags) {
+			sr_shimdebug_msg(1, " renameorlink using renameat\n");
+			status = renameat_fn_ptr(olddirfd, oldpath, newdirfd, newpath);
+		} else if (syscall_fn_ptr) {
+			sr_shimdebug_msg(1, " renameorlink using renameat2 via syscall(SYS_renameat2, ...)\n");
+			status = syscall_fn_ptr(SYS_renameat2, olddirfd, oldpath, newdirfd, newpath, flags);
+		} else {
+			sr_log_msg(logctxptr,LOG_ERROR,
+				   " renameorlink could not identify real entry point for renameat\n");
+			return (-1);
+		}
+	}
+	if (shim_disabled)
+		return (status);
+
+	if (status == -1) {
+		sr_shimdebug_msg(1, " renameorlink %s %s failed, no post\n", oldpath, newpath);
+		return (status);
+	}
+
+	srshim_initialize("shim");
+
+	clerror(status);
+	if (!sr_c)
+		return (status);
+
+	if (olddirfd == AT_FDCWD) {
+		strcpy(oreal_path, oldpath);
+	} else {
+		snprintf(fdpath, 32, "/proc/self/fd/%d", olddirfd);
+		oreal_return = realpath(fdpath, oreal_path);
+		if (oreal_return) {
+			sr_log_msg(logctxptr,LOG_WARNING,
+				   "srshim renameorlink could not obtain real_path for olddir=%s failed, no post\n",
+				   fdpath);
+			clerror(status);
+			return (status);
+		}
+		strcat(oreal_path, "/");
+		strcat(oreal_path, oldpath);
+	}
+
+	if (newdirfd == AT_FDCWD) {
+		strcpy(real_path, newpath);
+	} else {
+		snprintf(fdpath, 32, "/proc/self/fd/%d", newdirfd);
+		real_return = realpath(fdpath, real_path);
+		if (real_return) {
+			sr_log_msg(logctxptr,LOG_WARNING,
+				   "srshim renameorlink could not obtain real_path for newdir=%s failed, no post\n",
+				   fdpath);
+			clerror(status);
+			return (status);
+		}
+		strcat(real_path, "/");
+		strcat(real_path, newpath);
+	}
+	sr_shimdebug_msg(1,
+			 " renameorlink sr_c=%p, oreal_path=%s, real_path=%s\n",
+			 sr_c, oreal_path, real_path);
+
+	if (!srshim_connect())
+		return (status);
+
+	sr_post_rename(sr_c, oreal_path, real_path);
+
+	clerror(status);
+	return (status);
+
+}
 
 static int dup2_init_done = 0;
 typedef int (*dup2_fn)(int, int);
@@ -1014,6 +1485,7 @@ int close(int fd)
 	char real_path[PATH_MAX + 1];
 	char *real_return;
 	int status;
+	int saved_errno;
 
 	sr_shimdebug_msg(4, " close fd=%d!\n", fd);
 	if (!close_init_done) {
@@ -1060,8 +1532,10 @@ int close(int fd)
 
 	errno = 0;
 	status = close_fn_ptr(fd);
+	saved_errno=errno;
 	if (status == -1) {
-		sr_shimdebug_msg(8, " close fd=%d failed, returning without post.\n", fd);
+		sr_shimdebug_msg(8, " close fd=%d - %s, failed, returning without post.\n", fd, real_path);
+		errno=saved_errno;
 		return status;
 	}
 
@@ -1105,6 +1579,7 @@ int fclose(FILE * f)
 	char real_path[PATH_MAX + 1];
 	char *real_return;
 	int status;
+	int saved_errno;
 
 	if (!fclose_init_done) {
 		setup_exit();
@@ -1152,25 +1627,36 @@ int fclose(FILE * f)
 	real_return = realpath(fdpath, real_path);
 	sr_shimdebug_msg(5, " fclose %p real_return=%s\n", f, real_return);
 	status = fclose_fn_ptr(f);
-	clerror(status);
+        saved_errno=errno;
 
-	if (status != 0)
+	sr_shimdebug_msg(5, " fclose %p fd=%i fdstat=%o, called the real one: status=%d\n", f, fd, fdstat, status);
+	if (status != 0) {
+		errno=saved_errno;
 		return status;
-	if (!real_return)
+        }
+
+	sr_shimdebug_msg(5, " fclose %p fd=%i fdstat=%o, real one succeeded\n", f, fd, fdstat, status);
+
+	if (!real_return) {
+		errno=saved_errno;
 		return (status);
+        }
+
+	sr_shimdebug_msg(5, " fclose %p fd=%i fdstat=%o, has a real path\n", f, fd, fdstat, status);
 
 	if (!strncmp(real_path, "/dev/", 5)) {
-		clerror(status);
+		errno=saved_errno;
 		return (status);
 	}
 
 	if (!strncmp(real_path, "/proc/", 6)) {
-		clerror(status);
+		errno=saved_errno;
 		return (status);
 	}
 
 	sr_shimdebug_msg(2, "fclose %p %s status=%d\n", f, real_path, status);
 
+	errno=saved_errno;
 	return shimpost(real_path, status);
 }
 */
