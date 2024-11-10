@@ -155,6 +155,7 @@ struct sr_broker_s *sr_broker_connect(struct sr_log_context_s *logctx, struct sr
 				   broker->hostname, broker->port);
 			goto have_socket;
 		}
+
 		reply =
 		    amqp_login(broker->conn, "/", 0, 131072, 0,
 			       AMQP_SASL_METHOD_PLAIN, broker->user, broker->password);
