@@ -1257,6 +1257,7 @@ void exit_cleanup_posts()
 	// that need posting.
 	fddir = opendir("/proc/self/fd");
 
+	
 	if (fddir) {
 		while ((fdde = readdir(fddir))) {
 			sr_shimdebug_msg(8, "exit_cleanup_posts, readdir fdde->d_name=%s\n",
@@ -1272,11 +1273,17 @@ void exit_cleanup_posts()
 						 "exit_cleanup_posts, fcntl failed, skipping\n");
 				continue;
 			}
-			if (fd == 2) {
-				sr_shimdebug_msg(16,
-						 "exit_cleanup_posts, skipping stderr\n");
+                        if (fd == 2) {
+                               sr_shimdebug_msg(16, "exit_cleanup_posts, skipping stderr\n");
+			       continue;
+			}
+		        if (fstat(fd,&sb) == -1) {
+				sr_shimdebug_msg(16, "exit_cleanup_posts, fstat failed, skipping\n");
 				continue;
-
+			}
+			if (!S_ISREG(sb.st_mode)) {
+				sr_shimdebug_msg(16, "exit_cleanup_posts, skipping non-regular file.\n");
+				continue;
 			}
 
 			if ((fdstat & O_ACCMODE) == O_RDONLY) {
