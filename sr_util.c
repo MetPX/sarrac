@@ -499,7 +499,7 @@ static char b64rep(char i)
 {
 	if (i > 64)
 		fprintf(stderr,
-			"errror in representation: %i should not be input to b64encode from hex\n",
+			"error in representation: %i should not be input to b64encode from hex\n",
 			i);
 	if (i == 63)
 		return ('/');
@@ -516,7 +516,7 @@ static char h2b(char i)
 {
 	if (i > 'f')
 		fprintf(stderr,
-			"errror in representation: %i should not be input to h2b from hex\n", i);
+			"error in representation: %i should not be input to h2b from hex\n", i);
 	if (i >= 'a')
 		return (i - 'a' + 10);
 
