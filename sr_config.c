@@ -1303,6 +1303,8 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 	if (sr_cfg->last_matched)
 		free(sr_cfg->last_matched);
 	sr_cfg->last_matched = NULL;
+	if (sr_cfg->metricsFilename)
+		free(sr_cfg->metricsFilename);
 	if (sr_cfg->queuename)
 		free(sr_cfg->queuename);
 	sr_cfg->queuename = NULL;
