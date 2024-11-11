@@ -701,8 +701,6 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
         static unsigned char sumhash[SR_SUMHASHLEN];
 	long bytes_read;
 	long how_many_to_read;
-	const char *just_the_name = NULL;
-
 	unsigned long start = block_size * block_num;
 	unsigned long end;
 

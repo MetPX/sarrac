@@ -934,7 +934,6 @@ static int renameat2_init_done = 0;
 typedef int (*renameat2_fn)(int, const char *, int, const char *, unsigned int);
 static renameat2_fn renameat2_fn_ptr = NULL;
 
-static int syscall_init_done = 0;
 typedef long int (*syscall_fn)(long int, ...);
 static syscall_fn syscall_fn_ptr = NULL;
 
@@ -973,10 +972,6 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 	if (!linkat_init_done) {
 		linkat_fn_ptr = (linkat_fn) dlsym(RTLD_NEXT, "linkat");
 		linkat_init_done = 1;
-	}
-
-	if (!syscall_init_done) {
-		syscall_init();
 	}
 
 	if (link) {
