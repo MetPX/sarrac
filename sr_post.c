@@ -912,6 +912,7 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 	set_url(m.url, sr_c->cfg->post_baseUrl);
 	m.user_headers = sr_c->cfg->user_headers;
 
+	sr_log_msg(sr_c->cfg->logctx,LOG_ERROR, "sr_post, file path \"%s\" .. sz=%lu\n", pathspec, sb->st_size);
 	// report...
 	// FIXME: duration, consumingurl, consuminguser, statuscode?
 	numblks = sr_file2message_start(sr_c, pathspec, sb, &m);

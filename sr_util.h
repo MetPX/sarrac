@@ -140,6 +140,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 unsigned char *sr_sumstr2hash(unsigned char *sumhash, const char *s);
 
+char *sr_hash2sumstrAlgo(char *sumstr, const unsigned char *h, const char algo);
 char *sr_hash2sumstr(char *sumstr, const unsigned char *h);
 
 char *sr_time2str(struct timespec *tin);

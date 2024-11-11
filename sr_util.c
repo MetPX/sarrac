@@ -690,9 +690,16 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
     block starts at block_size * block_num, and ends 
   */
 {
-	EVP_MD_CTX *ctx;
-	const EVP_MD *md;
 	char *sumstrptr;
+
+	OSSL_LIB_CTX *library_context;
+	const char *option_properties = NULL;
+	EVP_MD *message_digest = NULL;
+        EVP_MD_CTX *digest_context = NULL;
+        unsigned int digest_length;
+        unsigned char *digest_value = NULL;
+
+
 	//static char sumstr[SR_SUMSTRLEN];
 	unsigned int hashlen = 0;
 
@@ -709,12 +716,12 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			);
 	end = start + ((block_num < (block_count - (block_rem != 0))) ? block_size : block_rem);
 
+	if (end==0)
+		return NULL;
+
 	fprintf(stderr, "set_sumstr 714 end=%lu SR_SUMHASHLEN=%d\n", end, SR_SUMHASHLEN );
 	memset(sumhash, 0, SR_SUMHASHLEN);
 	sumhash[0] = algo;
-
-	ctx=NULL;
-	md=NULL;
 
 	/* xattr check for checksum caching optimization */
 	struct stat attr;
@@ -724,7 +731,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	stat(fn, &attr);
 	stat_mtime = attr.st_mtime;
 
-	sumstrptr = (char*)malloc(SR_SUMSTRLEN);
+	sumstrptr=NULL;
 
 	memset(cache_mtime, 0, SR_TIMESTRLEN);
 	// are xattrs set?
@@ -738,34 +745,53 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 				return (sumstrptr);
 		}
 	}
-	/* end of xattr check */
+	// end of xattr check 
 
 	switch (algo) {
 
 	case 's':
 		fprintf(stderr, "set_sumstr 863 about do sha sum\n" );
-		ctx = EVP_MD_CTX_create();
 
-		if (ctx==NULL) {
-			fprintf(stderr, "unable create SSL MD context\n");
-                        return(NULL);
+                library_context = OSSL_LIB_CTX_new();    
+		if (library_context == NULL) {
+        		fprintf(stderr, "OSSL_LIB_CTX_new() returned NULL\n");
+        		goto cleanup;
+                }
+		fprintf(stderr, "set_sumstr 780 library_context=%p EVP_MAX_MD_SIZE: %d\n", library_context, EVP_MAX_MD_SIZE );
+   		message_digest = EVP_MD_fetch(library_context, "SHA-512", option_properties);
+    		if (message_digest == NULL) {
+        		fprintf(stderr, "EVP_MD_fetch could not find SHA3-512.");
+        		goto cleanup;
+    		}
+ 
+		digest_length = EVP_MD_get_size(message_digest);
+    		if (digest_length <= 0) {
+        		fprintf(stderr, "EVP_MD_get_size returned invalid size.\n");
+        		goto cleanup;
+    		}
+	        digest_value = OPENSSL_malloc(digest_length);
+                if (digest_value == NULL) {
+                        fprintf(stderr, "No memory.\n");
+                        goto cleanup;
+                }
+		fprintf(stderr, "set_sumstr 797 digest_length=%d, message_digest=%p\n", 
+				digest_length, message_digest );
+		digest_context=EVP_MD_CTX_new();
+		if (digest_context == NULL) {
+        		fprintf(stderr, "EVP_MD_CTX_new failed.\n");
+        		goto cleanup;
+    		}
+		fprintf(stderr, "set_sumstr 804 digest_context=%p\n", digest_context );
+		if (EVP_DigestInit(digest_context, message_digest) != 1) {
+        		fprintf(stderr, "EVP_DigestInit failed.\n");
+        		goto cleanup;
 		}
-		fprintf(stderr, "set_sumstr 86- ctx=%p EVP_MAX_MD_SIZE: %d\n", ctx, EVP_MAX_MD_SIZE );
-		md = EVP_sha512();
-		if (ctx==NULL) {
-			fprintf(stderr, "unable create SSL SHA512 MD engine\n");
-                        return(NULL);
-		}
-		fprintf(stderr, "set_sumstr 875 md=%p, size is: %d, block_size: %d\n", 
-			md, EVP_MD_size(md), EVP_MD_block_size(md) );
-		EVP_DigestInit_ex(ctx, md, NULL);
-		fprintf(stderr, "set_sumstr 877 back from  sha sum init\n" );
+		fprintf(stderr, "set_sumstr 809 DigestInit worked! \n" );
 
 		fd = open(fn, O_RDONLY);
 		if (fd < 0) {
 			fprintf(stderr, "unable to read file for SHA checksumming\n");
-		        EVP_MD_CTX_free(ctx);
-			return (NULL);
+        		goto cleanup;
 		}
 		lseek(fd, start, SEEK_SET);
 		fprintf( stderr, "DBG checksumming start: %lu to %lu\n", start, end );
@@ -779,22 +805,19 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 			   how_many_to_read, bytes_read );
 
 			if (bytes_read >= 0) {
-				EVP_DigestUpdate(ctx, buf, bytes_read);
+				EVP_DigestUpdate(digest_context, buf, bytes_read);
 				start += bytes_read;
 			} else {
 				fprintf(stderr, "error reading %s for SHA\n", fn);
-				close(fd);
-		                EVP_MD_CTX_free(ctx);
-				return (NULL);
+				goto cleanup;
 			}
 		}
 
 		close(fd);
 
-		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
-		fprintf(stderr, "set_sumstr, max hashlen=%d Digest returned hashlen=%d\n", SR_SUMHASHLEN, hashlen );
-		EVP_MD_CTX_free(ctx);
-		sr_hash2sumstr(sumstrptr, sumhash);
+		EVP_DigestFinal(digest_context, digest_value, &digest_length);
+	        sumstrptr = (char*)malloc(SR_SUMSTRLEN);
+		sr_hash2sumstrAlgo(sumstrptr, digest_value, algo);
 		break;
 
 	default:
@@ -802,7 +825,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		return (NULL);
 	}
 
-	/* xattr set for checksum caching optimization */
+	// xattr set for checksum caching optimization 
 	if (xattr_cc) {
 		// can we set xattrs? let's try and find out!
 		setxattr(fn, "user.sr_sum", sumstrptr, strlen(sumstrptr), 0);
@@ -810,8 +833,14 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		setxattr(fn, "user.sr_mtime", t2s, strlen(t2s), 0);
 		// if the calls above fail, ignore and proceed
 	}
-	/* end of xattr set */
+	// end of xattr set 
 
+ cleanup:
+	fprintf(stderr, "sr_set_sumstr, cleanup substr=%p\n", sumstrptr);
+    	EVP_MD_CTX_free(digest_context);
+    	OPENSSL_free(digest_value);
+    	EVP_MD_free(message_digest);
+    	OSSL_LIB_CTX_free(library_context);
 	return (sumstrptr);
 }
 
@@ -858,6 +887,20 @@ unsigned char *sr_sumstr2hash(unsigned char *sumhash, const char *s)
 	return (sumhash);
 }
 
+char *sr_hash2sumstrAlgo(char *sumstr, const unsigned char *h, const char algo) {
+
+	int i;
+	sumstr[0] = algo;
+	sumstr[1] = ',';
+
+	for (i = 1; i < sr_get_sumhashlen(algo); i++) {
+		sumstr[i * 2] = nibble2hexchr(h[i] >> 4);
+		sumstr[i * 2 + 1] = nibble2hexchr(h[i]);
+	}
+	sumstr[2 * i] = '\0';
+	return (sumstr);
+
+}
 char *sr_hash2sumstr(char *sumstr, const unsigned char *h)
 {
 	int i;
