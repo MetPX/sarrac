@@ -675,9 +675,9 @@ static char *subarg(struct sr_config_s *sr_cfg, char *arg)
 		} else {
 			val = getenv(var);
 			if (!val) {
-				sr_log_msg(sr_cfg->logctx,LOG_ERROR, "Environment variable not set: %s\n", var);
+				//sr_log_msg(sr_cfg->logctx,LOG_ERROR, "Environment variable not set: %s\n", var);
 				*e = '}';
-				return (NULL);
+				val="";
 			}
 		}
 		strcat(d, val);
