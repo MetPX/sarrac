@@ -1,12 +1,12 @@
-# Generates syscall passthrough code
+# Generates syscall passthrough code from signatures found in /usr/src/kernels/...SRC_DIR.../include/linux/syscalls.h
+# 
 # Each part is wrapped with #ifdef SYS_... and #endif, because not all architectures have all the same syscalls.
 # For example, shmat and shmdt are not defined on PPC.
 #
-# This has only been tested on RedHat 8 and shouldn't need to be used on any other OSes.
-# I tried to make it compatible with Debian/Ubuntu at first, but there are too many differences.
+# The generated code needs to be manually copied into libsr3shim.c.
 #
-# Once the syscall code is generated, we shouldn't really need to run it again, so I am just manually
-# copying and pasting the output code into libsr3shim.c.
+# Tested on RHEL 8, 9 and Ubuntu 18.04, 20.04, 22.04.
+# 
 
 import subprocess
 
@@ -31,15 +31,17 @@ SPECIAL_TYPES = {"umode_t":"unsigned int"}
 DEBUG = []
 
 # src directory, different on RedHat and Debian
-REDHAT_SRC = "/usr/src/kernels/$(uname -r)"
-DEBIAN_SRC = "/usr/src/linux-headers-$(uname -r)"
+SRC_DIR = { 'rhel':"/usr/src/kernels/$(uname -r)",
+            'ubuntu':"/usr/src/linux-headers-$(uname -r)"
+}
 
 # compare syscalls from above with /usr/include/bits/syscall.h 
 SYSDEF_FILE = "/usr/include/bits/syscall.h"
 
 # when available, this table is all of the *implemented* syscalls
-SYSCALL_TBL = "/usr/src/kernels/$(uname -r)/arch/x86/entry/syscalls/syscall_64.tbl"
-
+SYSCALL_TBL = { 'rhel':"/usr/src/kernels/$(uname -r)/arch/x86/entry/syscalls/syscall_64.tbl",
+                'ubuntu':"https://git.launchpad.net/~ubuntu-kernel/ubuntu/+source/linux/+git/CODENAME/plain/arch/x86/entry/syscalls/syscall_64.tbl"
+}
 
 # keep track of all the types we've seen
 all_types = set()
@@ -70,25 +72,63 @@ def read_syscall_defs():
                 syscalls.add(syscall)
     return syscalls
 
-def read_syscall_tbl():
+def read_syscall_tbl(os_name='rhel'):
     """ Returns a set of all syscalls defined in syscall_64.tbl
+        os_name should either be 'rhel' or 'ubuntu'
     """
     syscalls = set()
-    table = SYSCALL_TBL.replace("$(uname -r)", get_uname_r())
+    if os_name == 'rhel':
+        table = SYSCALL_TBL['rhel'].replace("$(uname -r)", get_uname_r())
+    elif os_name == 'ubuntu':
+        table = SYSCALL_TBL['ubuntu'].replace("CODENAME", get_ubuntu_codename())
+    else:
+        print(f"ERROR: read_syscall_tbl failed, unknown OS {os_name}")
+        return syscalls
+    
     try:
-        with open(table) as fd:
-            for line in fd.readlines():
-                if '#' not in line and len(line) > 1:
-                    parts = line.split()
-                    syscalls.add(parts[2].strip())
+        if os_name == 'rhel':
+            fd = open(table)
+            tbl = fd.readlines()
+            fd.close()
+        elif os_name == 'ubuntu':
+            import requests
+            resp = requests.get(table)
+            resp.raise_for_status()
+            tbl = resp.text.split('\n')
+        
+        # parse
+        for line in tbl:
+            if '#' not in line and len(line) > 1:
+                parts = line.split()
+                syscalls.add(parts[2].strip())
+        
     except Exception as e:
         print(f"ERROR: problem reading {table}: {e}")
     return syscalls
+
+def get_os_id():
+    """ Tries to return the OS name. Should return 'rhel', 'ubuntu', or None if it fails.
+    """
+    try:
+        with open('/etc/os-release') as fd:
+            for line in fd.readlines():
+                if line.startswith("ID="):
+                    name=line.split("ID=")[-1].replace('"','').lower().strip()
+                    return name
+    except:
+        return None
 
 def get_uname_r():
     result = subprocess.run("uname -r", shell=True, stdout=subprocess.PIPE)
     if result.returncode != 0:
         print("ERROR: uname -r failed")
+        return ""
+    return result.stdout.split(b'\n')[0].decode('utf-8')
+
+def get_ubuntu_codename():
+    result = subprocess.run("lsb_release -cs", shell=True, stdout=subprocess.PIPE)
+    if result.returncode != 0:
+        print("ERROR: lsb_release -cs failed")
         return ""
     return result.stdout.split(b'\n')[0].decode('utf-8')
 
@@ -100,18 +140,15 @@ def which_unsigned_type(arg):
             break
     return ret
 
-def get_syscall_signatures():
+def get_syscall_signatures(os_name='rhel'):
     """ Return the function signatures of each syscall by parsing /usr/src/.../include/linux/syscalls.h
         awk command is from https://stackoverflow.com/a/92395
     """
     cmd = """awk '/^asmlinkage.*sys_/{gsub(/[[:space:]]+/, " "); printf $0; while ($0 !~ /;/) { getline; gsub(/[[:space:]]+/, " "); printf $0 } printf "\\n" }'  """
 
     # File locations for RedHat and Debian are different. Try RedHat first, then Debian, then fail and return an empty dictionary.
-    result = subprocess.run(cmd+f"{REDHAT_SRC}/include/linux/syscalls.h", shell=True, stdout=subprocess.PIPE)
-    if result.returncode != 0:
-        # try Debian
-        result = subprocess.run(cmd+f"{DEBIAN_SRC}/include/linux/syscalls.h", shell=True, stdout=subprocess.PIPE)
-    
+    result = subprocess.run(cmd+f"{SRC_DIR[os_name]}/include/linux/syscalls.h", shell=True, stdout=subprocess.PIPE)
+
     if result.returncode != 0:
         print("Failed to get syscall signatures")
         return {}
@@ -204,7 +241,10 @@ def syscall_to_code(name, signature):
     return output
 
 # main
-syscalls = get_syscall_signatures()
+osname = get_os_id()
+print(f"Script running on {osname}\n")
+
+syscalls = get_syscall_signatures(os_name=osname)
 
 with open('libsr3shim_syscalls.c', mode='w') as fd:
     for syscall in sorted(syscalls):
@@ -219,11 +259,13 @@ with open('libsr3shim_syscalls.c', mode='w') as fd:
 
 print('\n')
 
+# Verification
+
 # Check for missing syscalls. There are some syscalls that don't have signatures
 # defined in /usr/src/.../include/linux/syscalls.h
 syscalls_from_sigs = set(syscalls.keys())
 syscalls_from_defs = read_syscall_defs()
-syscalls_from_tbl = read_syscall_tbl()
+syscalls_from_tbl  = read_syscall_tbl(os_name=osname)
 unimplemented_syscalls = read_unimplemented()
 
 # syscalls_in_defs_not_in_sigs = sorted(syscalls_from_defs - syscalls_from_sigs)
@@ -235,14 +277,14 @@ unimplemented_syscalls = read_unimplemented()
 # print(sycalls_in_sigs_not_in_defs)
 
 syscalls_in_tbl_not_in_sigs = sorted(syscalls_from_tbl - syscalls_from_sigs)
-# print(f"{len(syscalls_in_tbl_not_in_sigs)} syscalls defined in {SYSCALL_TBL} that are missing from syscall signatures:")
+# print(f"{len(syscalls_in_tbl_not_in_sigs)} syscalls defined in {REDHAT_SYSCALL_TBL} that are missing from syscall signatures:")
 # print(syscalls_in_tbl_not_in_sigs)
 
 implemented_syscalls_in_tbl_not_in_sigs = sorted(set(syscalls_in_tbl_not_in_sigs) - unimplemented_syscalls)
-print("WARNING: Need to implement manually:")
-print(f"{len(implemented_syscalls_in_tbl_not_in_sigs)} IMPLEMENTED syscalls defined in {SYSCALL_TBL} that are missing from syscall signatures:")
+print("WARNING: These syscalls may need to be implemented manually:\n")
+print(f"{len(implemented_syscalls_in_tbl_not_in_sigs)} IMPLEMENTED syscalls defined in {SYSCALL_TBL[osname]} with unknown function signatures:")
 print(implemented_syscalls_in_tbl_not_in_sigs)
 
 print()
-print('# of signatures', len(syscalls_from_sigs))
-print('# in table', len(syscalls_from_tbl))
+print('# of known signatures =', len(syscalls_from_sigs))
+print('# syscalls in table   =', len(syscalls_from_tbl))
