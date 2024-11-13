@@ -277,7 +277,7 @@ unimplemented_syscalls = read_unimplemented()
 # print(sycalls_in_sigs_not_in_defs)
 
 syscalls_in_tbl_not_in_sigs = sorted(syscalls_from_tbl - syscalls_from_sigs)
-# print(f"{len(syscalls_in_tbl_not_in_sigs)} syscalls defined in {REDHAT_SYSCALL_TBL} that are missing from syscall signatures:")
+# print(f"{len(syscalls_in_tbl_not_in_sigs)} syscalls defined in {SYSCALL_TBL[osname]} that are missing from syscall signatures:")
 # print(syscalls_in_tbl_not_in_sigs)
 
 implemented_syscalls_in_tbl_not_in_sigs = sorted(set(syscalls_in_tbl_not_in_sigs) - unimplemented_syscalls)
