@@ -33,6 +33,8 @@ shim_post_minterval 10
 #shim_skip_parent_open_files
 #shim_post_once
 #shim_defer_posting_to_exit
+header home=${HOME}
+header blank=${VAR_NOT_SET}
 expire 1d
 nodupe_ttl 0
 header toto=pig
