@@ -138,6 +138,16 @@ fields present:
   * 504576 pid of the process doing the logging.
   * 0.0270023 elapsed wallclock time of the process since it started (in seconds.)
 
+Message levels (SR_SHIMDEBUG should be the sum of the messages you want to see.):
+
+  * 1 - basic tracing.
+  * 2 - close, fclose
+  * 4 - initialize & cleanup.
+  * 8 - more detail in close and cleanup.
+  * 16  - more detailed syscall information.
+  * 128 - leave stderr open during process cleanup... may lose a post, but will 
+    see more debug info in the job log.
+
 Lastly, There is also a sample consumer::
 
   sr3_cpump

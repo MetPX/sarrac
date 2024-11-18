@@ -112,7 +112,7 @@ void sr_shimdebug_msg(int level, const char *format, ...)
 
 	clock_gettime(CLOCK_REALTIME, &ts);
 
-	if (level > srshim_debug_level)
+	if (level & srshim_debug_level)
 		return;
 
 	fprintf(stderr, "SR_SHIMDEBUG %d %d %g ", level, mypid,
@@ -372,18 +372,18 @@ void srshim_initialize(const char *progname)
 		return;
 	init_in_progress = 1;
 
-	sr_shimdebug_msg(3, "srshim_initialize %s starting..\n", progname);
+	sr_shimdebug_msg(4, "srshim_initialize %s starting..\n", progname);
 	if (sr_c) {
-		sr_shimdebug_msg(3, "srshim_initialize %s already good.\n", progname);
+		sr_shimdebug_msg(4, "srshim_initialize %s already good.\n", progname);
 		return;
 	}
 	setstr = getenv("SR_POST_CONFIG");
 
 	if (setstr == NULL) {
-		sr_shimdebug_msg(3, "srshim_initialize %s null config\n", progname);
+		sr_shimdebug_msg(4, "srshim_initialize %s null config\n", progname);
 		return;
 	}
-	//sr_shimdebug_msg( 3, "srshim_initialize 2 %s setstr=%p\n", progname, setstr);
+	//sr_shimdebug_msg( 4, "srshim_initialize 2 %s setstr=%p\n", progname, setstr);
 
 	// skip many FD to try to avoid stepping over stdout stderr, for logs & broker connection.
 	if (config_read == 0) {
@@ -430,7 +430,7 @@ void srshim_initialize(const char *progname)
 	if (!finalize_good) {
 		shim_disabled = 1;	// turn off the library so stuff works without it.
 		errno = 0;
-		sr_shimdebug_msg(3,
+		sr_shimdebug_msg(4,
 				 "srshim_initialize %s disabled, unable to finalize configuration.\n",
 				 progname);
 		return;
@@ -451,7 +451,7 @@ void srshim_initialize(const char *progname)
 	}
 	init_in_progress = 0;
 	errno = 0;
-	sr_shimdebug_msg(3, "srshim_initialize setup completed.\n");
+	sr_shimdebug_msg(4, "srshim_initialize setup completed.\n");
 }
 
 int srshim_connect()
@@ -563,12 +563,12 @@ int shimpost(const char *path, int status)
 
 	// disable shim library during post operations (to avoid forever recursion.)
 	shim_disabled = 1;
-	sr_shimdebug_msg(3, "shim disabled during post of %s\n", path);
+	sr_shimdebug_msg(4, "shim disabled during post of %s\n", path);
 	if (!status) {
 		srshim_initialize("shim");
 
 		if (path[0] == '/') {
-			sr_shimdebug_msg(3, "absolute 1 shimpost %s, status=%d\n", path, status);
+			sr_shimdebug_msg(4, "absolute 1 shimpost %s, status=%d\n", path, status);
 			srshim_realpost(path);
 		} else {
 			cwd = get_current_dir_name();
@@ -577,7 +577,7 @@ int shimpost(const char *path, int status)
 			strcpy(real_path, cwd);
 			strcat(real_path, "/");
 			strcat(real_path, path);
-			sr_shimdebug_msg(3, "relative 2 shimpost %s status=%d\n", real_path,
+			sr_shimdebug_msg(4, "relative 2 shimpost %s status=%d\n", real_path,
 					 status);
 			srshim_realpost(real_path);
 			free(real_path);
@@ -585,7 +585,7 @@ int shimpost(const char *path, int status)
 		}
 	}
 	shim_disabled = 0;
-	sr_shimdebug_msg(3, "shim re-enabled after post of %s\n", path);
+	sr_shimdebug_msg(4, "shim re-enabled after post of %s\n", path);
 
 	errno=saved_errno;
 	return (status);
@@ -1273,10 +1273,12 @@ void exit_cleanup_posts()
 						 "exit_cleanup_posts, fcntl failed, skipping\n");
 				continue;
 			}
-                        if (fd == 2) {
+
+			if (( srshim_debug_level >= 128 ) && (fd == 2)) {
                                sr_shimdebug_msg(16, "exit_cleanup_posts, skipping stderr\n");
 			       continue;
 			}
+
 		        if (fstat(fd,&sb) == -1) {
 				sr_shimdebug_msg(16, "exit_cleanup_posts, fstat failed, skipping\n");
 				continue;
