@@ -282,9 +282,9 @@ int remembered_max = 0;
 
 int should_not_post(const char *fn)
 /*
-   given the file name fn, return(1) if we should post it, 0 otherwise.
+   given the file name fn, return(1) if we should not post it, 0 otherwise.
 
-   return true:
+   return True:
        - file isn't opened by parent pid.
        - file hasn't been seen by this routine in minterval seconds.
 
