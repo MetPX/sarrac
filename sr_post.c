@@ -722,19 +722,28 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	}
 	*c = '\0';
 
+	// build relPath that gets posted by removing (realpath_)post_baseDir from fn
 	if (sr_c->cfg->post_baseDir && (strlen(sr_c->cfg->post_baseDir) > 1 ) ) {
+		// first try post_baseDir
 		// the +1 is to because baseDir is always absolute, and relPath is always relative
 		drfound = strstr(fn, (sr_c->cfg->post_baseDir)+1);
-
-		// replace only if at the beginning of the string.
+		// replace post_baseDir only if at the beginning of the string.
 		if (drfound==fn+1) {
 			drfound += strlen(sr_c->cfg->post_baseDir);
 			strcpy(m->relPath, drfound);
-		} else if (absolute_path) {
-		   	sr_log_msg(sr_c->cfg->logctx,LOG_ERROR, "%s posting outside of post_baseDir (%s) invalid path: %s\n", 
-					sr_c->cfg->progname, sr_c->cfg->post_baseDir, fn );
- 			return(0);
-                }
+
+		// if post_baseDir didn't match, try realpath_post_baseDir
+		} else {
+			drfound = strstr(fn, (sr_c->cfg->realpath_post_baseDir)+1);
+			if (drfound==fn+1) {
+				drfound += strlen(sr_c->cfg->realpath_post_baseDir);
+				strcpy(m->relPath, drfound);
+			} else if (absolute_path) {
+				sr_log_msg(sr_c->cfg->logctx,LOG_ERROR, "%s invalid path: %s is outside of post_baseDir (%s)\n",
+						sr_c->cfg->progname, fn, sr_c->cfg->post_baseDir);
+				return(0);
+			}
+		}
 	}
 
 	// Strip option: remove prefix from path according to / #
