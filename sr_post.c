@@ -652,6 +652,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 	char *c, *d;
 	int lasti;
 	int linklen;
+	int pbdlen = 0;
 	char linkstr[PATH_MAXNUL];
 	char tmprk[PATH_MAXNUL + 100];
 
@@ -729,14 +730,16 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		drfound = strstr(fn, (sr_c->cfg->post_baseDir)+1);
 		// replace post_baseDir only if at the beginning of the string.
 		if (drfound==fn+1) {
-			drfound += strlen(sr_c->cfg->post_baseDir);
+			pbdlen = strlen(sr_c->cfg->post_baseDir);
+			drfound += (sr_c->cfg->post_baseDir[pbdlen-1] == '/') ? pbdlen - 1 : pbdlen; //adjust for trailing /
 			strcpy(m->relPath, drfound);
 
 		// if post_baseDir didn't match, try realpath_post_baseDir
 		} else {
 			drfound = strstr(fn, (sr_c->cfg->realpath_post_baseDir)+1);
 			if (drfound==fn+1) {
-				drfound += strlen(sr_c->cfg->realpath_post_baseDir);
+				pbdlen = strlen(sr_c->cfg->realpath_post_baseDir);
+				drfound += (sr_c->cfg->realpath_post_baseDir[pbdlen-1] == '/') ? pbdlen - 1 : pbdlen; //adjust for trailing /
 				strcpy(m->relPath, drfound);
 			} else if (absolute_path) {
 				sr_log_msg(sr_c->cfg->logctx,LOG_ERROR, "%s invalid path: %s is outside of post_baseDir (%s)\n",
