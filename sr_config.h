@@ -207,6 +207,7 @@ struct sr_config_s {
 			     /**< the list of configurations or files given on the command line.*/
 	int pipe;	     /**< pipe mode, read file names from standard input*/
 	char *post_baseDir;	     /**< the local directory at the root of the url tree.*/
+	char *realpath_post_baseDir; /**< the local directory at the root of the url tree (set from realpath of post_baseDir).*/
 	char *post_baseUrl;	     /**< the url that corresponds to the base directory.*/
 	struct sr_broker_s *post_broker;
 				   /**< the broker to post to.*/

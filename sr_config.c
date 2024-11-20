@@ -873,6 +873,11 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		if (sr_cfg->post_baseDir)
 			free(sr_cfg->post_baseDir);
 		sr_cfg->post_baseDir = argument;
+		if (sr_cfg->realpath_post_baseDir) {
+			free(sr_cfg->realpath_post_baseDir);
+			sr_cfg->realpath_post_baseDir = NULL;
+		}
+		sr_cfg->realpath_post_baseDir = realpath(sr_cfg->post_baseDir, sr_cfg->realpath_post_baseDir);
 		argument = NULL;
 
 	} else if (!strcmp(option, "post_base_dir") || !strcmp(option, "pbd")
@@ -880,6 +885,11 @@ int sr_config_parse_option(struct sr_config_s *sr_cfg, char *option, char *arg,
 		if (sr_cfg->post_baseDir)
 			free(sr_cfg->post_baseDir);
 		sr_cfg->post_baseDir = argument;
+		if (sr_cfg->realpath_post_baseDir) {
+			free(sr_cfg->realpath_post_baseDir);
+			sr_cfg->realpath_post_baseDir = NULL;
+		}
+		sr_cfg->realpath_post_baseDir = realpath(sr_cfg->post_baseDir, sr_cfg->realpath_post_baseDir);
 		argument = NULL;
 		retval = 2;
 
@@ -1292,6 +1302,9 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 	if (sr_cfg->post_baseDir)
 		free(sr_cfg->post_baseDir);
 	sr_cfg->post_baseDir = NULL;
+	if (sr_cfg->realpath_post_baseDir)
+		free(sr_cfg->realpath_post_baseDir);
+	sr_cfg->realpath_post_baseDir = NULL;
 	if (sr_cfg->exchange)
 		free(sr_cfg->exchange);
 	sr_cfg->exchange = NULL;
@@ -1418,6 +1431,7 @@ void sr_config_init(struct sr_config_s *sr_cfg, const char *progname)
 	sr_cfg->delete = 0;
 	sr_cfg->directory = NULL;
 	sr_cfg->post_baseDir = NULL;
+	sr_cfg->realpath_post_baseDir = NULL;
 	sr_cfg->durable = 1;
 	sr_cfg->events =
 	    (SR_EVENT_CREATE | SR_EVENT_MODIFY | SR_EVENT_DELETE | SR_EVENT_LINK | SR_EVENT_MKDIR |
@@ -1931,25 +1945,35 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			sr_cfg->to = strdup(sr_cfg->post_broker->hostname);
 		}
 		if (!(sr_cfg->post_baseDir)) {
-                    if (sr_cfg->post_baseUrl) {
- 			if (!strncmp(sr_cfg->post_baseUrl, "file:", 5)) {
-				sr_cfg->post_baseDir = strdup(sr_cfg->post_baseUrl + 5);
-                    	} else if (!strncmp(sr_cfg->post_baseUrl, "sftp:", 5)) {
-                            char *slash;
-                            char *at;
-                            slash = index(sr_cfg->post_baseUrl+7,'/');
-                            at = index(sr_cfg->post_baseUrl+7,'@');
-                            if (slash) {
-	                            while (at > slash) { // there is a slash in a password...
-       		                         slash = index(slash,'/');
-       		                    }
-                                    if (slash) {
-               		                 while (*(slash+1) == '/') slash++;
-                                         sr_cfg->post_baseDir = strdup(slash);
-                                    }
-                            }
-                        }
-        	    }
+			if (sr_cfg->post_baseUrl) {
+				if (!strncmp(sr_cfg->post_baseUrl, "file:", 5)) {
+					sr_cfg->post_baseDir = strdup(sr_cfg->post_baseUrl + 5);
+					if (sr_cfg->realpath_post_baseDir) {
+						free(sr_cfg->realpath_post_baseDir);
+						sr_cfg->realpath_post_baseDir = NULL;
+					}
+					sr_cfg->realpath_post_baseDir = realpath(sr_cfg->post_baseDir, sr_cfg->realpath_post_baseDir);
+				} else if (!strncmp(sr_cfg->post_baseUrl, "sftp:", 5)) {
+					char *slash;
+					char *at;
+					slash = index(sr_cfg->post_baseUrl+7,'/');
+					at = index(sr_cfg->post_baseUrl+7,'@');
+					if (slash) {
+						while (at > slash) { // there is a slash in a password...
+							slash = index(slash,'/');
+						}
+						if (slash) {
+							while (*(slash+1) == '/') slash++;
+							sr_cfg->post_baseDir = strdup(slash);
+							if (sr_cfg->realpath_post_baseDir) {
+								free(sr_cfg->realpath_post_baseDir);
+								sr_cfg->realpath_post_baseDir = NULL;
+							}
+							sr_cfg->realpath_post_baseDir = realpath(sr_cfg->post_baseDir, sr_cfg->realpath_post_baseDir);
+						}
+					}
+				}
+			}
 		}
 	}
 	if (strcmp(sr_cfg->action, "sanity")) {
@@ -1958,8 +1982,8 @@ int sr_config_finalize(struct sr_config_s *sr_cfg, const int is_consumer)
 			   sr_cfg->message_ttl, sr_cfg->post_exchange, sr_cfg->post_exchangeSplit,
 			   sr_cfg->post_exchangeSuffix);
 		sr_log_msg(sr_cfg->logctx, ll,
-			   "\tsource=%s, to=%s, post_baseUrl=%s, post_baseDir=%s\n",
-			   sr_cfg->source, sr_cfg->to, sr_cfg->post_baseUrl, sr_cfg->post_baseDir );
+			   "\tsource=%s, to=%s, post_baseUrl=%s, post_baseDir=%s, realpath_post_baseDir=%s\n",
+			   sr_cfg->source, sr_cfg->to, sr_cfg->post_baseUrl, sr_cfg->post_baseDir, sr_cfg->realpath_post_baseDir);
 		sr_log_msg(sr_cfg->logctx, ll,"\ttopicPrefix=%s, post_topicPrefix=%s, pid=%d\n", sr_cfg->topicPrefix,
 			   sr_cfg->post_topicPrefix, sr_cfg->pid);
 		sr_log_msg(sr_cfg->logctx, ll, "man sr3_cpost(1) for more information\n");
