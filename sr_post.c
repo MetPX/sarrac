@@ -567,7 +567,9 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 }
 
 void realpath_adjust(struct sr_log_context_s *logctx, const char *input_path, char *output_path, signed int adjust)
- /* how to adjust the realpath resolution.
+ /* 
+  * Given a logical (symlinked?) path, return an realpath resolved output_path.
+  * how to adjust the realpath resolution.  
   * 0 - use the whole thing.
   * n < 0 - from the right work left...
   * n > 0 - from the left, work right...
