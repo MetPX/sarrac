@@ -112,7 +112,7 @@ void sr_shimdebug_msg(int level, const char *format, ...)
 
 	clock_gettime(CLOCK_REALTIME, &ts);
 
-	if (level > srshim_debug_level)
+	if (level & srshim_debug_level)
 		return;
 
 	fprintf(stderr, "SR_SHIMDEBUG %d %d %g ", level, mypid,
@@ -372,18 +372,18 @@ void srshim_initialize(const char *progname)
 		return;
 	init_in_progress = 1;
 
-	sr_shimdebug_msg(3, "srshim_initialize %s starting..\n", progname);
+	sr_shimdebug_msg(4, "srshim_initialize %s starting..\n", progname);
 	if (sr_c) {
-		sr_shimdebug_msg(3, "srshim_initialize %s already good.\n", progname);
+		sr_shimdebug_msg(4, "srshim_initialize %s already good.\n", progname);
 		return;
 	}
 	setstr = getenv("SR_POST_CONFIG");
 
 	if (setstr == NULL) {
-		sr_shimdebug_msg(3, "srshim_initialize %s null config\n", progname);
+		sr_shimdebug_msg(4, "srshim_initialize %s null config\n", progname);
 		return;
 	}
-	//sr_shimdebug_msg( 3, "srshim_initialize 2 %s setstr=%p\n", progname, setstr);
+	//sr_shimdebug_msg( 4, "srshim_initialize 2 %s setstr=%p\n", progname, setstr);
 
 	// skip many FD to try to avoid stepping over stdout stderr, for logs & broker connection.
 	if (config_read == 0) {
@@ -430,7 +430,7 @@ void srshim_initialize(const char *progname)
 	if (!finalize_good) {
 		shim_disabled = 1;	// turn off the library so stuff works without it.
 		errno = 0;
-		sr_shimdebug_msg(3,
+		sr_shimdebug_msg(4,
 				 "srshim_initialize %s disabled, unable to finalize configuration.\n",
 				 progname);
 		return;
@@ -451,7 +451,7 @@ void srshim_initialize(const char *progname)
 	}
 	init_in_progress = 0;
 	errno = 0;
-	sr_shimdebug_msg(3, "srshim_initialize setup completed.\n");
+	sr_shimdebug_msg(4, "srshim_initialize setup completed.\n");
 }
 
 int srshim_connect()
@@ -554,18 +554,21 @@ int shimpost(const char *path, int status)
 {
 	char *cwd = NULL;
 	char *real_path = NULL;
+	int saved_errno;
 
 	if (shim_disabled)
 		return (status);
 
+	saved_errno=errno;
+
 	// disable shim library during post operations (to avoid forever recursion.)
 	shim_disabled = 1;
-	sr_shimdebug_msg(3, "shim disabled during post of %s\n", path);
+	sr_shimdebug_msg(4, "shim disabled during post of %s\n", path);
 	if (!status) {
 		srshim_initialize("shim");
 
 		if (path[0] == '/') {
-			sr_shimdebug_msg(3, "absolute 1 shimpost %s, status=%d\n", path, status);
+			sr_shimdebug_msg(4, "absolute 1 shimpost %s, status=%d\n", path, status);
 			srshim_realpost(path);
 		} else {
 			cwd = get_current_dir_name();
@@ -574,7 +577,7 @@ int shimpost(const char *path, int status)
 			strcpy(real_path, cwd);
 			strcat(real_path, "/");
 			strcat(real_path, path);
-			sr_shimdebug_msg(3, "relative 2 shimpost %s status=%d\n", real_path,
+			sr_shimdebug_msg(4, "relative 2 shimpost %s status=%d\n", real_path,
 					 status);
 			srshim_realpost(real_path);
 			free(real_path);
@@ -582,9 +585,9 @@ int shimpost(const char *path, int status)
 		}
 	}
 	shim_disabled = 0;
-	sr_shimdebug_msg(3, "shim re-enabled after post of %s\n", path);
+	sr_shimdebug_msg(4, "shim re-enabled after post of %s\n", path);
 
-	clerror(status);
+	errno=saved_errno;
 	return (status);
 }
 
@@ -614,7 +617,7 @@ int truncate(const char *path, off_t length)
 		return (status);
 	if (!strncmp(path, "/proc/", 6))
 		return (status);
-
+        errno=0;
 	return (shimpost(path, status));
 
 }
@@ -637,7 +640,6 @@ int mkdir(const char *pathname, mode_t mode)
 	if (shim_disabled)
 		return (status);
 
-	clerror(status);
 	if (status == -1)
 		return status;
 
@@ -667,7 +669,6 @@ int mkdirat(int dirfd, const char *pathname, mode_t mode)
 	if (shim_disabled)
 		return (status);
 
-	clerror(status);
 	if (status == -1)
 		return status;
 
@@ -697,7 +698,6 @@ int rmdir(const char *pathname)
 	if (shim_disabled)
 		return (status);
 
-	clerror(status);
 	if (status == -1)
 		return status;
 
@@ -774,7 +774,6 @@ int symlink(const char *target, const char *linkpath)
 	if (shim_disabled)
 		return (status);
 
-	clerror(status);
 	if (status == -1)
 		return status;
 
@@ -808,7 +807,6 @@ int symlinkat(const char *target, int dirfd, const char *linkpath)
 		sr_shimdebug_msg(1, "symlinkat %s %s\n", target, linkpath);
 		return (status);
 	}
-	clerror(status);
 	if (status == -1)
 		return status;
 
@@ -866,7 +864,6 @@ int unlinkat(int dirfd, const char *path, int flags)
 	status = unlinkat_fn_ptr(dirfd, path, flags);
 	if (shim_disabled)
 		return status;
-	clerror(status);
 	if (status == -1)
 		return status;
 
@@ -1260,6 +1257,7 @@ void exit_cleanup_posts()
 	// that need posting.
 	fddir = opendir("/proc/self/fd");
 
+	
 	if (fddir) {
 		while ((fdde = readdir(fddir))) {
 			sr_shimdebug_msg(8, "exit_cleanup_posts, readdir fdde->d_name=%s\n",
@@ -1273,6 +1271,20 @@ void exit_cleanup_posts()
 			if (fdstat == -1) {
 				sr_shimdebug_msg(16,
 						 "exit_cleanup_posts, fcntl failed, skipping\n");
+				continue;
+			}
+
+			if (( srshim_debug_level >= 128 ) && (fd == 2)) {
+                               sr_shimdebug_msg(16, "exit_cleanup_posts, skipping stderr\n");
+			       continue;
+			}
+
+		        if (fstat(fd,&sb) == -1) {
+				sr_shimdebug_msg(16, "exit_cleanup_posts, fstat failed, skipping\n");
+				continue;
+			}
+			if (!S_ISREG(sb.st_mode)) {
+				sr_shimdebug_msg(16, "exit_cleanup_posts, skipping non-regular file.\n");
 				continue;
 			}
 
@@ -1552,6 +1564,7 @@ int close(int fd)
 	char real_path[PATH_MAX + 1];
 	char *real_return;
 	int status;
+	int saved_errno;
 
 	sr_shimdebug_msg(4, " close fd=%d!\n", fd);
 	if (!close_init_done) {
@@ -1592,9 +1605,11 @@ int close(int fd)
 
 	errno = 0;
 	status = close_fn_ptr(fd);
+	saved_errno=errno;
 	if (status == -1) {
 		sr_shimdebug_msg(8, " close fd=%d - %s, failed, returning without post.\n", fd,
 				 real_path);
+		errno=saved_errno;
 		return status;
 	}
 	clerror(status);
@@ -1631,6 +1646,7 @@ int fclose(FILE * f)
 	char real_path[PATH_MAX + 1];
 	char *real_return;
 	int status;
+	int saved_errno;
 
 	if (!fclose_init_done) {
 		setup_exit();
@@ -1672,25 +1688,36 @@ int fclose(FILE * f)
 	snprintf(fdpath, 32, "/proc/self/fd/%d", fd);
 	real_return = realpath(fdpath, real_path);
 	status = fclose_fn_ptr(f);
-	clerror(status);
+        saved_errno=errno;
 
-	if (status != 0)
+	sr_shimdebug_msg(5, " fclose %p fd=%i fdstat=%o, called the real one: status=%d\n", f, fd, fdstat, status);
+	if (status != 0) {
+		errno=saved_errno;
 		return status;
-	if (!real_return)
+        }
+
+	sr_shimdebug_msg(5, " fclose %p fd=%i fdstat=%o, real one succeeded\n", f, fd, fdstat, status);
+
+	if (!real_return) {
+		errno=saved_errno;
 		return (status);
+        }
+
+	sr_shimdebug_msg(5, " fclose %p fd=%i fdstat=%o, has a real path\n", f, fd, fdstat, status);
 
 	if (!strncmp(real_path, "/dev/", 5)) {
-		clerror(status);
+		errno=saved_errno;
 		return (status);
 	}
 
 	if (!strncmp(real_path, "/proc/", 6)) {
-		clerror(status);
+		errno=saved_errno;
 		return (status);
 	}
 
 	sr_shimdebug_msg(2, "fclose %p %s status=%d\n", f, real_path, status);
 
+	errno=saved_errno;
 	return shimpost(real_path, status);
 }
 

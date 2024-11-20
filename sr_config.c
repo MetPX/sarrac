@@ -1316,6 +1316,8 @@ void sr_config_free(struct sr_config_s *sr_cfg)
 	if (sr_cfg->last_matched)
 		free(sr_cfg->last_matched);
 	sr_cfg->last_matched = NULL;
+	if (sr_cfg->metricsFilename)
+		free(sr_cfg->metricsFilename);
 	if (sr_cfg->queuename)
 		free(sr_cfg->queuename);
 	sr_cfg->queuename = NULL;
@@ -1552,6 +1554,7 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 	char sufbuf[10];
 	int plen;
 	char p[PATH_MAX];
+	char zero[PATH_MAX];
 	char one[PATH_MAX];
 	char two[PATH_MAX];
 	char three[PATH_MAX];
@@ -1595,6 +1598,7 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 		sprintf(p, "%s/.config/%s/%s/%s%s", home, sr_cfg->appname,
 			strcmp(sr_cfg->progname, "shim") ? sr_cfg->progname : "cpost", filename,
 			sufbuf);
+	        strcpy(zero,p);
 		if (access(p, F_OK)) {
 			sprintf(p, "%s/.config/%s/%s/%s%s", home, sr_cfg->appname,
 				strcmp(sr_cfg->progname, "shim") ? sr_cfg->progname : "post",
@@ -1605,6 +1609,7 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 		}
 	} else {
 		strcpy(p, filename);
+	        strcpy(zero,p);
 	}
 	strcpy(one,p);
 
@@ -1644,8 +1649,8 @@ int sr_config_read(struct sr_config_s *sr_cfg, char *filename, int abort, int ma
 		if (abort) {
 			getcwd(four_dir,PATH_MAX);
 			sr_log_msg(sr_cfg->logctx,LOG_CRITICAL,
-				   "error: failed to find configuration: %s, (looked in %s, %s, %s/%s)\n", 
-				   filename, one, two, four_dir, three);
+				   "error: failed to find configuration: %s, (looked in %s, %s, %s, %s/%s)\n", 
+				   filename, zero, one, two, four_dir, three);
 			exit(0);
 		}
 		return (1);
