@@ -1517,45 +1517,6 @@ ssize_t sendfile(int out_fd, int in_fd, off_t * offset, size_t count)
 	return (status);
 }
 
-static int copy_file_range_init_done = 0;
-typedef ssize_t (*copy_file_range_fn) (int, off_t *, int, off_t *, size_t, unsigned int);
-static copy_file_range_fn copy_file_range_fn_ptr = NULL;
-
-ssize_t copy_file_range(int fd_in, loff_t * off_in, int fd_out,
-			loff_t * off_out, size_t len, unsigned int flags)
-{
-	ssize_t status;
-	char fdpath[32];
-	char real_path[PATH_MAX + 1];
-	char *real_return;
-
-	if (!copy_file_range_init_done) {
-		setup_exit();
-		copy_file_range_fn_ptr = (copy_file_range_fn) dlsym(RTLD_NEXT, "copy_file_range");
-		copy_file_range_init_done = 1;
-	}
-	status = copy_file_range_fn_ptr(fd_in, off_in, fd_out, off_out, len, flags);
-	if (shim_disabled)
-		return (status);
-
-	snprintf(fdpath, 32, "/proc/self/fd/%d", fd_out);
-	real_return = realpath(fdpath, real_path);
-
-	sr_shimdebug_msg(1, "copy_file_range to %s\n", real_path);
-
-	if (!real_return)
-		return (status);
-	if (!strncmp(real_path, "/dev/", 5))
-		return (status);
-	if (!strncmp(real_path, "/proc/", 6))
-		return (status);
-
-	shimpost(real_path, 0);
-
-	clerror(status);
-	return (status);
-}
-
 int close(int fd)
 {
 
