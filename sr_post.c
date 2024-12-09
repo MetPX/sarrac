@@ -517,9 +517,19 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 			strcpy(thisexchange, sr_c->cfg->post_broker->exchange);
 
 			if (sr_c->cfg->post_broker->exchangeSplit > 0) {
+				int tot=0;
+				char *basis=NULL;
+				if ( m->relPath ) { basis=m->relPath; }
+				// else if (m->retrievePath) { basis=m->retrievePath; }
+				
+				tot=0;
+				if (basis) {
+				    for (int i=0; i < strlen(basis); i++ ) {
+				        tot += basis[i];
+				    }
+				}
 				sprintf(strchr(thisexchange, '\0'), "%02d",
-					m->sum[sr_get_sumhashlen(m->sum[0]) -
-					       1] % sr_c->cfg->post_broker->exchangeSplit);
+					tot % sr_c->cfg->post_broker->exchangeSplit);
 			}
 			status =
 			    amqp_basic_publish(sr_c->cfg->post_broker->conn, 1,
