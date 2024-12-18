@@ -519,7 +519,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m)
 			if (sr_c->cfg->post_broker->exchangeSplit > 0) {
 				int tot=0;
 				char *basis=NULL;
-				if ( m->relPath ) { basis=m->relPath; }
+				if ( *(m->relPath) ) { basis=m->relPath; }
 				// else if (m->retrievePath) { basis=m->retrievePath; }
 				
 				tot=0;
