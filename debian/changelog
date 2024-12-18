@@ -1,6 +1,11 @@
-metpx-sr3c (3.24.11p1rc0) UNRELEASED; urgency=medium
+metpx-sr3c (3.24.12rc1) unstable; urgency=medium
 
-  * 
+  * fix #191 exchangeSplit now splits based on hash of path, rather than sum.
+  * fix #185 post_baseDir ends in /, relPaths are wrong.
+  * fix #179 just expand unset env vars to empty string, like bash does.
+  * fix #175 coredump in debug message for not matching any mask.
+  * fix #140 posting when realpath is symlinked.
+  * fix #111 remove copy_file_range (useless and caused seg faults)
 
  -- peter <peter@bsqt.homeip.net>  Wed, 06 Nov 2024 16:39:36 -0500
 
