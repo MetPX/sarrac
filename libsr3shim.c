@@ -55,7 +55,7 @@ typedef sigset_t old_sigset_t;
 /*
  libsrshim - intercepts calls to libc and kernel to post files for broker.
 
-SR_SHIM_CONFIG -- environment variable to set configuration file name 
+SR_POST_CONFIG -- environment variable to set configuration file name 
      (format as per sr_subscribe(1) and/or sr_post(1). )        
 
  FIXME:  1024, and PATH_MAX, should likely be replaced by code that mallocs properly.
