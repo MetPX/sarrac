@@ -115,7 +115,7 @@ format:
 	rm *.c~ *.h~
 
 clean:
-	rm -f *.o *.gcno *.so *.so.* *.links sr3_cpost sr_configtest sr_utiltest sr3_cpump sr_cachetest sr_cache_save.test shim_test.log call_remove 
+	rm -f *.o *.gcno *.so *.so.* *.links lovelylinkforu sr3_cpost sr_configtest sr_utiltest sr3_cpump sr_cachetest sr_cache_save.test shim_test.log call_remove 
 	rm -rf build sr_version.h metpx-sr3c_rhel7.spec dir?.links
 	-sr3 cleanup cpost/local_post
 	-sr3 cleanup subscribe/local_copy
