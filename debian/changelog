@@ -1,3 +1,9 @@
+metpx-sr3c (3.24.12rc2) UNRELEASED; urgency=medium
+
+  * fix #192 libsr3shim does not produce hard link events.
+
+ -- peter <peter@bsqt.homeip.net>  Wed, 08 Jan 2025 14:41:44 -0500
+
 metpx-sr3c (3.24.12rc1) unstable; urgency=medium
 
   * fix #191 exchangeSplit now splits based on hash of path, rather than sum.
