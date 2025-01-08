@@ -658,6 +658,7 @@ int sr_get_sumhashlen(char algo)
 
 	case 'p':
 	case 's':
+	case 'l':
 	case 'L':
 	case 'R':
 		return (SHA512_DIGEST_LENGTH + 1);
@@ -681,6 +682,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
     'd' - md5sum of block.
     'n' - md5sum of filename (fn).
     'L' - now sha512 sum of link value.
+    'l' - hard link.
     'm' - mkdir
     'p' - md5sum of filename (fn) + partstr.
     'r' - rmdir
@@ -809,6 +811,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		sr_hash2sumstr(sumstrptr, sumhash);
 		break;
 
+	case 'l':
 	case 'L':		// symlink case
 		just_the_name = linkstr;
 		ctx = EVP_MD_CTX_create();

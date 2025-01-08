@@ -476,14 +476,14 @@ int dir_stack_check4events(struct sr_context *sr_c)
 							sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG,
 								   "ok invoking rename ofn=%s %s\n",
 								   on->ofn, fn);
-							sr_post_rename(sr_c, on->ofn, fn);
+							sr_post_rename(sr_c, on->ofn, fn, false);
 							free(on->ofn);
 						} else {
 							sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG,
 								   "ok invoking rename %s nfn=%s\n",
 								   fn, on->nfn);
 				                        rename_single_event=0;
-							sr_post_rename(sr_c, fn, on->nfn);
+							sr_post_rename(sr_c, fn, on->nfn, false);
 							free(on->nfn);
 						}
 						if (prevon)

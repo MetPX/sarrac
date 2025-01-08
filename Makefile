@@ -115,7 +115,7 @@ format:
 	rm *.c~ *.h~
 
 clean:
-	rm -f *.o *.gcno *.so *.so.* *.links sr3_cpost sr_configtest sr_utiltest sr3_cpump sr_cachetest sr_cache_save.test shim_test.log call_remove 
+	rm -f *.o *.gcno *.so *.so.* *.links lovelylinkforu sr3_cpost sr_configtest sr_utiltest sr3_cpump sr_cachetest sr_cache_save.test shim_test.log call_remove 
 	rm -rf build sr_version.h metpx-sr3c_rhel7.spec dir?.links
 	-sr3 cleanup cpost/local_post
 	-sr3 cleanup subscribe/local_copy
@@ -137,7 +137,7 @@ test_shim_unit:
 	./sr_configtest test_post.conf 
 	./sr_utiltest 
 	./sr_cachetest
-	valgrind --show-reachable=yes --track-origins=yes `which sr3_cpost` -c local_post.conf uthash.h
+	valgrind --show-reachable=yes --track-origins=yes ./sr3_cpost -c local_post.conf uthash.h
 
 test_shim_copy_mirror:
 	-./shim_copy_mirror.sh >shim_copy_mirror.log 2>&1

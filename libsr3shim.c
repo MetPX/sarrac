@@ -942,7 +942,7 @@ static syscall_fn syscall_fn_ptr = NULL;
 int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 		 const char *newpath, int flags, int link)
 /*
-  The real implementation of all renames.
+  The real implementation of all renames (and link!)
  */
 {
 	int status;
@@ -1056,7 +1056,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 	if (!srshim_connect())
 		return (status);
 
-	sr_post_rename(sr_c, oreal_path, real_path);
+	sr_post_rename(sr_c, oreal_path, real_path, link);
 
 	clerror(status);
 	return (status);

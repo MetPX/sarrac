@@ -53,6 +53,7 @@ EOT
    rm hihi 
    rm hoho 
    rm haha 
+   rm lovelylinkforu 
    rm ~/test/hoho_my_darling.txt 
    rm hoohoo
 

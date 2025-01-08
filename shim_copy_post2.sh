@@ -28,6 +28,10 @@ cp ../libsr3shim.c hoho_my_darling.txt
 
 echo "#test 1 sha512 040 cp command2"
 cp ../libsr3shim.c file_to_delete
+
+echo "#test 1 hlink 050 hard link command"
+ln hoho hard_link_to_hoho
+
 echo "#test 1 sha512 050 touch command"
 touch hihi
 
