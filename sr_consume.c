@@ -628,7 +628,7 @@ char *sr_message_2log(struct sr_message_s *m)
 		sprintf(strchr(b, '\0'), ", \"identity\":{ %s } ", ci);
 	}
 
-	if ((m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'r')) {
+	if ((m->sum[0] != 'l') && (m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'r')) {
 		sprintf(strchr(b, '\0'), ", \"mtime\":\"%s\", \"atime\":\"%s\"", m->mtime,
 			m->atime);
 
@@ -647,6 +647,8 @@ char *sr_message_2log(struct sr_message_s *m)
 	for (struct sr_header_s * h = m->user_headers; h; h = h->next) {
 		if (!strcmp(h->key, "oldname")) {
 			rename = h->value;
+		} else if (!strcmp(h->key, "hlink")) {
+			continue;
 		} else {
 			sprintf(strchr(b, '\0'), ", \"%s\":\"%s\"", h->key, h->value);
 		}
@@ -658,6 +660,8 @@ char *sr_message_2log(struct sr_message_s *m)
 		} else {
 			sprintf(strchr(b, '\0'), "}");
 		}
+	} else if (m->sum[0] == 'l') {
+		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"hlink\":\"%s\" }", m->link);
 	} else if (m->sum[0] == 'R') {
 		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"remove\":\"\"");
 		if (rename) {

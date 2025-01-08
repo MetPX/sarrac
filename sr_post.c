@@ -288,7 +288,7 @@ void v03encode(char *message_body, struct sr_context *sr_c, struct sr_message_s 
 	if (m->source[0])
 		v03amqp_header_add(sr_c->cfg->logctx, &c, "source", m->source);
 
-	if ((m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'm') && (m->sum[0] != 'r')) {
+	if ((m->sum[0] != 'l') && (m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'm') && (m->sum[0] != 'r')) {
 		if (m->parts_s != '1') {
 			status = sprintf(c,
 					 ",%s\"blocks\" : { \"method\": \"%s\", \"size\" : "
@@ -311,17 +311,20 @@ void v03encode(char *message_body, struct sr_context *sr_c, struct sr_message_s 
 			v03amqp_header_add(sr_c->cfg->logctx, &c, "mtime", v03time(sr_c->cfg->logctx,m->mtime));
 		}
 	}
-	if ((m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'r')) {
+	if ((m->sum[0] != 'l') && (m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'r')) {
 		if (m->mode > 0) {
 			sprintf(smallbuf, "%03o", m->mode);
 			v03amqp_header_add(sr_c->cfg->logctx, &c, "mode", smallbuf);
 		}
 	}
 
+        sr_log_msg(sr_c->cfg->logctx,LOG_INFO, "figuring out fileop sum[0]=%c, link=%s\n", m->sum[0], m->link );
 	rename_value = NULL;
 	for (uh = m->user_headers; uh; uh = uh->next) {
 		if (!strcmp(uh->key, "oldname")) {
 			rename_value = uh->value;
+		} else if (!strcmp(uh->key, "hlink")) {
+			continue;
 		} else {
 			v03amqp_header_add(sr_c->cfg->logctx, &c, uh->key, uh->value);
 		}
@@ -334,6 +337,9 @@ void v03encode(char *message_body, struct sr_context *sr_c, struct sr_message_s 
 		} else {
 			status = sprintf(c, ", \"fileOp\": { \"link\":\"%s\" }", m->link);
 		}
+		c += status;
+	} else if (m->sum[0] == 'l') {
+		status = sprintf(c, ", \"fileOp\": { \"hlink\":\"%s\" }", m->link);
 		c += status;
 	} else if (m->sum[0] == 'R') {
 		if (rename_value) {
@@ -828,6 +834,13 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 
 	m->user_headers = sr_c->cfg->user_headers;
 
+	char *hlink = NULL;
+	for (struct sr_header_s *uh = sr_c->cfg->user_headers; uh; uh=uh->next ) {
+             if (!strcmp(uh->key,"hlink")) 
+		     hlink=strdup(uh->value);
+	}
+	sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG, "sr_post found hlink: %s\n", hlink );
+
 	m->sum[0] = sr_c->cfg->sumalgo;
 	if (sr_c->cfg->sumalgo == 'z') {
 		m->sum[1] = ',';
@@ -845,7 +858,8 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		m->sum[0] = rmdir_in_progress ? 'r' : 'R';
 		rmdir_in_progress = 0;
 
-	} else if (S_ISLNK(sb->st_mode)) {
+	} else if (S_ISLNK(sb->st_mode) || hlink) {
+	        sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG, "sr_post doing hlink: %s\n", hlink );
 		if (!((sr_c->cfg->events) & SR_EVENT_LINK))
 			return (0);	// not posting links...
 
@@ -853,11 +867,19 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		strcpy(m->mtime, sr_time2str(&(sb->st_mtim)));
 		m->mode = sb->st_mode & 07777;
 
-		m->sum[0] = 'L';
+		if (hlink) {
+			m->sum[0] = 'l';
+		} else {
+			m->sum[0] = 'L';
+		}
 		linkstr[0] = '\0';
-		linklen = readlink(fn, linkstr, PATH_MAX);
-		linkstr[linklen] = '\0';
-		strcpy(m->link, linkstr);
+		if (hlink) {
+			strcpy(m->link,hlink);
+		} else {
+			linklen = readlink(fn, linkstr, PATH_MAX);
+			linkstr[linklen] = '\0';
+			strcpy(m->link, linkstr);
+		}
 
 	} else if (S_ISDIR(sb->st_mode)) {
 		if (!((sr_c->cfg->events) & SR_EVENT_MKDIR))
@@ -869,6 +891,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		m->sum[0] = 'm';
 	} else if (S_ISREG(sb->st_mode)) {	/* regular files, add mode and determine block parameters */
 
+	        sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG, "sr_post regular: \n" );
 		if (!((sr_c->cfg->events) & (SR_EVENT_CREATE | SR_EVENT_MODIFY)))
 			return (0);
 
@@ -963,7 +986,7 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 
 }
 
-void sr_post_rename(struct sr_context *sr_c, const char *oldname, const char *newname);
+void sr_post_rename(struct sr_context *sr_c, const char *oldname, const char *newname, const bool link);
 
 void sr_post_rename_dir(struct sr_context *sr_c, const char *oldname, const char *newname)
 {
@@ -994,7 +1017,7 @@ void sr_post_rename_dir(struct sr_context *sr_c, const char *oldname, const char
 			continue;
 		strcat(oldpath, e->d_name);
 		strcat(newpath, e->d_name);
-		sr_post_rename(sr_c, oldpath, newpath);
+		sr_post_rename(sr_c, oldpath, newpath, 0);
 
 		oldpath[oldlen] = '\0';
 		newpath[newlen] = '\0';
@@ -1003,7 +1026,7 @@ void sr_post_rename_dir(struct sr_context *sr_c, const char *oldname, const char
 	closedir(dir);
 }
 
-void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
+void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n, const bool link)
 /*
    assume actual rename is completed, so newname exists.
  */
@@ -1035,7 +1058,6 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 		realpath_adjust(sr_c->cfg->logctx, oldname, oldreal, sr_c->cfg->realpathAdjust);
 		sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG, "applying realpath to old: %s -> %s\n", oldname, oldreal);
 
-		//realpath(n, newreal);
 		realpath_adjust(sr_c->cfg->logctx, newname, newreal, sr_c->cfg->realpathAdjust);
 		sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG, "applying realpath to new: %s -> %s\n", newname, newreal);
 	}
@@ -1054,11 +1076,6 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 			   newname, es);
 		return;
 	}
-	/* 2023/01/20 - now that dirs have posts, just handle dirs normally.
-	   if (S_ISDIR(sb.st_mode)) {
-	   sr_post_rename_dir(sr_c, oldname, newname);
-	   }
-	 */
 
 	first_user_header.next = sr_c->cfg->user_headers;
 	sr_c->cfg->user_headers = &first_user_header;
@@ -1091,7 +1108,11 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n)
 		free(first_user_header.value);
 	}
 
-	first_user_header.key = strdup("oldname");
+	if (link) {
+	     first_user_header.key = strdup("hlink");
+	} else {
+	     first_user_header.key = strdup("oldname");
+        }
 	first_user_header.value = strdup(oldname);
 
 	if (sr_c->cfg->realpathFilter) {
