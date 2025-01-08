@@ -27,6 +27,9 @@ rmdir sub_dir2
 echo "#test 1 sha512 070 cp command"
 cp libsr3shim.c ~/test/hoho_my_darling.txt
 
+echo "#test 1 hlink 070 ln (hardlink) command"
+ln libsr3shim.c  lovelylinkforu
+
 echo "#test 1 sha512 080 touch command"
 touch hihi
 
@@ -36,8 +39,9 @@ ln -s hoho haha
 echo "#test 1 rename 100 moving a symlink"
 mv haha hihi
 
-echo "#test 1 rename 110 hardlink to a symlink"
+echo "#test 1 hlink 110 hardlink to a symlink"
 ln hihi hoohoo
+
 echo "#test 1 rename 120 moving a file. "
 mv ~/test/hoho_my_darling.txt ~/test/hoho2.log
 echo "#test 1 remove 130 removing a file. "
