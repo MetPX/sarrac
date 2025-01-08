@@ -137,7 +137,7 @@ test_shim_unit:
 	./sr_configtest test_post.conf 
 	./sr_utiltest 
 	./sr_cachetest
-	valgrind --show-reachable=yes --track-origins=yes `which sr3_cpost` -c local_post.conf uthash.h
+	valgrind --show-reachable=yes --track-origins=yes ./sr3_cpost -c local_post.conf uthash.h
 
 test_shim_copy_mirror:
 	-./shim_copy_mirror.sh >shim_copy_mirror.log 2>&1
