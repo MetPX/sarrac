@@ -72,6 +72,12 @@ else
     echo "filetwo" >>dirone/dirtwo/filetwo
 fi
 
+echo "#test 1 sha512 160 copy a file to one with spaces in the name"
+cp dirone/dirtwo/filetwo "dirone/filetwo copy with spaces in the name"
+
+echo "#test 1 sha512 160 copy a file with spaces in the name (both source and dest)"
+cp "dirone/filetwo copy with spaces in the name" "dirone/second spaced file"
+
 echo "#test 1 rename 190 renaming subdirs should cause file rename events."
 mv dirone dirthree
 echo "#test 4 remove 200 removing a whole tree events."

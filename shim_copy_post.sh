@@ -33,7 +33,6 @@ echo "#test 1 link 060 symlink command"
 ln -s hoho haha
 
 
-echo lovely day eh
 
 echo "#test 1 rename 070 moving a symlink"
 mv haha hihi
@@ -75,6 +74,12 @@ ln -sf `pwd`/link_to_dirone/fileone dirone/link_to_fileone
 
 echo "#test 1 sha512 140 stdout redirection in a subsubdir"
 echo "filetwo" >>dirone/dirtwo/filetwo
+
+echo "#test 1 sha512 160 copy a file to one with spaces in the name"
+cp dirone/dirtwo/filetwo "dirone/filetwo copy with spaces in the name"
+
+echo "#test 1 sha512 160 copy a file with spaces in the name (both source and dest)"
+cp "dirone/filetwo copy with spaces in the name" "dirone/second spaced file"
 
 echo "#test 1 rename 145 rename in a sub-dir"
 mv dirone/dirtwo/filetwo dirone/dirtwo/filefour
