@@ -318,7 +318,7 @@ void v03encode(char *message_body, struct sr_context *sr_c, struct sr_message_s 
 		}
 	}
 
-        sr_log_msg(sr_c->cfg->logctx,LOG_INFO, "figuring out fileop sum[0]=%c, link=%s\n", m->sum[0], m->link );
+        //sr_log_msg(sr_c->cfg->logctx,LOG_INFO, "figuring out fileop sum[0]=%c, link=%s\n", m->sum[0], m->link );
 	rename_value = NULL;
 	for (uh = m->user_headers; uh; uh = uh->next) {
 		if (!strcmp(uh->key, "oldname")) {
