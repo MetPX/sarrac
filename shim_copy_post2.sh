@@ -32,6 +32,12 @@ cp ../libsr3shim.c file_to_delete
 echo "#test 1 hlink 050 hard link command"
 ln hoho hard_link_to_hoho
 
+echo "#test 1 link 050 symlink to a broken place"
+ln -sf broken_do_not_exist symlink_to_non_existent_place
+
+echo "#test 1 link 050 symlink to a broken place"
+ln -sf `pwd`/broken_do_not_exist `pwd`/symlink_to_non_existent_place
+
 echo "#test 1 sha512 050 touch command"
 touch hihi
 
