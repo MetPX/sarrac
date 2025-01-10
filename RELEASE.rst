@@ -9,10 +9,10 @@ Release Targets:
 * launchpad: whatever platforms it builds for (ARM would be cool.)
 * upload packages to github, which acts as central node for release notifications.
 
-* See `Build <Build.rst>`_ for instructions on local building.
+* See `Build <BUILD.rst>`_ for instructions on local building.
 
-Pre-Rrelease QA/Validation
---------------------------
+Pre-Release QA/Validation
+-------------------------
 
 Finalize the changes:
 
@@ -28,7 +28,7 @@ Pre-Release Porting
 ~~~~~~~~~~~~~~~~~~~
 
 Development is mostly done on new operating systems. The most important platforms
-for deployment, however, are pretty old.
+for deployment, however, are fairly old.
 
 Prior to doing a full release, should install on all platforms and run tests. on Github,
 these tests are done by Actions automatically, so one just has to review results for

@@ -224,4 +224,4 @@ See `Building from Source <BUILD.rst>`_
 Release Process
 ---------------
 
-See `Releases <Release.rst>`_
+See `Releases <RELEASE.rst>`_
