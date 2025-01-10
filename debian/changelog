@@ -1,8 +1,9 @@
-metpx-sr3c (3.24.12rc2) UNRELEASED; urgency=medium
+metpx-sr3c (3.24.12rc2) unstable; urgency=medium
 
   * fix #192 libsr3shim does not produce hard link events.
+  * fix #195 stop url encoding spaces in file names.
 
- -- peter <peter@bsqt.homeip.net>  Wed, 08 Jan 2025 14:41:44 -0500
+ -- peter <peter@bsqt.homeip.net>  Fri, 10 Jan 2025 14:41:44 -0500
 
 metpx-sr3c (3.24.12rc1) unstable; urgency=medium
 
