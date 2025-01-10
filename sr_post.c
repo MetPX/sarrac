@@ -724,7 +724,9 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
             d++;
         }
 
+	// this quoting is for relPath is ill-advised. 
 	while (*d) {
+		/*
 		if (*d == ' ') {
 			*c++ = '%';
 			*c++ = '2';
@@ -736,7 +738,8 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 				*c++ = '3';
 			} else
 				*c++ = *d;
-		}
+		} */
+		*c++ = *d;
 		d++;
 	}
 	*c = '\0';
