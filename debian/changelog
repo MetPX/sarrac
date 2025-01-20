@@ -1,12 +1,7 @@
-metpx-sr3c (3.24.12rc2) unstable; urgency=medium
+metpx-sr3c (3.24.12) unstable; urgency=medium
 
   * fix #192 libsr3shim does not produce hard link events.
   * fix #195 stop url encoding spaces in file names.
-
- -- peter <peter@bsqt.homeip.net>  Fri, 10 Jan 2025 14:41:44 -0500
-
-metpx-sr3c (3.24.12rc1) unstable; urgency=medium
-
   * fix #191 exchangeSplit now splits based on hash of path, rather than sum.
   * fix #185 post_baseDir ends in /, relPaths are wrong.
   * fix #179 just expand unset env vars to empty string, like bash does.
@@ -14,7 +9,7 @@ metpx-sr3c (3.24.12rc1) unstable; urgency=medium
   * fix #140 posting when realpath is symlinked.
   * fix #111 remove copy_file_range (useless and caused seg faults)
 
- -- peter <peter@bsqt.homeip.net>  Wed, 06 Nov 2024 16:39:36 -0500
+ -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Mon, 20 Jan 2025 10:45:36 -0600
 
 metpx-sr3c (3.24.11) unstable; urgency=medium
 
