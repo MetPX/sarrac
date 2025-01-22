@@ -894,7 +894,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		m->sum[0] = 'm';
 	} else if (S_ISREG(sb->st_mode)) {	/* regular files, add mode and determine block parameters */
 
-	        sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG, "sr_post regular: \n" );
+	        sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG, "sr_post regular file: \n" );
 		if (!((sr_c->cfg->events) & (SR_EVENT_CREATE | SR_EVENT_MODIFY)))
 			return (0);
 
