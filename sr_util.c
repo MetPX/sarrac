@@ -710,6 +710,9 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	end = start + ((block_num < (block_count - (block_rem != 0))) ? block_size : block_rem);
 
+	just_the_name = rindex(fn, '/');
+	just_the_name = just_the_name ? just_the_name + 1 : fn;
+
 	memset(sumhash, 0, SR_SUMHASHLEN);
 	sumhash[0] = algo;
 
@@ -737,6 +740,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	}
 	/* end of xattr check */
 
+	fprintf(stderr, "checksumming %c\n", algo);
 	switch (algo) {
 
 	case '0':
@@ -783,7 +787,6 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		md = EVP_md5();
 		EVP_DigestInit_ex(ctx, md, NULL);
 
-		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumstrptr, sumhash);
@@ -794,7 +797,6 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		md = EVP_md5();
 		EVP_DigestInit_ex(ctx, md, NULL);
 
-		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumstrptr, sumhash);
@@ -805,7 +807,6 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		md = EVP_md5();
 		EVP_DigestInit_ex(ctx, md, NULL);
 
-		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumstrptr, sumhash);
@@ -824,8 +825,6 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		break;
 
 	case 'R':		// null, or removal.
-		just_the_name = rindex(fn, '/') + 1;
-		just_the_name = just_the_name ? just_the_name + 1 : fn;
 		ctx = EVP_MD_CTX_create();
 		md = EVP_sha512();
 		EVP_DigestInit_ex(ctx, md, NULL);
@@ -839,9 +838,6 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		ctx = EVP_MD_CTX_create();
 		md = EVP_sha512();
 		EVP_DigestInit_ex(ctx, md, NULL);
-
-		just_the_name = rindex(fn, '/') + 1;
-		just_the_name = just_the_name ? just_the_name + 1 : fn;
 
 		strcpy(buf, just_the_name);
 		sprintf(buf, "%s%c,%lu,%lu,%lu,%lu", just_the_name, algo,
