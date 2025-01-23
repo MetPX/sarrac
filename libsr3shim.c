@@ -104,7 +104,7 @@ void sr_shimdebug_msg(int level, const char *format, ...)
 		clock_gettime(CLOCK_REALTIME, &ts);
 		srshim_debug_level = atoi(srdbgstr);
 		mypid = getpid();
-		fprintf(stderr, " startup ");
+		fprintf(stderr, "sr_shimdebug startup SR_SHIMDEBUG=%d\n", srshim_debug_level );
 		pid_seconds_wallclock = ts.tv_sec;
 
 	} else if (srshim_debug_level == -2)
@@ -112,11 +112,11 @@ void sr_shimdebug_msg(int level, const char *format, ...)
 
 	clock_gettime(CLOCK_REALTIME, &ts);
 
-	if (level & srshim_debug_level)
+	if ( (level & srshim_debug_level) == 0)
 		return;
 
 	fprintf(stderr, "SR_SHIMDEBUG %d %d %g ", level, mypid,
-		(ts.tv_sec + ts.tv_nsec / 1e9) - pid_seconds_wallclock);
+        	(ts.tv_sec + ts.tv_nsec / 1e9) - pid_seconds_wallclock);
 
 	va_start(ap, format);
 	vfprintf(stderr, format, ap);
