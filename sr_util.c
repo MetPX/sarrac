@@ -739,7 +739,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	}
 	/* end of xattr check */
 
-	fprintf(stderr, "checksumming %c SR_SUMSTRLEN=%d\n", algo, SR_SUMSTRLEN);
+	fprintf(stderr, "SR_DEBUG FIXME: checksumming %c SR_SUMSTRLEN=%d\n", algo, SR_SUMSTRLEN);
 	switch (algo) {
 
 	case '0':
@@ -748,7 +748,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	case 'd':
 		ctx = EVP_MD_CTX_new();
-		EVP_DigestInit_ex(ctx, EVP_md5(), NULL);
+		EVP_DigestInit(ctx, EVP_md5());
 		// keep file open through repeated calls.
 		//fprintf( stderr, "opening %s to checksum\n", fn );
 
@@ -784,7 +784,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	case 'm':		// mkdir
 		ctx = EVP_MD_CTX_new();
-		EVP_DigestInit_ex(ctx, EVP_md5(), NULL);
+		EVP_DigestInit(ctx, EVP_md5() );
 
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
@@ -793,7 +793,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	case 'r':		// rmdir
 		ctx = EVP_MD_CTX_new();
-		EVP_DigestInit_ex(ctx, EVP_md5(), NULL);
+		EVP_DigestInit(ctx, EVP_md5());
 
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
@@ -802,7 +802,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	case 'n':
 		ctx = EVP_MD_CTX_new();
-		EVP_DigestInit_ex(ctx, EVP_md5(), NULL);
+		EVP_DigestInit(ctx, EVP_md5());
 
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
@@ -813,7 +813,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	case 'L':		// symlink case
 		just_the_name = linkstr;
 		ctx = EVP_MD_CTX_new();
-		EVP_DigestInit_ex(ctx, EVP_sha512(), NULL);
+		EVP_DigestInit(ctx, EVP_sha512());
 
 		EVP_DigestUpdate(ctx, linkstr, strlen(linkstr));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
@@ -821,12 +821,12 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		break;
 
 	case 'R':		// null, or removal.
-		fprintf(stderr, "checksumming remove 1\n");
+		fprintf(stderr, "SR_DEBUG FIXME checksumming remove 1\n");
 		ctx = EVP_MD_CTX_new();
-		fprintf(stderr, "checksumming remove 2 ctx=%p\n", ctx);
-		EVP_DigestInit_ex(ctx, EVP_sha512(), NULL);
+		fprintf(stderr, "SR_DEBUG FIXME checksumming remove 2 ctx=%p\n", ctx);
+		EVP_DigestInit(ctx, EVP_sha512());
 
-		fprintf(stderr, "checksumming remove 3 back from init, just_the_name=%s\n", just_the_name );
+		fprintf(stderr, "SR_DEBUG FIXME checksumming remove 3 back from init, just_the_name=%s\n", just_the_name );
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumstrptr, sumhash);
@@ -834,7 +834,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	case 'p':
 		ctx = EVP_MD_CTX_new();
-		EVP_DigestInit_ex(ctx, EVP_sha512(), NULL);
+		EVP_DigestInit(ctx, EVP_sha512());
 
 		strcpy(buf, just_the_name);
 		sprintf(buf, "%s%c,%lu,%lu,%lu,%lu", just_the_name, algo,
@@ -846,7 +846,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 
 	case 's':
 		ctx = EVP_MD_CTX_new();
-		EVP_DigestInit_ex(ctx, EVP_sha512(), NULL);
+		EVP_DigestInit(ctx, EVP_sha512());
 
 		fd = open(fn, O_RDONLY);
 		if (fd < 0) {
@@ -905,7 +905,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		// if the calls above fail, ignore and proceed
 	}
 	/* end of xattr set */
-        fprintf(stderr, "sr_setsumstr returning: %s\n", sumstrptr );
+        fprintf(stderr, "SR_DEBUG FIXME: sr_setsumstr returning: %s\n", sumstrptr );
 
 	return (sumstrptr);
 }
