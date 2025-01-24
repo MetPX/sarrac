@@ -1347,24 +1347,26 @@ void exit_cleanup_posts()
 		if (!srshim_connect())
 			continue;
 
-		sr_shimdebug_msg(8, "exit_cleanup_post, looking at: %s\n",
-				 (*remembered_filenames)[i].name);
-		statres = lstat((*remembered_filenames)[i].name, &sb);
+		char *name = (*remembered_filenames)[i].name; 
+
+		sr_shimdebug_msg(8, "exit_cleanup_post, looking at: %s\n", name);
+		statres = lstat(name, &sb);
+
+		sr_shimdebug_msg(8, "exit_cleanup_post, name: %s stat: %d\n", name, statres);
 
 		if (statres) {
-			sr_post(sr_c, (*remembered_filenames)[i].name, NULL);
+			sr_post(sr_c, name, NULL);
 		} else {
 			if (S_ISLNK(sb.st_mode)) {
-				sr_shimdebug_msg(8, "exit_cleanup_post reading link: %s\n",
-						 (*remembered_filenames)[i].name);
+				sr_shimdebug_msg(8, "exit_cleanup_post reading link: %s\n", name);
 				statres =
-				    readlink((*remembered_filenames)[i].name, real_path, PATH_MAX);
+				    readlink(name, real_path, PATH_MAX);
 				if (statres) {
 					real_path[statres] = '\0';
 					sr_post(sr_c, real_path, &sb);
 				}
 			}
-			sr_post(sr_c, (*remembered_filenames)[i].name, &sb);
+			sr_post(sr_c, name, &sb);
 		}
 	}
 	sr_shimdebug_msg(1, "exit_cleanup_posting closing context sr_c=%p\n", sr_c);
