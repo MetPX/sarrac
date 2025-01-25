@@ -20,7 +20,7 @@ mkdir sub_dir1
 echo "#test 1 rename 050 rename directory"
 mv sub_dir1 sub_dir2
 
-echo "#test 1 rmdir 060 remove directory"
+echo "#test 1 remove 060 remove directory"
 rmdir sub_dir2
 
 
@@ -80,7 +80,7 @@ cp "dirone/filetwo copy with spaces in the name" "dirone/second spaced file"
 
 echo "#test 1 rename 190 renaming subdirs should cause file rename events."
 mv dirone dirthree
-echo "#test 5,1 remove,rmdir 200 removing a whole tree events."
+echo "#test 6 remove 200 removing a whole tree events."
 rm -rf dirthree
 echo "#test 2 remove 210 removing two files"
 rm hoho hoohoo
@@ -88,7 +88,7 @@ rm hoho hoohoo
 echo "#test 1 directory 220 make directory for remove test"
 mkdir dir_to_remove1
 
-echo "#test 1 rmdir 230 remove directory using remove"
+echo "#test 1 remove 230 remove directory using remove"
 ./call_remove dir_to_remove1
 
 echo "#test 1 sha512 240 make file for remove test"
