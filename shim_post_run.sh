@@ -80,7 +80,7 @@ cp "dirone/filetwo copy with spaces in the name" "dirone/second spaced file"
 
 echo "#test 1 rename 190 renaming subdirs should cause file rename events."
 mv dirone dirthree
-echo "#test 6 remove 200 removing a whole tree events."
+echo "#test 5,1 remove,rmdir 200 removing a whole tree events."
 rm -rf dirthree
 echo "#test 2 remove 210 removing two files"
 rm hoho hoohoo

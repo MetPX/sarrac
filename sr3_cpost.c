@@ -283,7 +283,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 	}
 
 	if (lstat(fn, &sb) < 0) {
-		sr_post(sr_c, fn, NULL);	/* post file remove */
+		sr_post(sr_c, fn, NULL, 1);	/* post file remove */
 		return;
 	}
 
@@ -294,7 +294,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 				   fn, (sr_c->cfg->follow_symlinks) ? "on" : "off");
 
 		//if (ts_newer( sb.st_mtim, latest_min_mtim ))
-		sr_post(sr_c, fn, &sb);	// post the link itself.
+		sr_post(sr_c, fn, &sb, 0);	// post the link itself.
 
 		/* FIXME:  INOT  - necessary? I think symlinks can be skipped?
 		 */
@@ -311,7 +311,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 
 	} else if (S_ISDIR(sb.st_mode))	// process a directory.
 	{
-		sr_post(sr_c, fn, &sb);	/* post mkdir */
+		sr_post(sr_c, fn, &sb, 0);	/* post mkdir */
 
 		if (sr_c->cfg->debug)
 			sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG,
@@ -367,7 +367,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 
 	} else {
 		//if (ts_newer( sb.st_mtim, latest_min_mtim )) 
-		sr_post(sr_c, fn, &sb);	// process a file
+		sr_post(sr_c, fn, &sb, 0);	// process a file
 	}
 
 }

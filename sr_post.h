@@ -27,11 +27,6 @@
 #include "sr_context.h"
 #include "sr_consume.h"
 
-/* 
- * um... set variable during rm' events to trigger an rmdir instead of a file unlink.
- */
-extern int rmdir_in_progress;
-
 void v03encode(char *message_body, struct sr_context *sr_c, struct sr_message_s *m);
 /* 
    fill the message body with a v03 encoded representation of the given message, in the given context.
@@ -54,7 +49,7 @@ void sr_post_message(struct sr_context *sr_c, struct sr_message_s *m);
    (posts over an existing connection.)
 */
 
-void sr_post(struct sr_context *sr_c, const char *fn, struct stat *sb);
+void sr_post(struct sr_context *sr_c, const char *fn, struct stat *sb, const int rmflags);
 /* 
    post the given file name using the established context.
    (posts over an existing connection.)
@@ -65,6 +60,11 @@ void sr_post(struct sr_context *sr_c, const char *fn, struct stat *sb);
 
    if passed sb=NULL, then the sr_post generates an 'R' (remove) message
    for the named file.
+
+   rmflags 
+   * 0 -- sb MUST not be null, this is not a remove event.
+   * 1 -- sb==NULL this is a file (non-directory) removal.
+   * 2 -- sb==NULL this is a directory removal.
 
  */
 
