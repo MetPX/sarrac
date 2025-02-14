@@ -232,6 +232,7 @@ int ts_newer(struct timespec a, struct timespec b)
 void do1file(struct sr_context *sr_c, char *fn)
 {
 	char *s;
+	bool match_post;
 	DIR *dir;
 	int w;
 	struct dirent *e;
@@ -275,15 +276,16 @@ void do1file(struct sr_context *sr_c, char *fn)
 		mask = sr_isMatchingPattern(sr_c->cfg, fn);
 	}
 
+	match_post=true;
 	if ((mask && !(mask->accepting))
 	    || (!mask && !(sr_c->cfg->acceptUnmatched))) {
 		if (sr_c->cfg->logReject)
 			sr_log_msg(sr_c->cfg->logctx,LOG_INFO, "rejecting pattern: %s\n", fn);
-		return;
+		match_post=false;
 	}
 
 	if (lstat(fn, &sb) < 0) {
-		sr_post(sr_c, fn, NULL, 1);	/* post file remove */
+		if (match_post) sr_post(sr_c, fn, NULL, 1);	/* post file remove */
 		return;
 	}
 
@@ -292,6 +294,8 @@ void do1file(struct sr_context *sr_c, char *fn)
 			sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG,
 				   "debug: %s is a symbolic link. (follow=%s) posting\n",
 				   fn, (sr_c->cfg->follow_symlinks) ? "on" : "off");
+
+		if (!match_post) return;
 
 		//if (ts_newer( sb.st_mtim, latest_min_mtim ))
 		sr_post(sr_c, fn, &sb, 0);	// post the link itself.
@@ -311,7 +315,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 
 	} else if (S_ISDIR(sb.st_mode))	// process a directory.
 	{
-		sr_post(sr_c, fn, &sb, 0);	/* post mkdir */
+		if (match_post) sr_post(sr_c, fn, &sb, 0);	/* post mkdir */
 
 		if (sr_c->cfg->debug)
 			sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG,
@@ -367,7 +371,7 @@ void do1file(struct sr_context *sr_c, char *fn)
 
 	} else {
 		//if (ts_newer( sb.st_mtim, latest_min_mtim )) 
-		sr_post(sr_c, fn, &sb, 0);	// process a file
+		if (match_post) sr_post(sr_c, fn, &sb, 0);	// process a file
 	}
 
 }
