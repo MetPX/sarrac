@@ -1108,7 +1108,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n, const
 			    && (S_ISREG(sb.st_mode) || S_ISLNK(sb.st_mode))) {
 				sr_post(sr_c, oldname, &sb, 0);
 			} else {
-				sr_post(sr_c, oldname, NULL, 0);
+				sr_post(sr_c, oldname, NULL, S_ISDIR(sb.st_mode)?2:1);
 			}
 		}
 
