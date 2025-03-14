@@ -623,9 +623,9 @@ char *sr_message_2log(struct sr_message_s *m)
 	sprintf(b, "{ \"pubTime\":\"%s\", \"baseUrl\":\"%s\", \"relPath\":\"%s\", \"topic\":\"%s\"",
 		m->datestamp, m->url, m->relPath, m->routing_key);
 
-	if (!strchr("lLmrR", m->sum[0])) {
-	        ci = v03identity(m);
-		if (ci) sprintf(strchr(b, '\0'), ", \"identity\":{ %s } ", ci);
+	ci = v03identity(m);
+	if (ci && !strchr("mrRL", m->sum[0])) {
+		sprintf(strchr(b, '\0'), ", \"identity\":{ %s } ", ci);
 	}
 
 	if ((m->sum[0] != 'l') && (m->sum[0] != 'R') && (m->sum[0] != 'L') && (m->sum[0] != 'r')) {
