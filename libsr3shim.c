@@ -104,7 +104,7 @@ void sr_shimdebug_msg(int level, const char *format, ...)
 		clock_gettime(CLOCK_REALTIME, &ts);
 		srshim_debug_level = atoi(srdbgstr);
 		mypid = getpid();
-		fprintf(stderr, " startup ");
+		fprintf(stderr, "sr_shimdebug startup SR_SHIMDEBUG=%d\n", srshim_debug_level );
 		pid_seconds_wallclock = ts.tv_sec;
 
 	} else if (srshim_debug_level == -2)
@@ -112,11 +112,11 @@ void sr_shimdebug_msg(int level, const char *format, ...)
 
 	clock_gettime(CLOCK_REALTIME, &ts);
 
-	if (level & srshim_debug_level)
+	if ( (level & srshim_debug_level) == 0)
 		return;
 
 	fprintf(stderr, "SR_SHIMDEBUG %d %d %g ", level, mypid,
-		(ts.tv_sec + ts.tv_nsec / 1e9) - pid_seconds_wallclock);
+        	(ts.tv_sec + ts.tv_nsec / 1e9) - pid_seconds_wallclock);
 
 	va_start(ap, format);
 	vfprintf(stderr, format, ap);
@@ -280,7 +280,7 @@ struct filename_memory (*remembered_filenames)[] = NULL;
 int remembered_count = 0;
 int remembered_max = 0;
 
-int should_not_post(const char *fn)
+int should_not_post(const char *fn, const int rmflags)
 /*
    given the file name fn, return(1) if we should not post it, 0 otherwise.
 
@@ -353,7 +353,8 @@ int should_not_post(const char *fn)
 	(*remembered_filenames)[remembered_count].ts = ts;
 	(*remembered_filenames)[remembered_count++].name = strdup(fn);
 
-	sr_shimdebug_msg(1, "remembering post of %s (count=%d) \n", fn, remembered_count);
+	sr_shimdebug_msg(1, "remembering post of %s (count=%d) \n", 
+			fn, remembered_count );
 	return (0);
 
 }
@@ -472,7 +473,7 @@ int srshim_connect()
 	return (sr_connected);
 }
 
-void srshim_realpost(const char *path)
+void srshim_realpost(const char *path, const int rmflags)
 /*
   post using initialize sr_ context.
 
@@ -484,7 +485,7 @@ void srshim_realpost(const char *path)
 	char fn[PATH_MAX + 1];
 	char fnreal[PATH_MAX + 1];
 
-	sr_shimdebug_msg(1, "srshim_realpost 1 PATH %s src=%p\n", path, sr_c);
+	sr_shimdebug_msg(1, "srshim_realpost 1 PATH %s src=%p rmflags=%d\n", path, sr_c, rmflags);
 
 	if (!path || !sr_c)
 		return;
@@ -524,7 +525,7 @@ void srshim_realpost(const char *path)
 	}
 	sr_shimdebug_msg(1, "srshim_realpost accepted... %s now\n", fn);
 
-	if (should_not_post(fn)) {
+	if (should_not_post(fn,rmflags)) {
 		sr_shimdebug_msg(1, "srshim_realpost rejecting should_not_post... %s\n", fn);
 		return;
 	}
@@ -541,16 +542,16 @@ void srshim_realpost(const char *path)
 		sr_shimdebug_msg(1,
 				 "srshim_realpost should be really posting %s remove now sr_c=%p\n",
 				 path, sr_c);
-		sr_post(sr_c, path, NULL);
+		sr_post(sr_c, path, NULL, rmflags);
 		return;
 	}
 
 	sr_shimdebug_msg(1, "srshim_realpost 9 PATH %s\n", path);
-	sr_post(sr_c, path, &sb);
+	sr_post(sr_c, path, &sb, rmflags);
 
 }
 
-int shimpost(const char *path, int status)
+int shimpost(const char *path, int status, const int rmflags)
 {
 	char *cwd = NULL;
 	char *real_path = NULL;
@@ -569,7 +570,7 @@ int shimpost(const char *path, int status)
 
 		if (path[0] == '/') {
 			sr_shimdebug_msg(4, "absolute 1 shimpost %s, status=%d\n", path, status);
-			srshim_realpost(path);
+			srshim_realpost(path, rmflags);
 		} else {
 			cwd = get_current_dir_name();
 			real_path = (char *)malloc(strlen(cwd) + strlen(path) + 3);
@@ -579,7 +580,7 @@ int shimpost(const char *path, int status)
 			strcat(real_path, path);
 			sr_shimdebug_msg(4, "relative 2 shimpost %s status=%d\n", real_path,
 					 status);
-			srshim_realpost(real_path);
+			srshim_realpost(real_path, rmflags);
 			free(real_path);
 			free(cwd);
 		}
@@ -618,7 +619,7 @@ int truncate(const char *path, off_t length)
 	if (!strncmp(path, "/proc/", 6))
 		return (status);
         errno=0;
-	return (shimpost(path, status));
+	return (shimpost(path, status, 0));
 
 }
 
@@ -648,7 +649,7 @@ int mkdir(const char *pathname, mode_t mode)
 	if (!strncmp(pathname, "/proc/", 6))
 		return (status);
 
-	return (shimpost(pathname, status));
+	return (shimpost(pathname, status, 0));
 }
 
 static int mkdirat_init_done = 0;
@@ -677,7 +678,7 @@ int mkdirat(int dirfd, const char *pathname, mode_t mode)
 	if (!strncmp(pathname, "/proc/", 6))
 		return (status);
 
-	return (shimpost(pathname, status));
+	return (shimpost(pathname, status, 0));
 }
 
 static int rmdir_init_done = 0;
@@ -706,8 +707,7 @@ int rmdir(const char *pathname)
 	if (!strncmp(pathname, "/proc/", 6))
 		return (status);
 
-	rmdir_in_progress = 1;
-	return (shimpost(pathname, status));
+	return (shimpost(pathname, status, 2));
 }
 
 static int remove_init_done = 0;
@@ -739,7 +739,7 @@ int remove(const char *pathname)
 	if (shim_disabled)
 		return (status);
 
-	sr_shimdebug_msg(1, " remove 2 %s status=%d\n", pathname, status);	
+	sr_shimdebug_msg(1, " remove 2 %s status=%d isdir=%d\n", pathname, status, isdir);	
 
 	clerror(status);
 	if (status == -1)
@@ -750,10 +750,7 @@ int remove(const char *pathname)
 	if (!strncmp(pathname, "/proc/", 6))
 		return (status);
 
-	if (isdir) {
-		rmdir_in_progress = 1;
-	}
-	return (shimpost(pathname, status));
+	return (shimpost(pathname, status, isdir?2:1));
 }
 
 static int symlink_init_done = 0;
@@ -782,7 +779,7 @@ int symlink(const char *target, const char *linkpath)
 	if (!strncmp(linkpath, "/proc/", 6))
 		return (status);
 
-	return (shimpost(linkpath, status));
+	return (shimpost(linkpath, status, 0));
 }
 
 static int symlinkat_init_done = 0;
@@ -817,7 +814,7 @@ int symlinkat(const char *target, int dirfd, const char *linkpath)
 
 	if (dirfd == AT_FDCWD) {
 		clerror(status);
-		return (shimpost(linkpath, status));
+		return (shimpost(linkpath, status, 0));
 	}
 
 	snprintf(fdpath, 32, "/proc/self/fd/%d", dirfd);
@@ -834,7 +831,7 @@ int symlinkat(const char *target, int dirfd, const char *linkpath)
 	strcat(real_path, linkpath);
 
 	clerror(status);
-	return (shimpost(real_path, status));
+	return (shimpost(real_path, status, 0));
 
 }
 
@@ -850,6 +847,7 @@ int unlinkat(int dirfd, const char *path, int flags)
 	char fdpath[PATH_MAX + 1];
 	char real_path[PATH_MAX + 1];
 	char *real_return;
+	bool isdir = false;
 
 	sr_shimdebug_msg(1, "unlinkat %s dirfd=%i\n", path, dirfd);
 	if (!unlinkat_init_done) {
@@ -859,7 +857,13 @@ int unlinkat(int dirfd, const char *path, int flags)
 	}
 
 	stat_failed = fstatat(dirfd, path, &sb, 0);
-	sr_shimdebug_msg(1, "unlinkat %s dirfd=%i stat returned: %d\n", path, dirfd, stat_failed);
+
+	if (!stat_failed) {
+		isdir = S_ISDIR(sb.st_mode);
+	}
+
+	sr_shimdebug_msg(1, "unlinkat %s dirfd=%i stat returned: %d isdir: %d\n", 
+			path, dirfd, stat_failed, isdir);
 
 	status = unlinkat_fn_ptr(dirfd, path, flags);
 	if (shim_disabled)
@@ -868,7 +872,7 @@ int unlinkat(int dirfd, const char *path, int flags)
 		return status;
 
 	if (dirfd == AT_FDCWD)
-		return (shimpost(path, status));
+		return (shimpost(path, status, 0));
 
 	snprintf(fdpath, 32, "/proc/self/fd/%d", dirfd);
 	real_return = realpath(fdpath, real_path);
@@ -881,9 +885,9 @@ int unlinkat(int dirfd, const char *path, int flags)
 	if (!real_return)
 		return (status);
 
-	sr_shimdebug_msg(1, " unlinkat realpath %s\n", real_path);
+	sr_shimdebug_msg(1, " unlinkat realpath %s, isdir=%d\n", real_path, isdir);
 
-	return (shimpost(real_path, status));
+	return (shimpost(real_path, status, isdir?2:1));
 }
 
 static int unlink_init_done = 0;
@@ -914,7 +918,7 @@ int unlink(const char *path)
 		return (status);
 	}
 
-	return (shimpost(path, status));
+	return (shimpost(path, status, 0));
 }
 
 static int link_init_done = 0;
@@ -1223,7 +1227,7 @@ int dup3(int oldfd, int newfd, int flags)
 	// because shimpost posts when:    if (!status)
 	// we use a tmpstatus and call shimpost with status=0
 
-	shimpost(real_path, 0);
+	shimpost(real_path, 0, 0);
 
 	clerror(status);
 	return status;
@@ -1327,7 +1331,7 @@ void exit_cleanup_posts()
 
 			sr_shimdebug_msg(8, "exit_cleanup_posts posting %s\n", real_path);
 
-			shimpost(real_path, 0);
+			shimpost(real_path, 0, 0);
 		}
 		closedir(fddir);
 	}
@@ -1347,24 +1351,26 @@ void exit_cleanup_posts()
 		if (!srshim_connect())
 			continue;
 
-		sr_shimdebug_msg(8, "exit_cleanup_post, looking at: %s\n",
-				 (*remembered_filenames)[i].name);
-		statres = lstat((*remembered_filenames)[i].name, &sb);
+		char *name = (*remembered_filenames)[i].name; 
+
+		sr_shimdebug_msg(8, "exit_cleanup_post, looking at: %s\n", name);
+		statres = lstat(name, &sb);
+
+		sr_shimdebug_msg(8, "exit_cleanup_post, name: %s stat: %d\n", name, statres);
 
 		if (statres) {
-			sr_post(sr_c, (*remembered_filenames)[i].name, NULL);
+			sr_post(sr_c, name, NULL, 0);
 		} else {
 			if (S_ISLNK(sb.st_mode)) {
-				sr_shimdebug_msg(8, "exit_cleanup_post reading link: %s\n",
-						 (*remembered_filenames)[i].name);
+				sr_shimdebug_msg(8, "exit_cleanup_post reading link: %s\n", name);
 				statres =
-				    readlink((*remembered_filenames)[i].name, real_path, PATH_MAX);
+				    readlink(name, real_path, PATH_MAX);
 				if (statres) {
 					real_path[statres] = '\0';
-					sr_post(sr_c, real_path, &sb);
+					sr_post(sr_c, real_path, &sb, 0);
 				}
 			}
-			sr_post(sr_c, (*remembered_filenames)[i].name, &sb);
+			sr_post(sr_c, name, &sb, 0);
 		}
 	}
 	sr_shimdebug_msg(1, "exit_cleanup_posting closing context sr_c=%p\n", sr_c);
@@ -1511,7 +1517,7 @@ ssize_t sendfile(int out_fd, int in_fd, off_t * offset, size_t count)
 	if (!strncmp(real_path, "/proc/", 6))
 		return (status);
 
-	shimpost(real_path, 0);
+	shimpost(real_path, 0, 0);
 
 	clerror(status);
 	return (status);
@@ -1591,7 +1597,7 @@ int close(int fd)
 		return (status);
 	}
 
-	return shimpost(real_path, status);
+	return shimpost(real_path, status, 0);
 }
 
 static int fclose_init_done = 0;
@@ -1679,7 +1685,7 @@ int fclose(FILE * f)
 	sr_shimdebug_msg(2, "fclose %p %s status=%d\n", f, real_path, status);
 
 	errno=saved_errno;
-	return shimpost(real_path, status);
+	return shimpost(real_path, status, 0);
 }
 
 static int fopen_init_done = 0;

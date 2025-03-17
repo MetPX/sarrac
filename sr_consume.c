@@ -677,7 +677,7 @@ char *sr_message_2log(struct sr_message_s *m)
 			sprintf(strchr(b, '\0'), "}");
 		}
 	} else if (m->sum[0] == 'r') {
-		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"rmdir\":\"\"");
+		sprintf(strchr(b, '\0'), ", \"fileOp\" : { \"remove\":\"\", \"directory\":\"\" ");
 		if (rename) {
 			sprintf(strchr(b, '\0'), ", \"rename\" : \"%s\" }", rename);
 		} else {

@@ -96,8 +96,6 @@ static amqp_table_entry_t headers[HDRMAX];
 static int hdrcnt = 0;
 static int bad_hdrcnt = 0;
 
-int rmdir_in_progress = 0;
-
 static void header_reset()
 {
 	hdrcnt--;
@@ -658,7 +656,7 @@ void realpath_adjust(struct sr_log_context_s *logctx, const char *input_path, ch
 }
 
 int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
-			  struct stat *sb, struct sr_message_s *m)
+			  struct stat *sb, struct sr_message_s *m, const int rmflags)
 /*
   reading a file, initialize the message that corresponds to it. Return the number of messages to post entire file.
  */
@@ -853,13 +851,21 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 
 	if (!sb) {
 		if (!((sr_c->cfg->events) & SR_EVENT_DELETE) ||
-		    (!((sr_c->cfg->events) & SR_EVENT_RMDIR) && rmdir_in_progress)
+		    (!((sr_c->cfg->events) & SR_EVENT_RMDIR) && rmflags)
 		    ) {
-			rmdir_in_progress = 0;
 			return (0);	// not posting deletes...
 		}
-		m->sum[0] = rmdir_in_progress ? 'r' : 'R';
-		rmdir_in_progress = 0;
+		switch(rmflags) {
+                   case 2: // directory.
+			   m->sum[0] = 'r';
+			   break;
+		   case 1: // non-directory.
+			   m->sum[0] = 'R';
+			   break;
+	           default: // weirdness...
+	               sr_log_msg(sr_c->cfg->logctx,LOG_ERROR, "sr_post corrupt removal rmflags=%d\n", rmflags );
+		       m->sum[0] = 'R'; //defaulting to normal file.
+		}
 
 	} else if (S_ISLNK(sb->st_mode) || hlink) {
 	        sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG, "sr_post doing hlink: %s\n", hlink );
@@ -894,7 +900,7 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 		m->sum[0] = 'm';
 	} else if (S_ISREG(sb->st_mode)) {	/* regular files, add mode and determine block parameters */
 
-	        sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG, "sr_post regular: \n" );
+	        sr_log_msg(sr_c->cfg->logctx,LOG_DEBUG, "sr_post regular file: \n" );
 		if (!((sr_c->cfg->events) & (SR_EVENT_CREATE | SR_EVENT_MODIFY)))
 			return (0);
 
@@ -937,7 +943,6 @@ struct sr_message_s *sr_file2message_seq(struct sr_context *sr_c,
 		sr_log_msg(sr_c->cfg->logctx,LOG_ERROR,
 			   "file2message_seq unable to generate %c checksum for: %s\n",
 			   m->parts_s, pathspec);
-		free(sumstr);
 		return (NULL);
 	}
 	strcpy(m->sum, sumstr);
@@ -945,7 +950,7 @@ struct sr_message_s *sr_file2message_seq(struct sr_context *sr_c,
 	return (m);
 }
 
-void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
+void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb, const int rmflags)
 {
 	static struct sr_message_s m;
 	int numblks;
@@ -963,7 +968,7 @@ void sr_post(struct sr_context *sr_c, const char *pathspec, struct stat *sb)
 
 	// report...
 	// FIXME: duration, consumingurl, consuminguser, statuscode?
-	numblks = sr_file2message_start(sr_c, pathspec, sb, &m);
+	numblks = sr_file2message_start(sr_c, pathspec, sb, &m, rmflags);
 	for (int blk = 0; (blk < numblks); blk++) {
 		if (sr_file2message_seq(sr_c, pathspec, blk, &m)) {
 			if (sr_c->cfg->nodupe_ttl > 0) {
@@ -1101,9 +1106,9 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n, const
 		} else {
 			if (!access(oldname, F_OK)
 			    && (S_ISREG(sb.st_mode) || S_ISLNK(sb.st_mode))) {
-				sr_post(sr_c, oldname, &sb);
+				sr_post(sr_c, oldname, &sb, 0);
 			} else {
-				sr_post(sr_c, oldname, NULL);
+				sr_post(sr_c, oldname, NULL, S_ISDIR(sb.st_mode)?2:1);
 			}
 		}
 
@@ -1128,7 +1133,7 @@ void sr_post_rename(struct sr_context *sr_c, const char *o, const char *n, const
 		if (sr_c->cfg->logReject)
 			sr_log_msg(sr_c->cfg->logctx,LOG_INFO, "rejecting newname: %s\n", newname);
 	} else
-		sr_post(sr_c, newname, &sb);
+		sr_post(sr_c, newname, &sb, 0);
 
 	free(first_user_header.key);
 	free(first_user_header.value);

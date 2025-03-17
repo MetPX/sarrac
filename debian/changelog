@@ -1,3 +1,14 @@
+metpx-sr3c (3.25.03rc1) UNRELEASED; urgency=medium
+
+  * fix #199 not posting when regex does not match
+  * fix #198 rm -rf make file remove events instead of directory ones.
+  * fix rmdir processing re-written, with API change to produce rmdir events
+    properly.
+  * fix shimdebug messaging priorities check was wrong.
+  * work on #196... core dumps occuring in process cleanup. not fixed.
+  
+ -- peter <peter@bsqt.homeip.net>  Fri, 14 Mar 2025 08:48:03 -0400
+
 metpx-sr3c (3.24.12) unstable; urgency=medium
 
   * fix #192 libsr3shim does not produce hard link events.
