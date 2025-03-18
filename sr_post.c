@@ -755,7 +755,10 @@ int sr_file2message_start(struct sr_context *sr_c, const char *pathspec,
 
 		// if post_baseDir didn't match, try realpath_post_baseDir
 		} else {
-			drfound = strstr(fn, (sr_c->cfg->realpath_post_baseDir)+1);
+			drfound = NULL;
+			if (sr_c->cfg->realpath_post_baseDir && (strlen(sr_c->cfg->realpath_post_baseDir) > 1)) {
+				drfound = strstr(fn, (sr_c->cfg->realpath_post_baseDir)+1);
+			}
 			if (drfound==fn+1) {
 				pbdlen = strlen(sr_c->cfg->realpath_post_baseDir);
 				drfound += (sr_c->cfg->realpath_post_baseDir[pbdlen-1] == '/') ? pbdlen - 1 : pbdlen; //adjust for trailing /
