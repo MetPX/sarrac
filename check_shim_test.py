@@ -3,6 +3,12 @@
 import json
 import sys
 
+
+# the word BAD in red and Good in green
+bad_str = "\x1b[31;1mBAD\x1b[0m"
+good_str = "\033[0;32mGood\x1b[0m"
+end_result = "\n\n" + "-"*79 + "\n"
+
 bad = 0
 good = 0
 post_count = {}
@@ -32,12 +38,12 @@ with open(sys.argv[1], 'r') as log:
             continue
 
         if 'core dumped' in i:
-            print ( f"RESULT: BAD! binary crashed. " )
+            print ( f"RESULT: {bad_str}! binary crashed. " )
             bad += 1;
 
         if line[0] == 'RESULT:' :
             print(i)
-            if line[1] == 'Good!':
+            if line[1] == f'{good_str}!':
                 good += 1
             else:
                 bad +=1
@@ -55,22 +61,20 @@ with open(sys.argv[1], 'r') as log:
 
                 if len(test_actual_posts) == 0:
                     if 'comment' in test_post_count:
-                        print ( f"RESULT: comment {test_description}" )
+                        print ( f"RESULT: comment {test_description}", end=end_result)
                         tests -= 1
                     else:
-                        print( f"RESULT: BAD! missing expected {test_post_count} for {test_description}" )
+                        print( f"RESULT: {bad_str}! missing expected {test_post_count} for {test_description}", end=end_result)
                         bad += 1
 
                 for m in test_actual_posts:
                     if m in test_post_count and (test_post_count[m] == test_actual_posts[m]):
                         print(
-                            f"RESULT: Good! {test_post_count[m]} {m} posts from {test_description}. as expected"
-                        )
+                            f"RESULT: {good_str}! {test_post_count[m]} {m} posts from {test_description}. as expected", end=end_result)
                         good += 1
                     else:
                         print(
-                            f"RESULT: BAD! {test_actual_posts[m]} {m} posts, expected: {test_post_count} for {test_description}"
-                        )
+                            f"RESULT: {bad_str}! {test_actual_posts[m]} {m} posts, expected: {test_post_count} for {test_description}", end=end_result)
                         bad += 1
 
                 if bad and exit_on_bad:
