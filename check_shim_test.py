@@ -43,7 +43,7 @@ with open(sys.argv[1], 'r') as log:
 
         if line[0] == 'RESULT:' :
             print(i)
-            if line[1] == f'{good_str}!':
+            if line[1] == 'Good!':
                 good += 1
             else:
                 bad +=1
