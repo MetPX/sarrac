@@ -872,7 +872,7 @@ int unlinkat(int dirfd, const char *path, int flags)
 		return status;
 
 	if (dirfd == AT_FDCWD)
-		return (shimpost(path, status, 0));
+		return (shimpost(path, status, isdir?2:1));
 
 	snprintf(fdpath, 32, "/proc/self/fd/%d", dirfd);
 	real_return = realpath(fdpath, real_path);
