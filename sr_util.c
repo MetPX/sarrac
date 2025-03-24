@@ -739,7 +739,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 	}
 	/* end of xattr check */
 
-	fprintf(stderr, "SR_DEBUG FIXME: checksumming %c SR_SUMSTRLEN=%d\n", algo, SR_SUMSTRLEN);
+	// fprintf(stderr, "SR_DEBUG FIXME: checksumming %c SR_SUMSTRLEN=%d\n", algo, SR_SUMSTRLEN);
 	switch (algo) {
 
 	case '0':
@@ -821,12 +821,12 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		break;
 
 	case 'R':		// null, or removal.
-		fprintf(stderr, "SR_DEBUG FIXME checksumming remove 1\n");
+		// fprintf(stderr, "SR_DEBUG FIXME checksumming remove 1\n");
 		ctx = EVP_MD_CTX_new();
-		fprintf(stderr, "SR_DEBUG FIXME checksumming remove 2 ctx=%p\n", ctx);
+		// fprintf(stderr, "SR_DEBUG FIXME checksumming remove 2 ctx=%p\n", ctx);
 		EVP_DigestInit(ctx, EVP_sha512());
 
-		fprintf(stderr, "SR_DEBUG FIXME checksumming remove 3 back from init, just_the_name=%s\n", just_the_name );
+		// fprintf(stderr, "SR_DEBUG FIXME checksumming remove 3 back from init, just_the_name=%s\n", just_the_name );
 		EVP_DigestUpdate(ctx, just_the_name, strlen(just_the_name));
 		EVP_DigestFinal_ex(ctx, sumhash + 1, &hashlen);
 		sr_hash2sumstr(sumstrptr, sumhash);
@@ -905,7 +905,7 @@ char *sr_set_sumstr(char algo, char algoz, const char *fn, const char *partstr,
 		// if the calls above fail, ignore and proceed
 	}
 	/* end of xattr set */
-        fprintf(stderr, "SR_DEBUG FIXME: sr_setsumstr returning: %s\n", sumstrptr );
+	// fprintf(stderr, "SR_DEBUG FIXME: sr_setsumstr returning: %s\n", sumstrptr );
 
 	return (sumstrptr);
 }
