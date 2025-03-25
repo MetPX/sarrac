@@ -129,9 +129,9 @@ echo "#test 0 comment comparing trees"
     
     
 cd shim_dirA
-find -H . -type f | xargs md5sum >../dirA.sums
+find -H . -type f | xargs -d '\n' md5sum >../dirA.sums
 cd ../shim_dirB
-find -H . -type f | xargs md5sum >../dirB.sums
+find -H . -type f | xargs -d '\n' md5sum >../dirB.sums
 cd ..
     
 diffs="`diff dirA.sums dirB.sums| wc -l`"
