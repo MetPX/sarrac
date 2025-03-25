@@ -308,7 +308,7 @@ int should_not_post(const char *fn, const int rmflags)
 
 	/* if already seen, then return (either too soon, or OK!) */
 	for (int i = 0; i < remembered_count; i++) {
-		sr_shimdebug_msg(5, "looking at remembered files %d\n", i);
+		sr_shimdebug_msg(5, "looking at remembered file %d %s\n", i, (*remembered_filenames)[i].name);
 		if (!strcmp((*remembered_filenames)[i].name, fn)) {
 			interval = (ts.tv_sec + ts.tv_nsec / 1e9) -
 			    ((*remembered_filenames)[i].ts.tv_sec +
