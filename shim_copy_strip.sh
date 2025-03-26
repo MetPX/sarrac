@@ -34,7 +34,7 @@ if [ ! "${EXCHANGE}" ]; then
     EXCHANGE=xs_feed
 fi
 
-STRIP="`pwd`"
+STRIP="`realpath $(pwd)`"
 STRIP="`echo ${STRIP} | tr -cd '/' | wc -c`"
 STRIP=$((${STRIP}+1))
 
