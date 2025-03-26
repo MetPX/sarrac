@@ -93,7 +93,8 @@ nodupe_ttl 0
 header toto=pig
 events modify,link,delete,mkdir,rmdir
 
-post_baseUrl file:`pwd`/shim_dirA
+# needs to match the subscribe configs accepts, which use realpath
+post_baseUrl file:`realpath $(pwd)`/shim_dirA
 post_topicPrefix v03.post
 
 accept `realpath .`/.*
