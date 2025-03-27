@@ -83,7 +83,7 @@ nodupe_ttl 0
 header toto=pig
 events modify,link,delete,mkdir,rmdir
 
-post_baseUrl sftp://${USER}@localhost/`pwd`/shim_dirA
+post_baseUrl sftp://${USER}@localhost/`realpath $(pwd)`/shim_dirA
 post_topicPrefix v03.post
 
 accept `realpath .`/.*
