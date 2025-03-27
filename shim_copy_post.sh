@@ -103,7 +103,10 @@ touch test_file
 echo "#test 1 rename 152 move test_file into dirthree subdir"
 mv test_file dirthree
 
-echo "#test 1 sha512 162 create test_file (again)"
+# sleep to ensure that shim_post_minterval doesn't suppress the post of test_file
+sleep 10
+
+echo "#test 1 sha512 162 create test_file (again) using redirection"
 echo 2 >test_file
 
 # doing both redirection and touch produces two posts
