@@ -34,11 +34,11 @@ if [ ! "${EXCHANGE}" ]; then
     EXCHANGE=xs_feed
 fi
 
-STRIP="`pwd`"
+STRIP="`realpath $(pwd)`"
 STRIP="`echo ${STRIP} | tr -cd '/' | wc -c`"
 STRIP=$((${STRIP}+1))
 
-echo "setting STRIP to $STRIP for: `pwd`"
+echo "setting STRIP to $STRIP for: `pwd` (realpath: `realpath $(pwd)`)"
 
 cat >~/.config/sr3/subscribe/local_copy.conf <<EOT
 
