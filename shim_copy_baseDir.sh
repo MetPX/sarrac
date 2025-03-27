@@ -50,7 +50,8 @@ logMessageDump on
 callback log
 batch 1
 mirror True
-baseDir `pwd`/shim_dirA
+# cpost is posting realpaths, this has to match what it posts
+baseDir `realpath $(pwd)`/shim_dirA
 directory `pwd`/shim_dirB
 accept .*`realpath .`/.*
 accept .*`realpath ${HOME}/test`/.*
