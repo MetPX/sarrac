@@ -4,9 +4,8 @@ set -x
 cd shim_dirA
 which bash
 
-echo "FIXME: KNOWN ISSUE redirection close does not get posted!"
-#echo "#test 1 sha512 000 capturing stdout"
-#bash -c 'echo "hoho" >> ./hoho'
+echo "#test 1 sha512 000 capturing stdout"
+echo "hoho" >> ./hoho
 
 echo "#test 0 comment 010 shim copy posting start"
 echo "#test 1 sha512 c program run."
