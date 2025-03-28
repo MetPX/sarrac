@@ -1,4 +1,10 @@
-metpx-sr3c (3.25.03rc1) UNRELEASED; urgency=medium
+metpx-sr3c (3.25.03rc2) UNRELEASED; urgency=medium
+
+  * fix #177 files written using redirection are not posted
+
+ -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Thu, 27 Mar 2025 21:32:06 +0000
+
+metpx-sr3c (3.25.03rc1) unstable; urgency=medium
 
   * fix #199 not posting when regex does not match
   * fix #198 rm -rf make file remove events instead of directory ones.

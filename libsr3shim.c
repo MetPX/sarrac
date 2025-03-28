@@ -308,7 +308,7 @@ int should_not_post(const char *fn, const int rmflags)
 
 	/* if already seen, then return (either too soon, or OK!) */
 	for (int i = 0; i < remembered_count; i++) {
-		sr_shimdebug_msg(5, "looking at remembered files %d\n", i);
+		sr_shimdebug_msg(5, "looking at remembered file %d %s\n", i, (*remembered_filenames)[i].name);
 		if (!strcmp((*remembered_filenames)[i].name, fn)) {
 			interval = (ts.tv_sec + ts.tv_nsec / 1e9) -
 			    ((*remembered_filenames)[i].ts.tv_sec +
@@ -1118,12 +1118,6 @@ int dup2(int oldfd, int newfd)
 		return dup2_fn_ptr(oldfd, newfd);
 	}
 
-	if (!strncmp(real_path, "/dev/", 5) || !strncmp(real_path, "/proc/", 6)) {
-		sr_shimdebug_msg(4, " dup2 NO POST path device or proc !\n");
-		errno = 0;
-		return dup2_fn_ptr(oldfd, newfd);
-	}
-
 	if (!getenv("SR_POST_READS"))
 		srshim_initialize("shim");
 
@@ -1133,6 +1127,12 @@ int dup2(int oldfd, int newfd)
 		sr_shimdebug_msg(4,
 				 " dup2 newfd is open, so close it explicitly to potentially post.\n");
 		close(newfd);
+	}
+
+	if (!strncmp(real_path, "/dev/", 5) || !strncmp(real_path, "/proc/", 6)) {
+		sr_shimdebug_msg(4, " dup2 NO POST path device or proc !\n");
+		errno = 0;
+		return dup2_fn_ptr(oldfd, newfd);
 	}
 
 	status = dup2_fn_ptr(oldfd, newfd);
@@ -1199,12 +1199,6 @@ int dup3(int oldfd, int newfd, int flags)
 		return dup3_fn_ptr(oldfd, newfd, flags);
 	}
 
-	if (!strncmp(real_path, "/dev/", 5) || !strncmp(real_path, "/proc/", 6)) {
-		sr_shimdebug_msg(4, " dup3 NO POST path device or proc !\n");
-		errno = 0;
-		return dup3_fn_ptr(oldfd, newfd, flags);
-	}
-
 	if (!getenv("SR_POST_READS"))
 		srshim_initialize("shim");
 
@@ -1213,6 +1207,12 @@ int dup3(int oldfd, int newfd, int flags)
 		sr_shimdebug_msg(4,
 				 " dup3 newfd is open, so close it explicitly to potentially post.\n");
 		close(newfd);
+	}
+
+	if (!strncmp(real_path, "/dev/", 5) || !strncmp(real_path, "/proc/", 6)) {
+		sr_shimdebug_msg(4, " dup3 NO POST path device or proc !\n");
+		errno = 0;
+		return dup3_fn_ptr(oldfd, newfd, flags);
 	}
 
 	errno = 0;

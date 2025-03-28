@@ -51,26 +51,16 @@ echo "#test 1 remove 140 removing a file."
 rm ~/test/hoho2.log
 
 echo "#test 1 directory 150 make second directory ."
-
 mkdir dirone
-if [ "${KNOWN_REDIRECTION_BUG}" ]; then
-    echo "#test 1 sha512 160 cp to avoid stdout redirection in a subdir"
-    cp hoho dirone/fileone
-else
-    echo "#test 1 sha512 160 stdout redirection in a subdir"
-    echo "fileone" >>dirone/fileone
-fi
+
+echo "#test 1 sha512 160 stdout redirection in a subdir"
+echo "fileone" >>dirone/fileone
 
 echo "#test 1 directory 170 make third directory."
 mkdir dirone/dirtwo
 
-if [ "${KNOWN_REDIRECTION_BUG}" ]; then
-    echo "#test 1 sha512 180 cp to avoid stdout redirection in a subsubdir"
-    cp hoho dirone/dirtwo/filetwo
-else
-    echo "#test 1 sha512 180 stdout redirection in a subsubdir"
-    echo "filetwo" >>dirone/dirtwo/filetwo
-fi
+echo "#test 1 sha512 180 stdout redirection in a subsubdir"
+echo "filetwo" >>dirone/dirtwo/filetwo
 
 echo "#test 1 sha512 160 copy a file to one with spaces in the name"
 cp dirone/dirtwo/filetwo "dirone/filetwo copy with spaces in the name"

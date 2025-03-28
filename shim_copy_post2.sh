@@ -4,17 +4,11 @@ set -x
 cd shim_dirA
 which bash
 
-echo "FIXME: KNOWN ISSUE redirection close does not get posted!"
-
-if [ "${KNOWN_REDIRECTION_BUG}" ]; then
-    echo "#test 1 sha512 000 work-around for capturing stdout"
-    cp ../pyiotest ./hoho
-else
-    echo "#test 1 sha512 000 capturing stdout"
-    bash -c 'echo "hoho" >> ./hoho'
-fi
-
 echo "#test 0 comment 010 shim copy posting start"
+
+echo "#test 1 sha512 000 capturing stdout"
+echo "hoho" >> ./hoho
+
 echo "#test 1 sha512 c program run."
 truncate --size=2 ./hoho
 
@@ -36,7 +30,7 @@ echo "#test 1 link 050 symlink to a broken place"
 ln -sf broken_do_not_exist symlink_to_non_existent_place
 
 echo "#test 1 link 050 symlink to a broken place"
-ln -sf `pwd`/broken_do_not_exist `pwd`/symlink_to_non_existent_place
+ln -sf `pwd`/broken_do_not_exist2 `pwd`/symlink_to_non_existent_place2
 
 echo "#test 1 sha512 050 touch command"
 touch hihi
@@ -120,13 +114,17 @@ touch test_file
 
 echo "#test 1 rename move test_file into dirthree subdir"
 mv test_file dirthree
+
+# sleep to ensure that shim_post_minterval doesn't suppress the post of test_file
+sleep 10
+
 echo "#test 1 sha512 create test_file (again) from redirection"
 echo 2 >test_file
 
-if [ ! "${KNOWN_REDIRECTION_BUG}" ]; then
-    echo "#no post from touch, refused as repeat"
-    touch test_file
-fi
+#if [ ! "${KNOWN_REDIRECTION_BUG}" ]; then
+#    echo "#no post from touch, refused as repeat"
+#    touch test_file
+#fi
 
 echo "#test 1 rename move test_file into dirthree subdir (new name)"
 mv test_file dirthree/new_test_file

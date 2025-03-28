@@ -34,11 +34,11 @@ if [ ! "${EXCHANGE}" ]; then
     EXCHANGE=xs_feed
 fi
 
-STRIP="`pwd`"
+STRIP="`realpath $(pwd)`"
 STRIP="`echo ${STRIP} | tr -cd '/' | wc -c`"
 STRIP=$((${STRIP}+1))
 
-echo "setting STRIP to $STRIP for: `pwd`"
+echo "setting STRIP to $STRIP for: `pwd` (realpath: `realpath $(pwd)`)"
 
 cat >~/.config/sr3/subscribe/local_copy.conf <<EOT
 
@@ -111,11 +111,9 @@ else
 fi
 export SR_SHIMDEBUG=99
 
-if [ "${KNOWN_REDIRECTION_BUG}" ]; then
-	bash ./shim_copy_post.sh &
-else
-	./shim_copy_post.sh &
-fi
+# run in a new shell to ensure output redirection correctly triggers posts #177
+bash ./shim_copy_post.sh &
+
 unset SR_POST_CONFIG
 unset SR_SHIMDEBUG
 unset LD_PRELOAD

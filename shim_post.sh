@@ -68,10 +68,6 @@ EOT
    exec $0
 fi
 
-if [ "${KNOWN_REDIRECTION_BUG}" ];then
-    bash ./shim_post_run.sh
-else
-    . ./shim_post_run.sh
-fi
-
+# run in a new shell to ensure output redirection correctly triggers posts #177
+bash ./shim_post_run.sh
 
