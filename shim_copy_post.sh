@@ -117,4 +117,11 @@ echo 2 >test_file
 echo "#test 1 rename move test_file into dirthree subdir (new name)"
 mv test_file dirthree/new_test_file
 
+# issue #208 rm directory with trailing slash
+echo "#test 1 directory create with trailing slash"
+mkdir dir_test/
+
+echo "#test 1 remove directory with trailing slash"
+rm -r dir_test/
+
 echo "#test 0 comment 160 shim copy posting end"

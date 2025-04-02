@@ -594,6 +594,7 @@ void realpath_adjust(struct sr_log_context_s *logctx, const char *input_path, ch
 	char *return_value;
 	char mutable_input_path[PATH_MAX];
 	int i;
+	bool ends_with_slash = false;
 
 	i = 0;
 	end = NULL;
@@ -610,7 +611,11 @@ void realpath_adjust(struct sr_log_context_s *logctx, const char *input_path, ch
 		adjust = -1;
 	}
 	if (adjust < 0) {
-		for (i = 0; i > adjust; i--) {
+		// handle paths that end in slash
+		int pathlen = strlen(start);
+		ends_with_slash = (pathlen > 0 && start[pathlen-1] == '/');
+		sr_log_msg(logctx,LOG_DEBUG, "realpath_adjust %d, %s ends with slash? %d \n", adjust, input_path, ends_with_slash);
+		for (i = 0; i > (adjust - (ends_with_slash ? 1:0)); i--) {
 			spare = end;
 			end = strrchr(start, '/');
 			if (end) {
