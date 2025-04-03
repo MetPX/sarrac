@@ -29,6 +29,13 @@ ln hoho hard_link_to_hoho
 echo "#test 1 link 050 symlink to a broken place"
 ln -sf broken_do_not_exist symlink_to_non_existent_place
 
+# (re-) creating a symlink that already exists should generate two messages
+# one link with a temporary name and one rename that renames the temporary name to the
+# correct name, and overwrites the already existing symlink in the process
+
+echo "#test 1,1 link,rename 050 symlink to a broken place"
+ln -sf broken_do_not_exist symlink_to_non_existent_place
+
 echo "#test 1 link 050 symlink to a broken place"
 ln -sf `pwd`/broken_do_not_exist2 `pwd`/symlink_to_non_existent_place2
 
@@ -136,5 +143,12 @@ rm filefive
 
 echo "#test 1 rename move a file when in a linked dir.)"
 mv new_test_file middle_aged_test_file
+
+# issue #208 rm directory with trailing slash
+echo "#test 1 directory create with trailing slash"
+mkdir dir_test/
+
+echo "#test 1 remove directory with trailing slash"
+rm -r dir_test/
 
 echo "#test 0 comment 160 shim copy posting end"
