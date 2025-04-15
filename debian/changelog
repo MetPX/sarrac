@@ -1,4 +1,4 @@
-metpx-sr3c (3.25.03rc3) UNRELEASED; urgency=medium
+metpx-sr3c (3.25.03rc3) unstable; urgency=medium
 
   * fix #208 directory removals with trailing slashes are not posted correctly
     when using realpathAdjust
