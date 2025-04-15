@@ -113,7 +113,8 @@ Build RPM Packages
     make rpm_rhel7 
     
     # To install it:
-    rpm -ivh ~/rpmbuild/RPMS/_platform_/*version*.rpm  (if upgrading, -Uvh)
+    rpm -ivh ~/rpmbuild/RPMS/_platform_/*version*.rpm 
+    # (if upgrading, use -Uvh instead)
 
 - go to a hpc account on a powerpc node
 
@@ -122,7 +123,10 @@ Build RPM Packages
     cd Sarracenia/metpx-sr3c
     make clean
     make rpm_rhel7
+
+    # Install:
     rpm -ivh ~/rpmbuild/RPMS/_platform_/*version*.rpm
+    # (if upgrading, use -Uvh instead)
 
 The rpm build targets run *rpmbuild* which places the packages in a standard tree in the user account:
 ~/rpmbuild/RPMS/<arch>/..rpm on each arch the rpm will be created in the appropriate directory.
