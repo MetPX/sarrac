@@ -167,11 +167,8 @@ Then can run the test::
 
      make test_shim_post
 
-All tests should, ideally, succeed.  on redhat8, they don't so we cannot proceed to the next
-tests. On redhat8, there is a bug related to re-direction not working.  so you need to
-set KNOWN_REDIRECTION_BUG=y, and run the tests again::
+All tests should, ideally, succeed.
 
-    [sarra@edcm-dirt-rhel8-1 metpx-sr3c]$ export KNOWN_REDIRECTION_BUG=y
     [sarra@edcm-dirt-rhel8-1 metpx-sr3c]$ make test_shim_post
     ./shim_post.sh >shim_post.log 2>&1
     #python3 ./check_shim_post.py shim_post.log exit_on_bad
@@ -254,13 +251,12 @@ set KNOWN_REDIRECTION_BUG=y, and run the tests again::
     [sarra@edcm-dirt-rhel8-1 metpx-sr3c]$
 
 
-IF that passes, then the next tests are::
+IF that passes, then the next tests can be executed sequentially with::
 
      make test_shim
 
 which will run test_shim_post again, and then mirror sub-directories of the local directory using many 
-different combinations of options. Project for future... get things to work on redhat without
-the KNOW_REDIRECTION_BUG being set.
+different combinations of options.
 
 
 Build a Debian Package
@@ -282,17 +278,10 @@ Build an RPM Package
 --------------------
 
 if on a redhat derived OS, then assuming build dependencies are taken 
-care of. For redhat 8, add the INTERCEPT_SYSCALL symbol to CFLAGS in the
-Makefile::
+care of.::
 
    git clone https://github.com/MetPX/sarrac metpx-sr3c
    cd metpx-sr3c
-
-   vi Makefile
-   /^CFLAGS=
-   a -DINTERCEPT_SYSCALL <Esc>
-   :wq
-
 
 For all Redhat versions::
 
