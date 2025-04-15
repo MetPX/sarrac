@@ -43,19 +43,40 @@ for each of:
 
 do:
 
-  * https://github.com/MetPX/sarrac/blob/development/BUILD.rst#testing
-  * then install the package locally: either
-     
-     * https://github.com/MetPX/sarrac/blob/development/BUILD.rst#build-a-debian-package  or 
-     * https://github.com/MetPX/sarrac/blob/development/BUILD.rst#build-a-debian-package
+* https://github.com/MetPX/sarrac/blob/development/BUILD.rst#testing
+* then install the package locally: either
+   
+   * https://github.com/MetPX/sarrac/blob/development/BUILD.rst#build-a-debian-package  or 
+   * https://github.com/MetPX/sarrac/blob/development/BUILD.rst#build-a-debian-package
 
-  * install them... 
+* install them... 
 
-     * rpm -ivh or dpkg -i ...
+   * rpm -ivh or dpkg -i ...
 
-  * then run the python flow_tests. as per the python package documentation:
+* then run the python flow_tests. as per the python package documentation:
 
-    * https://metpx.github.io/sarracenia/Contribution/Release.html#pre-release-overview
+  * https://metpx.github.io/sarracenia/Contribution/Release.html#pre-release-overview
+
+Pre-Release Packaging:
+^^^^^^^^^^^^^^^^^^^^^^
+
+Assuming the ``debian/changelog`` has already been updated and committed to the development branch, and that the testing steps above have been completed successfully::
+
+  git checkout development
+  git pull
+  git checkout pre-release
+  git pull
+  git merge --strategy-option=theirs development
+  git push
+  git tag -a v3.yy.mm.rcZ -m "pre-release v3.yy.mm.rcZ"
+  git push origin v3.yy.mm.rcZ
+  
+* go to Launchpad, and import source `here <https://code.launchpad.net/~ssc-hpc-chp-spc/metpx-sarrac/+git/master>`_.
+* go to Launchpad, find the recipe and Request Builds `here <https://code.launchpad.net/~ssc-hpc-chp-spc/+recipe/metpx-sr3c-pre-release>`_.
+* `Build RPM Packages`_ using the ``pre-release`` branch (repeat for both RedHat 8 and RedHat 9)
+* Create a new release on GitHub: https://github.com/MetPX/sarrac/releases/new 
+
+  * Upload the RPM packages
 
 
 Release Process
@@ -63,31 +84,45 @@ Release Process
 
 To note changes:
 
-  - install package so that it is used for flow tests on at least one platform.
-  - find redhat8 (with local disk) and run make test_shim
-  - find ubuntu18 (with local disk) and run make test_shim.
-  - dch, and touch up your points if need be.
-  - when ready to release, edit UNRELEASED to an appropriate status, usually unstable.
-  - git commit #what you need to commit...
-  - git tag <release> -m <release>
-  - git push
-  - git push origin <release>
+- install package so that it is used for flow tests on at least one platform.
+- find redhat8 (with local disk) and run make test_shim
+- find ubuntu18 (with local disk) and run make test_shim.
+- dch, and touch up your points if need be.
+- when ready to release, edit UNRELEASED to an appropriate status, usually unstable.
+- git commit #what you need to commit...
+- git tag <release> -m <release>
+- git push
+- git push origin <release>
 
-  - go to Launchpad, and import source `here <https://code.launchpad.net/~ssc-hpc-chp-spc/metpx-sarrac/+git/master>`_.
-  - go to launchpad, find the recipe and Request Build `here <https://code.launchpad.net/~ssc-hpc-chp-spc/+recipe/metpx-sr3c-pre-release>`_.
-  - go to an hpc account (on an intel node)
-    * mkdir ~/Sarracenia;  cd ~/Sarracenia
-    * git clone https://github.com/MetPX/sarrac metpx-sr3c
-    * NOTE: the directory must be named metpx-sr3c
-    * cd metpx-sr3c
-    * make rpm_rhel7 
-    * rpm -ivh ~/rpmbuild/RPMS/_platform_/*version*.rpm  (if upgrading, -Uvh)
+- go to Launchpad, and import source `here <https://code.launchpad.net/~ssc-hpc-chp-spc/metpx-sarrac/+git/master>`_.
+- go to launchpad, find the recipe and Request Build `here <https://code.launchpad.net/~ssc-hpc-chp-spc/+recipe/metpx-sr3c>`_.
 
-  - go to a hpc account on a powerpc node
-    * cd Sarracenia/metpx-sr3c
-    * make clean
-    * make rpm_rhel7
-    * rpm -ivh ~/rpmbuild/RPMS/_platform_/*version*.rpm
+Build RPM Packages
+-------------------
+
+- go to an hpc account (on an intel node)
+  
+  .. code-block:: console
+  
+    mkdir ~/Sarracenia;  cd ~/Sarracenia
+    git clone https://github.com/MetPX/sarrac.git metpx-sr3c
+    
+    # NOTE: the directory must be named metpx-sr3c
+    cd metpx-sr3c
+    git checkout $BRANCH_YOU_WANT
+    make rpm_rhel7 
+    
+    # To install it:
+    rpm -ivh ~/rpmbuild/RPMS/_platform_/*version*.rpm  (if upgrading, -Uvh)
+
+- go to a hpc account on a powerpc node
+
+  .. code-block:: console
+
+    cd Sarracenia/metpx-sr3c
+    make clean
+    make rpm_rhel7
+    rpm -ivh ~/rpmbuild/RPMS/_platform_/*version*.rpm
 
 The rpm build targets run *rpmbuild* which places the packages in a standard tree in the user account:
 ~/rpmbuild/RPMS/<arch>/..rpm on each arch the rpm will be created in the appropriate directory.
