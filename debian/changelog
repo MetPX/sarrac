@@ -1,18 +1,8 @@
-metpx-sr3c (3.25.03rc3) unstable; urgency=medium
+metpx-sr3c (3.25.03) unstable; urgency=medium
 
   * fix #208 directory removals with trailing slashes are not posted correctly
     when using realpathAdjust
-
- -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Wed, 02 Apr 2025 19:35:00 +0000
-
-metpx-sr3c (3.25.03rc2) unstable; urgency=medium
-
   * fix #177 files written using redirection are not posted
-
- -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Thu, 27 Mar 2025 21:32:06 +0000
-
-metpx-sr3c (3.25.03rc1) unstable; urgency=medium
-
   * fix #199 not posting when regex does not match
   * fix #198 rm -rf make file remove events instead of directory ones.
   * fix rmdir processing re-written, with API change to produce rmdir events
@@ -20,7 +10,7 @@ metpx-sr3c (3.25.03rc1) unstable; urgency=medium
   * fix shimdebug messaging priorities check was wrong.
   * work on #196... core dumps occuring in process cleanup. not fixed.
   
- -- peter <peter@bsqt.homeip.net>  Fri, 14 Mar 2025 08:48:03 -0400
+ -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Thu, 17 Apr 2025 17:56:12 +0000
 
 metpx-sr3c (3.24.12) unstable; urgency=medium
 
