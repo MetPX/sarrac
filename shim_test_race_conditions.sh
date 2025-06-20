@@ -95,7 +95,7 @@ accept `realpath ${HOME}/test`/.*
 reject .*
 EOT
 
-
+mkdir -p ~/.config/sr3/plugins
 cat >~/.config/sr3/plugins/screw_up_order.py  <<EOT
 
 import logging
