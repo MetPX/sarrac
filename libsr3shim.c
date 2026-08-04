@@ -81,6 +81,8 @@ SR_POST_CONFIG -- environment variable to set configuration file name
 void exit_cleanup_posts();
 int exit_cleanup_posts_setup = 0;
 
+int process_deferred_symlink(const char *source, const char* dest, bool is_rename); 
+
 void syscall_init();
 
 int mypid = 0;
@@ -605,6 +607,8 @@ int truncate(const char *path, off_t length)
 		truncate_fn_ptr = (truncate_fn) dlsym(RTLD_NEXT, "truncate");
 		truncate_init_done = 1;
 	}
+	process_deferred_symlink(NULL,NULL,false);
+
 	status = truncate_fn_ptr(path, length);
 
 	if (shim_disabled)
@@ -637,6 +641,8 @@ int mkdir(const char *pathname, mode_t mode)
 		mkdir_fn_ptr = (mkdir_fn) dlsym(RTLD_NEXT, "mkdir");
 		mkdir_init_done = 1;
 	}
+	process_deferred_symlink(NULL,NULL,false);
+
 	status = mkdir_fn_ptr(pathname, mode);
 	if (shim_disabled)
 		return (status);
@@ -666,6 +672,8 @@ int mkdirat(int dirfd, const char *pathname, mode_t mode)
 		mkdirat_fn_ptr = (mkdirat_fn) dlsym(RTLD_NEXT, "mkdirat");
 		mkdirat_init_done = 1;
 	}
+	process_deferred_symlink(NULL,NULL,false);
+
 	status = mkdirat_fn_ptr(dirfd, pathname, mode);
 	if (shim_disabled)
 		return (status);
@@ -695,6 +703,8 @@ int rmdir(const char *pathname)
 		rmdir_fn_ptr = (rmdir_fn) dlsym(RTLD_NEXT, "rmdir");
 		rmdir_init_done = 1;
 	}
+	process_deferred_symlink(NULL,NULL,false);
+
 	status = rmdir_fn_ptr(pathname);
 	if (shim_disabled)
 		return (status);
@@ -727,6 +737,7 @@ int remove(const char *pathname)
 		remove_fn_ptr = (remove_fn) dlsym(RTLD_NEXT, "remove");
 		remove_init_done = 1;
 	}
+	process_deferred_symlink(NULL,NULL,false);
 
 	// before removing, need to know if pathname is a file or dir
 	// if stat fails, also assuming that pathname is not a dir
@@ -767,6 +778,8 @@ int symlink(const char *target, const char *linkpath)
 		symlink_fn_ptr = (symlink_fn) dlsym(RTLD_NEXT, "symlink");
 		symlink_init_done = 1;
 	}
+	process_deferred_symlink(NULL,NULL,false);
+
 	status = symlink_fn_ptr(target, linkpath);
 	if (shim_disabled)
 		return (status);
@@ -785,6 +798,40 @@ int symlink(const char *target, const char *linkpath)
 static int symlinkat_init_done = 0;
 typedef int (*symlinkat_fn)(const char *, int, const char *);
 static symlinkat_fn symlinkat_fn_ptr = symlinkat;
+
+char *deferred_symlink_path = NULL;
+int  deferred_symlink_status = 0;
+
+
+
+int process_deferred_symlink(const char *source, const char* dest, bool is_rename) 
+/*
+ * ln -sf A B -> ln -s A tmpname + mv tmpname B ... we want to squash those into just ln -s A B
+ * so save the last ln -s call, and if it is for tmpname, and the next rename is for tmpname, then
+ * great! just do a post of the dest.
+ * return 256+status if symlink with dest done, obviating need for rename.
+ */
+{
+	char *symlink_path;
+
+	if (!deferred_symlink_path) return(0);
+
+	symlink_path=deferred_symlink_path;
+     	deferred_symlink_path=NULL;
+
+	if (is_rename && !strcmp(source,symlink_path)) {
+		/* just post the end result */
+		sr_shimdebug_msg(1, "smashed ln -sf  to %s\n", dest);
+		shimpost(dest, 0, 0);
+		return(1);
+	} else {
+		/* post the original link */
+		sr_shimdebug_msg(1, "posting old ln -s to %s\n", symlink_path);
+		shimpost(symlink_path, 0, 0);
+	}
+        free(symlink_path);
+	return(0);
+}
 
 int symlinkat(const char *target, int dirfd, const char *linkpath)
 {
@@ -813,8 +860,12 @@ int symlinkat(const char *target, int dirfd, const char *linkpath)
 		return (status);
 
 	if (dirfd == AT_FDCWD) {
+		sr_shimdebug_msg( 1, "symlinkat AT_FDCWD %s\n", linkpath );
 		clerror(status);
-		return (shimpost(linkpath, status, 0));
+		deferred_symlink_path=strdup(linkpath);
+		deferred_symlink_status=status;
+		return(status);
+		//return (shimpost(linkpath, status, 0));
 	}
 
 	snprintf(fdpath, 32, "/proc/self/fd/%d", dirfd);
@@ -830,8 +881,12 @@ int symlinkat(const char *target, int dirfd, const char *linkpath)
 	strcat(real_path, "/");
 	strcat(real_path, linkpath);
 
+        sr_shimdebug_msg( 1, "symlinkat not AT_FDCWD %s\n", linkpath );
 	clerror(status);
-	return (shimpost(real_path, status, 0));
+	deferred_symlink_path=strdup(linkpath);
+	deferred_symlink_status=status;
+	return(status);
+	//return (shimpost(real_path, status, 0));
 
 }
 
@@ -854,7 +909,8 @@ int unlinkat(int dirfd, const char *path, int flags)
 		setup_exit();
 		unlinkat_fn_ptr = (unlinkat_fn) dlsym(RTLD_NEXT, "unlinkat");
 		unlinkat_init_done = 1;
-	}
+	}	
+	process_deferred_symlink(NULL,NULL,false);
 
 	stat_failed = fstatat(dirfd, path, &sb, 0);
 
@@ -904,6 +960,8 @@ int unlink(const char *path)
 		unlink_fn_ptr = (unlink_fn) dlsym(RTLD_NEXT, "unlink");
 		unlink_init_done = 1;
 	}
+	process_deferred_symlink(NULL,NULL,false);
+
 	status = unlink_fn_ptr(path);
 	if (shim_disabled)
 		return (status);
@@ -1060,6 +1118,9 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 	if (!srshim_connect())
 		return (status);
 
+	if (process_deferred_symlink(oldpath,newpath,true))
+		return(0);
+
 	sr_post_rename(sr_c, oreal_path, real_path, link);
 
 	clerror(status);
@@ -1087,6 +1148,7 @@ int dup2(int oldfd, int newfd)
 		dup2_init_done = 1;
 		srshim_initialize("shim");
 	}
+	process_deferred_symlink(NULL,NULL,false);
 
 	errno = 0;
 
@@ -1175,6 +1237,7 @@ int dup3(int oldfd, int newfd, int flags)
 		errno = 0;
 		return dup3_fn_ptr(oldfd, newfd, flags);
 	}
+	process_deferred_symlink(NULL,NULL,false);
 
 	fdstat = fcntl(newfd, F_GETFL);
 
@@ -1255,6 +1318,8 @@ void exit_cleanup_posts()
 		return;
 
 	exit_cleanup_posts_ran = 1;
+
+	process_deferred_symlink(NULL,NULL,false);
 
 	sr_shimdebug_msg(4, "exit_cleanup_posts, scan /proc/self/fd\n");
 	// In the current process, find files which are not opened by the parent
@@ -1407,6 +1472,8 @@ void exit(int status)
 	if (exit_cleanup_posts_ran)
 		_exit(status);
 
+	process_deferred_symlink(NULL,NULL,false);
+
 	exit_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit");
 
 	exit_cleanup_posts();
@@ -1428,9 +1495,11 @@ void exit_group(int status)
 
 	exit_group_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit_group");
 
+
 	if (!getenv("SR_POST_CONFIG") || shim_disabled)
 		exit_group_fn_ptr(status);
 
+	process_deferred_symlink(NULL,NULL,false);
 	exit_cleanup_posts();
 
 	// do it for real.
@@ -1504,6 +1573,8 @@ ssize_t sendfile(int out_fd, int in_fd, off_t * offset, size_t count)
 	if (shim_disabled)
 		return (status);
 
+	process_deferred_symlink(NULL,NULL,false);
+
 	snprintf(fdpath, 32, "/proc/self/fd/%d", out_fd);
 	real_return = realpath(fdpath, real_path);
 
@@ -1545,6 +1616,7 @@ int close(int fd)
 		sr_shimdebug_msg(8, " close fd=%d shim_disabled, passing to built-in.\n", fd);
 		return close_fn_ptr(fd);
 	}
+	process_deferred_symlink(NULL,NULL,false);
 	fdstat = fcntl(fd, F_GETFL);
 
 	if (fdstat == -1) {
@@ -1625,6 +1697,7 @@ int fclose(FILE * f)
 	if (shim_disabled)
 		return fclose_fn_ptr(f);
 
+	process_deferred_symlink(NULL,NULL,false);
 	fd = fileno(f);
 	if (fd == -1) {
 		clerror(fd);
@@ -1706,6 +1779,7 @@ FILE *fopen(const char *pathname, const char *mode)
 		setup_exit();
 	}
 	sr_shimdebug_msg(2, "fopen %s %s\n", pathname, mode);
+	process_deferred_symlink(NULL,NULL,false);
 
 	return (fopen_fn_ptr(pathname, mode));
 }
@@ -1721,6 +1795,7 @@ long int syscall(long int __sysno, ...)
 	if (!syscall_init_done) {
 		syscall_init();
 	}
+	process_deferred_symlink(NULL,NULL,false);
 
 	// start of file/directory related syscalls that we need to intercept and post a message for
 
