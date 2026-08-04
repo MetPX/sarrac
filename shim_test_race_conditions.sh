@@ -208,27 +208,7 @@ sleep ${sleepytime}
 sr3 remove cpost/local_post.conf
 
 # wait for retries to finish before stopping subscriber
-
-echo "Waiting for retries to finish..."
-stalled=0
-stalled_value=-1
-retry_msgcnt="$(cat ~/.cache/sr3/subscribe/local_copy/*retry* 2>/dev/null | sort -u | wc -l)"
-while [ $retry_msgcnt -gt 0 ]; do
-        printf "${flow_test_name} Still %4s messages to retry, waiting...\n" "$retry_msgcnt"
-        sleep 15
-        retry_msgcnt="$(cat ~/.cache/sr3/subscribe/local_copy/*retry* 2>/dev/null | sort -u | wc -l)"
-
-        if [ "${stalled_value}" == "${retry_msgcnt}" ]; then
-              stalled=$((stalled+1));
-              if [ "${stalled}" == 5 ]; then
-                 printf "\n    Warning some retries stalled, skipping..., might want to check the logs\n\n"
-                 retry_msgcnt=0
-              fi
-        else
-              stalled_value=$retry_msgcnt
-              stalled=0
-        fi
-done
+./test_util/wait_for_retries.sh
 
 # wait a bit longer
 sleep 60
@@ -241,33 +221,6 @@ rm ~/.config/sr3/plugins/screw_up_order.py
 sed -i '/callback screw_up_order/d' ~/.config/sr3/default.conf
 
 echo "#test 0 comment comparing trees"
-    
-    
-cd shim_dirA
-find -H . -type f | xargs -d '\n' md5sum >../dirA.sums
-cd ../shim_dirB
-find -H . -type f | xargs -d '\n' md5sum >../dirB.sums
-cd ..
-    
-diffs="`diff dirA.sums dirB.sums| wc -l`"
 
-cd shim_dirA
-find . -type l  | xargs ls -al | cut --bytes=42- >../dirA.links
-cd ../shim_dirB
-find . -type l  | xargs ls -al | cut --bytes=42- >../dirB.links
-cd ..
-
-sed 's+shim_dirB+shim_dirA+' dirB.links >dirC.links
-
-linkdiffs="`diff dirA.links dirC.links|wc -l`"
-
-if [ "${linkdiffs}" -eq 0 -a "${diffs}" -eq 0 ]; then
-	echo "RESULT: Good! trees links the same: `wc -l dirA.sums` files and `wc -l dirA.links` links mirrored"
-else
-       echo "RESULT: BAD tree differences in $diffs files, and $linkdiffs links"
-       echo "shim_dirA:"
-       ls -hal shim_dirA
-       echo 
-       echo "shim_dirB:"
-       ls -hal shim_dirB
-fi
+./test_util/compare_trees.sh --check-links
+echo

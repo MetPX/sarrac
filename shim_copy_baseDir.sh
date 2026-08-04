@@ -129,17 +129,5 @@ sr3 remove subscribe/local_copy.conf
 
 echo "#test 0 comment comparing trees"
     
-    
-cd shim_dirA
-find -H . -type f | xargs -d '\n' md5sum >../dirA.sums
-cd ../shim_dirB
-find -H . -type f | xargs -d '\n' md5sum >../dirB.sums
-cd ..
-    
-diffs="`diff dirA.sums dirB.sums| wc -l`"
-
-if [ "${diffs}" -eq 0 ]; then
-       echo "RESULT: Good! trees the same"
-else
-       echo "RESULT: BAD trees have $diffs differences"
-fi
+./test_util/compare_trees.sh
+echo
