@@ -96,7 +96,8 @@ cp dirone/dirtwo/filetwo "dirone/filetwo copy with spaces in the name"
 echo "#test 1 sha512 160 copy a file with spaces in the name (both source and dest)"
 cp "dirone/filetwo copy with spaces in the name" "dirone/second spaced file"
 
-
+# sleep to allow filetwo to be downloaded before renaming it to filefour
+sleep 10
 echo "#test 1 rename 145 rename in a sub-dir"
 mv dirone/dirtwo/filetwo dirone/dirtwo/filefour
 

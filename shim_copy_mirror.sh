@@ -128,27 +128,5 @@ sr3 remove subscribe/local_copy.conf
 
 echo "#test 0 comment comparing trees"
     
-    
-cd shim_dirA
-find -H . -type f | xargs -d '\n' md5sum >../dirA.sums
-cd ../shim_dirB
-find -H . -type f | xargs -d '\n' md5sum >../dirB.sums
-cd ..
-    
-diffs="`diff dirA.sums dirB.sums| wc -l`"
-
-cd shim_dirA
-find . -type l  | xargs ls -al | cut --bytes=42- >../dirA.links
-cd ../shim_dirB
-find . -type l  | xargs ls -al | cut --bytes=42- >../dirB.links
-cd ..
-
-sed 's+shim_dirB+shim_dirA+' dirB.links >dirC.links
-
-linkdiffs="`diff dirA.links dirC.links|wc -l`"
-
-if [ "${linkdiffs}" -eq 0 -a "${diffs}" -eq 0 ]; then
-	echo "RESULT: Good! trees links the same: `wc -l dirA.sums` files and `wc -l dirA.links` links mirrored"
-else
-       echo "RESULT: BAD tree differences in $diffs files, and $linkdiffs links"
-fi
+./test_util/compare_trees.sh --check-links
+echo
