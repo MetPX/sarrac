@@ -1,4 +1,4 @@
-metpx-sr3c (3.26.08rc1) unstable; urgency=medium
+metpx-sr3c (3.26.08rc2) unstable; urgency=medium
 
   * fix #218 links are not published when destinatination filename inside a
     directory is not given
