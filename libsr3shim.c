@@ -1027,7 +1027,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 	} else {
 		snprintf(fdpath, 32, "/proc/self/fd/%d", olddirfd);
 		oreal_return = realpath(fdpath, oreal_path);
-		if (oreal_return) {
+		if (!oreal_return) {
 			sr_log_msg(logctxptr,LOG_WARNING,
 				   "srshim renameorlink could not obtain real_path for olddir=%s failed, no post\n",
 				   fdpath);
@@ -1043,7 +1043,7 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 	} else {
 		snprintf(fdpath, 32, "/proc/self/fd/%d", newdirfd);
 		real_return = realpath(fdpath, real_path);
-		if (real_return) {
+		if (!real_return) {
 			sr_log_msg(logctxptr,LOG_WARNING,
 				   "srshim renameorlink could not obtain real_path for newdir=%s failed, no post\n",
 				   fdpath);

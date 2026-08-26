@@ -1,6 +1,7 @@
-metpx-sr3c (3.25.05rc1) UNRELEASED; urgency=medium
+metpx-sr3c (3.26.08rc2) unstable; urgency=medium
 
-  * nothing yet, incrementing changelog in dev branch
+  * fix #218 links are not published when destinatination filename inside a
+    directory is not given
 
  -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Thu, 17 Apr 2025 17:58:57 +0000
 
