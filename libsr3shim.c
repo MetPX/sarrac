@@ -1156,7 +1156,7 @@ int dup2(int oldfd, int newfd)
 
 	errno = 0;
 
-	if (shim_disabled || (oldfd == newfd)) {
+	if (is_shim_disabled() || (oldfd == newfd)) {
 		sr_shimdebug_msg(4, " dup2 NO POST oldfd = newfd \n");
 		return dup2_fn_ptr(oldfd, newfd);
 	}
@@ -1236,7 +1236,7 @@ int dup3(int oldfd, int newfd, int flags)
 			srshim_initialize("shim");
 	}
 
-	if (shim_disabled || (oldfd == newfd)) {
+	if (is_shim_disabled() || (oldfd == newfd)) {
 		sr_shimdebug_msg(4, " dup3 NO POST oldfd = newfd \n");
 		errno = 0;
 		return dup3_fn_ptr(oldfd, newfd, flags);
@@ -1317,7 +1317,7 @@ void exit_cleanup_posts()
 
 	sr_shimdebug_msg(1, "exit_cleanup_posts, context=%p\n", sr_c);
 
-	if (exit_cleanup_posts_ran || shim_disabled || !getenv("SR_POST_CONFIG"))
+	if (exit_cleanup_posts_ran || is_shim_disabled() || !getenv("SR_POST_CONFIG"))
 		return;
 
 	exit_cleanup_posts_ran = 1;
@@ -1457,7 +1457,6 @@ void exit_cleanup_posts()
 
 	// after this point things get closed, so cannot reliably post.
 	// turn off libsrshim functionality.
-
 	shim_disabled = 1;
 
 }
@@ -1494,7 +1493,7 @@ void exit_group(int status)
 
 	exit_group_fn_ptr = (exit_fn) dlsym(RTLD_NEXT, "exit_group");
 
-	if (!getenv("SR_POST_CONFIG") || shim_disabled)
+	if (!getenv("SR_POST_CONFIG") || is_shim_disabled())
 		exit_group_fn_ptr(status);
 
 	exit_cleanup_posts();
