@@ -14,6 +14,7 @@
 #include <math.h>
 #include <stdarg.h>
 #include <errno.h>
+#include <pthread.h>
 
 #ifdef INTERCEPT_SYSCALL
 // needed for aio_context_t
@@ -359,7 +360,39 @@ int should_not_post(const char *fn, const int rmflags)
 
 }
 
+/*
+The shim needs to be disabled during posting, to prevent file operations from posting itself
+(e.g. reading config files) from triggering an infinite loop. Mutex is used to ensure that only
+one thread posts at a time, because posting accesses and modifies memory shared
+by all threads. See issue #220.
+*/
 static int shim_disabled = 0;
+static pthread_mutex_t shim_disabled_mutex = PTHREAD_MUTEX_INITIALIZER;
+// each thread needs to track if it's the one holding the lock
+static __thread int shim_mutex_owned = 0;
+
+/*
+Safely read shim_disabled. The lock is held while posting, so this should block while posts
+are in progress, then return 0. If shim_disabled is 1 for some other reason, then it will
+return that (and shouldn't block). But allow whichever thread currently owns the lock
+to read shim_disabled without needing to acquire the lock again.
+*/
+static int is_shim_disabled(void) {
+    int disabled;
+	long thread_id;
+
+	if (shim_mutex_owned)
+        return shim_disabled;
+
+	thread_id = (long)syscall(SYS_gettid);
+
+	sr_shimdebug_msg(7, "is_shim_disabled acquiring lock TID=%d\n", thread_id);
+    pthread_mutex_lock(&shim_disabled_mutex);
+    disabled = shim_disabled;
+    pthread_mutex_unlock(&shim_disabled_mutex);
+	sr_shimdebug_msg(7, "is_shim_disabled released lock TID=%d\n", thread_id);
+    return disabled;
+}
 
 void srshim_initialize(const char *progname)
 {
@@ -556,9 +589,21 @@ int shimpost(const char *path, int status, const int rmflags)
 	char *cwd = NULL;
 	char *real_path = NULL;
 	int saved_errno;
+	int previous_disabled = -1;
 
-	if (shim_disabled)
+	// only one thread can publish at a time
+	sr_shimdebug_msg(7, "acquiring lock before publishing: %s\n", path);
+	pthread_mutex_lock(&shim_disabled_mutex);
+	shim_mutex_owned = 1;
+	sr_shimdebug_msg(7, "lock acquired, publishing: %s\n", path);
+	previous_disabled = shim_disabled;
+
+	// intentionally not using is_shim_disabled here, because we have the lock
+	if (shim_disabled) {
+		shim_mutex_owned = 0;
+		pthread_mutex_unlock(&shim_disabled_mutex);
 		return (status);
+	}
 
 	saved_errno=errno;
 
@@ -585,8 +630,11 @@ int shimpost(const char *path, int status, const int rmflags)
 			free(cwd);
 		}
 	}
-	shim_disabled = 0;
-	sr_shimdebug_msg(4, "shim re-enabled after post of %s\n", path);
+
+	shim_disabled = previous_disabled;
+	shim_mutex_owned = 0;
+	pthread_mutex_unlock(&shim_disabled_mutex);
+	sr_shimdebug_msg(4, "shim re-enabled, lock released after post of %s\n", path);
 
 	errno=saved_errno;
 	return (status);
@@ -607,8 +655,10 @@ int truncate(const char *path, off_t length)
 	}
 	status = truncate_fn_ptr(path, length);
 
-	if (shim_disabled)
+	if (is_shim_disabled()) {
+		sr_shimdebug_msg(8, " truncate path=%s shim_disabled, passing to built-in.\n", path);
 		return (status);
+	}
 
 	//clerror(status);
 	if (status == -1)
@@ -638,8 +688,10 @@ int mkdir(const char *pathname, mode_t mode)
 		mkdir_init_done = 1;
 	}
 	status = mkdir_fn_ptr(pathname, mode);
-	if (shim_disabled)
+	if (is_shim_disabled()) {
+		sr_shimdebug_msg(8, " mkdir pathname=%s shim_disabled, passing to built-in.\n", pathname);
 		return (status);
+	}
 
 	if (status == -1)
 		return status;
@@ -667,8 +719,10 @@ int mkdirat(int dirfd, const char *pathname, mode_t mode)
 		mkdirat_init_done = 1;
 	}
 	status = mkdirat_fn_ptr(dirfd, pathname, mode);
-	if (shim_disabled)
+	if (is_shim_disabled()) {
+		sr_shimdebug_msg(8, " mkdirat pathname=%s shim_disabled, passing to built-in.\n", pathname);
 		return (status);
+	}
 
 	if (status == -1)
 		return status;
@@ -696,8 +750,10 @@ int rmdir(const char *pathname)
 		rmdir_init_done = 1;
 	}
 	status = rmdir_fn_ptr(pathname);
-	if (shim_disabled)
+	if (is_shim_disabled()) {
+		sr_shimdebug_msg(8, " rmdir pathname=%s shim_disabled, passing to built-in.\n", pathname);
 		return (status);
+	}
 
 	if (status == -1)
 		return status;
@@ -736,8 +792,10 @@ int remove(const char *pathname)
 	}
 
 	status = remove_fn_ptr(pathname);
-	if (shim_disabled)
+	if (is_shim_disabled()) {
+		sr_shimdebug_msg(8, " remove pathname=%s shim_disabled, passing to built-in.\n", pathname);
 		return (status);
+	}
 
 	sr_shimdebug_msg(1, " remove 2 %s status=%d isdir=%d\n", pathname, status, isdir);	
 
@@ -768,8 +826,10 @@ int symlink(const char *target, const char *linkpath)
 		symlink_init_done = 1;
 	}
 	status = symlink_fn_ptr(target, linkpath);
-	if (shim_disabled)
+	if (is_shim_disabled()) {
+		sr_shimdebug_msg(8, " symlink target=%s linkpath=%s shim_disabled, passing to built-in.\n", target, linkpath);
 		return (status);
+	}
 
 	if (status == -1)
 		return status;
@@ -800,8 +860,8 @@ int symlinkat(const char *target, int dirfd, const char *linkpath)
 	}
 	status = symlinkat_fn_ptr(target, dirfd, linkpath);
 
-	if (shim_disabled) {
-		sr_shimdebug_msg(1, "symlinkat %s %s\n", target, linkpath);
+	if (is_shim_disabled()) {
+		sr_shimdebug_msg(1, " symlinkat target=%s linkpath=%s shim_disabled, passing to built-in.\n", target, linkpath);
 		return (status);
 	}
 	if (status == -1)
@@ -866,8 +926,10 @@ int unlinkat(int dirfd, const char *path, int flags)
 			path, dirfd, stat_failed, isdir);
 
 	status = unlinkat_fn_ptr(dirfd, path, flags);
-	if (shim_disabled)
+	if (is_shim_disabled()) {
+		sr_shimdebug_msg(8, " unlinkat path=%s shim_disabled, passing to built-in.\n", path);
 		return status;
+	}
 	if (status == -1)
 		return status;
 
@@ -905,8 +967,10 @@ int unlink(const char *path)
 		unlink_init_done = 1;
 	}
 	status = unlink_fn_ptr(path);
-	if (shim_disabled)
+	if (is_shim_disabled()) {
+		sr_shimdebug_msg(8, " unlink path=%s shim_disabled, passing to built-in.\n", path);
 		return (status);
+	}
 
 	sr_shimdebug_msg(1, " unlink 2 %s status=%d\n", path, status);
 
@@ -1008,8 +1072,10 @@ int renameorlink(int olddirfd, const char *oldpath, int newdirfd,
 			return (-1);
 		}
 	}
-	if (shim_disabled)
+	if (is_shim_disabled()) {
+		sr_shimdebug_msg(8, " renameorlink oldpath=%s newpath=%s shim_disabled, passing to built-in.\n", oldpath, newpath);
 		return (status);
+	}
 
 	if (status == -1) {
 		sr_shimdebug_msg(1, " renameorlink %s %s failed, no post\n", oldpath, newpath);
@@ -1501,8 +1567,10 @@ ssize_t sendfile(int out_fd, int in_fd, off_t * offset, size_t count)
 	status = sendfile_fn_ptr(out_fd, in_fd, offset, count);
 	if (status == -1)
 		return status;
-	if (shim_disabled)
+	if (is_shim_disabled()) {
+		sr_shimdebug_msg(8, " sendfile shim_disabled, passing to built-in.\n");
 		return (status);
+	}
 
 	snprintf(fdpath, 32, "/proc/self/fd/%d", out_fd);
 	real_return = realpath(fdpath, real_path);
@@ -1541,7 +1609,7 @@ int close(int fd)
 		if (getenv("SR_POST_READS"))
 			srshim_initialize("shim");
 	}
-	if (shim_disabled) {
+	if (is_shim_disabled()) {
 		sr_shimdebug_msg(8, " close fd=%d shim_disabled, passing to built-in.\n", fd);
 		return close_fn_ptr(fd);
 	}
@@ -1622,8 +1690,10 @@ int fclose(FILE * f)
 		if (getenv("SR_POST_READS"))
 			srshim_initialize("shim");
 	}
-	if (shim_disabled)
+	if (is_shim_disabled()) {
+		sr_shimdebug_msg(8, " fclose f=%p shim_disabled, passing to built-in.\n", (void *)f);
 		return fclose_fn_ptr(f);
+	}
 
 	fd = fileno(f);
 	if (fd == -1) {

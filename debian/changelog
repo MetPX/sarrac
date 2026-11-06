@@ -1,3 +1,9 @@
+metpx-sr3c (3.26.10rc1) UNRELEASED; urgency=medium
+
+  * working on #220 thread safety
+
+ -- Reid Sunderland <reid.sunderland@ssc-spc.gc.ca>  Fri, 06 Nov 2026 19:54:20 +0000
+
 metpx-sr3c (3.26.08rc2) unstable; urgency=medium
 
   * fix #218 links are not published when destinatination filename inside a
